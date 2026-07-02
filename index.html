@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --bg:#060911; --bg2:#0a1120; --panel:rgba(13,20,35,.72);
@@ -229,11 +230,40 @@
   .deadline-banner{display:none;align-items:center;gap:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.35);padding:11px 15px;margin-bottom:16px;font-size:13px;
     clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
   .deadline-banner .db-ic{font-size:16px}
+  /* auth */
+  .auth-ov{position:fixed;inset:0;z-index:90;background:rgba(4,7,13,.92);backdrop-filter:blur(9px);display:none;align-items:center;justify-content:center;padding:20px}
+  .auth-ov.show{display:flex}
+  .auth-box{width:min(380px,100%);background:var(--panel);border:1px solid var(--line2);padding:28px 26px;display:flex;flex-direction:column;gap:11px;position:relative;
+    clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px))}
+  .auth-box::before{content:"";position:absolute;top:0;left:0;width:34px;height:1px;background:var(--sky);box-shadow:0 0 10px var(--sky)}
+  .auth-k{font-family:var(--mono);font-size:10px;letter-spacing:.32em;color:var(--sky);text-transform:uppercase}
+  .auth-t{font-family:var(--disp);font-weight:700;font-size:24px;letter-spacing:.04em;margin-bottom:4px}
+  .auth-box input{background:var(--bg2);border:1px solid var(--line);color:var(--ink);font-family:var(--body);font-size:14px;padding:11px 12px;outline:none;transition:.15s}
+  .auth-box input:focus{border-color:var(--sky)}
+  .auth-err{font-family:var(--mono);font-size:11px;color:#fca5a5;min-height:14px;line-height:1.4}
+  .auth-err.ok{color:var(--em)}
+  .btn.ghost2{background:transparent;border:1px solid var(--line2);color:var(--sky)}
+  .btn.ghost2:hover{background:rgba(56,189,248,.08);box-shadow:none}
+  .auth-off{font-family:var(--mono);font-size:10.5px;color:var(--mut2);text-align:center;cursor:pointer;margin-top:4px;text-decoration:underline dotted}
+  .auth-off:hover{color:var(--mut)}
 </style>
 </head>
 <body>
 <div class="grid"></div>
 <div class="toast" id="toast"><div class="k" id="tk">Sistema</div><div class="t" id="tt"></div><div class="s" id="ts"></div></div>
+
+<div class="auth-ov" id="auth-ov">
+  <div class="auth-box">
+    <div class="auth-k">Sistema · Acesso</div>
+    <div class="auth-t">Identifica-te, Operador</div>
+    <input id="au-email" type="email" placeholder="Email" autocomplete="email">
+    <input id="au-pass" type="password" placeholder="Password (mín. 6 caracteres)" autocomplete="current-password">
+    <div class="auth-err" id="au-err"></div>
+    <button class="btn" onclick="doLogin()">Entrar</button>
+    <button class="btn ghost2" onclick="doSignup()">Criar conta</button>
+    <div class="auth-off" onclick="goOffline()">Continuar sem conta (só neste dispositivo, sem sincronização)</div>
+  </div>
+</div>
 
 <div class="wrap">
   <div class="syslabel"><span>Sistema · Estado do Operador</span></div>
@@ -364,8 +394,11 @@
   </div>
 
   <div class="foot">
-    <small>Guardado automaticamente neste dispositivo · o motor é vivo</small>
-    <button class="rst" onclick="resetAll()">Reiniciar sistema</button>
+    <small id="sync-st">—</small>
+    <div style="display:flex;gap:8px">
+      <button class="rst" id="logout-btn" onclick="doLogout()" style="display:none">Sair</button>
+      <button class="rst" onclick="resetAll()">Reiniciar sistema</button>
+    </div>
   </div>
 </div>
 
@@ -427,12 +460,64 @@ const TIER_XP={side:60,main:200,boss:400};
 const TIER_LBL={side:'Side · curto',main:'Main · longo',boss:'Boss'};
 const TIER_RK={side:'E',main:'B',boss:'S'};
 
-/* ===== STORAGE ===== */
-const KEY='sistema_daniel_v1';const _mem={};
-const Store={
-  async get(k){try{const r=await window.storage.get(k);return r?r.value:null}catch(e){return _mem[k]??null}},
-  async set(k,v){try{await window.storage.set(k,v)}catch(e){_mem[k]=v}}
-};
+/* ===== SUPABASE / STORAGE ===== */
+const KEY='sistema_daniel_v1';
+const SUPABASE_URL='https://zybrgnhepspledkjbllo.supabase.co';
+const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5YnJnbmhlcHNwbGVka2pibGxvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NDAyMjksImV4cCI6MjA5ODUxNjIyOX0.J9nKTp38Wff-0MuqS5mVZs5-XZKRlVYxY9BQOQP_cUM';
+const sb=(window.supabase&&window.supabase.createClient)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON):null;
+let USER=null,syncTimer=null;
+
+function setSync(m){const el=document.getElementById('sync-st');if(!el)return;
+  if(m==='ok')el.textContent='☁️ Sincronizado'+(USER?' · '+USER.email:'');
+  else if(m==='saving')el.textContent='⏳ A sincronizar…';
+  else if(m==='err')el.textContent='⚠️ Sem ligação à nuvem — guardado localmente';
+  else el.textContent='💾 Só neste dispositivo (sem conta)';}
+
+function localLoad(){try{return localStorage.getItem(KEY)}catch(e){return null}}
+function localSave(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+async function cloudLoad(){
+  const{data,error}=await sb.from('app_state').select('state').eq('user_id',USER.id).maybeSingle();
+  if(error)throw error;return data?data.state:null;
+}
+async function cloudSave(){
+  if(!USER||!sb)return;
+  try{
+    const{error}=await sb.from('app_state').upsert({user_id:USER.id,state:S,updated_at:new Date().toISOString()});
+    setSync(error?'err':'ok');
+  }catch(e){setSync('err');}
+}
+
+/* ===== AUTH ===== */
+function authErr(msg,ok){const el=document.getElementById('au-err');el.textContent=msg||'';el.classList.toggle('ok',!!ok);}
+function showAuth(){document.getElementById('auth-ov').classList.add('show');}
+function hideAuth(){document.getElementById('auth-ov').classList.remove('show');}
+async function doLogin(){
+  if(!sb){authErr('Sem ligação ao Supabase.');return;}
+  const em=document.getElementById('au-email').value.trim(),pw=document.getElementById('au-pass').value;
+  if(!em||!pw){authErr('Preenche email e password.');return;}
+  authErr('A entrar…',true);
+  const{data,error}=await sb.auth.signInWithPassword({email:em,password:pw});
+  if(error){authErr(error.message==='Invalid login credentials'?'Credenciais inválidas.':error.message);return;}
+  USER=data.user;await enterSystem();
+}
+async function doSignup(){
+  if(!sb){authErr('Sem ligação ao Supabase.');return;}
+  const em=document.getElementById('au-email').value.trim(),pw=document.getElementById('au-pass').value;
+  if(!em||pw.length<6){authErr('Email válido e password com 6+ caracteres.');return;}
+  authErr('A criar conta…',true);
+  const{data,error}=await sb.auth.signUp({email:em,password:pw});
+  if(error){authErr(error.message);return;}
+  if(data.session){USER=data.user;await enterSystem();}
+  else authErr('Conta criada. Confirma o email que recebeste e depois clica Entrar.',true);
+}
+function goOffline(){USER=null;hideAuth();bootState();}
+async function doLogout(){if(sb)await sb.auth.signOut();location.reload();}
+async function enterSystem(){
+  hideAuth();document.getElementById('logout-btn').style.display='';
+  await bootState();
+  toast('Sistema ligado','Bem-vindo, Operador. Sincronização ativa.','#38bdf8');
+}
 
 /* ===== ESTADO ===== */
 let S=null;
@@ -742,21 +827,38 @@ function checkNotif(){
 }
 
 /* ===== PERSIST ===== */
-async function save(){render();await Store.set(KEY,JSON.stringify(S))}
+function save(){render();localSave();
+  if(USER){setSync('saving');clearTimeout(syncTimer);syncTimer=setTimeout(cloudSave,900);}}
 
 /* ===== INIT ===== */
-async function init(){
-  document.getElementById('qa').innerHTML=ATTRS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
-  const saved=await Store.get(KEY);
-  if(saved){try{S=JSON.parse(saved)}catch(e){S=fresh()}}else S=fresh();
+async function bootState(){
+  let cloud=null;
+  if(USER){try{cloud=await cloudLoad()}catch(e){setSync('err');}}
+  if(cloud){S=cloud;}
+  else{
+    const raw=localLoad();
+    if(raw){try{S=JSON.parse(raw)}catch(e){S=fresh()}}else S=fresh();
+  }
   if(!S.attrs)S=fresh();S.log=S.log||[];S.history=S.history||[{d:today(),v:0}];S.seenAch=S.seenAch||[];S.debuffs=S.debuffs||{};S.events=S.events||[];S.notified=S.notified||{};
   calInit();
   // quebra streaks antigas
   [...S.oblig,...S.extras].forEach(h=>{if(h.lastDone&&h.lastDone!==today()&&h.lastDone!==yday())h.streak=0});
   processDayClose();
-  render();
-  await Store.set(KEY,JSON.stringify(S));
+  render();localSave();
+  if(USER)cloudSave();else setSync('local');
   if(pendingPenalty>0){setTimeout(()=>toast('Dia fechado','Perdeste '+pendingPenalty+' XP por obrigatórios em falta','#ef4444',true),700);pendingPenalty=0;}
+}
+async function init(){
+  document.getElementById('qa').innerHTML=ATTRS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  if(sb){
+    try{
+      const{data:{session}}=await sb.auth.getSession();
+      if(session){USER=session.user;document.getElementById('logout-btn').style.display='';await bootState();return;}
+    }catch(e){}
+    showAuth();
+  }else{
+    await bootState();
+  }
 }
 init();
 </script>

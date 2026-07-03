@@ -311,6 +311,22 @@
   .cal-cell{transition:border-color .2s,box-shadow .2s}.cal-cell:hover{border-color:var(--line2)}
   .adot{animation:dotglow 4s ease-in-out infinite}
   @keyframes dotglow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.45)}}
+  /* ===== inputs & micro-fx ===== */
+  input,select,textarea{border-radius:2px;caret-color:var(--violet);transition:border-color .2s,box-shadow .25s}
+  input:focus,select:focus{border-color:var(--violet)!important;box-shadow:0 0 0 2px rgba(167,139,250,.16),0 0 16px rgba(139,92,246,.18)}
+  input::placeholder{color:var(--mut2)}
+  select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23a78bfa' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>")!important;background-repeat:no-repeat!important;background-position:right 10px center!important;background-color:var(--bg2)!important;padding-right:28px!important;cursor:pointer}
+  input[type=date]{cursor:pointer}
+  input[type=date]::-webkit-calendar-picker-indicator{filter:invert(62%) sepia(35%) saturate(1400%) hue-rotate(215deg);opacity:.85;cursor:pointer}
+  .btn{background-size:170% 100%;transition:box-shadow .2s,transform .2s,background-position .45s ease}
+  .btn:hover{background-position:85% 0}
+  .cal-cell{cursor:pointer}
+  .cal-cell.empty{cursor:default}
+  .cal-cell.today{animation:todaypulse 3.4s ease-in-out infinite}
+  @keyframes todaypulse{0%,100%{box-shadow:inset 0 0 8px rgba(167,139,250,.15)}50%{box-shadow:inset 0 0 18px rgba(167,139,250,.38)}}
+  .cal-ev{font-family:var(--mono);font-size:8.5px;line-height:1.2;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fxp{position:fixed;z-index:99;font-family:var(--mono);font-weight:700;font-size:14px;pointer-events:none;transform:translate(-50%,-50%);animation:fxp .95s cubic-bezier(.2,.8,.3,1) forwards;text-shadow:0 0 12px currentColor}
+  @keyframes fxp{0%{opacity:0;transform:translate(-50%,-40%) scale(.7)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-170%) scale(1.15)}}
 </style>
 </head>
 <body>
@@ -322,7 +338,7 @@
     <div class="auth-k">Sistema · Acesso</div>
     <div class="auth-t">Identifica-te, Operador</div>
     <input id="au-email" type="email" placeholder="Email" autocomplete="email">
-    <input id="au-pass" type="password" placeholder="Password (mín. 6 caracteres)" autocomplete="current-password">
+    <input id="au-pass" type="password" placeholder="Password (mín. 6 caracteres)" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     <div class="auth-err" id="au-err"></div>
     <button class="btn" onclick="doLogin()">Entrar</button>
     <button class="btn ghost2" onclick="doSignup()">Criar conta</button>
@@ -400,7 +416,7 @@
       <div class="ptitle"><b>Missões</b> · Objetivos</div>
       <div id="quests"></div>
       <div class="addq">
-        <input id="qt" placeholder="Nova missão..." maxlength="80">
+        <input id="qt" placeholder="Nova missão..." maxlength="80" onkeydown="if(event.key==='Enter')addQuest()">
         <select id="qa"></select>
         <select id="qtier"><option value="side">Side (E)</option><option value="main">Main (B)</option><option value="boss">Boss (S)</option></select>
         <button class="btn" onclick="addQuest()">+ Add</button>
@@ -633,20 +649,20 @@ function processDayClose(){
 let pendingPenalty=0;
 
 /* ===== AÇÕES ===== */
-function toggleHabit(list,id){
+function toggleHabit(list,id,ev){
   const h=S[list].find(x=>x.id===id);if(!h)return;
   const done=h.lastDone===today();
   if(!done){
     h.streak=(h.lastDone===yday())?h.streak+1:1;h.lastDone=today();
     const bonus=Math.min(h.streak,10);const g=Math.round((h.xp+bonus)*xpMult(h.attr));h.lastGain=g;
-    addXp(h.attr,g);plog(h.name,g);
-  }else{addXp(h.attr,-(h.lastGain||h.xp));h.lastDone=null;h.streak=Math.max(0,h.streak-1);}
+    addXp(h.attr,g);plog(h.name,g);floatXP('+'+g+' XP',AM[h.attr].color,ev);
+  }else{const back=h.lastGain||h.xp;addXp(h.attr,-back);floatXP('\u2212'+back+' XP','#ef4444',ev);h.lastDone=null;h.streak=Math.max(0,h.streak-1);}
   save();
 }
-function toggleQuest(id){
+function toggleQuest(id,ev){
   const q=S.quests.find(x=>x.id===id);if(!q)return;const xp=TIER_XP[q.tier];
-  if(!q.done){q.done=true;addXp(q.attr,xp);plog('✓ '+q.title,xp);toast('Missão concluída',q.title,'#a78bfa');}
-  else{q.done=false;addXp(q.attr,-xp);}
+  if(!q.done){q.done=true;addXp(q.attr,xp);plog('✓ '+q.title,xp);floatXP('+'+xp+' XP',AM[q.attr].color,ev);toast('Missão concluída',q.title,'#a78bfa');}
+  else{q.done=false;addXp(q.attr,-xp);floatXP('−'+xp+' XP','#ef4444',ev);}
   save();
 }
 function addQuest(){
@@ -667,12 +683,18 @@ function toast(t,s,color,penalty){
   if(color&&!penalty)el.style.borderColor=color;
   el.classList.add('show');clearTimeout(tmr);tmr=setTimeout(()=>el.classList.remove('show'),2800);
 }
+function floatXP(txt,color,ev){try{
+  const e=ev||window.event;const x=e&&e.clientX?e.clientX:innerWidth/2,y=e&&e.clientY?e.clientY:130;
+  const s=document.createElement('div');s.className='fxp';s.textContent=txt;
+  s.style.left=x+'px';s.style.top=y+'px';s.style.color=color||'#a78bfa';
+  document.body.appendChild(s);setTimeout(()=>s.remove(),960);
+}catch(err){}}
 
 /* ===== RENDER ===== */
 const chkI='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#04121f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 function habHTML(h,list,oblig){
   const done=h.lastDone===today();
-  return `<div class="hab ${done?'done':''} ${oblig?'oblig':''}" onclick="toggleHabit('${list}','${h.id}')">
+  return `<div class="hab ${done?'done':''} ${oblig?'oblig':''}" onclick="toggleHabit('${list}','${h.id}',event)">
     <div class="chk">${chkI}</div>
     <div class="hb"><div class="hn">${h.name}</div>
       <div class="hm">${AM[h.attr].name} · +${h.xp} XP${oblig?' · <span class="pen">falha −'+h.pen+'</span>':''}</div></div>
@@ -722,7 +744,7 @@ function render(){
   document.getElementById('quests').innerHTML=['side','main','boss'].map(t=>{
     const qs=S.quests.filter(q=>q.tier===t);if(!qs.length)return'';
     return `<div class="tier"><div class="th"><span class="rk">RANK ${TIER_RK[t]}</span> ${TIER_LBL[t]} · +${TIER_XP[t]} XP</div>
-      ${qs.map(q=>`<div class="q ${q.done?'done':''}" onclick="toggleQuest('${q.id}')">
+      ${qs.map(q=>`<div class="q ${q.done?'done':''}" onclick="toggleQuest('${q.id}',event)">
         <div class="chk" style="${q.done?'background:#a78bfa;border-color:#a78bfa':''}">${q.done?chkI:''}</div>
         <div class="qb"><div class="qn">${q.title}</div><div class="qm"><span style="color:${AM[q.attr].color}">${AM[q.attr].name}</span>${q.arc?'<span>☀️ Summer</span>':''}</div></div>
         <span class="del" onclick="delQuest('${q.id}',event)">✕</span></div>`).join('')}</div>`;
@@ -885,10 +907,10 @@ const WHISPERS=[
   {t:'Prepara já o que precisas para amanhã (roupa, mochila, treino)',attr:'disciplina',xp:8},
 ];
 const whisperToday=()=>WHISPERS[hashStr('wh'+today())%WHISPERS.length];
-function claimWhisper(){
+function claimWhisper(ev){
   if(S.whisper[today()])return;const w=whisperToday();
   S.whisper[today()]=true;const g=Math.round(w.xp*xpMult(w.attr));
-  addXp(w.attr,g);plog('🌬 '+w.t,g);save();
+  addXp(w.attr,g);plog('🌬 '+w.t,g);floatXP('+'+g+' XP',AM[w.attr].color,ev);save();
 }
 
 /* sinais vitais (estimados a partir dos teus dados reais) */
@@ -955,7 +977,7 @@ function renderWorld(){
   const w=whisperToday(),done=!!S.whisper[today()];
   html+=`<div class="whisper ${done?'done':''}"><span>🌬</span><span class="wt">${w.t}</span>
     <span class="wx">+${Math.round(w.xp*xpMult(w.attr))} ${AM[w.attr].name}</span>
-    ${done?'<span class="wx" style="color:var(--em)">✓ feito</span>':`<button class="mini" onclick="claimWhisper()">Feito</button>`}</div>`;
+    ${done?'<span class="wx" style="color:var(--em)">✓ feito</span>':`<button class="mini" onclick="claimWhisper(event)">Feito</button>`}</div>`;
   // vitais
   const vc=v.burn>=70?'#ef4444':v.burn>=40?'#fb923c':'#34d399';
   html+=`<div class="vitals">
@@ -1010,6 +1032,7 @@ function toggleTitleOpen(id){titleOpenSet.has(id)?titleOpenSet.delete(id):titleO
 function toggleReq(tid,rid,ev){ev.stopPropagation();
   const t=TITLES_REAL.find(x=>x.id===tid);const r=t.reqs.find(x=>x.id===rid);if(r.auto)return;
   S.titleEv[tid]=S.titleEv[tid]||{};S.titleEv[tid][rid]=!S.titleEv[tid][rid];
+  if(S.titleEv[tid][rid])floatXP('\u2713 evid\u00eancia','#fbbf24',ev);
   if(titleProg(t).pct===100&&!S.titleUnlocked[tid]){
     S.titleUnlocked[tid]=today();plog('👑 Título real: '+t.name,0);
     toast('TÍTULO REAL DESBLOQUEADO','👑 '+t.name+' — com evidência. Isto é teu.','#fbbf24');
@@ -1041,10 +1064,13 @@ let calY,calM;
 function calInit(){const d=new Date();calY=d.getFullYear();calM=d.getMonth();}
 function navMonth(n){calM+=n;if(calM<0){calM=11;calY--}if(calM>11){calM=0;calY++}renderCalendar();}
 function daysUntil(ds){return Math.round((new Date(ds)-new Date(today()))/86400000);}
-function addEvent(){const d=document.getElementById('ev-date').value,t=document.getElementById('ev-title').value.trim(),ty=document.getElementById('ev-type').value;if(!d||!t)return;S.events.push({id:'e'+Date.now(),date:d,title:t,type:ty});save();}
+function addEvent(){const d=document.getElementById('ev-date').value,t=document.getElementById('ev-title').value.trim(),ty=document.getElementById('ev-type').value;if(!d||!t)return;S.events.push({id:'e'+Date.now(),date:d,title:t,type:ty});document.getElementById('ev-title').value='';save();}
+function pickDay(ds){const d=document.getElementById('ev-date'),t=document.getElementById('ev-title');if(!d)return;d.value=ds;if(t)t.focus();}
 function delEvent(id){S.events=S.events.filter(e=>e.id!==id);save();}
 function renderCalendar(){
   if(calY===undefined)calInit();
+  const _d=document.getElementById('ev-date'),_t=document.getElementById('ev-title'),_s=document.getElementById('ev-type');
+  const keepD=_d?_d.value:'',keepT=_t?_t.value:'',keepS=_s?_s.value:'';
   const startDay=(new Date(calY,calM,1).getDay()+6)%7;
   const ndays=new Date(calY,calM+1,0).getDate();
   const MO=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -1054,15 +1080,18 @@ function renderCalendar(){
   for(let d=1;d<=ndays;d++){const ds=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const evs=S.events.filter(e=>e.date===ds);
     const dots=evs.slice(0,4).map(e=>`<span class="cal-dot" style="background:${(EVT[e.type]||EVT.outro).c}"></span>`).join('');
-    cells+=`<div class="cal-cell ${ds===tT?'today':''}" title="${evs.map(e=>e.title).join(', ')}"><div class="cal-num">${d}</div><div class="cal-dots">${dots}</div></div>`;}
+    cells+=`<div class="cal-cell ${ds===tT?'today':''}" onclick="pickDay('${ds}')" title="${evs.map(e=>e.title).join(', ')}"><div class="cal-num">${d}</div><div class="cal-dots">${dots}</div>${evs.length?`<div class="cal-ev">${evs[0].title}</div>`:''}</div>`;}
   const up=S.events.filter(e=>daysUntil(e.date)>=0).sort((a,b)=>a.date<b.date?-1:1).slice(0,6);
   const upH=up.length?up.map(e=>{const t=EVT[e.type]||EVT.outro,dd=daysUntil(e.date);
     return `<div class="up-item"><span class="up-dot" style="background:${t.c}"></span><span class="up-d">${e.date.slice(8,10)}/${e.date.slice(5,7)}</span><span class="up-t">${e.title}</span><span class="up-x" style="color:${t.c}">${dd===0?'hoje':dd===1?'amanhã':'em '+dd+'d'}</span><span class="up-del" onclick="delEvent('${e.id}')">✕</span></div>`;}).join(''):'<div class="up-empty">Sem prazos próximos.</div>';
   document.getElementById('cal').innerHTML=`
     <div class="cal-head"><button class="cal-nav" onclick="navMonth(-1)">‹</button><div class="cal-title">${MO[calM]} ${calY}</div><button class="cal-nav" onclick="navMonth(1)">›</button></div>
     <div class="cal-grid">${cells}</div>
-    <div class="cal-add"><input type="date" id="ev-date"><input id="ev-title" placeholder="Prazo, exame, evento..." maxlength="60"><select id="ev-type">${Object.entries(EVT).map(([k,v])=>`<option value="${k}">${v.l}</option>`).join('')}</select><button class="btn" onclick="addEvent()">+ Add</button></div>
+    <div class="cal-add"><input type="date" id="ev-date"><input id="ev-title" placeholder="Prazo, exame, evento..." maxlength="60" onkeydown="if(event.key==='Enter')addEvent()"><select id="ev-type">${Object.entries(EVT).map(([k,v])=>`<option value="${k}">${v.l}</option>`).join('')}</select><button class="btn" onclick="addEvent()">+ Add</button></div>
     <div class="up-lbl">📌 Próximos prazos</div>${upH}`;
+  if(keepD)document.getElementById('ev-date').value=keepD;
+  if(keepT)document.getElementById('ev-title').value=keepT;
+  if(keepS)document.getElementById('ev-type').value=keepS;
 }
 function renderDeadlineBanner(){
   const soon=S.events.filter(e=>{const d=daysUntil(e.date);return d>=0&&d<=7;}).sort((a,b)=>a.date<b.date?-1:1);

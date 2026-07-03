@@ -1150,12 +1150,15 @@ function renderCalendar(){
   if(keepS)document.getElementById('ev-type').value=keepS;
 }
 function renderDeadlineBanner(){
-  const soon=S.events.filter(e=>{const d=daysUntil(e.date);return d>=0&&d<=7;}).sort((a,b)=>a.date<b.date?-1:1);
-  const el=document.getElementById('deadline-banner');
-  if(!soon.length){el.style.display='none';return;}
+  const el=document.getElementById('deadline-banner');if(!el)return;
+  const evs=S.events.filter(e=>{const d=daysUntil(e.date);return d>=0&&d<=7;}).map(e=>({t:e.title,d:daysUntil(e.date),k:'ev'}));
+  const objs=(S.objectives||[]).filter(o=>o.status!=='done'&&o.deadline&&daysUntil(o.deadline)<=2).map(o=>({t:o.title,d:daysUntil(o.deadline),k:'obj'}));
+  const all=[...objs,...evs].sort((a,b)=>a.d-b.d);
+  if(!all.length){el.style.display='none';return;}
   el.style.display='flex';
-  const it=soon.slice(0,3).map(e=>{const dd=daysUntil(e.date);return e.title+' ('+(dd===0?'hoje':dd===1?'amanhã':dd+'d')+')';}).join(' · ');
-  el.innerHTML=`<span class="db-ic">⚠️</span><span>Prazos a chegar: ${it}${soon.length>3?' +'+(soon.length-3):''}</span>`;
+  const lbl=x=>x.d<0?('atrasado '+Math.abs(x.d)+'d'):x.d===0?'hoje':x.d===1?'amanhã':x.d+'d';
+  const it=all.slice(0,3).map(x=>(x.k==='obj'?'🎯 ':'')+x.t+' ('+lbl(x)+')').join(' · ');
+  el.innerHTML=`<span class="db-ic">⚠️</span><span>${objs.length?'<b style="color:#fca5a5">URGENTE — </b>':''}${it}${all.length>3?' +'+(all.length-3):''}</span>`;
 }
 /* ===== NOTIFICAÇÕES (só com o HUD aberto) ===== */
 function enableNotif(){
@@ -1245,22 +1248,26 @@ function setSleepT(k,v){S.sleep[k]=v;save()}
 function sleepStreak(){let c=0;const d=new Date();for(;;){const L=S.sleep.logs.find(l=>l.d===fmt(d));if(L&&L.h>=7.5&&L.h<=9.5){c++;d.setDate(d.getDate()-1)}else break}return c}
 function logSleep(ev){
   const bed=document.getElementById('sl-bed').value,wake=document.getElementById('sl-wake').value,q=document.getElementById('sl-q').value;
+  const dEl=document.getElementById('sl-date');const dt=(dEl&&dEl.value)?dEl.value:today();
   if(!bed||!wake){toast('Falta info','Preenche hora de deitar e de acordar.','#fb923c');return;}
+  if(dt>today()){toast('Data inválida','O Sistema não regista o futuro.','#fb923c');return;}
   const h=calcHours(bed,wake);
-  let L=S.sleep.logs.find(l=>l.d===today());
-  if(L)Object.assign(L,{bed,wake,h,q});else{L={d:today(),bed,wake,h,q,rw:false};S.sleep.logs.push(L);}
-  if(h>=7.5&&h<=9.5&&!L.rw){
+  let L=S.sleep.logs.find(l=>l.d===dt);
+  if(L)Object.assign(L,{bed,wake,h,q});else{L={d:dt,bed,wake,h,q,rw:false};S.sleep.logs.push(L);S.sleep.logs.sort((a,b)=>a.d<b.d?-1:1);}
+  const recent=(dt===today()||dt===yday());
+  if(h>=7.5&&h<=9.5&&!L.rw&&recent){
     L.rw=true;addXp('corpo',12);addXp('disciplina',5);
     plog('😴 Noite no alvo ('+h+'h)',17);floatXP('+17 XP','#34d399',ev);
     const so=S.oblig.find(x=>x.id==='o_sono');
-    if(so&&so.lastDone!==today()){so.streak=(so.lastDone===yday())?so.streak+1:1;so.lastDone=today();so.lastGain=0;}
-  }else if(h<7.5){plog('😴 Noite curta ('+h+'h)',0);toast('Registado','Noite curta ('+h+'h). Sem drama — o alvo de hoje é recuperar.','#fb923c');}
+    if(dt===today()&&so&&so.lastDone!==today()){so.streak=(so.lastDone===yday())?so.streak+1:1;so.lastDone=today();so.lastGain=0;}
+  }else if(!recent){plog('😴 Registo retroativo '+dt+' ('+h+'h)',0);toast('Registo retroativo','Guardado para análise. XP só em registos do próprio dia — anti-farm.','#a78bfa');}
+  else if(h<7.5){plog('😴 Noite curta ('+h+'h)',0);toast('Registado','Noite curta ('+h+'h). Sem drama — o alvo de hoje é recuperar.','#fb923c');}
   save();
 }
 function renderSleep(){
   const el=document.getElementById('sleep');if(!el)return;
-  const _b=document.getElementById('sl-bed'),_w=document.getElementById('sl-wake'),_q=document.getElementById('sl-q');
-  const kb=_b?_b.value:'',kw=_w?_w.value:'',kq=_q?_q.value:'boa';
+  const _b=document.getElementById('sl-bed'),_w=document.getElementById('sl-wake'),_q=document.getElementById('sl-q'),_d2=document.getElementById('sl-date');
+  const kb=_b?_b.value:'',kw=_w?_w.value:'',kq=_q?_q.value:'boa',kd=_d2?_d2.value:today();
   const logs=S.sleep.logs;const lastL=logs[logs.length-1];
   const l7=logs.filter(l=>diffDays(l.d,today())<7);
   const avg=l7.length?Math.round(l7.reduce((s,l)=>s+l.h,0)/l7.length*10)/10:0;
@@ -1271,6 +1278,7 @@ function renderSleep(){
    <div class="tr-stats"><span class="wchip">${lastL?('Última: '+lastL.h+'h'):'Sem registos'}</span><span class="wchip">Média 7d: ${avg||'—'}h</span><span class="wchip green">Streak no alvo: ${sleepStreak()}</span></div>
    <div class="sl-bars">${bars}</div>
    <div class="addq" style="align-items:center">
+     <label class="tr-x">Noite de <input type="date" id="sl-date" value="${kd}"></label>
      <label class="tr-x">Deitar <input type="time" id="sl-bed" value="${kb}"></label>
      <label class="tr-x">Acordar <input type="time" id="sl-wake" value="${kw}"></label>
      <select id="sl-q"><option value="boa" ${kq==='boa'?'selected':''}>Boa</option><option value="media" ${kq==='media'?'selected':''}>Média</option><option value="ma" ${kq==='ma'?'selected':''}>Má</option></select>
@@ -1284,9 +1292,28 @@ const PRI={P1:{xp:150,lvl:10,c:'#ef4444'},P2:{xp:90,lvl:6,c:'#fb923c'},P3:{xp:50
 const OST=['pend','doing','done'];const OSTL={pend:'⭘',doing:'⚔️',done:'✅'};
 let objF={est:'all',area:'all',sort:'prazo'};
 function setObjF(k,v){objF[k]=v;render()}
+/* triagem automática (regras transparentes; o Oráculo refina depois) */
+const KW_HI=['exame','teste','entrega','trabalho','certifica','entrevista','audit','relat','apresenta','projeto','prova','estágio','estagio','urgente','defesa'];
+const KW_LO=['comer','comprar','lavar','arrumar','limpar','marcar','encomenda','café','cafe','passear'];
+function triage(title,deadline){
+  const t=title.toLowerCase();const why=[];
+  const hi=KW_HI.find(k=>t.includes(k)),lo=KW_LO.find(k=>t.includes(k));
+  let imp=hi?'P1':lo?'P3':'P2';
+  if(hi)why.push('palavra-chave "'+hi+'"');if(lo&&!hi)why.push('tarefa do dia-a-dia');
+  if(deadline){const d=daysUntil(deadline);
+    why.push(d<0?'já atrasado':d===0?'prazo é hoje':'prazo em '+d+'d');
+    if(d<=2&&imp!=='P1'){imp=(imp==='P3')?'P2':'P1';}
+    else if(d<=7&&imp==='P3')imp='P2';}
+  return{imp,why:why.join(' + ')||'sem sinais fortes — peso médio'};
+}
 function addObjective(ev){
   const t=document.getElementById('ob-t').value.trim();if(!t)return;
-  S.objectives.push({id:'o'+Date.now(),title:t,area:document.getElementById('ob-a').value,pri:document.getElementById('ob-p').value,deadline:document.getElementById('ob-d').value||null,status:'pend',created:today()});
+  const dl=document.getElementById('ob-d').value||null;
+  const sel=document.getElementById('ob-p').value;
+  let pri=sel,auto=false;
+  if(sel==='AUTO'){const tr=triage(t,dl);pri=tr.imp;auto=true;
+    toast('Triagem do Sistema',pri+' · '+tr.why,PRI[pri].c);}
+  S.objectives.push({id:'o'+Date.now(),title:t,area:document.getElementById('ob-a').value,pri,auto,deadline:dl,status:'pend',created:today()});
   document.getElementById('ob-t').value='';floatXP('+ objetivo','#a78bfa',ev);save();
 }
 function delObjective(id,ev){ev.stopPropagation();
@@ -1329,7 +1356,7 @@ function renderObjectives(){
    <div>${rows||'<div class="up-empty">Sem objetivos neste filtro. Adiciona o primeiro — P1 vale 150 XP e uma Sombra Nv 10.</div>'}</div>
    <div class="addq"><input id="ob-t" placeholder="Novo objetivo..." maxlength="90" value="${keep.replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')addObjective(event)">
      <select id="ob-a">${ATTRS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}</select>
-     <select id="ob-p"><option>P1</option><option selected>P2</option><option>P3</option></select>
+     <select id="ob-p"><option value="AUTO" selected>Auto</option><option>P1</option><option>P2</option><option>P3</option></select>
      <input type="date" id="ob-d"><button class="btn" onclick="addObjective(event)">+ Add</button></div>`;
 }
 function renderShadows(){

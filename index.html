@@ -327,6 +327,36 @@
   .cal-ev{font-family:var(--mono);font-size:8.5px;line-height:1.2;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .fxp{position:fixed;z-index:99;font-family:var(--mono);font-weight:700;font-size:14px;pointer-events:none;transform:translate(-50%,-50%);animation:fxp .95s cubic-bezier(.2,.8,.3,1) forwards;text-shadow:0 0 12px currentColor}
   @keyframes fxp{0%{opacity:0;transform:translate(-50%,-40%) scale(.7)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-170%) scale(1.15)}}
+  /* ===== fase 3 ===== */
+  .tr-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .tr-advice{font-size:12.5px;color:var(--mut);border:1px dashed var(--line);padding:9px 12px;margin-bottom:12px;line-height:1.45}
+  .tr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:10px}
+  .trl{border:1px solid var(--line);padding:11px 12px;background:rgba(255,255,255,.012)}
+  .trl-h{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--disp);font-weight:600;font-size:14.5px}
+  .trl-step{font-family:var(--mono);font-size:10px;color:var(--mut)}
+  .trl-ex{font-size:13px;margin-top:5px;font-weight:500}
+  .trl-t{font-family:var(--mono);font-size:10.5px;color:var(--cyan);margin:3px 0 8px}
+  .trl-in{display:flex;gap:7px;flex-wrap:wrap}
+  .trl-in input{width:112px;background:var(--bg2);border:1px solid var(--line);color:var(--ink);padding:7px 9px;font-size:13px}
+  .trl-in select{background:var(--bg2);border:1px solid var(--line);color:var(--ink);padding:7px 9px;font-size:12.5px}
+  .tr-x{font-size:12px;color:var(--mut);display:inline-flex;align-items:center;gap:6px}
+  .tr-x input[type=checkbox]{accent-color:var(--violet);width:15px;height:15px}
+  .tr-x input[type=time]{background:var(--bg2);border:1px solid var(--line);color:var(--ink);padding:6px 8px}
+  .sl-bars{display:flex;gap:4px;align-items:flex-end;height:64px;border-bottom:1px solid var(--line);padding-bottom:2px;margin-bottom:12px}
+  .slb{flex:1;min-height:3px;transition:height .6s cubic-bezier(.22,1,.36,1);border-radius:1px 1px 0 0}
+  .obj-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .obj-filters select{background:var(--bg2);border:1px solid var(--line);color:var(--ink);padding:7px 10px;font-size:12.5px}
+  .obj-row{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--line);margin-bottom:6px;flex-wrap:wrap;transition:border-color .2s,transform .22s cubic-bezier(.22,1,.36,1);
+    clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+  .obj-row:hover{border-color:var(--line2);transform:translateX(3px)}
+  .obj-row.done{opacity:.5}.obj-row.done .obj-t{text-decoration:line-through;color:var(--mut)}
+  .obj-st{cursor:pointer;font-size:15px;flex:none}
+  .obj-t{flex:1;min-width:140px;font-size:13.5px;font-weight:500}
+  .shd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+  .shd{border:1px solid rgba(167,139,250,.3);background:rgba(167,139,250,.05);padding:10px 11px;animation:rise .5s cubic-bezier(.22,1,.36,1) both;
+    clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+  .shd-n{font-family:var(--disp);font-weight:600;font-size:13.5px}
+  .shd-l{font-family:var(--mono);font-size:10px;color:var(--violet);margin-top:2px}
 </style>
 </head>
 <body>
@@ -422,6 +452,30 @@
         <button class="btn" onclick="addQuest()">+ Add</button>
       </div>
     </div>
+  </div>
+
+  <!-- TREINO -->
+  <div class="panel reveal" style="animation-delay:.26s">
+    <div class="ptitle"><b>Treino</b> · Calistenia — novato → expert</div>
+    <div class="dhint">Quatro linhas de progressão. Regista a melhor série de cada uma e a sensação; quando bateres 3×alvo com facilidade, o Sistema sobe-te de passo. Aquecimento de 5 min sempre. Desconforto muscular é normal; <b style="color:var(--red)">dor articular aguda = parar</b>. Nos isométricos (prancha, hollow, dead hang), regista segundos.</div>
+    <div id="training"></div>
+  </div>
+
+  <div class="cols">
+    <div class="panel reveal" style="animation-delay:.27s">
+      <div class="ptitle"><b>Sono</b> · Regulador</div>
+      <div id="sleep"></div>
+    </div>
+    <div class="panel reveal" style="animation-delay:.28s">
+      <div class="ptitle"><b>Shadow Army</b> · objetivos concluídos erguem-se</div>
+      <div id="shadows"></div>
+    </div>
+  </div>
+
+  <!-- OBJETIVOS -->
+  <div class="panel reveal" style="animation-delay:.29s">
+    <div class="ptitle"><b>Objetivos</b> · Lista-mestra filtrável</div>
+    <div id="objs"></div>
   </div>
 
   <!-- CONQUISTAS -->
@@ -604,7 +658,8 @@ function fresh(){
     extras:EXTRAS.map(h=>({...h,streak:0,lastDone:null,lastGain:0})),
     quests:QUESTS0.map(q=>({...q,done:false})),
     history:[{d:today(),v:0}], totalXP:0, log:[], lastDayCheck:today(), seenAch:[], debuffs:{}, events:[], notifOn:false, notified:{},
-    worldArc:null, whisper:{}, titleEv:{}, titleUnlocked:{}, recovery:null, weather:null};
+    worldArc:null, whisper:{}, titleEv:{}, titleUnlocked:{}, recovery:null, weather:null,
+    training:{prog:{push:0,pull:0,legs:0,core:0},sessions:[]}, sleep:{bedT:'23:30',wakeT:'07:30',logs:[]}, objectives:[], shadows:[], oracle:{reports:[]}, v:3};
 }
 
 /* ===== DATAS ===== */
@@ -752,7 +807,7 @@ function render(){
 
   renderXpLine();
 
-  renderAchievements();renderDebuffs();renderTree();renderWorld();renderTitles();renderCalendar();renderDeadlineBanner();checkNotif();
+  renderAchievements();renderDebuffs();renderTree();renderWorld();renderTitles();renderTraining();renderSleep();renderObjectives();renderShadows();renderCalendar();renderDeadlineBanner();checkNotif();
 
   const log=document.getElementById('log');
   log.innerHTML=S.log.length?S.log.map(l=>`<div class="li"><span>${l.text}</span><span class="${l.gain<0?'b':'g'}">${l.gain<0?'':'+'}${l.gain} XP</span></div>`).join(''):'<div class="log-empty">Sem atividade ainda. Marca um obrigatório para começares.</div>';
@@ -972,6 +1027,7 @@ function renderWorld(){
   if(rainyActive())chips+=`<span class="wchip blue">🌧 Rainy Focus — Saber ×1.15 hoje</span>`;
   if(heatActive())chips+=`<span class="wchip">🔥 Heat Wave — treina cedo e hidrata</span>`;
   if(S.recovery&&today()<=S.recovery.until)chips+=`<span class="wchip green">🌙 Recovery ativo até ${S.recovery.until.slice(8,10)}/${S.recovery.until.slice(5,7)} — sem penalizações</span>`;
+  if(new Date().getHours()>=21&&S.sleep&&S.sleep.bedT)chips+=`<span class="wchip">🌙 Recolher às ${S.sleep.bedT} — o Corpo constrói-se a dormir</span>`;
   if(chips)html+=`<div class="w-chips">${chips}</div>`;
   // sussurro do dia
   const w=whisperToday(),done=!!S.whisper[today()];
@@ -1116,6 +1172,173 @@ function checkNotif(){
   S.events.forEach(e=>{const d=daysUntil(e.date);if(d>=0&&d<=2){const k=e.id+'|'+t;if(!S.notified[k]){try{new Notification('⚔️ Sistema — prazo a chegar',{body:e.title+(d===0?' é hoje':d===1?' é amanhã':' em '+d+' dias')});S.notified[k]=true;}catch(err){}}}});
 }
 
+/* ===== FASE 3 · TREINO — Calistenia (dados prontos para o Oráculo) ===== */
+const PROG={
+ push:[{n:'Flexões inclinadas (mãos numa mesa)',t:12},{n:'Flexões de joelhos',t:12},{n:'Flexões completas',t:10},{n:'Flexões diamante',t:10},{n:'Flexões declinadas (pés elevados)',t:10},{n:'Flexões arqueiro',t:8},{n:'Pseudo-planche push-ups',t:8},{n:'Flexões a um braço (assistidas)',t:5}],
+ pull:[{n:'Dead hang (segundos)',t:40},{n:'Remada australiana',t:12},{n:'Remada australiana pés elevados',t:10},{n:'Negativas de pull-up (desce em 5s)',t:6},{n:'Pull-ups',t:8},{n:'Pull-ups peito à barra',t:6},{n:'Pull-ups arqueiro',t:6},{n:'Pull-up a um braço (assistida)',t:3}],
+ legs:[{n:'Agachamento assistido',t:15},{n:'Agachamento livre',t:15},{n:'Avanços alternados (lunges)',t:12},{n:'Agachamento búlgaro',t:10},{n:'Step-ups altos',t:10},{n:'Pistol squat assistido',t:6},{n:'Agachamento shrimp',t:6},{n:'Pistol squat',t:5}],
+ core:[{n:'Prancha (segundos)',t:45},{n:'Hollow hold (segundos)',t:30},{n:'Elevações de pernas no chão',t:15},{n:'Elevações de joelhos suspenso',t:10},{n:'Elevações de pernas suspenso',t:10},{n:'Windshield wipers deitado',t:10},{n:'Toes-to-bar',t:8},{n:'Dragon flag (negativas)',t:5}]
+};
+const TLINES=[{id:'push',n:'Empurrar',c:'#f472b6'},{id:'pull',n:'Puxar',c:'#38bdf8'},{id:'legs',n:'Pernas',c:'#34d399'},{id:'core',n:'Core',c:'#fbbf24'}];
+function consecTrained(){const set=new Set(S.training.sessions.map(s=>s.d));let c=0;const d=new Date();while(set.has(fmt(d))){c++;d.setDate(d.getDate()-1)}return c}
+function weekSessions(){return new Set(S.training.sessions.filter(s=>diffDays(s.d,today())<7).map(s=>s.d)).size}
+function trKeep(){const o={};TLINES.forEach(L=>{const r=document.getElementById('tr-'+L.id+'-reps'),f=document.getElementById('tr-'+L.id+'-feel');o[L.id]={r:r?r.value:'',f:f?f.value:'ok'}});const n=document.getElementById('tr-notes'),x=document.getElementById('tr-extra');o.n=n?n.value:'';o.x=x?x.checked:false;return o}
+function finishTraining(ev){
+  const lines={},adv=[];let logged=0;
+  TLINES.forEach(L=>{
+    const rv=parseInt(document.getElementById('tr-'+L.id+'-reps').value)||0;
+    const fv=document.getElementById('tr-'+L.id+'-feel').value;
+    if(rv>0){logged++;const idx=S.training.prog[L.id];const st=PROG[L.id][idx];
+      lines[L.id]={step:idx,ex:st.n,reps:rv,feel:fv};
+      if(rv>=st.t&&fv!=='d'&&idx<PROG[L.id].length-1){S.training.prog[L.id]++;adv.push(L.n+' → '+PROG[L.id][idx+1].n);}
+    }});
+  if(!logged){toast('Sem registo','Regista pelo menos uma linha com repetições.','#fb923c');return;}
+  const extra=document.getElementById('tr-extra').checked;
+  const notes=document.getElementById('tr-notes').value.trim();
+  const consec=consecTrained();
+  let xp=Math.round((15+logged*6)*xpMult('corpo'));let extraOk=false;
+  if(extra){
+    if(consec>=3)toast('Trava do Sistema','4º dia seguido — o músculo cresce no descanso. Extra sem bónus hoje.','#fb923c');
+    else{extraOk=true;xp+=10;addXp('disciplina',5);}
+  }
+  addXp('corpo',xp);
+  if(adv.length){addXp('corpo',30*adv.length);toast('EVOLUÇÃO DE PROGRESSÃO','↑ '+adv.join(' · '),'#34d399');}
+  S.training.sessions.push({d:today(),lines,extra:extraOk,notes,adv:adv.length,xp:xp+30*adv.length});
+  plog('🏋️ Treino ('+logged+' linhas'+(extraOk?' + extra':'')+')',xp);
+  floatXP('+'+xp+' XP','#f472b6',ev);save();
+}
+function trAdvice(){
+  const ss=S.training.sessions;
+  if(!ss.length)return 'Primeira sessão: aquece 5 min (mobilidade + cardio leve). Técnica primeiro, ego depois. Ritmo alvo: 3 sessões/semana, dias alternados.';
+  const consec=consecTrained();
+  if(consec>=4)return '⚠ '+consec+' dias seguidos. O corpo constrói-se no descanso — hoje é dia de pausa ou mobilidade leve.';
+  for(const L of TLINES){const rel=ss.filter(s=>s.lines[L.id]).slice(-2);
+    if(rel.length===2&&rel.every(s=>s.lines[L.id].feel==='d'))return '💡 '+L.n+': duas sessões "difícil" seguidas — repete o passo atual até sair limpo, ou regride um passo. Não é derrota, é engenharia.';}
+  return 'Ritmo alvo: 3 sessões/semana em dias alternados. Sobe de passo quando 3×alvo sair limpo e fácil.';
+}
+function renderTraining(){
+  const el=document.getElementById('training');if(!el)return;
+  const k=trKeep();
+  const hist=S.training.sessions.slice(-4).reverse().map(s=>`<div class="li"><span>${s.d.slice(8,10)}/${s.d.slice(5,7)} · ${Object.keys(s.lines).length} linhas${s.adv?' · ↑'+s.adv:''}${s.extra?' · extra':''}</span><span class="g">+${s.xp} XP</span></div>`).join('');
+  const consec=consecTrained();
+  el.innerHTML=`
+   <div class="tr-stats"><span class="wchip">Sessões: ${S.training.sessions.length}</span><span class="wchip">Esta semana: ${weekSessions()}/3</span><span class="wchip ${consec>=4?'':'green'}">${consec} dia(s) seguido(s)</span></div>
+   <div class="tr-advice">${trAdvice()}</div>
+   <div class="tr-grid">${TLINES.map(L=>{const idx=S.training.prog[L.id],st=PROG[L.id][idx];
+     return `<div class="trl" style="border-left:2px solid ${L.c}">
+       <div class="trl-h"><span style="color:${L.c}">${L.n}</span><span class="trl-step">Passo ${idx+1}/${PROG[L.id].length}</span></div>
+       <div class="trl-ex">${st.n}</div><div class="trl-t">Alvo para evoluir: 3×${st.t}</div>
+       <div class="trl-in"><input type="number" id="tr-${L.id}-reps" placeholder="melhor série" min="0" max="500" value="${k[L.id].r}">
+       <select id="tr-${L.id}-feel"><option value="f" ${k[L.id].f==='f'?'selected':''}>Fácil</option><option value="ok" ${k[L.id].f==='ok'?'selected':''}>OK</option><option value="d" ${k[L.id].f==='d'?'selected':''}>Difícil</option></select></div>
+     </div>`}).join('')}</div>
+   <div class="addq" style="align-items:center">
+     <label class="tr-x"><input type="checkbox" id="tr-extra" ${k.x?'checked':''}> Volume extra (senti facilidade)</label>
+     <input id="tr-notes" placeholder="Notas (dores, variações...)" maxlength="90" value="${k.n.replace(/"/g,'&quot;')}">
+     <button class="btn" onclick="finishTraining(event)">Concluir treino</button>
+   </div>
+   ${hist?`<div class="up-lbl" style="margin-top:12px">Últimas sessões</div><div class="log">${hist}</div>`:''}`;
+}
+
+/* ===== FASE 3 · SONO — Regulador ===== */
+function calcHours(bed,wake){const[bh,bm]=bed.split(':').map(Number),[wh,wm]=wake.split(':').map(Number);let m=(wh*60+wm)-(bh*60+bm);if(m<=0)m+=1440;return Math.round(m/6)/10}
+function setSleepT(k,v){S.sleep[k]=v;save()}
+function sleepStreak(){let c=0;const d=new Date();for(;;){const L=S.sleep.logs.find(l=>l.d===fmt(d));if(L&&L.h>=7.5&&L.h<=9.5){c++;d.setDate(d.getDate()-1)}else break}return c}
+function logSleep(ev){
+  const bed=document.getElementById('sl-bed').value,wake=document.getElementById('sl-wake').value,q=document.getElementById('sl-q').value;
+  if(!bed||!wake){toast('Falta info','Preenche hora de deitar e de acordar.','#fb923c');return;}
+  const h=calcHours(bed,wake);
+  let L=S.sleep.logs.find(l=>l.d===today());
+  if(L)Object.assign(L,{bed,wake,h,q});else{L={d:today(),bed,wake,h,q,rw:false};S.sleep.logs.push(L);}
+  if(h>=7.5&&h<=9.5&&!L.rw){
+    L.rw=true;addXp('corpo',12);addXp('disciplina',5);
+    plog('😴 Noite no alvo ('+h+'h)',17);floatXP('+17 XP','#34d399',ev);
+    const so=S.oblig.find(x=>x.id==='o_sono');
+    if(so&&so.lastDone!==today()){so.streak=(so.lastDone===yday())?so.streak+1:1;so.lastDone=today();so.lastGain=0;}
+  }else if(h<7.5){plog('😴 Noite curta ('+h+'h)',0);toast('Registado','Noite curta ('+h+'h). Sem drama — o alvo de hoje é recuperar.','#fb923c');}
+  save();
+}
+function renderSleep(){
+  const el=document.getElementById('sleep');if(!el)return;
+  const _b=document.getElementById('sl-bed'),_w=document.getElementById('sl-wake'),_q=document.getElementById('sl-q');
+  const kb=_b?_b.value:'',kw=_w?_w.value:'',kq=_q?_q.value:'boa';
+  const logs=S.sleep.logs;const lastL=logs[logs.length-1];
+  const l7=logs.filter(l=>diffDays(l.d,today())<7);
+  const avg=l7.length?Math.round(l7.reduce((s,l)=>s+l.h,0)/l7.length*10)/10:0;
+  let bars='';for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const L=logs.find(x=>x.d===fmt(d));
+    const h=L?L.h:0;const col=!L?'rgba(255,255,255,.06)':(h>=7.5&&h<=9.5)?'#34d399':(h<6.5?'#ef4444':'#fb923c');
+    bars+=`<div class="slb" style="height:${L?Math.min(100,h/10*100):4}%;background:${col}" title="${fmt(d)}: ${L?h+'h':'—'}"></div>`}
+  el.innerHTML=`
+   <div class="tr-stats"><span class="wchip">${lastL?('Última: '+lastL.h+'h'):'Sem registos'}</span><span class="wchip">Média 7d: ${avg||'—'}h</span><span class="wchip green">Streak no alvo: ${sleepStreak()}</span></div>
+   <div class="sl-bars">${bars}</div>
+   <div class="addq" style="align-items:center">
+     <label class="tr-x">Deitar <input type="time" id="sl-bed" value="${kb}"></label>
+     <label class="tr-x">Acordar <input type="time" id="sl-wake" value="${kw}"></label>
+     <select id="sl-q"><option value="boa" ${kq==='boa'?'selected':''}>Boa</option><option value="media" ${kq==='media'?'selected':''}>Média</option><option value="ma" ${kq==='ma'?'selected':''}>Má</option></select>
+     <button class="btn" onclick="logSleep(event)">Registar noite</button>
+   </div>
+   <div class="vit-note">Alvo: 7,5–9h e consistência de horário (o cérebro premeia regularidade mais do que maratonas de fim de semana). Hora-alvo de recolher <input type="time" style="width:auto;padding:3px 6px" value="${S.sleep.bedT}" onchange="setSleepT('bedT',this.value)"> — o mundo lembra-te à noite. Noite no alvo marca o pilar do sono sozinha.</div>`;
+}
+
+/* ===== FASE 3 · OBJETIVOS-MESTRA + SHADOW ARMY ===== */
+const PRI={P1:{xp:150,lvl:10,c:'#ef4444'},P2:{xp:90,lvl:6,c:'#fb923c'},P3:{xp:50,lvl:3,c:'#34d399'}};
+const OST=['pend','doing','done'];const OSTL={pend:'⭘',doing:'⚔️',done:'✅'};
+let objF={est:'all',area:'all',sort:'prazo'};
+function setObjF(k,v){objF[k]=v;render()}
+function addObjective(ev){
+  const t=document.getElementById('ob-t').value.trim();if(!t)return;
+  S.objectives.push({id:'o'+Date.now(),title:t,area:document.getElementById('ob-a').value,pri:document.getElementById('ob-p').value,deadline:document.getElementById('ob-d').value||null,status:'pend',created:today()});
+  document.getElementById('ob-t').value='';floatXP('+ objetivo','#a78bfa',ev);save();
+}
+function delObjective(id,ev){ev.stopPropagation();
+  const o=S.objectives.find(x=>x.id===id);
+  if(o&&o.status==='done')S.shadows=S.shadows.filter(s=>s.ref!==id);
+  S.objectives=S.objectives.filter(x=>x.id!==id);save();}
+function cycleObj(id,ev){ev.stopPropagation();
+  const o=S.objectives.find(x=>x.id===id);if(!o)return;
+  const next=OST[(OST.indexOf(o.status)+1)%OST.length];
+  if(next==='done'){const p=PRI[o.pri];addXp(o.area,p.xp);o.doneDate=today();
+    S.shadows.push({id:'s'+Date.now(),ref:o.id,name:o.title,lvl:p.lvl,d:today()});
+    plog('🗡 ARISE: '+o.title,p.xp);floatXP('+'+p.xp+' XP',AM[o.area].color,ev);
+    toast('A R I S E','🗡 '+o.title+' ergueu-se — Sombra Nv '+p.lvl,'#a78bfa');}
+  if(o.status==='done'&&next!=='done'){const p=PRI[o.pri];addXp(o.area,-p.xp);S.shadows=S.shadows.filter(s=>s.ref!==o.id);delete o.doneDate;}
+  o.status=next;save();
+}
+function renderObjectives(){
+  const el=document.getElementById('objs');if(!el)return;
+  const kt=document.getElementById('ob-t');const keep=kt?kt.value:'';
+  let list=S.objectives.filter(o=>(objF.est==='all'||o.status===objF.est)&&(objF.area==='all'||o.area===objF.area));
+  list.sort((a,b)=>{
+    if(objF.sort==='prazo')return(a.deadline||'9999')<(b.deadline||'9999')?-1:1;
+    if(objF.sort==='pri')return a.pri<b.pri?-1:1;
+    return a.created<b.created?-1:1;});
+  const rows=list.map(o=>{const p=PRI[o.pri];let dl='';
+    if(o.deadline){const d=daysUntil(o.deadline);const c=d<=3?'#ef4444':d<=7?'#fb923c':'var(--mut)';
+      dl=`<span class="up-x" style="color:${c}">${d<0?'atrasado':d===0?'hoje':d+'d'}</span>`;}
+    return`<div class="obj-row ${o.status}">
+      <span class="obj-st" onclick="cycleObj('${o.id}',event)" title="pendente → em curso → feito">${OSTL[o.status]}</span>
+      <span class="obj-t">${o.title}</span>
+      <span class="wchip" style="border-color:${AM[o.area].color};color:${AM[o.area].color};padding:2px 8px">${AM[o.area].name}</span>
+      <span class="wchip" style="border-color:${p.c};color:${p.c};padding:2px 8px">${o.pri}</span>
+      ${dl}<span class="up-del" onclick="delObjective('${o.id}',event)">✕</span></div>`}).join('');
+  el.innerHTML=`
+   <div class="obj-filters">
+     <select onchange="setObjF('est',this.value)">${['all','pend','doing','done'].map(v=>`<option value="${v}" ${objF.est===v?'selected':''}>${{all:'Estado: todos',pend:'Pendentes',doing:'Em curso',done:'Feitos'}[v]}</option>`).join('')}</select>
+     <select onchange="setObjF('area',this.value)"><option value="all">Área: todas</option>${ATTRS.map(a=>`<option value="${a.id}" ${objF.area===a.id?'selected':''}>${a.name}</option>`).join('')}</select>
+     <select onchange="setObjF('sort',this.value)">${[['prazo','Ordenar: prazo'],['pri','Ordenar: prioridade'],['created','Ordenar: criação']].map(x=>`<option value="${x[0]}" ${objF.sort===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select>
+   </div>
+   <div>${rows||'<div class="up-empty">Sem objetivos neste filtro. Adiciona o primeiro — P1 vale 150 XP e uma Sombra Nv 10.</div>'}</div>
+   <div class="addq"><input id="ob-t" placeholder="Novo objetivo..." maxlength="90" value="${keep.replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')addObjective(event)">
+     <select id="ob-a">${ATTRS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}</select>
+     <select id="ob-p"><option>P1</option><option selected>P2</option><option>P3</option></select>
+     <input type="date" id="ob-d"><button class="btn" onclick="addObjective(event)">+ Add</button></div>`;
+}
+function renderShadows(){
+  const el=document.getElementById('shadows');if(!el)return;
+  const pow=S.shadows.reduce((s,x)=>s+x.lvl,0);
+  el.innerHTML=`<div class="tr-stats"><span class="wchip gold">Poder do exército: ${pow}</span><span class="wchip">Sombras: ${S.shadows.length}</span></div>
+   <div class="shd-grid">${S.shadows.length?S.shadows.slice().reverse().map(s=>`<div class="shd"><div class="shd-n">🗡 ${s.name}</div><div class="shd-l">Sombra · Nv ${s.lvl} · ${s.d.slice(8,10)}/${s.d.slice(5,7)}</div></div>`).join(''):'<div class="up-empty">O exército aguarda. Conclui objetivos — e eles erguem-se para trabalhar por ti.</div>'}</div>`;
+}
+
 /* ===== PERSIST ===== */
 function save(){render();localSave();
   if(USER){setSync('saving');clearTimeout(syncTimer);syncTimer=setTimeout(cloudSave,900);}}
@@ -1131,6 +1354,9 @@ async function bootState(){
   }
   if(!S.attrs)S=fresh();S.log=S.log||[];S.history=S.history||[{d:today(),v:0}];S.seenAch=S.seenAch||[];S.debuffs=S.debuffs||{};S.events=S.events||[];S.notified=S.notified||{};
   S.whisper=S.whisper||{};S.titleEv=S.titleEv||{};S.titleUnlocked=S.titleUnlocked||{};S.worldArc=S.worldArc||null;S.recovery=S.recovery||null;S.weather=S.weather||null;
+  S.training=S.training||{prog:{push:0,pull:0,legs:0,core:0},sessions:[]};S.training.prog=S.training.prog||{push:0,pull:0,legs:0,core:0};S.training.sessions=S.training.sessions||[];
+  S.sleep=S.sleep||{bedT:'23:30',wakeT:'07:30',logs:[]};S.sleep.logs=S.sleep.logs||[];
+  S.objectives=S.objectives||[];S.shadows=S.shadows||[];S.oracle=S.oracle||{reports:[]};S.v=3;
   calInit();fetchWeather();
   // quebra streaks antigas
   [...S.oblig,...S.extras].forEach(h=>{if(h.lastDone&&h.lastDone!==today()&&h.lastDone!==yday())h.streak=0});

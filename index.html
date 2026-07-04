@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SISTEMA — Daniel</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#07040f">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -953,10 +958,14 @@ function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt
 const seededPct=s=>hashStr(s)%100;
 
 const SEASON_ARCS=[
-  {id:'summer',name:'☀️ Summer Arc',months:[6,7,8,9],desc:'Estágio · cursos · eventos · networking · IA',boss:'"Quem sou eu comparado com junho?"',bonus:{oficio:1.2,vinculos:1.2}},
-  {id:'harvest',name:'🍂 Harvest Arc',months:[10,11],desc:'Consolidar · organizar · rever conhecimento',boss:'"O que ficou realmente meu?"',bonus:{saber:1.25,mente:1.2}},
-  {id:'winter',name:'❄️ Winter Forge',months:[12,1,2],desc:'Construção profunda · muito estudo · pouca exposição',boss:'"O que forjei no silêncio?"',bonus:{saber:1.4,mente:1.25}},
-  {id:'bloom',name:'🌸 Bloom Arc',months:[3,4,5],desc:'Experimentar · conhecer pessoas · abrir portas',boss:'"Que porta nova abri?"',bonus:{vinculos:1.3,corpo:1.15}},
+  {id:'summer',name:'☀️ Summer Arc',months:[6,7,8,9],desc:'Estágio · cursos · eventos · networking · IA',boss:'"Quem sou eu comparado com junho?"',bonus:{oficio:1.2,vinculos:1.2},
+   quests:[{t:'Conseguir uma entrevista ou contacto direto para estágio',area:'oficio',pri:'P1'},{t:'Participar num evento ou webinar de cibersegurança durante o arco',area:'vinculos',pri:'P2'},{t:'Concluir um curso (CNCS ou Mastermind) até ao fim do arco',area:'saber',pri:'P2'}]},
+  {id:'harvest',name:'🍂 Harvest Arc',months:[10,11],desc:'Consolidar · organizar · rever conhecimento',boss:'"O que ficou realmente meu?"',bonus:{saber:1.25,mente:1.2},
+   quests:[{t:'Consolidar os apontamentos do semestre num resumo-mestre',area:'saber',pri:'P2'},{t:'Rever e atualizar o portefólio com o que aprendeste',area:'oficio',pri:'P2'},{t:'Fazer a retrospetiva do Summer Arc por escrito',area:'mente',pri:'P3'}]},
+  {id:'winter',name:'❄️ Winter Forge',months:[12,1,2],desc:'Construção profunda · muito estudo · pouca exposição',boss:'"O que forjei no silêncio?"',bonus:{saber:1.4,mente:1.25},
+   quests:[{t:'Dominar um domínio técnico a fundo (ISO 27001 ou AI Act)',area:'oficio',pri:'P1'},{t:'Ler um livro técnico completo com notas',area:'saber',pri:'P2'},{t:'Construir um projeto prático em silêncio (Shadow Work)',area:'disciplina',pri:'P2'}]},
+  {id:'bloom',name:'🌸 Bloom Arc',months:[3,4,5],desc:'Experimentar · conhecer pessoas · abrir portas',boss:'"Que porta nova abri?"',bonus:{vinculos:1.3,corpo:1.15},
+   quests:[{t:'Fazer 10 ligações novas no LinkedIn com mensagem pessoal',area:'vinculos',pri:'P2'},{t:'Tomar um café com alguém da indústria',area:'vinculos',pri:'P2'},{t:'Mostrar publicamente algo que construíste (post, demo)',area:'oficio',pri:'P1'}]},
 ];
 function seasonArcNow(){const m=new Date().getMonth()+1;return SEASON_ARCS.find(a=>a.months.includes(m))}
 function seasonBounds(a){
@@ -1034,7 +1043,15 @@ function startRecovery(){
 /* arcos: o mundo propõe, tu decides */
 function arcAccept(){const a=seasonArcNow(),b=seasonBounds(a);
   S.worldArc={id:a.id,status:'active',start:b.start,end:b.end};
-  addXp('mente',15);plog('Arco aceite: '+a.name,15);save()}
+  let n=0;
+  (a.quests||[]).forEach((q,i)=>{
+    if(S.objectives.some(o=>o.title===q.t))return;
+    const tr=triage(q.t,b.end);
+    S.objectives.push({id:'o'+Date.now()+'_'+i,title:q.t,area:q.area||tr.area||'oficio',pri:q.pri||tr.imp,auto:true,deadline:b.end,status:'pend',created:today(),tags:[a.name.split(' ')[0]+' Arco',...(tr.tags||[])],arc:a.id});n++;
+  });
+  addXp('mente',15);plog('Arco aceite: '+a.name,15);
+  if(n)setTimeout(()=>toast('O ARCO TROUXE MISSÕES','⚔️ '+n+' missões especiais entraram na lista-mestra, com prazo no fim do arco','#fb923c'),900);
+  save()}
 function arcLater(){S.worldArc={id:seasonArcNow().id,status:'later',snooze:today()};save()}
 function arcIgnore(){S.worldArc={id:seasonArcNow().id,status:'dismissed'};save()}
 

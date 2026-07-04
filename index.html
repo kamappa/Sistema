@@ -359,6 +359,12 @@
   .shd-l{font-family:var(--mono);font-size:10px;color:var(--violet);margin-top:2px}
   /* radar & oráculo */
   .rd-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:flex-start}
+  .rd-ico{width:30px;height:30px;border-radius:7px;flex:none;border:1px solid var(--line);background:var(--bg2);padding:4px;margin-top:2px}
+  #radar-news{max-height:430px;overflow-y:auto;padding-right:6px}
+  #radar-news::-webkit-scrollbar{width:7px}
+  #radar-news::-webkit-scrollbar-track{background:rgba(255,255,255,.03)}
+  #radar-news::-webkit-scrollbar-thumb{background:rgba(167,139,250,.3);border-radius:4px}
+  #radar-news::-webkit-scrollbar-thumb:hover{background:rgba(167,139,250,.55)}
   .rd-b{flex:1;min-width:0}
   .rd-t{font-size:13.5px;font-weight:600;color:var(--ink);text-decoration:none}
   a.rd-t:hover{color:var(--violet);text-decoration:underline}
@@ -1409,18 +1415,19 @@ function renderShadows(){
 
 /* ===== RADAR & ORÁCULO (dados do servidor) ===== */
 let RADAR=[],REPORT=null;
-const RAREA={cyber:{l:'Cyber',c:'#ef4444'},nis2:{l:'NIS2',c:'#a78bfa'},rgpd:{l:'RGPD',c:'#34d399'},iso27001:{l:'ISO 27001',c:'#38bdf8'},aigov:{l:'AI Gov',c:'#f472b6'},ai:{l:'IA',c:'#c084fc'}};
+const RAREA={cyber:{l:'Cyber',c:'#ef4444'},nis2:{l:'NIS2',c:'#a78bfa'},rgpd:{l:'RGPD',c:'#34d399'},iso27001:{l:'ISO 27001',c:'#38bdf8'},aigov:{l:'AI Gov',c:'#f472b6'},ai:{l:'IA',c:'#c084fc'},evento:{l:'📅 Evento',c:'#fbbf24'}};
 async function loadOracleData(){
   if(!USER||!sb)return;
   try{
     const since=new Date();since.setDate(since.getDate()-3);
-    const{data:r}=await sb.from('radar_items').select('*').gte('d',fmt(since)).order('created_at',{ascending:false}).limit(18);
+    const{data:r}=await sb.from('radar_items').select('*').gte('d',fmt(since)).order('created_at',{ascending:false}).limit(24);
     RADAR=r||[];
     const{data:rep}=await sb.from('oracle_reports').select('report,created_at').order('created_at',{ascending:false}).limit(1);
     REPORT=(rep&&rep[0])||null;
     renderNews();renderOracleRep();
   }catch(e){}
 }
+function favicon(u){try{return 'https://www.google.com/s2/favicons?sz=64&domain='+new URL(u).hostname}catch(e){return ''}}
 function renderNews(){
   const el=document.getElementById('radar-news');if(!el)return;
   if(!USER){el.innerHTML='<div class="up-empty">Entra com a tua conta para o Radar sincronizar.</div>';return;}
@@ -1428,14 +1435,14 @@ function renderNews(){
   const byD={};RADAR.forEach(i=>{(byD[i.d]=byD[i.d]||[]).push(i)});
   el.innerHTML=Object.keys(byD).sort().reverse().map(d=>{
     const lbl=d===today()?'Hoje':d===yday()?'Ontem':d.slice(8,10)+'/'+d.slice(5,7);
-    return `<div class="up-lbl">${lbl}</div>`+byD[d].map(i=>{const a=RAREA[i.area]||RAREA.ai;
+    return `<div class="up-lbl">${lbl}</div>`+byD[d].map(i=>{const a=RAREA[i.area]||RAREA.ai;const ic=favicon(i.url);
       return `<div class="rd-item">
-        <span class="wchip" style="border-color:${a.c};color:${a.c};padding:2px 8px;flex:none">${a.l}</span>
+        ${ic?`<img class="rd-ico" src="${ic}" alt="" loading="lazy" onerror="this.style.display='none'">`:''}
         <div class="rd-b">
           ${i.url?`<a class="rd-t" href="${i.url}" target="_blank" rel="noopener">${i.title}</a>`:`<span class="rd-t">${i.title}</span>`}
           ${i.summary?`<div class="rd-s">${i.summary}</div>`:''}
           ${i.relevance?`<div class="rd-r">→ ${i.relevance}</div>`:''}
-          ${i.source?`<div class="rd-src">${i.source}</div>`:''}
+          <div class="rd-src">${i.source||''} <span class="wchip" style="border-color:${a.c};color:${a.c};padding:1px 7px;font-size:9px;margin-left:6px">${a.l}</span></div>
         </div></div>`}).join('')}).join('');
 }
 function renderOracleRep(){

@@ -365,6 +365,10 @@
   #radar-news::-webkit-scrollbar-track{background:rgba(255,255,255,.03)}
   #radar-news::-webkit-scrollbar-thumb{background:rgba(167,139,250,.3);border-radius:4px}
   #radar-news::-webkit-scrollbar-thumb:hover{background:rgba(167,139,250,.55)}
+  .rd-hot{border:1px solid rgba(251,191,36,.45)!important;background:rgba(251,191,36,.05);padding:9px 11px!important;margin:7px 0;
+    clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));animation:hotpulse 3s ease-in-out infinite}
+  @keyframes hotpulse{0%,100%{box-shadow:0 0 8px rgba(251,191,36,.12)}50%{box-shadow:0 0 20px rgba(251,191,36,.3)}}
+  .rd-hotlbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:#fde68a;margin-bottom:3px}
   .rd-b{flex:1;min-width:0}
   .rd-t{font-size:13.5px;font-weight:600;color:var(--ink);text-decoration:none}
   a.rd-t:hover{color:var(--violet);text-decoration:underline}
@@ -469,6 +473,7 @@
       <div id="oblig"></div>
       <div class="sec-lbl">✦ Extras</div>
       <div id="extras"></div>
+      <div class="addq"><input id="nh-t" placeholder="Novo hábito diário (bónus)..." maxlength="60" onkeydown="if(event.key==='Enter')addHabit(event)"><select id="nh-a"></select><button class="btn" onclick="addHabit(event)">+ Add</button></div>
     </div>
     <!-- QUESTS -->
     <div class="panel reveal" style="animation-delay:.25s">
@@ -688,7 +693,7 @@ function fresh(){
     quests:QUESTS0.map(q=>({...q,done:false})),
     history:[{d:today(),v:0}], totalXP:0, log:[], lastDayCheck:today(), seenAch:[], debuffs:{}, events:[], notifOn:false, notified:{},
     worldArc:null, whisper:{}, titleEv:{}, titleUnlocked:{}, recovery:null, weather:null,
-    training:{prog:{push:0,pull:0,legs:0,core:0},sessions:[]}, sleep:{bedT:'23:30',wakeT:'07:30',logs:[]}, objectives:[], shadows:[], oracle:{reports:[]}, v:3};
+    training:{prog:{push:0,pull:0,legs:0,core:0},sessions:[]}, sleep:{bedT:'23:30',wakeT:'07:30',logs:[]}, objectives:[], shadows:[], oracle:{reports:[]}, radarAccepted:{}, v:3};
 }
 
 /* ===== DATAS ===== */
@@ -783,8 +788,16 @@ function habHTML(h,list,oblig){
     <div class="hb"><div class="hn">${h.name}</div>
       <div class="hm">${AM[h.attr].name} · +${h.xp} XP${oblig?' · <span class="pen">falha −'+h.pen+'</span>':''}</div></div>
     <div class="stk ${h.streak>0?'':'off'}">🔥 ${h.streak}</div>
+    ${h.id.startsWith('c')?`<span class="up-del" onclick="delHabit('${h.id}',event)">✕</span>`:''}
   </div>`;
 }
+function addHabit(ev){
+  const t=document.getElementById('nh-t').value.trim();if(!t)return;
+  if(S.extras.length>=14){toast('Trava do Sistema','Hábitos a mais = nenhum feito. Conclui ou apaga antes de adicionar.','#fb923c');return;}
+  S.extras.push({id:'c'+Date.now(),name:t,attr:document.getElementById('nh-a').value,xp:8,streak:0,lastDone:null,lastGain:0});
+  document.getElementById('nh-t').value='';floatXP('+ hábito','#a78bfa',ev);save();
+}
+function delHabit(id,ev){ev.stopPropagation();S.extras=S.extras.filter(h=>h.id!==id);save();}
 function render(){
   const lvl=overallLevel();const r=rankOf(lvl);
   document.getElementById('lvl').textContent=lvl;
@@ -1349,7 +1362,17 @@ function triage(title,deadline){
     else if(d<=7&&imp==='P3')imp='P2';}
   let area=null;
   for(const pair of KW_AREA){const k=pair[1].find(x=>t.includes(x));if(k){area=pair[0];why.push(AM[pair[0]].name+' ("'+k.trim()+'")');break;}}
-  return{imp,area,why:why.join(' · ')||'sem sinais fortes — peso médio'};
+  const tags=[diffTag(t)];
+  if(hashStr(t)%3===0)tags.push(FUN_TAGS[hashStr('f'+t)%FUN_TAGS.length]);
+  return{imp,area,tags,why:why.join(' · ')||'sem sinais fortes — peso médio'};
+}
+const FUN_TAGS=['🔥 Hot Quest','🗡 Digna de Sombra','☕ Café e Foco','🧠 XP Mental','👑 Material de Lenda','🌫 Missão Sombria'];
+function diffTag(t){
+  const quick=['marcar','enviar','comprar','ler ','email','mensagem','rever '];
+  const epic=['certifica','projeto','portef','portfolio','implementar','construir','sgsi','dominar'];
+  if(epic.some(k=>t.includes(k)))return '🏔 Épica';
+  if(quick.some(k=>t.includes(k)))return '⚡ Rápida';
+  return '🔨 Média';
 }
 function addObjective(ev){
   const t=document.getElementById('ob-t').value.trim();if(!t)return;
@@ -1360,7 +1383,7 @@ function addObjective(ev){
   if(sel==='AUTO'){pri=tr.imp;auto=true;}
   if(selA==='AUTO')area=tr.area||'oficio';
   if(auto||selA==='AUTO')toast('Triagem do Sistema',pri+' · '+AM[area].name+' · '+tr.why,PRI[pri].c);
-  S.objectives.push({id:'o'+Date.now(),title:t,area,pri,auto,deadline:dl,status:'pend',created:today()});
+  S.objectives.push({id:'o'+Date.now(),title:t,area,pri,auto,deadline:dl,status:'pend',created:today(),tags:tr.tags});
   document.getElementById('ob-t').value='';floatXP('+ objetivo','#a78bfa',ev);save();
 }
 function delObjective(id,ev){ev.stopPropagation();
@@ -1393,6 +1416,7 @@ function renderObjectives(){
       <span class="obj-t">${o.title}</span>
       <span class="wchip" style="border-color:${AM[o.area].color};color:${AM[o.area].color};padding:2px 8px">${AM[o.area].name}</span>
       <span class="wchip" style="border-color:${p.c};color:${p.c};padding:2px 8px">${o.pri}</span>
+      ${(o.tags||[]).map(tg=>`<span class="wchip" style="padding:1px 7px;font-size:9px;border-color:var(--line2);color:var(--mut)">${tg}</span>`).join('')}
       ${dl}<span class="up-del" onclick="delObjective('${o.id}',event)">✕</span></div>`}).join('');
   el.innerHTML=`
    <div class="obj-filters">
@@ -1436,13 +1460,15 @@ function renderNews(){
   el.innerHTML=Object.keys(byD).sort().reverse().map(d=>{
     const lbl=d===today()?'Hoje':d===yday()?'Ontem':d.slice(8,10)+'/'+d.slice(5,7);
     return `<div class="up-lbl">${lbl}</div>`+byD[d].map(i=>{const a=RAREA[i.area]||RAREA.ai;const ic=favicon(i.url);
-      return `<div class="rd-item">
+      return `<div class="rd-item ${i.impact==='alto'?'rd-hot':''}">
         ${ic?`<img class="rd-ico" src="${ic}" alt="" loading="lazy" onerror="this.style.display='none'">`:''}
         <div class="rd-b">
+          ${i.impact==='alto'?'<div class="rd-hotlbl">⚡ ALTO IMPACTO</div>':''}
           ${i.url?`<a class="rd-t" href="${i.url}" target="_blank" rel="noopener">${i.title}</a>`:`<span class="rd-t">${i.title}</span>`}
           ${i.summary?`<div class="rd-s">${i.summary}</div>`:''}
           ${i.relevance?`<div class="rd-r">→ ${i.relevance}</div>`:''}
           <div class="rd-src">${i.source||''} <span class="wchip" style="border-color:${a.c};color:${a.c};padding:1px 7px;font-size:9px;margin-left:6px">${a.l}</span></div>
+          ${(i.missao&&i.missao.t)?`<button class="mini warm" style="margin-top:7px" onclick="acceptRadarMission('${i.id}',event)">${S.radarAccepted[i.id]?'✓ Missão aceite':'＋ Aceitar missão do Radar'}</button>`:''}
         </div></div>`}).join('')}).join('');
 }
 function renderOracleRep(){
@@ -1451,6 +1477,7 @@ function renderOracleRep(){
   if(!REPORT){el.innerHTML='<div class="up-empty">O primeiro relatório chega no domingo à noite — o Oráculo lê a tua semana e escreve aqui.</div>';return;}
   const r=REPORT.report||{};const dt=(REPORT.created_at||'').slice(0,10);
   const prop=(r.propostas||[]).map(p=>`<div class="rd-item"><span style="flex:none">🜂</span><div class="rd-b"><div class="rd-t">${p.t||''}</div><div class="rd-s">${p.why||''}</div></div></div>`).join('');
+  const mp=(r.missoes_propostas||[]).map((m,i)=>`<div class="rd-item"><span style="flex:none">⚔️</span><div class="rd-b"><div class="rd-t">${m.t||''}</div><div class="rd-s">${m.why||''}</div></div><button class="mini" onclick="acceptOracleMission(${i},event)">＋ Aceitar</button></div>`).join('');
   el.innerHTML=`
     <div class="tr-stats"><span class="wchip gold">📜 Relatório de ${dt.slice(8,10)}/${dt.slice(5,7)}</span></div>
     ${r.resumo?`<div class="orc-sec">${r.resumo}</div>`:''}
@@ -1458,7 +1485,25 @@ function renderOracleRep(){
     ${r.sono?`<div class="orc-sec"><b>😴 Sono:</b> ${r.sono}</div>`:''}
     ${r.alerta&&r.alerta!=='null'?`<div class="orc-sec" style="color:#fca5a5"><b>⚠ Alerta:</b> ${r.alerta}</div>`:''}
     ${prop?`<div class="up-lbl">Propostas do Oráculo</div>${prop}`:''}
+    ${mp?`<div class="up-lbl">Missões propostas</div>${mp}`:''}
+    ${r.recompensa?`<div class="orc-sec"><b>🎁 Recompensa sugerida:</b> ${r.recompensa}</div>`:''}
+    ${r.titulo?`<div class="orc-sec"><b>🎖 Título da semana:</b> ${r.titulo}</div>`:''}
     ${r.legado?`<div class="orc-leg">👑 ${r.legado}</div>`:''}`;
+}
+function acceptOracleMission(i,ev){
+  const r=REPORT&&REPORT.report;if(!r||!r.missoes_propostas||!r.missoes_propostas[i])return;
+  const m=r.missoes_propostas[i];
+  const tr=triage(m.t||'Missão do Oráculo',m.deadline||null);
+  S.objectives.push({id:'o'+Date.now(),title:m.t||'Missão do Oráculo',area:(m.area&&AM[m.area])?m.area:(tr.area||'oficio'),pri:(m.pri&&PRI[m.pri])?m.pri:tr.imp,auto:true,deadline:m.deadline||null,status:'pend',created:today(),tags:['🔮 Do Oráculo',...(tr.tags||[])],oracle:true});
+  toast('Missão aceite','⚔️ Entrou na lista-mestra','#a78bfa');floatXP('+ missão','#a78bfa',ev);save();
+}
+function acceptRadarMission(id,ev){
+  const it=RADAR.find(x=>x.id===id);if(!it||!it.missao||!it.missao.t)return;
+  if(S.radarAccepted[id]){toast('Já aceite','Esta missão já está na tua lista.','#fb923c');return;}
+  const m=it.missao;const tr=triage(m.t,m.deadline||null);
+  S.objectives.push({id:'o'+Date.now(),title:m.t,area:(m.area&&AM[m.area])?m.area:(tr.area||'oficio'),pri:(m.pri&&PRI[m.pri])?m.pri:tr.imp,auto:true,deadline:m.deadline||null,status:'pend',created:today(),tags:['📡 Do Radar',...(tr.tags||[])],oracle:true});
+  S.radarAccepted[id]=true;
+  toast('Missão do Radar aceite','⚔️ '+m.t,'#fbbf24');floatXP('+ missão','#fbbf24',ev);save();
 }
 
 /* ===== PERSIST ===== */
@@ -1478,7 +1523,7 @@ async function bootState(){
   S.whisper=S.whisper||{};S.titleEv=S.titleEv||{};S.titleUnlocked=S.titleUnlocked||{};S.worldArc=S.worldArc||null;S.recovery=S.recovery||null;S.weather=S.weather||null;
   S.training=S.training||{prog:{push:0,pull:0,legs:0,core:0},sessions:[]};S.training.prog=S.training.prog||{push:0,pull:0,legs:0,core:0};S.training.sessions=S.training.sessions||[];
   S.sleep=S.sleep||{bedT:'23:30',wakeT:'07:30',logs:[]};S.sleep.logs=S.sleep.logs||[];
-  S.objectives=S.objectives||[];S.shadows=S.shadows||[];S.oracle=S.oracle||{reports:[]};S.v=3;
+  S.objectives=S.objectives||[];S.shadows=S.shadows||[];S.oracle=S.oracle||{reports:[]};S.radarAccepted=S.radarAccepted||{};S.v=3;
   calInit();fetchWeather();
   // quebra streaks antigas
   [...S.oblig,...S.extras].forEach(h=>{if(h.lastDone&&h.lastDone!==today()&&h.lastDone!==yday())h.streak=0});
@@ -1489,6 +1534,7 @@ async function bootState(){
 }
 async function init(){
   document.getElementById('qa').innerHTML=ATTRS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  document.getElementById('nh-a').innerHTML=ATTRS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
   if(sb){
     try{
       const{data:{session}}=await sb.auth.getSession();

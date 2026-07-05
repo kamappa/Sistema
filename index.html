@@ -374,6 +374,10 @@
     clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));animation:hotpulse 3s ease-in-out infinite}
   @keyframes hotpulse{0%,100%{box-shadow:0 0 8px rgba(251,191,36,.12)}50%{box-shadow:0 0 20px rgba(251,191,36,.3)}}
   .rd-hotlbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:#fde68a;margin-bottom:3px}
+  .greet{margin-bottom:14px}
+  .greet-h{font-family:var(--disp);font-weight:600;font-size:clamp(17px,3vw,22px);letter-spacing:.02em}
+  .greet-q{font-size:12.5px;color:var(--mut);font-style:italic;margin-top:3px}
+  .greet-q b{color:var(--violet);font-style:normal;font-weight:600}
   .rd-b{flex:1;min-width:0}
   .rd-t{font-size:13.5px;font-weight:600;color:var(--ink);text-decoration:none}
   a.rd-t:hover{color:var(--violet);text-decoration:underline}
@@ -404,6 +408,7 @@
 
 <div class="wrap">
   <div class="syslabel"><span>Sistema · Estado do Operador</span></div>
+  <div class="greet reveal"><div class="greet-h" id="greet-h"></div><div class="greet-q" id="greet-q"></div></div>
   <div class="deadline-banner" id="deadline-banner"></div>
 
   <!-- HERO -->
@@ -854,7 +859,7 @@ function render(){
 
   renderXpLine();
 
-  renderAchievements();renderDebuffs();renderTree();renderWorld();renderNews();renderOracleRep();renderTitles();renderTraining();renderSleep();renderObjectives();renderShadows();renderCalendar();renderDeadlineBanner();checkNotif();
+  renderGreet();renderAchievements();renderDebuffs();renderTree();renderWorld();renderNews();renderOracleRep();renderTitles();renderTraining();renderSleep();renderObjectives();renderShadows();renderCalendar();renderDeadlineBanner();checkNotif();
 
   const log=document.getElementById('log');
   log.innerHTML=S.log.length?S.log.map(l=>`<div class="li"><span>${l.text}</span><span class="${l.gain<0?'b':'g'}">${l.gain<0?'':'+'}${l.gain} XP</span></div>`).join(''):'<div class="log-empty">Sem atividade ainda. Marca um obrigatório para começares.</div>';
@@ -959,7 +964,7 @@ const seededPct=s=>hashStr(s)%100;
 
 const SEASON_ARCS=[
   {id:'summer',name:'☀️ Summer Arc',months:[6,7,8,9],desc:'Estágio · cursos · eventos · networking · IA',boss:'"Quem sou eu comparado com junho?"',bonus:{oficio:1.2,vinculos:1.2},
-   quests:[{t:'Conseguir uma entrevista ou contacto direto para estágio',area:'oficio',pri:'P1'},{t:'Participar num evento ou webinar de cibersegurança durante o arco',area:'vinculos',pri:'P2'},{t:'Concluir um curso (CNCS ou Mastermind) até ao fim do arco',area:'saber',pri:'P2'}]},
+   quests:[{t:'Conseguir uma entrevista ou contacto direto para estágio',area:'oficio',pri:'P1'},{t:'Participar num evento ou webinar de cibersegurança durante o arco',area:'vinculos',pri:'P2'},{t:'Concluir um curso (CNCS ou Mastermind) até ao fim do arco',area:'saber',pri:'P2'},{t:'Um dia de praia sem culpa — recarregar é estratégia',area:'corpo',pri:'P3'}]},
   {id:'harvest',name:'🍂 Harvest Arc',months:[10,11],desc:'Consolidar · organizar · rever conhecimento',boss:'"O que ficou realmente meu?"',bonus:{saber:1.25,mente:1.2},
    quests:[{t:'Consolidar os apontamentos do semestre num resumo-mestre',area:'saber',pri:'P2'},{t:'Rever e atualizar o portefólio com o que aprendeste',area:'oficio',pri:'P2'},{t:'Fazer a retrospetiva do Summer Arc por escrito',area:'mente',pri:'P3'}]},
   {id:'winter',name:'❄️ Winter Forge',months:[12,1,2],desc:'Construção profunda · muito estudo · pouca exposição',boss:'"O que forjei no silêncio?"',bonus:{saber:1.4,mente:1.25},
@@ -1012,7 +1017,13 @@ const WHISPERS=[
   {t:'Escreve 3 linhas: o que correu bem hoje?',attr:'mente',xp:8},
   {t:'Prepara já o que precisas para amanhã (roupa, mochila, treino)',attr:'disciplina',xp:8},
 ];
-const whisperToday=()=>WHISPERS[hashStr('wh'+today())%WHISPERS.length];
+const WH_SEASON={
+ summer:[{t:'Protetor solar antes de sair — pele também é Corpo',attr:'corpo',xp:6},{t:'Treina de manhã cedo, antes do calor',attr:'disciplina',xp:10},{t:'+1 garrafa de água hoje — o calor cobra',attr:'corpo',xp:6},{t:'20 min de sol com juízo — vitamina D grátis',attr:'corpo',xp:8},{t:'Fruta da época em vez de snack processado',attr:'corpo',xp:6},{t:'Estuda na hora mais quente, treina na fresca',attr:'mente',xp:8}],
+ harvest:[{t:'Caminhada de outono — ar fresco, cabeça limpa',attr:'corpo',xp:8},{t:'Chá quente + 20 páginas',attr:'saber',xp:8},{t:'Organiza a semana ao domingo à noite',attr:'mente',xp:8}],
+ winter:[{t:'Apanha luz natural de manhã (10 min)',attr:'corpo',xp:8},{t:'Deita-te 30 min mais cedo — o inverno é para forjar',attr:'disciplina',xp:8},{t:'Sopa ou refeição quente a sério hoje',attr:'corpo',xp:6},{t:'Treino indoor, sem desculpas de frio',attr:'corpo',xp:10}],
+ bloom:[{t:'Treina ao ar livre hoje',attr:'corpo',xp:10},{t:'Caminhada na natureza sem telemóvel',attr:'mente',xp:8},{t:'Convida alguém para um café esta semana',attr:'vinculos',xp:10}]
+};
+const whisperToday=()=>{const pool=WHISPERS.concat(WH_SEASON[seasonArcNow().id]||[]);return pool[hashStr('wh'+today())%pool.length]};
 function claimWhisper(ev){
   if(S.whisper[today()])return;const w=whisperToday();
   S.whisper[today()]=true;const g=Math.round(w.xp*xpMult(w.attr));
@@ -1452,6 +1463,20 @@ function renderShadows(){
   const pow=S.shadows.reduce((s,x)=>s+x.lvl,0);
   el.innerHTML=`<div class="tr-stats"><span class="wchip gold">Poder do exército: ${pow}</span><span class="wchip">Sombras: ${S.shadows.length}</span></div>
    <div class="shd-grid">${S.shadows.length?S.shadows.slice().reverse().map(s=>`<div class="shd"><div class="shd-n">🗡 ${s.name}</div><div class="shd-l">Sombra · Nv ${s.lvl} · ${s.d.slice(8,10)}/${s.d.slice(5,7)}</div></div>`).join(''):'<div class="up-empty">O exército aguarda. Conclui objetivos — e eles erguem-se para trabalhar por ti.</div>'}</div>`;
+}
+
+/* ===== SAUDAÇÃO & CITAÇÃO DO DIA ===== */
+const QUOTES=[["A felicidade da tua vida depende da qualidade dos teus pensamentos.","Marco Aurélio"],["Não é porque as coisas são difíceis que não ousamos; é porque não ousamos que elas são difíceis.","Séneca"],["Não expliques a tua filosofia. Encarna-a.","Epicteto"],["Uma vida não examinada não merece ser vivida.","Sócrates"],["Somos o que fazemos repetidamente. A excelência não é um ato, é um hábito.","Aristóteles"],["Tens poder sobre a tua mente — não sobre os acontecimentos. Percebe isto e encontrarás força.","Marco Aurélio"],["Quem tem um porquê enfrenta quase qualquer como.","Nietzsche"],["Conhece-te a ti mesmo.","Oráculo de Delfos"],["Ninguém se banha duas vezes no mesmo rio.","Heraclito"],["A maior vitória é a vitória sobre ti próprio.","Platão"],["Escolhe um trabalho que ames e não terás de trabalhar um único dia.","Confúcio"],["Uma viagem de mil léguas começa com um único passo.","Lao Tsé"],["Conhece o inimigo e conhece-te a ti mesmo; não temerás o resultado de cem batalhas.","Sun Tzu"],["Penso, logo existo.","Descartes"],["Não estragues o que tens desejando o que não tens.","Epicuro"],["A sorte favorece a mente preparada.","Pasteur"]];
+function renderGreet(){
+  const eh=document.getElementById('greet-h'),eq=document.getElementById('greet-q');if(!eh)return;
+  const hr=new Date().getHours();
+  const G={m:['Bom dia — pronto para começar bem?','Bom dia. O dia é teu antes de ser de mais alguém.','Bom dia — primeiro um pilar, depois o mundo.'],
+           t:['Boa tarde — ritmo, não pressa.','Boa tarde. Metade do dia, foco inteiro.','Boa tarde — o que fica feito hoje não pesa amanhã.'],
+           n:['Boa noite — fecha o dia com intenção.','Boa noite. O descanso também é treino.','Boa noite — o Corpo constrói-se a dormir.']};
+  const per=(hr>=5&&hr<13)?'m':(hr<20)?'t':'n';
+  eh.textContent=G[per][hashStr(per+today())%G[per].length];
+  const q=QUOTES[hashStr('q'+today())%QUOTES.length];
+  eq.innerHTML='“'+q[0]+'” — <b>'+q[1]+'</b>';
 }
 
 /* ===== RADAR & ORÁCULO (dados do servidor) ===== */

@@ -374,6 +374,8 @@
     clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));animation:hotpulse 3s ease-in-out infinite}
   @keyframes hotpulse{0%,100%{box-shadow:0 0 8px rgba(251,191,36,.12)}50%{box-shadow:0 0 20px rgba(251,191,36,.3)}}
   .rd-hotlbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;color:#fde68a;margin-bottom:3px}
+  .rd-new{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:#12061f;background:linear-gradient(135deg,#fbbf24,#f59e0b);padding:1px 6px;border-radius:2px;margin-left:7px;font-weight:700;vertical-align:2px;animation:rise .5s both}
+  .rd-time{font-family:var(--mono);font-size:9px;color:var(--mut2)}
   .greet{margin-bottom:14px}
   .greet-h{font-family:var(--disp);font-weight:600;font-size:clamp(17px,3vw,22px);letter-spacing:.02em}
   .greet-q{font-size:12.5px;color:var(--mut);font-style:italic;margin-top:3px}
@@ -1485,8 +1487,8 @@ const RAREA={cyber:{l:'Cyber',c:'#ef4444'},nis2:{l:'NIS2',c:'#a78bfa'},rgpd:{l:'
 async function loadOracleData(){
   if(!USER||!sb)return;
   try{
-    const since=new Date();since.setDate(since.getDate()-3);
-    const{data:r}=await sb.from('radar_items').select('*').gte('d',fmt(since)).order('created_at',{ascending:false}).limit(24);
+    const since=new Date();since.setDate(since.getDate()-7);
+    const{data:r}=await sb.from('radar_items').select('*').gte('d',fmt(since)).order('created_at',{ascending:false}).limit(48);
     RADAR=r||[];
     const{data:rep}=await sb.from('oracle_reports').select('report,created_at').order('created_at',{ascending:false}).limit(1);
     REPORT=(rep&&rep[0])||null;
@@ -1502,14 +1504,17 @@ function renderNews(){
   el.innerHTML=Object.keys(byD).sort().reverse().map(d=>{
     const lbl=d===today()?'Hoje':d===yday()?'Ontem':d.slice(8,10)+'/'+d.slice(5,7);
     return `<div class="up-lbl">${lbl}</div>`+byD[d].map(i=>{const a=RAREA[i.area]||RAREA.ai;const ic=favicon(i.url);
+      const ct=i.created_at?new Date(i.created_at):null;
+      const tm=ct?String(ct.getHours()).padStart(2,'0')+':'+String(ct.getMinutes()).padStart(2,'0'):'';
+      const isNew=ct&&(Date.now()-ct.getTime())<12*3600000;
       return `<div class="rd-item ${i.impact==='alto'?'rd-hot':''}">
         ${ic?`<img class="rd-ico" src="${ic}" alt="" loading="lazy" onerror="this.style.display='none'">`:''}
         <div class="rd-b">
           ${i.impact==='alto'?'<div class="rd-hotlbl">⚡ ALTO IMPACTO</div>':''}
-          ${i.url?`<a class="rd-t" href="${i.url}" target="_blank" rel="noopener">${i.title}</a>`:`<span class="rd-t">${i.title}</span>`}
+          ${i.url?`<a class="rd-t" href="${i.url}" target="_blank" rel="noopener">${i.title}</a>`:`<span class="rd-t">${i.title}</span>`}${isNew?'<span class="rd-new">NOVA</span>':''}
           ${i.summary?`<div class="rd-s">${i.summary}</div>`:''}
           ${i.relevance?`<div class="rd-r">→ ${i.relevance}</div>`:''}
-          <div class="rd-src">${i.source||''} <span class="wchip" style="border-color:${a.c};color:${a.c};padding:1px 7px;font-size:9px;margin-left:6px">${a.l}</span></div>
+          <div class="rd-src">${i.source||''} <span class="wchip" style="border-color:${a.c};color:${a.c};padding:1px 7px;font-size:9px;margin-left:6px">${a.l}</span>${tm?` <span class="rd-time">· ${tm}</span>`:''}</div>
           ${(i.missao&&i.missao.t)?`<button class="mini warm" style="margin-top:7px" onclick="acceptRadarMission('${i.id}',event)">${S.radarAccepted[i.id]?'✓ Missão aceite':'＋ Aceitar missão do Radar'}</button>`:''}
         </div></div>`}).join('')}).join('');
 }

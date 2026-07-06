@@ -1368,7 +1368,10 @@ function renderSleep(){
 /* ===== FASE 3 · OBJETIVOS-MESTRA + SHADOW ARMY ===== */
 const PRI={P1:{xp:150,lvl:10,c:'#ef4444'},P2:{xp:90,lvl:6,c:'#fb923c'},P3:{xp:50,lvl:3,c:'#34d399'},BOSS:{xp:400,lvl:15,c:'#facc15'}};
 const OST=['pend','doing','done'];const OSTL={pend:'⭘',doing:'⚔️',done:'✅'};
-let objF={est:'all',area:'all',sort:'prazo'};
+const TIER_LABEL={P3:'Side',P2:'Main',P1:'Elite',BOSS:'Boss'};
+const TIER_RANK={P3:'E',P2:'B',P1:'A',BOSS:'S'};
+const TIER_KEY={side:'P3',main:'P2',elite:'P1',boss:'BOSS'};
+let objF={est:'all',area:'all',sort:'prazo',dif:'all'};
 function setObjF(k,v){objF[k]=v;render()}
 /* triagem automática (regras transparentes; o Oráculo refina depois) */
 const KW_HI=['exame','teste','entrega','trabalho','certifica','entrevista','audit','relat','apresenta','projeto','prova','estágio','estagio','urgente','defesa'];
@@ -1409,10 +1412,10 @@ function addObjective(ev){
   const dl=document.getElementById('ob-d').value||null;
   const sel=document.getElementById('ob-p').value,selA=document.getElementById('ob-a').value;
   const tr=triage(t,dl);
-  let pri=sel,auto=false,area=selA;
+  let pri=TIER_KEY[sel],auto=false,area=selA;
   if(sel==='AUTO'){pri=tr.imp;auto=true;}
   if(selA==='AUTO')area=tr.area||'oficio';
-  if(auto||selA==='AUTO')toast('Triagem do Sistema',pri+' · '+AM[area].name+' · '+tr.why,PRI[pri].c);
+  if(auto||selA==='AUTO')toast('Triagem do Sistema',TIER_LABEL[pri]+' · '+AM[area].name+' · '+tr.why,PRI[pri].c);
   S.objectives.push({id:'o'+Date.now(),title:t,area,pri,auto,deadline:dl,status:'pend',created:today(),tags:tr.tags});
   document.getElementById('ob-t').value='';floatXP('+ objetivo','#a78bfa',ev);save();
 }
@@ -1433,7 +1436,9 @@ function cycleObj(id,ev){ev.stopPropagation();
 function renderObjectives(){
   const el=document.getElementById('objs');if(!el)return;
   const kt=document.getElementById('ob-t');const keep=kt?kt.value:'';
-  let list=S.objectives.filter(o=>(objF.est==='all'||o.status===objF.est)&&(objF.area==='all'||o.area===objF.area));
+  const curArc=(S.worldArc&&S.worldArc.status==='active')?S.worldArc.id:null;
+  const curArcLabel=curArc?(SEASON_ARCS.find(a=>a.id===curArc)||{}).name.split(' ').slice(0,2).join(' '):null;
+  let list=S.objectives.filter(o=>(objF.est==='all'||o.status===objF.est)&&(objF.area==='all'||o.area===objF.area)&&(objF.dif==='all'||(o.tags&&o.tags.includes(objF.dif))));
   list.sort((a,b)=>{
     if(objF.sort==='prazo')return(a.deadline||'9999')<(b.deadline||'9999')?-1:1;
     if(objF.sort==='pri')return a.pri<b.pri?-1:1;
@@ -1445,7 +1450,8 @@ function renderObjectives(){
       <span class="obj-st" onclick="cycleObj('${o.id}',event)" title="pendente → em curso → feito">${OSTL[o.status]}</span>
       <span class="obj-t">${o.title}</span>
       <span class="wchip" style="border-color:${AM[o.area].color};color:${AM[o.area].color};padding:2px 8px">${AM[o.area].name}</span>
-      <span class="wchip" style="border-color:${p.c};color:${p.c};padding:2px 8px">${o.pri}</span>
+      <span class="wchip" style="border-color:${p.c};color:${p.c};padding:2px 8px">${TIER_LABEL[o.pri]}</span>
+      ${(o.arc&&o.arc===curArc)?`<span class="wchip" style="padding:1px 7px;font-size:9px;border-color:var(--line2);color:var(--mut)">${curArcLabel}</span>`:''}
       ${(o.tags||[]).map(tg=>`<span class="wchip" style="padding:1px 7px;font-size:9px;border-color:var(--line2);color:var(--mut)">${tg}</span>`).join('')}
       ${dl}<span class="up-del" onclick="delObjective('${o.id}',event)">✕</span></div>`}).join('');
   el.innerHTML=`
@@ -1453,11 +1459,12 @@ function renderObjectives(){
      <select onchange="setObjF('est',this.value)">${['all','pend','doing','done'].map(v=>`<option value="${v}" ${objF.est===v?'selected':''}>${{all:'Estado: todos',pend:'Pendentes',doing:'Em curso',done:'Feitos'}[v]}</option>`).join('')}</select>
      <select onchange="setObjF('area',this.value)"><option value="all">Área: todas</option>${ATTRS.map(a=>`<option value="${a.id}" ${objF.area===a.id?'selected':''}>${a.name}</option>`).join('')}</select>
      <select onchange="setObjF('sort',this.value)">${[['prazo','Ordenar: prazo'],['pri','Ordenar: prioridade'],['created','Ordenar: criação']].map(x=>`<option value="${x[0]}" ${objF.sort===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select>
+     <select onchange="setObjF('dif',this.value)"><option value="all">Dificuldade: todas</option>${['⚡ Rápida','🔨 Média','🏔 Épica'].map(v=>`<option value="${v}" ${objF.dif===v?'selected':''}>${v}</option>`).join('')}</select>
    </div>
-   <div>${rows||'<div class="up-empty">Sem objetivos neste filtro. Adiciona o primeiro — P1 vale 150 XP e uma Sombra Nv 10.</div>'}</div>
+   <div>${rows||'<div class="up-empty">Sem missões neste filtro. Adiciona a primeira — Elite vale 150 XP e uma Sombra Nv 10.</div>'}</div>
    <div class="addq"><input id="ob-t" placeholder="Novo objetivo..." maxlength="90" value="${keep.replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter')addObjective(event)">
      <select id="ob-a"><option value="AUTO" selected>Auto</option>${ATTRS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('')}</select>
-     <select id="ob-p"><option value="AUTO" selected>Auto</option><option>P1</option><option>P2</option><option>P3</option></select>
+     <select id="ob-p"><option value="AUTO" selected>Auto</option><option value="side">Side</option><option value="main">Main</option><option value="elite">Elite</option><option value="boss">Boss</option></select>
      <input type="date" id="ob-d"><button class="btn" onclick="addObjective(event)">+ Add</button></div>`;
 }
 function renderShadows(){

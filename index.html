@@ -850,15 +850,6 @@ function render(){
   document.getElementById('oblig').innerHTML=S.oblig.map(h=>habHTML(h,'oblig',true)).join('');
   document.getElementById('extras').innerHTML=S.extras.map(h=>habHTML(h,'extras',false)).join('');
 
-  document.getElementById('quests').innerHTML=['side','main','boss'].map(t=>{
-    const qs=S.quests.filter(q=>q.tier===t);if(!qs.length)return'';
-    return `<div class="tier"><div class="th"><span class="rk">RANK ${TIER_RK[t]}</span> ${TIER_LBL[t]} · +${TIER_XP[t]} XP</div>
-      ${qs.map(q=>`<div class="q ${q.done?'done':''}" onclick="toggleQuest('${q.id}',event)">
-        <div class="chk" style="${q.done?'background:#a78bfa;border-color:#a78bfa':''}">${q.done?chkI:''}</div>
-        <div class="qb"><div class="qn">${q.title}</div><div class="qm"><span style="color:${AM[q.attr].color}">${AM[q.attr].name}</span>${q.arc?'<span>☀️ Summer</span>':''}</div></div>
-        <span class="del" onclick="delQuest('${q.id}',event)">✕</span></div>`).join('')}</div>`;
-  }).join('');
-
   renderXpLine();
 
   renderGreet();renderAchievements();renderDebuffs();renderTree();renderWorld();renderNews();renderOracleRep();renderTitles();renderTraining();renderSleep();renderObjectives();renderShadows();renderCalendar();renderDeadlineBanner();checkNotif();
@@ -918,8 +909,8 @@ const ACH=[
   {id:'oficio10',ico:'🛡️',name:'Especialista em ascensão',msg:'Ofício nível 10. A carreira a solidificar.',cond:s=>s.attrs.oficio.level>=10},
   {id:'xp1k',ico:'💠',name:'1000 XP',msg:'Mil pontos de esforço real acumulado.',cond:s=>s.totalXP>=1000},
   {id:'xp5k',ico:'🌟',name:'5000 XP',msg:'Cinco mil. Poucos chegam aqui. Tu chegaste.',cond:s=>s.totalXP>=5000},
-  {id:'q5',ico:'📜',name:'Cumpridor',msg:'5 missões concluídas. Objetivos viram resultados.',cond:s=>s.quests.filter(q=>q.done).length>=5},
-  {id:'boss',ico:'👹',name:'Boss derrotado',msg:'Derrotaste um Boss. Os grandes desafios já não te travam.',cond:s=>s.quests.some(q=>q.tier==='boss'&&q.done)},
+  {id:'q5',ico:'📜',name:'Cumpridor',msg:'5 missões concluídas. Objetivos viram resultados.',cond:s=>s.objectives.filter(o=>o.status==='done').length>=5},
+  {id:'boss',ico:'👹',name:'Boss derrotado',msg:'Derrotaste um Boss. Os grandes desafios já não te travam.',cond:s=>s.objectives.some(o=>o.pri==='BOSS'&&o.status==='done')},
   {id:'balance',ico:'⬡',name:'Equilíbrio',msg:'Os 6 atributos no nível 3+. Uma vida inteira, não só uma parte.',cond:s=>ATTRS.every(a=>s.attrs[a.id].level>=3)},
   {id:'disc5',ico:'⚙️',name:'Disciplina forjada',msg:'Disciplina nível 5. A base de tudo o resto.',cond:s=>s.attrs.disciplina.level>=5},
 ];

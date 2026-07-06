@@ -487,17 +487,6 @@
       <div id="extras"></div>
       <div class="addq"><input id="nh-t" placeholder="Novo hábito diário (bónus)..." maxlength="60" onkeydown="if(event.key==='Enter')addHabit(event)"><select id="nh-a"></select><button class="btn" onclick="addHabit(event)">+ Add</button></div>
     </div>
-    <!-- QUESTS -->
-    <div class="panel reveal" style="animation-delay:.25s">
-      <div class="ptitle"><b>Missões</b> · Objetivos</div>
-      <div id="quests"></div>
-      <div class="addq">
-        <input id="qt" placeholder="Nova missão..." maxlength="80" onkeydown="if(event.key==='Enter')addQuest()">
-        <select id="qa"></select>
-        <select id="qtier"><option value="side">Side (E)</option><option value="main">Main (B)</option><option value="boss">Boss (S)</option></select>
-        <button class="btn" onclick="addQuest()">+ Add</button>
-      </div>
-    </div>
   </div>
 
   <!-- TREINO -->
@@ -518,9 +507,9 @@
     </div>
   </div>
 
-  <!-- OBJETIVOS -->
+  <!-- MISSÕES -->
   <div class="panel reveal" style="animation-delay:.29s">
-    <div class="ptitle"><b>Objetivos</b> · Lista-mestra filtrável</div>
+    <div class="ptitle"><b>Missões</b> · Lista-mestra filtrável</div>
     <div id="objs"></div>
   </div>
 
@@ -620,23 +609,6 @@ const EXTRAS=[
   {id:'e_agua', name:'Hidratação',                    attr:'corpo',      xp:6},
   {id:'e_pele', name:'Skincare + fio dentário',       attr:'corpo',      xp:6},
 ];
-const QUESTS0=[
-  {id:'q1',title:'Concluir cursos do CNCS',            attr:'saber',   tier:'side',arc:1},
-  {id:'q2',title:'Concluir curso Mastermind',          attr:'saber',   tier:'side',arc:1},
-  {id:'q3',title:'Renovar e otimizar o LinkedIn',      attr:'vinculos',tier:'side',arc:1},
-  {id:'q4',title:'Participar num evento de ciberseg.', attr:'vinculos',tier:'side',arc:1},
-  {id:'q5',title:'30 dias de rotina estável',          attr:'disciplina',tier:'side',arc:1},
-  {id:'q6',title:'Conseguir estágio',                  attr:'oficio',  tier:'main',arc:1},
-  {id:'q7',title:'Obter uma certificação',             attr:'oficio',  tier:'main',arc:0},
-  {id:'q8',title:'Dominar NIS2 e ISO 27001',           attr:'oficio',  tier:'main',arc:0},
-  {id:'q9',title:'Construir portefólio de GRC',        attr:'oficio',  tier:'main',arc:0},
-  {id:'qb1',title:'BOSS — ISO 27001 Lead Auditor',     attr:'oficio',  tier:'boss',arc:0},
-  {id:'qb2',title:'BOSS — Conseguir estágio (Summer)', attr:'oficio',  tier:'boss',arc:1},
-];
-const TIER_XP={side:60,main:200,boss:400};
-const TIER_LBL={side:'Side · curto',main:'Main · longo',boss:'Boss'};
-const TIER_RK={side:'E',main:'B',boss:'S'};
-
 /* ===== SUPABASE / STORAGE ===== */
 const KEY='sistema_daniel_v1';
 const SUPABASE_URL='https://zybrgnhepspledkjbllo.supabase.co';
@@ -702,7 +674,6 @@ function fresh(){
   const attrs={};ATTRS.forEach(a=>attrs[a.id]={level:1,xp:0});
   return {attrs, oblig:OBLIG.map(h=>({...h,streak:0,lastDone:null,lastGain:0})),
     extras:EXTRAS.map(h=>({...h,streak:0,lastDone:null,lastGain:0})),
-    quests:QUESTS0.map(q=>({...q,done:false})),
     history:[{d:today(),v:0}], totalXP:0, log:[], lastDayCheck:today(), seenAch:[], debuffs:{}, events:[], notifOn:false, notified:{},
     worldArc:null, whisper:{}, titleEv:{}, titleUnlocked:{}, recovery:null, weather:null,
     training:{prog:{push:0,pull:0,legs:0,core:0},sessions:[]}, sleep:{bedT:'23:30',wakeT:'07:30',logs:[]}, objectives:[], shadows:[], oracle:{reports:[]}, radarAccepted:{}, v:3};
@@ -760,18 +731,6 @@ function toggleHabit(list,id,ev){
   }else{const back=h.lastGain||h.xp;addXp(h.attr,-back);floatXP('\u2212'+back+' XP','#ef4444',ev);h.lastDone=null;h.streak=Math.max(0,h.streak-1);}
   save();
 }
-function toggleQuest(id,ev){
-  const q=S.quests.find(x=>x.id===id);if(!q)return;const xp=TIER_XP[q.tier];
-  if(!q.done){q.done=true;addXp(q.attr,xp);plog('✓ '+q.title,xp);floatXP('+'+xp+' XP',AM[q.attr].color,ev);toast('Missão concluída',q.title,'#a78bfa');}
-  else{q.done=false;addXp(q.attr,-xp);floatXP('−'+xp+' XP','#ef4444',ev);}
-  save();
-}
-function addQuest(){
-  const t=document.getElementById('qt').value.trim();if(!t)return;
-  S.quests.push({id:'u'+Date.now(),title:t,attr:document.getElementById('qa').value,tier:document.getElementById('qtier').value,arc:1,done:false});
-  document.getElementById('qt').value='';save();
-}
-function delQuest(id,e){e.stopPropagation();S.quests=S.quests.filter(q=>q.id!==id);save();}
 function resetAll(){if(confirm('Reiniciar todo o progresso? Não há volta atrás.')){S=fresh();save();}}
 
 /* ===== TOAST ===== */
@@ -817,7 +776,7 @@ function render(){
   const realUn=Object.entries(S.titleUnlocked||{}).sort((a,b)=>a[1]<b[1]?-1:1);
   const lastReal=realUn.length?TITLES_REAL.find(t=>t.id===realUn[realUn.length-1][0]):null;
   document.getElementById('title').textContent=lastReal?('👑 '+lastReal.name):titleOf(lvl);
-  document.getElementById('qd').textContent=S.quests.filter(q=>q.done).length;
+  document.getElementById('qd').textContent=S.objectives.filter(o=>o.status==='done').length;
   const allH=[...S.oblig,...S.extras];document.getElementById('bstk').textContent=Math.max(0,...allH.map(h=>h.streak));
 
   // rank badge
@@ -1586,7 +1545,6 @@ async function bootState(){
   if(pendingPenalty>0){setTimeout(()=>toast('Dia fechado','Perdeste '+pendingPenalty+' XP por obrigatórios em falta','#ef4444',true),700);pendingPenalty=0;}
 }
 async function init(){
-  document.getElementById('qa').innerHTML=ATTRS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
   document.getElementById('nh-a').innerHTML=ATTRS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
   if(sb){
     try{

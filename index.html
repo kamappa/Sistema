@@ -1366,7 +1366,7 @@ function renderSleep(){
 }
 
 /* ===== FASE 3 · OBJETIVOS-MESTRA + SHADOW ARMY ===== */
-const PRI={P1:{xp:150,lvl:10,c:'#ef4444'},P2:{xp:90,lvl:6,c:'#fb923c'},P3:{xp:50,lvl:3,c:'#34d399'}};
+const PRI={P1:{xp:150,lvl:10,c:'#ef4444'},P2:{xp:90,lvl:6,c:'#fb923c'},P3:{xp:50,lvl:3,c:'#34d399'},BOSS:{xp:400,lvl:15,c:'#facc15'}};
 const OST=['pend','doing','done'];const OSTL={pend:'⭘',doing:'⚔️',done:'✅'};
 let objF={est:'all',area:'all',sort:'prazo'};
 function setObjF(k,v){objF[k]=v;render()}
@@ -1570,7 +1570,15 @@ async function bootState(){
   S.whisper=S.whisper||{};S.titleEv=S.titleEv||{};S.titleUnlocked=S.titleUnlocked||{};S.worldArc=S.worldArc||null;S.recovery=S.recovery||null;S.weather=S.weather||null;
   S.training=S.training||{prog:{push:0,pull:0,legs:0,core:0},sessions:[]};S.training.prog=S.training.prog||{push:0,pull:0,legs:0,core:0};S.training.sessions=S.training.sessions||[];
   S.sleep=S.sleep||{bedT:'23:30',wakeT:'07:30',logs:[]};S.sleep.logs=S.sleep.logs||[];
-  S.objectives=S.objectives||[];S.shadows=S.shadows||[];S.oracle=S.oracle||{reports:[]};S.radarAccepted=S.radarAccepted||{};S.v=3;
+  S.objectives=S.objectives||[];S.shadows=S.shadows||[];S.oracle=S.oracle||{reports:[]};S.radarAccepted=S.radarAccepted||{};
+  if(!S.migratedQuests){
+    (S.quests||[]).forEach((q,i)=>{
+      const pri=q.tier==='side'?'P3':q.tier==='main'?'P1':'BOSS';
+      S.objectives.push({id:'o'+Date.now()+'_'+i,title:q.title,area:q.attr,pri,auto:false,deadline:null,status:q.done?'done':'pend',created:today(),tags:[diffTag(q.title.toLowerCase())],arc:q.arc||null});
+    });
+    delete S.quests;S.migratedQuests=true;
+  }
+  S.v=4;
   calInit();fetchWeather();
   // quebra streaks antigas
   [...S.oblig,...S.extras].forEach(h=>{if(h.lastDone&&h.lastDone!==today()&&h.lastDone!==yday())h.streak=0});

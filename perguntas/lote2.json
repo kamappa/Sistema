@@ -1,0 +1,202 @@
+[
+  {
+    "id": "iso27-001",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "O que é um SGSI (Sistema de Gestão de Segurança da Informação) e qual é o objetivo central da ISO/IEC 27001? Não é uma lista de controlos técnicos — então o que é?",
+    "a": "Um SGSI é um conjunto de políticas, processos e responsabilidades para gerir a segurança da informação de forma sistemática e baseada em risco. O objetivo da ISO 27001 não é impor uma lista fixa de controlos, mas estabelecer um sistema de gestão que preserve a confidencialidade, integridade e disponibilidade da informação, com melhoria contínua. Os controlos (Anexo A) são um catálogo de referência; o coração da norma são as cláusulas 4 a 10, o sistema de gestão em si.",
+    "ref": "ISO/IEC 27001:2022, Introdução e cláusula 4"
+  },
+  {
+    "id": "iso27-002",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "A tríade CIA está no centro da segurança da informação. Define confidencialidade, integridade e disponibilidade com um exemplo de falha de cada uma.",
+    "a": "Confidencialidade: a informação só é acedida por quem tem autorização — falha: um funcionário lê a base de dados de salários sem permissão. Integridade: a informação é exata e completa, não alterada indevidamente — falha: um valor numa fatura é modificado sem rasto. Disponibilidade: a informação está acessível quando é precisa — falha: um ataque de ransomware cifra os sistemas e ninguém consegue trabalhar. A ISO 27001 existe para preservar as três.",
+    "ref": "ISO/IEC 27000 (vocabulário) e 27001"
+  },
+  {
+    "id": "iso27-003",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "A cláusula 4 fala de 'contexto da organização'. O que exige em concreto e porque é o ponto de partida de todo o SGSI?",
+    "a": "A cláusula 4 exige compreender o contexto interno e externo (questões relevantes), identificar as partes interessadas e os seus requisitos, e determinar o âmbito do SGSI. É o ponto de partida porque não se pode proteger o que não se delimitou: o âmbito define o que está dentro e fora do sistema, e o contexto/partes interessadas definem o que a organização tem de cumprir (legais, contratuais, regulatórios). Sem isto, o resto do SGSI não tem fronteiras nem propósito.",
+    "ref": "ISO/IEC 27001:2022, cláusula 4"
+  },
+  {
+    "id": "iso27-004",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "A cláusula 5 é sobre liderança. Porque é que a norma insiste tanto no papel da gestão de topo? O que acontece a um SGSI sem esse compromisso?",
+    "a": "A cláusula 5 exige que a gestão de topo demonstre liderança e compromisso: estabelecer a política de segurança, garantir recursos, integrar o SGSI nos processos do negócio e promover a melhoria. A norma insiste porque a segurança da informação falha quase sempre por falta de apoio de topo, não por falta de tecnologia — sem recursos, autoridade e prioridade vindos da liderança, o SGSI torna-se um documento de gaveta que ninguém cumpre.",
+    "ref": "ISO/IEC 27001:2022, cláusula 5"
+  },
+  {
+    "id": "iso27-005",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "O que é a Declaração de Aplicabilidade (SoA - Statement of Applicability) e porque é considerada o documento central da certificação?",
+    "a": "A SoA (cláusula 6.1.3) é o documento que lista todos os controlos do Anexo A, indica quais são aplicáveis e quais não (com justificação), e o estado de implementação de cada um. É central porque liga a avaliação de risco aos controlos: mostra que cada controlo incluído responde a um risco identificado e justifica cada exclusão. Um auditor de certificação usa a SoA como mapa para verificar se o que a organização diz aplicar está realmente implementado.",
+    "ref": "ISO/IEC 27001:2022, cláusula 6.1.3"
+  },
+  {
+    "id": "iso27-006",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Como é que a ISO 27001 aborda o risco? Descreve os passos essenciais de uma apreciação de risco de segurança da informação.",
+    "a": "A cláusula 6.1.2 exige um processo de apreciação de risco que: estabelece critérios de risco (aceitação e de execução da apreciação); identifica os riscos (o que pode comprometer a CIA da informação no âmbito); analisa-os (probabilidade e impacto); e avalia-os (compara com os critérios e prioriza). Segue-se o tratamento do risco (6.1.3): escolher opções (mitigar, aceitar, evitar, transferir), selecionar controlos, produzir a SoA e o plano de tratamento, e obter a aceitação dos riscos residuais pelos donos do risco.",
+    "ref": "ISO/IEC 27001:2022, cláusula 6.1.2 e 6.1.3"
+  },
+  {
+    "id": "iso27-007",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Quais são as quatro opções de tratamento de risco? Dá um exemplo real de cada uma no contexto de uma loja online.",
+    "a": "Modificar/mitigar: reduzir o risco com controlos — ex.: implementar autenticação multifator para reduzir o risco de acessos indevidos. Aceitar: assumir o risco conscientemente quando está dentro do apetite — ex.: aceitar o risco residual baixo de uma falha de energia curta com UPS já instalado. Evitar: eliminar a atividade que gera o risco — ex.: deixar de guardar dados de cartões de crédito e passar a usar um gateway de pagamento externo. Transferir/partilhar: passar o risco a terceiros — ex.: contratar um seguro cibernético ou um serviço gerido de segurança.",
+    "ref": "ISO/IEC 27001:2022, cláusula 6.1.3; ISO/IEC 27005"
+  },
+  {
+    "id": "iso27-008",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Na versão 2022, como está organizado o Anexo A? Quantos controlos tem e em que quatro temas se agrupam?",
+    "a": "O Anexo A da ISO/IEC 27001:2022 tem 93 controlos (reduzidos e reorganizados a partir dos 114 da versão 2013), agrupados em quatro temas: Organizacional (37 controlos), Pessoas (8), Físico (14) e Tecnológico (34). Esta reorganização veio alinhada com a ISO/IEC 27002:2022, que descreve cada controlo em detalhe e introduziu 'atributos' (ex.: tipo de controlo, propriedades CIA, conceitos de cibersegurança) para facilitar filtragem.",
+    "ref": "ISO/IEC 27001:2022, Anexo A; ISO/IEC 27002:2022"
+  },
+  {
+    "id": "iso27-009",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "A cláusula 7 trata de 'suporte'. Que elementos abrange e porque é que a competência e a sensibilização (awareness) aparecem aqui?",
+    "a": "A cláusula 7 abrange recursos, competência, sensibilização, comunicação e informação documentada. A competência (7.2) e a sensibilização (7.3) estão aqui porque um SGSI vive das pessoas: não basta ter políticas, é preciso que quem executa tenha as competências certas e que todos estejam conscientes da política e do seu papel. A maioria dos incidentes tem origem humana (phishing, erros), por isso a norma trata a formação como suporte essencial, não como extra.",
+    "ref": "ISO/IEC 27001:2022, cláusula 7"
+  },
+  {
+    "id": "iso27-010",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "O que é 'informação documentada' na ISO 27001 e porque é que a norma abandonou os termos 'documentos' e 'registos'? Dá um exemplo de cada função.",
+    "a": "Informação documentada é o termo unificado (cláusula 7.5) para toda a informação que a organização tem de controlar e manter. Substituiu 'documentos' e 'registos' para simplificar e alinhar com outras normas ISO. Na prática mantém as duas funções: informação que se mantém (o 'como', ex.: uma política ou procedimento) e informação que se retém como evidência (o 'aconteceu', ex.: um registo de logs, uma ata de revisão pela gestão). O controlo exige gerir criação, atualização, acesso e proteção.",
+    "ref": "ISO/IEC 27001:2022, cláusula 7.5"
+  },
+  {
+    "id": "iso27-011",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "A cláusula 9 é sobre avaliação do desempenho. Distingue monitorização/medição, auditoria interna e revisão pela gestão — qual é o papel de cada uma?",
+    "a": "Monitorização e medição (9.1): acompanhar se os controlos e o SGSI funcionam, com indicadores. Auditoria interna (9.2): verificação independente e periódica de que o SGSI está conforme os requisitos da norma e da própria organização, e que está implementado com eficácia. Revisão pela gestão (9.3): a gestão de topo analisa os resultados (auditorias, incidentes, indicadores, riscos) e decide melhorias, recursos e mudanças. As três formam o 'Check' do ciclo PDCA em níveis diferentes: operacional, de conformidade e estratégico.",
+    "ref": "ISO/IEC 27001:2022, cláusula 9"
+  },
+  {
+    "id": "iso27-012",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "A cláusula 10 trata de melhoria. O que é uma não conformidade e qual a diferença entre correção e ação corretiva?",
+    "a": "Uma não conformidade é o não cumprimento de um requisito (da norma, da política, de um controlo). Perante ela (cláusula 10.2): a correção é a ação imediata para resolver o problema pontual — ex.: repor o acesso que ficou aberto. A ação corretiva vai à causa-raiz para evitar que se repita — ex.: descobrir porque é que o processo de revogação de acessos falhou e corrigir esse processo. A norma exige ambas: apagar o fogo e impedir que volte a arder.",
+    "ref": "ISO/IEC 27001:2022, cláusula 10.2"
+  },
+  {
+    "id": "iso27-013",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "O que é o ciclo PDCA (Plan-Do-Check-Act) e como se mapeia nas cláusulas da ISO 27001? Porque é que isto liga à melhoria contínua?",
+    "a": "PDCA é o ciclo de melhoria contínua. Plan: estabelecer contexto, política, riscos e objetivos (cláusulas 4-6). Do: implementar e operar os controlos e processos (cláusulas 7-8). Check: monitorizar, auditar e rever (cláusula 9). Act: corrigir e melhorar (cláusula 10). Liga à melhoria contínua porque o ciclo não termina — cada volta usa o que se aprendeu (incidentes, auditorias) para reforçar o SGSI. É o mesmo motor que qualquer sistema de gestão ISO partilha.",
+    "ref": "ISO/IEC 27001:2022, estrutura das cláusulas 4-10"
+  },
+  {
+    "id": "iso27-014",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Controlo A.5.1 - Políticas de segurança da informação. O que exige e porque é o primeiro controlo organizacional?",
+    "a": "Exige que exista uma política de segurança da informação definida, aprovada pela gestão, publicada, comunicada e reconhecida pelas partes relevantes, e revista em intervalos planeados ou quando ocorrem mudanças significativas. É o primeiro controlo organizacional porque a política é a declaração de intenção da direção — o documento de topo que dá autoridade e direção a todos os outros controlos. Sem política formal, os restantes controlos não têm mandato claro.",
+    "ref": "ISO/IEC 27001:2022, Anexo A, A.5.1"
+  },
+  {
+    "id": "iso27-015",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Controlo A.5.7 - Threat intelligence (informação sobre ameaças). É um dos controlos novos de 2022. O que pede e porque foi acrescentado?",
+    "a": "O A.5.7 pede que a organização recolha e analise informação sobre ameaças de segurança da informação, para produzir 'threat intelligence' que permita agir preventivamente. Foi um dos 11 controlos novos da versão 2022 porque o panorama de ameaças evoluiu: reagir a incidentes já não chega, é preciso antecipá-los conhecendo tácticas e tendências dos atacantes. Liga diretamente ao que o teu próprio Radar de notícias faz — vigilância do contexto de ameaça.",
+    "ref": "ISO/IEC 27001:2022, Anexo A, A.5.7 (novo em 2022)"
+  },
+  {
+    "id": "iso27-016",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Controlo A.5.23 - Segurança da informação no uso de serviços cloud. Um dos novos de 2022. Que preocupação endereça?",
+    "a": "O A.5.23 exige processos para aquisição, uso, gestão e saída de serviços de cloud, de acordo com os requisitos de segurança da organização. Foi acrescentado em 2022 porque a adoção massiva de cloud criou riscos específicos: responsabilidade partilhada com o fornecedor, localização dos dados, dependência de terceiros, e a necessidade de uma estratégia de saída. Endereça a realidade de que grande parte da informação já não está em servidores próprios.",
+    "ref": "ISO/IEC 27001:2022, Anexo A, A.5.23 (novo em 2022)"
+  },
+  {
+    "id": "iso27-017",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Controlo A.8.5 - Autenticação segura. Porque é que a autenticação multifator (MFA) se tornou uma expectativa base numa auditoria moderna?",
+    "a": "O A.8.5 exige tecnologias e procedimentos de autenticação seguros, baseados nas restrições de acesso e na política de controlo de acesso. A MFA tornou-se expectativa base porque as passwords, sozinhas, são o elo mais fraco — são reutilizadas, roubadas por phishing e quebradas. Exigir um segundo fator (algo que se tem ou se é) reduz drasticamente o risco de acesso indevido mesmo com credenciais comprometidas. Um auditor moderno espera ver MFA nos acessos críticos e remotos.",
+    "ref": "ISO/IEC 27001:2022, Anexo A, A.8.5"
+  },
+  {
+    "id": "iso27-018",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Controlo A.8.32 - Gestão de alterações (change management). Porque é que um processo de mudança descontrolado é um risco de segurança, e não só uma questão de organização?",
+    "a": "O A.8.32 exige que alterações a sistemas de informação e instalações de processamento sejam sujeitas a procedimentos de gestão de alterações. É um risco de segurança porque a maioria das falhas e brechas surge de mudanças mal controladas — uma configuração alterada sem revisão abre uma porta, uma atualização sem teste derruba um serviço. Controlar a mudança (avaliar impacto, testar, aprovar, ter plano de reversão) preserva a integridade e disponibilidade. É, aliás, o controlo que aplicaste ao teu próprio Sistema com o Claude Code — propor, rever o diff, aprovar, e só depois publicar.",
+    "ref": "ISO/IEC 27001:2022, Anexo A, A.8.32"
+  },
+  {
+    "id": "iso27-019",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Controlo A.8.24 - Uso de criptografia. Que dois estados dos dados a cifragem protege, e porque é que ter cifragem não chega sem gestão de chaves?",
+    "a": "O A.8.24 exige uma política sobre o uso eficaz da criptografia, incluindo a gestão de chaves. A cifragem protege dados em repouso (armazenados, ex.: uma base de dados cifrada) e em trânsito (a circular na rede, ex.: HTTPS/TLS). Ter cifragem não chega sem gestão de chaves porque a segurança transfere-se para a chave: se a chave é fraca, mal guardada ou perdida, ou o dado fica exposto ou fica irrecuperável. A gestão do ciclo de vida da chave (geração, guarda, rotação, destruição) é tão crítica como a cifra em si.",
+    "ref": "ISO/IEC 27001:2022, Anexo A, A.8.24"
+  },
+  {
+    "id": "iso27-020",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Controlo A.5.15 - Controlo de acessos. Explica o princípio do menor privilégio e o 'need to know' com um exemplo prático.",
+    "a": "O A.5.15 exige regras de controlo de acesso baseadas nos requisitos de negócio e de segurança. O menor privilégio significa dar a cada utilizador apenas os acessos estritamente necessários para a sua função, e nada mais. O 'need to know' significa que só acede à informação quem precisa dela para trabalhar. Exemplo: um operador de caixa não deve ter acesso à base de dados de recursos humanos; um administrador de sistema pode gerir servidores mas não precisa de ler os emails da direção. Reduz a superfície de dano em caso de conta comprometida ou abuso interno.",
+    "ref": "ISO/IEC 27001:2022, Anexo A, A.5.15"
+  },
+  {
+    "id": "iso27-021",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Controlo A.5.7 e o processo de gestão de incidentes (A.5.24 a A.5.28). Quais são as fases essenciais de resposta a um incidente de segurança?",
+    "a": "A gestão de incidentes (controlos A.5.24 a A.5.28) organiza-se em fases: planeamento e preparação (definir papéis, procedimentos e responsabilidades antes de acontecer); deteção e reporte (identificar e comunicar eventos); avaliação e decisão (classificar se um evento é de facto um incidente e a sua gravidade); resposta (conter, erradicar, recuperar); e aprendizagem (recolher lições e usar como evidência para melhorar). O objetivo é uma resposta consistente e rápida que limite o dano.",
+    "ref": "ISO/IEC 27001:2022, Anexo A, A.5.24 a A.5.28"
+  },
+  {
+    "id": "iso27-022",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Controlo A.5.30 - Prontidão das TIC para a continuidade do negócio. Qual a diferença entre continuidade de negócio (BC) e recuperação de desastre (DR)?",
+    "a": "O A.5.30 exige que a prontidão das TIC seja planeada, implementada, mantida e testada com base nos objetivos de continuidade de negócio. A continuidade de negócio (BC) é o conceito amplo: manter as funções essenciais da organização a operar durante uma disrupção. A recuperação de desastre (DR) é o subconjunto tecnológico: restaurar sistemas e dados de TI após uma falha grave. BC responde à pergunta 'como continua o negócio a funcionar?'; DR responde a 'como recuperamos os sistemas?'. Métricas típicas de DR: RTO (tempo objetivo de recuperação) e RPO (ponto objetivo de recuperação, quanto de dados se pode perder).",
+    "ref": "ISO/IEC 27001:2022, Anexo A, A.5.30"
+  },
+  {
+    "id": "iso27-023",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "Controlos de Pessoas: A.6.3 (sensibilização e formação) e A.6.8 (reporte de eventos). Porque é que o fator humano é frequentemente o controlo mais custo-eficaz?",
+    "a": "O A.6.3 exige formação e sensibilização regulares em segurança; o A.6.8 exige um mecanismo para os colaboradores reportarem eventos de segurança observados. O fator humano é o controlo mais custo-eficaz porque a maioria dos incidentes começa numa pessoa — um clique num phishing, uma password partilhada. Formar e criar cultura de reporte transforma o elo mais fraco no primeiro sensor de deteção: colaboradores treinados evitam ataques e, quando algo escapa, reportam cedo, o que reduz drasticamente o impacto a um custo muito baixo comparado com tecnologia.",
+    "ref": "ISO/IEC 27001:2022, Anexo A, A.6.3 e A.6.8"
+  },
+  {
+    "id": "iso27-024",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "O que distingue a ISO 27001 da ISO 27002? Um auditor certifica-se contra qual delas, e porquê?",
+    "a": "A ISO/IEC 27001 é a norma certificável: contém os requisitos do SGSI (cláusulas 4-10) e o Anexo A com a lista de controlos. A ISO/IEC 27002 é um código de boas práticas: descreve em detalhe como implementar cada controlo do Anexo A, com orientação, mas não é certificável. Uma organização certifica-se contra a 27001 (é a que impõe requisitos auditáveis) e usa a 27002 como guia de implementação. Auditar 'contra a 27002' não faz sentido — ela orienta, não exige.",
+    "ref": "ISO/IEC 27001:2022 vs ISO/IEC 27002:2022"
+  },
+  {
+    "id": "iso27-025",
+    "tema": "iso27001",
+    "dif": "base",
+    "q": "O que é a certificação ISO 27001, quem a emite, e qual a diferença entre uma auditoria de 1.ª, 2.ª e 3.ª parte?",
+    "a": "A certificação atesta que o SGSI de uma organização cumpre a ISO 27001; é emitida por um organismo de certificação acreditado (não pela ISO). Auditoria de 1.ª parte: interna, a organização audita-se a si própria (cláusula 9.2). De 2.ª parte: um cliente ou parte interessada audita um fornecedor. De 3.ª parte: um organismo independente e acreditado audita para efeitos de certificação. Só a de 3.ª parte conduz à certificação formal; as de 1.ª e 2.ª servem gestão interna e confiança na cadeia de fornecimento.",
+    "ref": "ISO/IEC 27001:2022, cláusula 9.2; ISO/IEC 17021 (organismos de certificação)"
+  }
+]

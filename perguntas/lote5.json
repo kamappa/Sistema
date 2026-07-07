@@ -1,0 +1,82 @@
+[
+  {
+    "id": "aigov-001",
+    "tema": "aigov",
+    "dif": "base",
+    "q": "O que é o EU AI Act, qual a sua referência oficial e que abordagem adota para regular a IA?",
+    "a": "O EU AI Act é o Regulamento (UE) 2024/1689 — a primeira legislação abrangente do mundo sobre inteligência artificial. Entrou em vigor a 1 de agosto de 2024 e aplica-se de forma faseada. Adota uma abordagem baseada no risco: classifica os sistemas de IA por nível de risco e impõe obrigações proporcionais a esse risco. Sendo um regulamento (e não uma diretiva), é diretamente aplicável em todos os Estados-Membros. É extraterritorial: aplica-se a quem coloca sistemas de IA no mercado da UE ou cujos resultados afetem pessoas na UE, independentemente de onde a empresa está sediada — à semelhança do RGPD.",
+    "ref": "Regulamento (UE) 2024/1689 (EU AI Act)"
+  },
+  {
+    "id": "aigov-002",
+    "tema": "aigov",
+    "dif": "base",
+    "q": "Quais são os quatro níveis de risco do EU AI Act? Dá um exemplo de cada.",
+    "a": "Risco inaceitável: sistemas proibidos por violarem valores e direitos fundamentais — ex.: social scoring por governos, manipulação comportamental prejudicial, categorização biométrica com base em atributos sensíveis (art. 5.º). Alto risco: sistemas com impacto significativo em direitos ou segurança, permitidos mas fortemente regulados — ex.: IA em recrutamento, avaliação de crédito, biometria, infraestruturas críticas (Anexo III). Risco limitado: obrigações de transparência — ex.: chatbots e sistemas geradores de conteúdo têm de informar que o utilizador interage com IA. Risco mínimo: sem obrigações legais — ex.: filtros de spam, IA em videojogos.",
+    "ref": "Regulamento (UE) 2024/1689, arts. 5.º (proibidos) e 6.º/Anexo III (alto risco)"
+  },
+  {
+    "id": "aigov-003",
+    "tema": "aigov",
+    "dif": "base",
+    "q": "Que práticas de IA são proibidas pelo art. 5.º e desde quando? Estas proibições foram afetadas pelo adiamento de 2026?",
+    "a": "O art. 5.º proíbe práticas de risco inaceitável: manipulação subliminar prejudicial, exploração de vulnerabilidades, social scoring por autoridades, categorização biométrica com base em dados sensíveis, e (com exceções estritas) identificação biométrica remota em tempo real em espaços públicos para fins de aplicação da lei. Estão em vigor desde 2 de fevereiro de 2025 e NÃO foram adiadas — ao contrário do prazo dos sistemas de alto risco do Anexo III, que o Digital Omnibus (maio 2026) diferiu para dezembro de 2027. As proibições não têm período de graça.",
+    "ref": "Regulamento (UE) 2024/1689, art. 5.º (em vigor desde 2 fev 2025)"
+  },
+  {
+    "id": "aigov-004",
+    "tema": "aigov",
+    "dif": "base",
+    "q": "Qual é o calendário de aplicação faseada do EU AI Act, incluindo o adiamento de 2026?",
+    "a": "Entrada em vigor: 1 ago 2024. Proibições (art. 5.º) e literacia em IA: 2 fev 2025. Regras para modelos de IA de finalidade geral (GPAI) e governação: 2 ago 2025. Obrigações de transparência (risco limitado): 2 ago 2026. Sistemas de alto risco do Anexo III (recrutamento, crédito, aplicação da lei): originalmente 2 ago 2026, adiado pelo Digital Omnibus para 2 dez 2027. Sistemas de alto risco do Anexo I (embutidos em produtos regulados, ex.: dispositivos médicos): 2 ago 2027, com transição até 2028. Nota: o adiamento resultou de acordo político de 7 maio 2026, pendente de adoção formal.",
+    "ref": "Regulamento (UE) 2024/1689; Digital Omnibus (acordo 7 maio 2026)"
+  },
+  {
+    "id": "aigov-005",
+    "tema": "aigov",
+    "dif": "base",
+    "q": "Distingue os papéis de 'provider' (fornecedor) e 'deployer' (responsável pela implementação) no EU AI Act. Porque importa a distinção?",
+    "a": "O provider desenvolve o sistema de IA (ou modelo GPAI) e coloca-o no mercado ou em serviço sob o seu nome/marca — carrega as obrigações mais pesadas (documentação técnica, avaliação de conformidade, gestão de risco). O deployer usa o sistema sob a sua autoridade, no contexto profissional. Importa porque as obrigações diferem muito consoante o papel — e a mesma organização pode ser provider de um sistema e deployer de outro. Cuidado: se um deployer modificar substancialmente um sistema (ex.: fine-tuning extenso de um modelo), pode ser reclassificado como provider e herdar as obrigações pesadas.",
+    "ref": "Regulamento (UE) 2024/1689, art. 3.º (definições) e Capítulo III"
+  },
+  {
+    "id": "aigov-006",
+    "tema": "aigov",
+    "dif": "base",
+    "q": "Que obrigações centrais têm os sistemas de alto risco (arts. 9.º a 17.º)? Enumera pelo menos cinco.",
+    "a": "Entre as obrigações dos sistemas de alto risco: sistema de gestão de risco contínuo ao longo do ciclo de vida (art. 9.º); governação de dados e qualidade dos dados de treino, validação e teste, com mitigação de enviesamentos (art. 10.º); documentação técnica (art. 11.º); manutenção de registos/logs (art. 12.º); transparência e informação aos utilizadores (art. 13.º); supervisão humana efetiva (art. 14.º); e exatidão, robustez e cibersegurança (art. 15.º). Acrescem, a nível regulatório: avaliação de conformidade, marcação CE e registo na base de dados da UE.",
+    "ref": "Regulamento (UE) 2024/1689, arts. 9.º a 17.º"
+  },
+  {
+    "id": "aigov-007",
+    "tema": "aigov",
+    "dif": "base",
+    "q": "O que é um modelo de IA de finalidade geral (GPAI) e que obrigações específicas tem? O que muda para modelos com 'risco sistémico'?",
+    "a": "Um GPAI é um modelo treinado para ser aplicável a uma ampla gama de tarefas (ex.: modelos de fundação, grandes modelos de linguagem). Obrigações (desde ago 2025): documentação técnica, informação aos fornecedores a jusante, resumo público dos dados de treino e cumprimento da lei de direitos de autor. Modelos com risco sistémico — presumidos quando treinados com mais de 10^25 FLOPs — têm obrigações extra: testes adversariais e red-teaming antes do lançamento, reporte de incidentes graves ao AI Office em 72 horas, e métricas de eficiência energética. Há isenções parciais para modelos livres/open-source, salvo se tiverem risco sistémico.",
+    "ref": "Regulamento (UE) 2024/1689, Capítulo V (GPAI)"
+  },
+  {
+    "id": "aigov-008",
+    "tema": "aigov",
+    "dif": "base",
+    "q": "O que é a ISO/IEC 42001 e como se relaciona com o EU AI Act? Ter a certificação basta para cumprir o Act?",
+    "a": "A ISO/IEC 42001:2023 é a primeira norma internacional para Sistemas de Gestão de IA (AIMS) — a equivalente da ISO 27001 mas para governação de IA, com a mesma estrutura de sistema de gestão (cláusulas, Anexo A de controlos). Mapeia diretamente para vários artigos do AI Act (gestão de risco art. 9.º, governação de dados art. 10.º, documentação art. 11.º, transparência art. 13.º, supervisão humana art. 14.º). Não basta para cumprir o Act: a certificação demonstra maturidade de governação, mas o AI Act impõe obrigações legais específicas que nenhuma norma voluntária cobre — avaliação de conformidade, marcação CE, registo na base de dados da UE e as regras GPAI. A abordagem eficiente é usar a 42001 como fundação e acrescentar por cima os requisitos legais do Act.",
+    "ref": "ISO/IEC 42001:2023; Regulamento (UE) 2024/1689"
+  },
+  {
+    "id": "aigov-009",
+    "tema": "aigov",
+    "dif": "base",
+    "q": "O que é o NIST AI RMF e em que difere do EU AI Act enquanto instrumento?",
+    "a": "O NIST AI Risk Management Framework (AI RMF 1.0) é um quadro voluntário publicado pela agência norte-americana NIST para gerir riscos de IA. Organiza-se em quatro funções: GOVERN (cultura e governação de risco), MAP (contextualizar e identificar riscos), MEASURE (analisar e monitorizar) e MANAGE (priorizar e tratar). Difere do EU AI Act em natureza: o NIST AI RMF é voluntário, orientado a boas práticas e não vinculativo; o EU AI Act é lei vinculativa com obrigações e coimas. Na prática, usam-se em conjunto — o NIST AI RMF ajuda a operacionalizar a gestão de risco que o Act exige.",
+    "ref": "NIST AI RMF 1.0 (2023); Regulamento (UE) 2024/1689"
+  },
+  {
+    "id": "aigov-010",
+    "tema": "aigov",
+    "dif": "base",
+    "q": "Quais são os montantes máximos de coima do EU AI Act e como se comparam com o RGPD? Dá os três escalões.",
+    "a": "O art. 99.º define três escalões: até 35 milhões de euros ou 7% do volume de negócios anual mundial (o mais elevado) para violação das práticas proibidas do art. 5.º; até 15 milhões ou 3% para violação de outras obrigações (ex.: as dos sistemas de alto risco); e até 7,5 milhões ou 1,5% por prestar informação incorreta às autoridades. Comparado com o RGPD (máximo de 20 M€ ou 4%), o teto do AI Act é superior — 35 M€ ou 7% — sublinhando a gravidade que a UE atribui ao uso proibido de IA. Para PME, aplica-se o menor dos dois valores.",
+    "ref": "Regulamento (UE) 2024/1689, art. 99.º"
+  }
+]

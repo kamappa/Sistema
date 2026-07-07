@@ -1,0 +1,42 @@
+[
+  {
+    "id": "ia-001",
+    "tema": "ia",
+    "dif": "base",
+    "q": "O que é um Large Language Model (LLM) como o Claude ou o GPT, e como 'aprende'? Em termos simples, o que faz quando gera texto?",
+    "a": "Um LLM é um modelo de IA treinado sobre enormes quantidades de texto para prever a continuação mais provável de uma sequência de palavras (tokens). 'Aprende' numa fase de treino, ajustando milhares de milhões de parâmetros a partir dos padrões estatísticos do texto — não memoriza factos como uma base de dados, capta regularidades da linguagem. Quando gera texto, produz um token de cada vez, escolhendo o mais provável dado o contexto anterior. Não 'compreende' no sentido humano nem consulta uma verdade — por isso pode gerar afirmações plausíveis mas erradas.",
+    "ref": "Conceito base de LLM / modelos generativos"
+  },
+  {
+    "id": "ia-002",
+    "tema": "ia",
+    "dif": "base",
+    "q": "O que é uma 'alucinação' num modelo de IA e por que é um risco crítico de governação? Como se mitiga na prática?",
+    "a": "Uma alucinação é quando o modelo gera informação que soa plausível mas é falsa ou inventada — por exemplo, um artigo de lei que não existe, ou uma referência fabricada. É um risco crítico de governação porque o output parece confiante e credível, o que induz o utilizador em erro em contextos sensíveis (jurídico, médico, financeiro). Mitiga-se com: verificação humana das saídas (human oversight), grounding em fontes verificáveis (ex.: RAG — recuperar documentos reais antes de responder), citação de fontes, e não usar IA como fonte única em decisões de alto impacto. É a razão pela qual, no teu próprio banco, se pede validação contra a fonte primária.",
+    "ref": "Conceito de alucinação / fiabilidade de LLM"
+  },
+  {
+    "id": "ia-003",
+    "tema": "ia",
+    "dif": "base",
+    "q": "O que é o enviesamento (bias) em sistemas de IA e de onde vem? Dá um exemplo com impacto real.",
+    "a": "O enviesamento é a tendência sistemática de um sistema de IA produzir resultados injustos ou distorcidos para certos grupos. Vem sobretudo dos dados de treino: se os dados refletem desigualdades ou representam mal certos grupos, o modelo aprende e amplifica esses padrões. Exemplo real: um sistema de triagem de currículos treinado com contratações passadas maioritariamente masculinas pode penalizar candidaturas femininas. É por isto que o EU AI Act (art. 10.º) e a ISO 42001 exigem governação de dados e deteção/mitigação de enviesamentos — é uma questão de direitos fundamentais, não só técnica.",
+    "ref": "Conceito de bias em IA; ligação a EU AI Act art. 10.º"
+  },
+  {
+    "id": "ia-004",
+    "tema": "ia",
+    "dif": "base",
+    "q": "O que significa 'explicabilidade' (explainability / XAI) e por que é difícil em modelos complexos? Porque importa para um auditor?",
+    "a": "A explicabilidade é a capacidade de compreender e justificar por que um sistema de IA produziu determinado resultado. É difícil em modelos complexos (redes neuronais profundas, LLMs) porque funcionam como 'caixas negras' — milhões de parâmetros cujas interações não são diretamente interpretáveis. Importa para um auditor porque, sem explicabilidade, não se consegue verificar se uma decisão foi justa, correta ou conforme a lei — e o RGPD (art. 22.º) e o EU AI Act exigem transparência e capacidade de contestar decisões automatizadas. Um sistema que ninguém consegue explicar é um sistema que ninguém consegue auditar nem responsabilizar.",
+    "ref": "Conceito de XAI; ligação a RGPD art. 22.º e EU AI Act art. 13.º"
+  },
+  {
+    "id": "ia-005",
+    "tema": "ia",
+    "dif": "base",
+    "q": "O que distingue IA generativa, IA preditiva e IA agêntica? Dá um exemplo de cada e o risco dominante de cada tipo.",
+    "a": "IA preditiva: analisa dados para prever ou classificar — ex.: deteção de fraude, scoring de crédito; risco dominante: enviesamento e decisões injustas. IA generativa: cria conteúdo novo (texto, imagem, código) — ex.: ChatGPT, Claude; risco dominante: alucinações, desinformação, propriedade intelectual. IA agêntica: sistemas que tomam ações de forma autónoma para atingir objetivos, encadeando decisões e usando ferramentas — ex.: um agente que reserva viagens ou executa tarefas em sistemas; risco dominante: ações não supervisionadas com consequências reais, o que exige controlos de supervisão humana e limites de autoridade mais fortes. A tendência atual é a IA agêntica, e é onde a governação está mais em construção.",
+    "ref": "Conceitos de tipos de IA / taxonomia funcional"
+  }
+]

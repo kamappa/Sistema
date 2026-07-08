@@ -135,6 +135,12 @@
   .addq{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
   .addq input,.addq select{background:var(--bg2);border:1px solid var(--line);color:var(--ink);font-family:var(--body);font-size:13px;padding:8px 10px;outline:none;transition:.15s}
   .addq input{flex:1;min-width:130px}.addq input:focus,.addq select:focus{border-color:var(--sky)}
+  .addq-recall{margin-top:12px}
+  .addq-recall summary{cursor:pointer;font-size:12px;color:var(--sky);user-select:none}
+  .addq-recall .addq{flex-direction:column}
+  .addq-recall .addq-row{display:flex;flex-wrap:wrap;gap:8px}
+  .addq-recall textarea{background:var(--bg2);border:1px solid var(--line);color:var(--ink);font-family:var(--body);font-size:13px;padding:8px 10px;outline:none;resize:vertical;width:100%}
+  .addq-recall textarea:focus{border-color:var(--sky)}
   .btn{font-family:var(--disp);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:12.5px;background:linear-gradient(135deg,#8b5cf6,#c084fc);color:#12061f;border:none;padding:8px 15px;cursor:pointer;transition:.16s;
     clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
   .btn:hover{box-shadow:0 0 15px rgba(167,139,250,.5);transform:translateY(-1px)}
@@ -514,6 +520,23 @@
     <div class="ptitle"><b>Revisão do Dia</b> · Active Recall</div>
     <div class="dhint">Repetição espaçada: vencidas primeiro, distribuídas por tema. Revela a resposta antes de te avaliares — a honestidade da auto-avaliação é o que torna isto útil.</div>
     <div id="recall"></div>
+    <details class="addq-recall">
+      <summary>+ Adicionar pergunta minha</summary>
+      <div class="addq">
+        <div class="addq-row">
+          <select id="cq-tema"></select>
+          <select id="cq-dif">
+            <option value="base">Base</option>
+            <option value="media">Média</option>
+            <option value="avancada">Avançada</option>
+          </select>
+          <input id="cq-ref" placeholder="Referência (ex.: RGPD, art. 6.º)" maxlength="120">
+        </div>
+        <textarea id="cq-q" placeholder="Pergunta..." rows="2" maxlength="800"></textarea>
+        <textarea id="cq-a" placeholder="Resposta..." rows="3" maxlength="1500"></textarea>
+        <button class="btn" onclick="addCustomQuestion(event)">+ Adicionar ao banco</button>
+      </div>
+    </details>
   </div>
 
   <!-- TREINO -->
@@ -654,6 +677,12 @@ async function loadQuestionBank(){
   });
 }
 
+/* ===== BANCO — GANCHO ORÁCULO (fase futura) =====
+   Ponto de entrada para o Oráculo injetar perguntas novas em S.customQ
+   ou atualizar QBANK a partir de um relatório. Ainda sem lógica —
+   reservado para quando o Oráculo tiver este modo. */
+function oracleRefreshQuestions(){}
+
 /* ===== REVISÃO ATIVA — SELEÇÃO E SM-2 ===== */
 const RECALL_THEMES={
   rgpd:{label:'RGPD',color:'var(--sky)'},
@@ -667,6 +696,22 @@ let recallRevealed=false;
 function addDays(dateStr,n){const d=new Date(dateStr);d.setDate(d.getDate()+n);return fmt(d);}
 function failCount(id){const r=S.recall[id];return r?r.seen-r.correct:0;}
 function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function questionPool(){return QBANK.concat(S.customQ||[]);}
+function findQuestion(id){return QBANK.find(q=>q.id===id)||(S.customQ||[]).find(q=>q.id===id);}
+function addCustomQuestion(ev){
+  const tema=document.getElementById('cq-tema').value;
+  const dif=document.getElementById('cq-dif').value;
+  const ref=document.getElementById('cq-ref').value.trim();
+  const q=document.getElementById('cq-q').value.trim();
+  const a=document.getElementById('cq-a').value.trim();
+  if(!q||!a){toast('Pergunta incompleta','Preenche pelo menos a pergunta e a resposta.','#fb923c');return;}
+  S.customQ.push({id:'meu-'+Date.now(),tema,dif,q,a,ref:ref||'—'});
+  document.getElementById('cq-ref').value='';
+  document.getElementById('cq-q').value='';
+  document.getElementById('cq-a').value='';
+  floatXP('+ pergunta','#a78bfa',ev);
+  save();
+}
 
 function reviewQuestion(id,grade){
   const t=today();
@@ -701,13 +746,14 @@ function pickDiverse(pool,k,alreadyChosen){
 function selectRecallQuestions(n){
   n=n||5;
   const t=today();
-  const overdue=QBANK.filter(q=>S.recall[q.id]&&S.recall[q.id].due<=t)
+  const pool=questionPool();
+  const overdue=pool.filter(q=>S.recall[q.id]&&S.recall[q.id].due<=t)
     .sort((a,b)=>{
       const fa=failCount(a.id),fb=failCount(b.id);
       if(fb!==fa)return fb-fa;
       return S.recall[a.id].due<S.recall[b.id].due?-1:1;
     });
-  const fresh=shuffle(QBANK.filter(q=>!S.recall[q.id]));
+  const fresh=shuffle(pool.filter(q=>!S.recall[q.id]));
   const chosen=pickDiverse(overdue,n,[]);
   chosen.push(...pickDiverse(fresh,n-chosen.length,chosen));
   return chosen;
@@ -716,7 +762,7 @@ function selectRecallQuestions(n){
 function getDailyRecallSet(){
   const t=today();
   if(S.recallToday&&S.recallToday.d===t){
-    return S.recallToday.ids.map(id=>QBANK.find(q=>q.id===id)).filter(Boolean);
+    return S.recallToday.ids.map(findQuestion).filter(Boolean);
   }
   const picked=selectRecallQuestions(5);
   S.recallToday={d:t,ids:picked.map(q=>q.id),results:{}};
@@ -790,7 +836,7 @@ function fresh(){
     extras:EXTRAS.map(h=>({...h,streak:0,lastDone:null,lastGain:0})),
     history:[{d:today(),v:0}], totalXP:0, log:[], lastDayCheck:today(), seenAch:[], debuffs:{}, events:[], notifOn:false, notified:{},
     worldArc:null, whisper:{}, titleEv:{}, titleUnlocked:{}, recovery:null, weather:null,
-    training:{prog:{push:0,pull:0,legs:0,core:0},sessions:[]}, sleep:{bedT:'23:30',wakeT:'07:30',logs:[]}, objectives:[], shadows:[], oracle:{reports:[]}, radarAccepted:{}, recall:{}, recallToday:null, studyStreak:{count:0,lastDay:null}, v:3};
+    training:{prog:{push:0,pull:0,legs:0,core:0},sessions:[]}, sleep:{bedT:'23:30',wakeT:'07:30',logs:[]}, objectives:[], shadows:[], oracle:{reports:[]}, radarAccepted:{}, recall:{}, recallToday:null, customQ:[], studyStreak:{count:0,lastDay:null}, v:3};
 }
 
 /* ===== DATAS ===== */
@@ -920,7 +966,7 @@ function renderRecall(){
   if(!S.recallToday||!S.recallToday.ids||!S.recallToday.ids.length){
     el.innerHTML='<div class="dhint">Sem perguntas para rever hoje — já estudaste tudo o que havia disponível. 🎉</div>';return;
   }
-  const set=S.recallToday.ids.map(id=>QBANK.find(q=>q.id===id)).filter(Boolean);
+  const set=S.recallToday.ids.map(findQuestion).filter(Boolean);
   const results=S.recallToday.results||{};
   const pending=set.filter(q=>!(q.id in results));
   if(!pending.length){el.innerHTML=recallSummaryHTML(set,results);return;}
@@ -929,7 +975,7 @@ function renderRecall(){
 }
 function revealRecall(){recallRevealed=true;renderRecall();}
 function answerRecall(id,grade,ev){
-  const q=QBANK.find(x=>x.id===id);if(!q)return;
+  const q=findQuestion(id);if(!q)return;
   reviewQuestion(id,grade);
   S.recallToday.results[id]=grade;
   const gain=8+(grade==='ok'?4:0);
@@ -1709,6 +1755,7 @@ async function bootState(){
   S.recall=S.recall||{};
   S.recallToday=S.recallToday||null;
   if(S.recallToday&&!S.recallToday.results)S.recallToday.results={};
+  S.customQ=S.customQ||[];
   S.studyStreak=S.studyStreak||{count:0,lastDay:null};
   await loadQuestionBank();
   getDailyRecallSet();
@@ -1731,6 +1778,7 @@ async function bootState(){
 }
 async function init(){
   document.getElementById('nh-a').innerHTML=ATTRS.map(a=>`<option value="${a.id}">${a.name}</option>`).join('');
+  document.getElementById('cq-tema').innerHTML=Object.entries(RECALL_THEMES).map(([id,t])=>`<option value="${id}">${t.label}</option>`).join('');
   if(sb){
     try{
       const{data:{session}}=await sb.auth.getSession();

@@ -18,9 +18,12 @@
   sono (backfill, anti-farm), calendário, conquistas, debuffs, skill trees,
   Títulos Reais (evidência), World Engine (arcos sazonais, meteo, sussurros,
   Double XP), Radar Diário (notícias + alto impacto + missões deriváveis),
-  relatório do Oráculo (com missões propostas, recompensa, título da semana)
+  relatório do Oráculo (com missões propostas, recompensa, título da semana),
+  Revisão Ativa (banco de perguntas, seleção diária + repetição espaçada SM-2,
+  painel "Revisão do Dia", streak de estudo, perguntas próprias, gancho para
+  o Oráculo injetar perguntas)
 
-## Missão 1 — FUNDIR Missões + Objetivos (prioridade máxima)
+## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)
 
 Os dois painéis sobrepõem-se. Fundir num único quadro "Missões" com o motor
 dos objetivos:
@@ -46,10 +49,31 @@ Animações avançadas e fundo dinâmico (partículas/aurora subtil), micro-
 interações, sensação de sistema moderno que respira. Manter: identidade
 preto+roxo, cores semânticas de áreas/eventos/ranks, prefers-reduced-motion.
 
-## Missão 4 — CLAUDE.md
+## Missão 4 — CLAUDE.md (CONCLUÍDA)
 
 Criar `CLAUDE.md` na raiz a partir do PROMPT.md (contexto do Daniel, regras
 do Sistema, estas regras de engenharia) para carregamento automático.
+
+## Missão 5 — Revisão Ativa (CONCLUÍDA)
+
+Sistema de active recall para consolidar conhecimento de RGPD, ISO 27001,
+NIS2, ISO 19011 e AI Governance, com repetição espaçada (SM-2), fundido no
+pilar Saber:
+
+- Fase 1: banco de perguntas (`perguntas/lote1-6.json`, tema+dificuldade+
+  pergunta+resposta+referência) e modelo `S.recall` (seen, correct, interval,
+  ease, due)
+- Fase 2: seleção diária (`selectRecallQuestions`) — vencidas primeiro
+  (ordenadas por nº de falhas), distribuídas por tema, completadas com
+  perguntas novas; algoritmo SM-2 simplificado em `reviewQuestion`
+- Fase 3: painel "Revisão do Dia" — revelar resposta antes de autoavaliar,
+  XP de Saber por pergunta, resumo no fim do lote diário
+- Fase 4: streak de estudo (`S.studyStreak`) separado dos streaks de hábitos,
+  incrementado só quando o lote diário fica completo
+- Fase 5: perguntas próprias — formulário no painel para adicionar perguntas
+  ao banco (`S.customQ`, id prefixo `meu-`), entram na mesma rotação e SM-2
+  via `questionPool()`/`findQuestion()`; gancho vazio `oracleRefreshQuestions()`
+  reservado para o Oráculo injetar perguntas no futuro (sem lógica ainda)
 
 ## Backlog (depois da v1.0)
 
@@ -58,3 +82,5 @@ do Sistema, estas regras de engenharia) para carregamento automático.
 - Evidence Locker (Supabase Storage nos requisitos dos Títulos Reais)
 - PWA (manifest + service worker) e notificações push
 - Exportação .ics de prazos para o calendário do telemóvel
+- Oráculo — modo de injeção de perguntas na Revisão Ativa (implementar
+  `oracleRefreshQuestions()`, gancho já criado na Missão 5)

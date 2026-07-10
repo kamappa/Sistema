@@ -328,6 +328,8 @@
   @keyframes chkpop{0%{transform:scale(0) rotate(-30deg)}100%{transform:scale(1) rotate(0)}}
   .rankbadge{animation:rankbreath 3.6s ease-in-out infinite}
   @keyframes rankbreath{0%,100%{box-shadow:0 0 12px -4px currentColor}50%{box-shadow:0 0 26px -2px currentColor}}
+  .rankbadge.rankpop{animation:rankpop 1s cubic-bezier(.34,1.6,.4,1),rankbreath 3.6s ease-in-out 1s infinite}
+  @keyframes rankpop{0%{transform:scale(1)}35%{transform:scale(1.35) rotate(3deg)}100%{transform:scale(1)}}
   .oxp-fill,.arc-count-fill,.tit-fill{background-size:200% 100%!important;animation:shimmer 3.2s linear infinite}
   @keyframes shimmer{0%{background-position:120% 0}100%{background-position:-80% 0}}
   .wchip{animation:rise .5s cubic-bezier(.22,1,.36,1) both}
@@ -939,6 +941,33 @@ function celebrate(color){try{
   document.body.appendChild(f);setTimeout(()=>f.remove(),950);
   if(window.dustBurst)dustBurst(color);
 }catch(err){}}
+let lastRankL=null;
+function rankCeremony(r){try{
+  toast('RANK UP','⬆ Alcançaste o Rank '+r.l,r.color);
+  celebrate(r.color);
+  const rb=document.getElementById('rankbadge');
+  if(rb){rb.classList.remove('rankpop');void rb.offsetWidth;rb.classList.add('rankpop');}
+  if(window.dustBurst)setTimeout(()=>dustBurst(r.color),350);
+}catch(err){}}
+/* contador animado — retoma do valor visível; direto com reduced-motion/página oculta */
+const numAnim={};
+function setNum(id,val,fmt){
+  fmt=fmt||(v=>String(Math.round(v)));
+  const el=document.getElementById(id);if(!el)return;
+  const prev=numAnim[id]?numAnim[id].val:(parseFloat((el.textContent||'').replace(/[^\d.-]/g,''))||0);
+  if(numAnim[id]&&numAnim[id].raf)cancelAnimationFrame(numAnim[id].raf);
+  if(Math.abs(val-prev)<1||document.hidden||matchMedia('(prefers-reduced-motion: reduce)').matches){
+    el.textContent=fmt(val);numAnim[id]={val:val};return;
+  }
+  const t0=performance.now(),dur=600;
+  function step(now){
+    const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3),v=prev+(val-prev)*e;
+    el.textContent=fmt(v);numAnim[id].val=v;
+    if(k<1)numAnim[id].raf=requestAnimationFrame(step);
+    else numAnim[id]={val:val};
+  }
+  numAnim[id]={val:prev,raf:requestAnimationFrame(step)};
+}
 
 /* ===== RENDER ===== */
 const chkI='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#04121f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
@@ -1025,8 +1054,10 @@ function bumpStudyStreak(){
 }
 function render(){
   const lvl=overallLevel();const r=rankOf(lvl);
-  document.getElementById('lvl').textContent=lvl;
-  document.getElementById('txp').textContent=Math.round(S.totalXP).toLocaleString('pt-PT');
+  if(lastRankL&&r.l!==lastRankL&&RANKS.findIndex(x=>x.l===r.l)>RANKS.findIndex(x=>x.l===lastRankL))rankCeremony(r);
+  lastRankL=r.l;
+  setNum('lvl',lvl);
+  setNum('txp',Math.round(S.totalXP),v=>Math.round(v).toLocaleString('pt-PT'));
   const realUn=Object.entries(S.titleUnlocked||{}).sort((a,b)=>a[1]<b[1]?-1:1);
   const lastReal=realUn.length?TITLES_REAL.find(t=>t.id===realUn[realUn.length-1][0]):null;
   document.getElementById('title').textContent=lastReal?('👑 '+lastReal.name):titleOf(lvl);

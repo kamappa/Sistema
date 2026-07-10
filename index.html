@@ -218,6 +218,9 @@
   </div>
 </div>
 
+<!-- Ordem de carregamento (scripts clássicos, globals partilhados — não converter
+     em ES modules sem migrar os onclick inline): data → fx → engine → world → hud
+     → recall → treino → sono → objetivos → radar → auth (contém init(), é o último). -->
 <script src="js/data.js"></script>
 <script src="js/fx.js"></script>
 <script src="js/engine.js"></script>

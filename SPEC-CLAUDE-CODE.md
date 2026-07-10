@@ -37,11 +37,24 @@ dos objetivos:
   estado feito/por fazer; remover o painel antigo
 - Arcos: manter a marca "☀️ Summer" nos itens do arco ativo
 
-## Missão 2 — Refactor do monólito
+## Missão 2 — Refactor do monólito (CONCLUÍDA)
 
-Partir `index.html` em módulos (css/, js/ por domínio: engine, world, treino,
-sono, objetivos, radar, auth) mantendo GitHub Pages a funcionar. Commits
-pequenos e descritivos (trilho de evidência — prática A.8.32).
+`index.html` partido em módulos mantendo GitHub Pages a funcionar (sem
+build). Decisão estrutural: scripts clássicos por ordem de carregamento,
+não ES modules — o HTML usa `onclick` inline, que exige funções globais;
+migrar para modules seria outra missão. Commits pequenos por fase
+(trilho de evidência — prática A.8.32), cada um verificado em headless.
+
+- Fase 1: `css/hud.css` (425 linhas de estilo)
+- Fase 2: `js/data.js` (28 constantes de configuração)
+- Fase 3: `js/fx.js` (camada visual: toast, celebrações, fundo vivo)
+- Fase 4 (a-d): `js/engine.js` (estado, XP, render), `js/world.js`,
+  `js/hud.js` (conquistas/debuffs/trees/títulos/calendário/saudação),
+  `js/recall.js`, `js/treino.js`, `js/sono.js`, `js/objetivos.js`,
+  `js/radar.js`, `js/auth.js` (Supabase+persist+`init()`, carrega em
+  último)
+- Fase 5: index.html final com 233 linhas (só HTML + 11 scripts com a
+  ordem documentada em comentário)
 
 ## Missão 3 — Visual vivo (CONCLUÍDA)
 

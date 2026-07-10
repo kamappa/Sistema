@@ -34,6 +34,22 @@
     background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
     background-size:46px 46px;
     -webkit-mask-image:radial-gradient(circle at 50% 25%,#000,transparent 78%);mask-image:radial-gradient(circle at 50% 25%,#000,transparent 78%);}
+  /* fundo vivo — Missão 3 fase A */
+  .aurora{position:fixed;inset:-20%;z-index:0;pointer-events:none;overflow:hidden}
+  .aurora i{position:absolute;border-radius:50%;will-change:transform}
+  .aurora i:nth-child(1){width:56vmax;height:56vmax;left:-12%;top:-18%;
+    background:radial-gradient(circle,rgba(139,92,246,.16),transparent 62%);
+    animation:aur1 46s ease-in-out infinite alternate}
+  .aurora i:nth-child(2){width:48vmax;height:48vmax;right:-14%;bottom:-20%;
+    background:radial-gradient(circle,rgba(240,171,252,.10),transparent 60%);
+    animation:aur2 58s ease-in-out infinite alternate}
+  .aurora i:nth-child(3){width:38vmax;height:38vmax;left:30%;top:38%;
+    background:radial-gradient(circle,rgba(167,139,250,.07),transparent 65%);
+    animation:aur3 72s ease-in-out infinite alternate}
+  @keyframes aur1{to{transform:translate(9vw,7vh) scale(1.12)}}
+  @keyframes aur2{to{transform:translate(-8vw,-6vh) scale(1.18)}}
+  @keyframes aur3{to{transform:translate(6vw,-8vh) scale(.92)}}
+  #dust{position:fixed;inset:0;z-index:0;pointer-events:none}
   .wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto}
   .syslabel{font-family:var(--mono);font-size:11px;letter-spacing:.34em;color:var(--sky);text-transform:uppercase;
     display:flex;align-items:center;gap:10px;margin-bottom:16px;opacity:.85}
@@ -418,6 +434,8 @@
 </style>
 </head>
 <body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<canvas id="dust" aria-hidden="true"></canvas>
 <div class="grid"></div>
 <div class="toast" id="toast"><div class="k" id="tk">Sistema</div><div class="t" id="tt"></div><div class="s" id="ts"></div></div>
 
@@ -1790,6 +1808,47 @@ async function init(){
   }
 }
 init();
+
+/* fundo vivo: partículas — pausa se separador oculto ou reduced-motion (Missão 3 fase A) */
+(function(){
+  const cv=document.getElementById('dust'); if(!cv) return;
+  const cx=cv.getContext('2d');
+  const rm=matchMedia('(prefers-reduced-motion: reduce)');
+  let ps=[],W=0,H=0,raf=0;
+  function size(){
+    const d=Math.min(devicePixelRatio||1,2);
+    W=innerWidth;H=innerHeight;
+    cv.width=W*d;cv.height=H*d;
+    cv.style.width=W+'px';cv.style.height=H+'px';
+    cx.setTransform(d,0,0,d,0,0);
+    const n=Math.min(70,Math.round(W*H/22000));
+    ps=Array.from({length:n},()=>({
+      x:Math.random()*W,y:Math.random()*H,
+      r:.6+Math.random()*1.6,
+      vy:-(.06+Math.random()*.22),vx:(Math.random()-.5)*.08,
+      ph:Math.random()*Math.PI*2,
+      c:Math.random()<.18?'240,171,252':'167,139,250'
+    }));
+  }
+  function tick(t){
+    cx.clearRect(0,0,W,H);
+    for(const p of ps){
+      p.y+=p.vy;p.x+=p.vx+Math.sin(t/2400+p.ph)*.06;
+      if(p.y<-4){p.y=H+4;p.x=Math.random()*W}
+      if(p.x<-4)p.x=W+4;else if(p.x>W+4)p.x=-4;
+      const a=.14+.12*Math.sin(t/1600+p.ph);
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,7);
+      cx.fillStyle='rgba('+p.c+','+a.toFixed(3)+')';cx.fill();
+    }
+    raf=requestAnimationFrame(tick);
+  }
+  const start=()=>{if(!raf&&!rm.matches&&!document.hidden)raf=requestAnimationFrame(tick)};
+  const stop=()=>{cancelAnimationFrame(raf);raf=0;cx.clearRect(0,0,W,H)};
+  addEventListener('resize',size);
+  document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
+  rm.addEventListener('change',()=>rm.matches?stop():start());
+  size();start();
+})();
 </script>
 </body>
 </html>

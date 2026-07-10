@@ -190,7 +190,9 @@
 
   .reveal{opacity:0;transform:translateY(14px);animation:rise .6s cubic-bezier(.22,1,.36,1) forwards}
   @keyframes rise{to{opacity:1;transform:none}}
-  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  .reveal.io{animation-play-state:paused}
+  .reveal.io.in{animation-play-state:running}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
 
   /* conquistas */
   .ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px}
@@ -354,6 +356,10 @@
   .cal-ev{font-family:var(--mono);font-size:8.5px;line-height:1.2;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .fxp{position:fixed;z-index:99;font-family:var(--mono);font-weight:700;font-size:14px;pointer-events:none;transform:translate(-50%,-50%);animation:fxp .95s cubic-bezier(.2,.8,.3,1) forwards;text-shadow:0 0 12px currentColor}
   @keyframes fxp{0%{opacity:0;transform:translate(-50%,-40%) scale(.7)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-170%) scale(1.15)}}
+  .lvlflash{position:fixed;inset:0;z-index:80;pointer-events:none;opacity:0;
+    background:radial-gradient(120% 90% at 50% 100%,var(--fc,rgba(167,139,250,.33)),transparent 60%);
+    animation:lvlflash .9s ease-out forwards}
+  @keyframes lvlflash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
   /* ===== fase 3 ===== */
   .tr-stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
   .tr-advice{font-size:12.5px;color:var(--mut);border:1px dashed var(--line);padding:9px 12px;margin-bottom:12px;line-height:1.45}
@@ -873,7 +879,7 @@ function addXp(attr,amt,silent){
   // história (agrega por dia)
   const t=today();const last=S.history[S.history.length-1];
   if(last&&last.d===t)last.v+=amt;else S.history.push({d:t,v:amt});
-  if(!silent)ups.forEach(u=>toast('Nível aumentado',AM[u].name+' subiu para nível '+S.attrs[u].level,AM[u].color));
+  if(!silent&&ups.length){ups.forEach(u=>toast('Nível aumentado',AM[u].name+' subiu para nível '+S.attrs[u].level,AM[u].color));celebrate(AM[ups[0]].color);}
   return ups;
 }
 const overallLevel=()=>ATTRS.reduce((s,a)=>s+S.attrs[a.id].level,0)-(ATTRS.length-1);
@@ -926,6 +932,12 @@ function floatXP(txt,color,ev){try{
   const s=document.createElement('div');s.className='fxp';s.textContent=txt;
   s.style.left=x+'px';s.style.top=y+'px';s.style.color=color||'#a78bfa';
   document.body.appendChild(s);setTimeout(()=>s.remove(),960);
+}catch(err){}}
+function celebrate(color){try{
+  const f=document.createElement('div');f.className='lvlflash';
+  f.style.setProperty('--fc',(color||'#a78bfa')+'55');
+  document.body.appendChild(f);setTimeout(()=>f.remove(),950);
+  if(window.dustBurst)dustBurst(color);
 }catch(err){}}
 
 /* ===== RENDER ===== */
@@ -1832,22 +1844,51 @@ init();
   }
   function tick(t){
     cx.clearRect(0,0,W,H);
-    for(const p of ps){
-      p.y+=p.vy;p.x+=p.vx+Math.sin(t/2400+p.ph)*.06;
-      if(p.y<-4){p.y=H+4;p.x=Math.random()*W}
-      if(p.x<-4)p.x=W+4;else if(p.x>W+4)p.x=-4;
-      const a=.14+.12*Math.sin(t/1600+p.ph);
+    for(let i=ps.length-1;i>=0;i--){
+      const p=ps[i];
+      p.y+=p.vy;p.x+=p.vx+(p.life===undefined?Math.sin(t/2400+p.ph)*.06:0);
+      if(p.life!==undefined){p.vy+=.02;if(--p.life<=0){ps.splice(i,1);continue}}
+      else{
+        if(p.y<-4){p.y=H+4;p.x=Math.random()*W}
+        if(p.x<-4)p.x=W+4;else if(p.x>W+4)p.x=-4;
+      }
+      const a=p.life!==undefined?Math.min(.85,p.life/50):.14+.12*Math.sin(t/1600+p.ph);
       cx.beginPath();cx.arc(p.x,p.y,p.r,0,7);
       cx.fillStyle='rgba('+p.c+','+a.toFixed(3)+')';cx.fill();
     }
     raf=requestAnimationFrame(tick);
   }
+  /* rebentamento efémero (level-up); gancho reutilizável pela fase C */
+  window.dustBurst=function(hex){
+    if(rm.matches)return;
+    let c='167,139,250';
+    if(/^#[0-9a-f]{6}$/i.test(hex||''))c=parseInt(hex.slice(1,3),16)+','+parseInt(hex.slice(3,5),16)+','+parseInt(hex.slice(5,7),16);
+    const b=document.getElementById('rankbadge'),r=b?b.getBoundingClientRect():null;
+    const bx=(r&&r.top>0&&r.top<H)?r.left+r.width/2:W/2;
+    const by=(r&&r.top>0&&r.top<H)?r.top+r.height/2:Math.min(140,H/3);
+    for(let i=0;i<26;i++){
+      const an=Math.random()*Math.PI*2,sp=.8+Math.random()*2.4;
+      ps.push({x:bx,y:by,r:1+Math.random()*1.8,vx:Math.cos(an)*sp,vy:Math.sin(an)*sp-.6,ph:0,c:c,life:70+Math.random()*30});
+    }
+    start();
+  };
   const start=()=>{if(!raf&&!rm.matches&&!document.hidden)raf=requestAnimationFrame(tick)};
   const stop=()=>{cancelAnimationFrame(raf);raf=0;cx.clearRect(0,0,W,H)};
   addEventListener('resize',size);
   document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
   rm.addEventListener('change',()=>rm.matches?stop():start());
   size();start();
+})();
+
+/* reveal ao entrar no viewport — painéis abaixo da dobra erguem-se ao scroll */
+(function(){
+  if(!('IntersectionObserver'in window)||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const els=[...document.querySelectorAll('.reveal')].filter(el=>el.getBoundingClientRect().top>innerHeight);
+  if(!els.length)return;
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}
+  }),{rootMargin:'0px 0px -40px 0px'});
+  els.forEach(el=>{el.classList.add('io');io.observe(el)});
 })();
 </script>
 </body>

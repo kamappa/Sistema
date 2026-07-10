@@ -43,11 +43,24 @@ Partir `index.html` em módulos (css/, js/ por domínio: engine, world, treino,
 sono, objetivos, radar, auth) mantendo GitHub Pages a funcionar. Commits
 pequenos e descritivos (trilho de evidência — prática A.8.32).
 
-## Missão 3 — Visual vivo
+## Missão 3 — Visual vivo (CONCLUÍDA)
 
-Animações avançadas e fundo dinâmico (partículas/aurora subtil), micro-
-interações, sensação de sistema moderno que respira. Manter: identidade
-preto+roxo, cores semânticas de áreas/eventos/ranks, prefers-reduced-motion.
+Animações avançadas e fundo dinâmico, mantendo identidade preto+roxo, cores
+semânticas de áreas/eventos/ranks e prefers-reduced-motion. Feita em fases
+por letras (as micro-interações de hover/focus já existiam na camada de
+animação do CSS):
+
+- Fase A: fundo vivo — aurora CSS (3 manchas roxo/rosa em deriva lenta, só
+  transform) + canvas de partículas `#dust` (densidade limitada, DPR≤2,
+  pausa com separador oculto, desligado com reduced-motion)
+- Fase B: reveal ao entrar no viewport (IntersectionObserver, degrada para
+  o comportamento antigo sem IO) + `celebrate()`/`dustBurst()` no level-up
+  (flash radial na cor do atributo + partículas efémeras); corrigido bug:
+  com prefers-reduced-motion os painéis `.reveal` ficavam invisíveis
+- Fase C: cerimónia de rank-up (deteção de promoção no `render()`, toast
+  RANK UP, pop do badge, dupla vaga de partículas — despromoção não
+  celebra) + contadores animados (`setNum()` em nível/XP total, 600ms,
+  escrita direta com reduced-motion ou página oculta)
 
 ## Missão 4 — CLAUDE.md (CONCLUÍDA)
 

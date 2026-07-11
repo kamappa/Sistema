@@ -642,3 +642,4 @@
   .oc-row textarea{flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--ink);font-family:var(--body);font-size:13px;padding:9px 11px;outline:none;resize:none;transition:.15s}
   .oc-row textarea:focus{border-color:#a78bfa}
   .oc-row .btn:disabled{opacity:.4;cursor:not-allowed}
+  .oc-accept{align-self:flex-start;margin-top:-2px}

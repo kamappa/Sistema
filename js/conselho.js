@@ -63,6 +63,28 @@ function ocType(el,txt){
   })();
 }
 
+/* ===== ACEITAR COMO MISSÃO (fase 3) =====
+   Só quando a resposta traz a linha-marcador "⚔ Ação (48h): ..." — é o
+   Oráculo a declarar a ação, não o cliente a adivinhá-la. Prazo = 48h. */
+function ocOfferMission(reply){
+  const m=reply.match(/^⚔️?\s*A[çc][ãa]o\s*\(48h\)\s*:\s*(.+)$/mi);
+  if(!m||!m[1].trim())return;
+  const log=document.getElementById('oc-log');
+  const btn=document.createElement('button');
+  btn.className='mini warm oc-accept';btn.textContent='⚔️ Aceitar como missão';
+  btn.dataset.t=m[1].trim().slice(0,140);
+  btn.onclick=ev=>acceptConselhoMission(btn,ev);
+  log.appendChild(btn);log.scrollTop=log.scrollHeight;
+}
+function acceptConselhoMission(btn,ev){
+  const t=btn.dataset.t;if(!t||btn.disabled)return;
+  const dl=addDays(today(),2);
+  const tr=triage(t,dl);
+  S.objectives.push({id:'o'+Date.now(),title:t,area:tr.area||'oficio',pri:tr.imp,auto:true,deadline:dl,status:'pend',created:today(),tags:['🔮 Do Oráculo',...(tr.tags||[])],oracle:true});
+  btn.textContent='✓ Missão aceite';btn.disabled=true;
+  toast('Missão aceite','⚔️ '+t+' — Sistema sincronizado','#a78bfa');floatXP('+ missão','#a78bfa',ev);save();
+}
+
 async function sendConselho(){
   if(ocBusy)return;
   const inp=document.getElementById('oc-in');const qtxt=(inp.value||'').trim();
@@ -91,6 +113,7 @@ async function sendConselho(){
       ok=true;
       OC_HIST.push({role:'assistant',content:j.reply});
       ocType(ocBubble('oc-orc',''),j.reply);
+      ocOfferMission(j.reply);
     }else if(j.error==='limite'){
       ok=true; /* a mensagem contou de facto contra o limite do servidor */
       ocBubble('oc-orc','O Oráculo confirma: as 12 mensagens de hoje esgotaram. Guarda a pergunta — amanhã o Conselho volta a reunir.');

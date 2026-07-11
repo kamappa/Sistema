@@ -31,13 +31,24 @@ function celebrate(color){try{
   if(window.dustBurst)dustBurst(color);
   cinePulse();
 }catch(err){}}
-window.cineArise=function(){ // flash violeta + A R I S E + pulse + dupla vaga
-  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  const ov=document.createElement('div');ov.className='arise-ov';
-  ov.innerHTML='<b>A R I S E</b>';document.body.appendChild(ov);
-  setTimeout(()=>ov.remove(),1450);
+/* momento cinematográfico genérico (F5 v3) — escurece, luz cresce, texto entra
+   devagar, dissolve; sem som. Devolve false com reduced-motion ou se já há um
+   momento no ecrã (o chamador usa o toast como fallback). */
+window.cineMoment=function(kicker,title,glow){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return false;
+  if(document.querySelector('.cine-ov'))return false;
+  const ov=document.createElement('div');ov.className='cine-ov';
+  if(glow){ov.style.setProperty('--cc',glow);ov.style.setProperty('--ct',glow.replace(/[\d.]+\)$/,'.85)'));}
+  const k=document.createElement('div');k.className='ck';k.textContent=kicker;
+  const b=document.createElement('b');b.textContent=title;
+  ov.append(k,b);document.body.appendChild(ov);
+  setTimeout(()=>ov.remove(),2650);
+  return true;
+};
+window.cineArise=function(){ // A R I S E cinematográfico + pulse + dupla vaga
+  if(!cineMoment('Sistema','A R I S E','rgba(139,92,246,.22)'))return;
   celebrate('#a78bfa');
-  if(window.dustBurst)setTimeout(()=>dustBurst('#a78bfa'),300);
+  if(window.dustBurst)setTimeout(()=>dustBurst('#a78bfa'),350);
 };
 let lastRankL=null;
 function rankCeremony(r){try{

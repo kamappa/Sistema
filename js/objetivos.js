@@ -91,6 +91,10 @@ function renderShadows(){
   const el=document.getElementById('shadows');if(!el)return;
   const pow=S.shadows.reduce((s,x)=>s+x.lvl,0);
   el.innerHTML=`<div class="tr-stats"><span class="wchip gold">Poder do exército: ${pow}</span><span class="wchip">Sombras: ${S.shadows.length}</span></div>
-   <div class="shd-grid">${S.shadows.length?S.shadows.slice().reverse().map(s=>`<div class="shd"><div class="shd-n">🗡 ${s.name}</div><div class="shd-l">Sombra · Nv ${s.lvl} · ${s.d.slice(8,10)}/${s.d.slice(5,7)}</div></div>`).join(''):'<div class="up-empty">O exército aguarda. Conclui objetivos — e eles erguem-se para trabalhar por ti.</div>'}</div>`;
+   <div class="shd-grid">${S.shadows.length?S.shadows.slice().reverse().map(s=>{
+     /* raridade determinística por nível (F5 v3): 3=Comum, 6=Rara, 10=Épica, 15=Lendária */
+     const r=s.lvl>=15?['len','Lendária']:s.lvl>=10?['epi','Épica']:s.lvl>=6?['rar','Rara']:['com','Comum'];
+     return`<div class="shd shd-${r[0]}"><div class="shd-n">🗡 ${s.name}</div><div class="shd-r">${r[1]} · Nv ${s.lvl}</div><div class="shd-l">Ergueu-se a ${s.d.slice(8,10)}/${s.d.slice(5,7)}/${s.d.slice(0,4)}</div></div>`;
+   }).join(''):'<div class="up-empty">O exército aguarda. Conclui objetivos — e eles erguem-se para trabalhar por ti.</div>'}</div>`;
 }
 

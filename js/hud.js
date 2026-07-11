@@ -6,7 +6,10 @@
 function renderAchievements(){
   document.getElementById('achs').innerHTML=ACH.map(a=>{const on=a.cond(S);
     return `<div class="ach ${on?'on':''}"><div class="ico">${on?a.ico:'🔒'}</div><div><div class="an2">${a.name}</div><div class="ad2">${on?a.msg:'Bloqueada'}</div></div></div>`;}).join('');
-  ACH.forEach(a=>{if(a.cond(S)&&!S.seenAch.includes(a.id)){S.seenAch.push(a.id);toast('Conquista desbloqueada',a.ico+' '+a.name,'#fbbf24');}});
+  ACH.forEach(a=>{if(a.cond(S)&&!S.seenAch.includes(a.id)){S.seenAch.push(a.id);
+    /* momento cinematográfico (F5 v3); toast como fallback (reduced-motion / overlay ocupado) */
+    if(!(window.cineMoment&&cineMoment('Conquista desbloqueada',a.ico+' '+a.name,'rgba(251,191,36,.2)')))
+      toast('Conquista desbloqueada',a.ico+' '+a.name,'#fbbf24');}});
 }
 /* ===== ESTADOS / DEBUFFS ===== */
 function toggleDebuff(id){S.debuffs[id]=!S.debuffs[id];save();}

@@ -24,16 +24,21 @@
   /* fundo vivo — Missão 3 fase A */
   .aurora{position:fixed;inset:-20%;z-index:0;pointer-events:none;overflow:hidden;
     transition:transform 2.4s ease-out;will-change:transform}
+  /* nebulosas gigantes (F1 v3) — o patamar central no gradiente dá-lhes corpo
+     sem tocar no motor de ambiente; deriva ao longo de minutos, só transform */
   .aurora i{position:absolute;border-radius:50%;will-change:transform}
-  .aurora i:nth-child(1){width:56vmax;height:56vmax;left:-12%;top:-18%;
-    background:radial-gradient(circle,var(--amb1),transparent 62%);
-    animation:aur1 46s ease-in-out infinite alternate}
-  .aurora i:nth-child(2){width:48vmax;height:48vmax;right:-14%;bottom:-20%;
-    background:radial-gradient(circle,var(--amb2),transparent 60%);
-    animation:aur2 58s ease-in-out infinite alternate}
-  .aurora i:nth-child(3){width:38vmax;height:38vmax;left:30%;top:38%;
-    background:radial-gradient(circle,var(--amb3),transparent 65%);
-    animation:aur3 72s ease-in-out infinite alternate}
+  .aurora i:nth-child(1){width:74vmax;height:74vmax;left:-18%;top:-24%;
+    background:radial-gradient(circle,var(--amb1) 0%,var(--amb1) 20%,transparent 58%),
+               radial-gradient(circle,var(--amb1) 0%,var(--amb1) 30%,transparent 66%);
+    animation:aur1 130s ease-in-out infinite alternate}
+  .aurora i:nth-child(2){width:62vmax;height:62vmax;right:-16%;bottom:-22%;
+    background:radial-gradient(circle,var(--amb2) 0%,var(--amb2) 18%,transparent 56%),
+               radial-gradient(circle,var(--amb2) 0%,var(--amb2) 28%,transparent 64%);
+    animation:aur2 170s ease-in-out infinite alternate}
+  .aurora i:nth-child(3){width:48vmax;height:48vmax;left:28%;top:34%;
+    background:radial-gradient(circle,var(--amb3) 0%,var(--amb3) 16%,transparent 54%),
+               radial-gradient(circle,var(--amb3) 0%,var(--amb3) 26%,transparent 64%);
+    animation:aur3 210s ease-in-out infinite alternate}
   .horizon{position:fixed;left:0;right:0;bottom:0;height:38vh;z-index:0;pointer-events:none;
     background:linear-gradient(to top,var(--horizon),transparent)}
   /* boot sequence (Missão 3v2 fase 2) */
@@ -55,9 +60,9 @@
     text-shadow:0 0 30px rgba(167,139,250,.8);animation:ariset 1.4s cubic-bezier(.2,.8,.2,1) forwards}
   @keyframes ariseov{0%{opacity:0}12%{opacity:1}75%{opacity:1}100%{opacity:0}}
   @keyframes ariset{0%{opacity:0;transform:scale(.85)}18%{opacity:1}70%{opacity:1;transform:scale(1.02)}100%{opacity:0;transform:scale(1.06)}}
-  @keyframes aur1{to{transform:translate(9vw,7vh) scale(1.12)}}
-  @keyframes aur2{to{transform:translate(-8vw,-6vh) scale(1.18)}}
-  @keyframes aur3{to{transform:translate(6vw,-8vh) scale(.92)}}
+  @keyframes aur1{to{transform:translate(14vw,10vh) scale(1.16)}}
+  @keyframes aur2{to{transform:translate(-12vw,-9vh) scale(1.22)}}
+  @keyframes aur3{to{transform:translate(10vw,-13vh) scale(.88)}}
   #dust{position:fixed;inset:0;z-index:0;pointer-events:none}
   .wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto}
   .syslabel{font-family:var(--mono);font-size:11px;letter-spacing:.34em;color:var(--sky);text-transform:uppercase;

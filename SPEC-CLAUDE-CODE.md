@@ -174,7 +174,7 @@ pilar Saber:
   via `questionPool()`/`findQuestion()`; gancho vazio `oracleRefreshQuestions()`
   reservado para o Oráculo injetar perguntas no futuro (sem lógica ainda)
 
-## Missão 6 — Oráculo · Conselho (CONCLUÍDA)
+## Missão 6 — Oráculo v2 · Conselho (CONCLUÍDA)
 
 O Oráculo evoluiu de relatórios agendados para conselheiro estratégico
 interativo. A fonte da Edge Function passou a ser versionada em
@@ -212,11 +212,17 @@ Nota de produção observada na fase 1: o token do radar/report também é
 aceite por query param `?t=` — funcional, mas tokens em URL podem ficar em
 logs; candidato a limpeza futura.
 
-## Backlog (depois da v1.0)
+## Backlog — fila atual (ordenada; atualizada 2026-07-11)
 
-- Botões Aceitar/Recusar para propostas do relatório escreverem no estado
-- Evidence Locker (Supabase Storage nos requisitos dos Títulos Reais)
-- PWA (manifest + service worker) e notificações push
-- Exportação .ics de prazos para o calendário do telemóvel
-- Oráculo — modo de injeção de perguntas na Revisão Ativa (implementar
-  `oracleRefreshQuestions()`, gancho já criado na Missão 5)
+1. Vigia de Estágios (próxima missão)
+2. Missão 2 refactor
+3. Missão 4 WebGL — gated: exige o refactor feito + Rank C alcançado
+4. Sons opt-in
+5. Camada adaptativa do recall — gated: exige histórico de uso suficiente
+
+Ideias antigas retiradas da fila nesta revisão (recuperáveis se voltarem a
+ganhar prioridade): botões Aceitar/Recusar do relatório a escrever no estado;
+Evidence Locker (Storage nos Títulos Reais); PWA + notificações push;
+exportação .ics; injeção de perguntas do Oráculo na Revisão Ativa
+(`oracleRefreshQuestions()`, gancho criado na Missão 5); limpeza do token
+`?t=` em query param no radar/report.

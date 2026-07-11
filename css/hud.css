@@ -486,6 +486,25 @@
   .cal-cell.empty{cursor:default}
   .cal-cell.today{animation:todaypulse 5.3s ease-in-out infinite}
   @keyframes todaypulse{0%,100%{box-shadow:inset 0 0 8px rgba(167,139,250,.15)}50%{box-shadow:inset 0 0 18px rgba(167,139,250,.38)}}
+  /* calendário deixa de ser Excel (F6 v3) */
+  .cal-in-r{animation:calin-r .42s cubic-bezier(.22,1,.36,1) both}
+  .cal-in-l{animation:calin-l .42s cubic-bezier(.22,1,.36,1) both}
+  @keyframes calin-r{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+  @keyframes calin-l{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+  .cal-cell{position:relative;transition:border-color .2s,box-shadow .2s,transform .22s cubic-bezier(.22,1,.36,1),background .2s}
+  /* clip-path:none no hover — o recorte da célula cortaria o tooltip */
+  .cal-cell:not(.empty):hover{transform:scale(1.07);z-index:3;background:rgba(19,12,34,.95);border-color:var(--line2);clip-path:none}
+  .cal-cell[title]:not([title=""]):hover::after{content:attr(title);position:absolute;top:calc(100% + 5px);left:50%;
+    transform:translateX(-50%);min-width:130px;max-width:190px;z-index:6;
+    background:rgba(14,8,25,.94);border:1px solid var(--line2);padding:6px 9px;
+    font-family:var(--mono);font-size:10.5px;line-height:1.4;color:var(--ink);white-space:normal;
+    animation:rise .22s cubic-bezier(.22,1,.36,1) both}
+  .cal-cell.past-ok .cal-num::after{content:"✓";position:absolute;top:2px;right:4px;
+    font-size:9px;color:var(--em);opacity:.55}
+  .cal-ev{animation:evfloat 5.3s ease-in-out infinite}
+  @keyframes evfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
+  .cal-cell:nth-child(2n) .cal-ev{animation-delay:-1.7s}
+  .cal-cell:nth-child(3n) .cal-ev{animation-delay:-3.1s}
   .cal-dot{animation:evdot 4.3s ease-in-out infinite}
   @keyframes evdot{0%,100%{opacity:.5;transform:scale(.88)}50%{opacity:1;transform:scale(1.12)}}
   .cal-dots .cal-dot:nth-child(2){animation-delay:-1.3s}

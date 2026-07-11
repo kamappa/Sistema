@@ -67,7 +67,8 @@ function exportState(){
 /* ===== CALENDÁRIO & EVENTOS ===== */
 let calY,calM;
 function calInit(){const d=new Date();calY=d.getFullYear();calM=d.getMonth();}
-function navMonth(n){calM+=n;if(calM<0){calM=11;calY--}if(calM>11){calM=0;calY++}renderCalendar();}
+let calDir=0; // direção da última navegação — o mês desliza em vez de trocar (F6 v3)
+function navMonth(n){calM+=n;if(calM<0){calM=11;calY--}if(calM>11){calM=0;calY++}calDir=n;renderCalendar();}
 function daysUntil(ds){return Math.round((new Date(ds)-new Date(today()))/86400000);}
 function guessEvType(t){t=t.toLowerCase();
  if(['exame','teste','prova','frequência','frequencia'].some(k=>t.includes(k)))return'exame';
@@ -86,23 +87,26 @@ function renderCalendar(){
   const ndays=new Date(calY,calM+1,0).getDate();
   const MO=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const tT=today();let cells='';
+  /* selo ✓ suave em dias passados com XP ganho — vem do histórico real (F6 v3) */
+  const okD=new Set((S.history||[]).filter(h=>h.v>0).map(h=>h.d));
   ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].forEach(w=>cells+=`<div class="cal-wd">${w}</div>`);
   for(let i=0;i<startDay;i++)cells+='<div class="cal-cell empty"></div>';
   for(let d=1;d<=ndays;d++){const ds=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const evs=S.events.filter(e=>e.date===ds);
     const dots=evs.slice(0,4).map(e=>`<span class="cal-dot" style="background:${(EVT[e.type]||EVT.outro).c}"></span>`).join('');
-    cells+=`<div class="cal-cell ${ds===tT?'today':''}" onclick="pickDay('${ds}')" title="${evs.map(e=>e.title).join(', ')}"><div class="cal-num">${d}</div><div class="cal-dots">${dots}</div>${evs.length?`<div class="cal-ev">${evs[0].title}</div>`:''}</div>`;}
+    cells+=`<div class="cal-cell ${ds===tT?'today':''}${ds<tT&&okD.has(ds)?' past-ok':''}" onclick="pickDay('${ds}')" title="${evs.map(e=>e.title).join(', ')}"><div class="cal-num">${d}</div><div class="cal-dots">${dots}</div>${evs.length?`<div class="cal-ev">${evs[0].title}</div>`:''}</div>`;}
   const up=S.events.filter(e=>daysUntil(e.date)>=0).sort((a,b)=>a.date<b.date?-1:1).slice(0,6);
   const upH=up.length?up.map(e=>{const t=EVT[e.type]||EVT.outro,dd=daysUntil(e.date);
     return `<div class="up-item"><span class="up-dot" style="background:${t.c}"></span><span class="up-d">${e.date.slice(8,10)}/${e.date.slice(5,7)}</span><span class="up-t">${e.title}</span><span class="up-x" style="color:${t.c}">${dd===0?'hoje':dd===1?'amanhã':'em '+dd+'d'}</span><span class="up-del" onclick="delEvent('${e.id}')">✕</span></div>`;}).join(''):'<div class="up-empty">Sem prazos próximos.</div>';
   document.getElementById('cal').innerHTML=`
     <div class="cal-head"><button class="cal-nav" onclick="navMonth(-1)">‹</button><div class="cal-title">${MO[calM]} ${calY}</div><button class="cal-nav" onclick="navMonth(1)">›</button></div>
-    <div class="cal-grid">${cells}</div>
+    <div class="cal-grid${calDir>0?' cal-in-r':calDir<0?' cal-in-l':''}">${cells}</div>
     <div class="cal-add"><input type="date" id="ev-date"><input id="ev-title" placeholder="Prazo, exame, evento..." maxlength="60" onkeydown="if(event.key==='Enter')addEvent()"><select id="ev-type"><option value="AUTO" selected>Auto</option>${Object.entries(EVT).map(([k,v])=>`<option value="${k}">${v.l}</option>`).join('')}</select><button class="btn" onclick="addEvent()">+ Add</button></div>
     <div class="up-lbl">📌 Próximos prazos</div>${upH}`;
   if(keepD)document.getElementById('ev-date').value=keepD;
   if(keepT)document.getElementById('ev-title').value=keepT;
   if(keepS)document.getElementById('ev-type').value=keepS;
+  calDir=0;
 }
 function renderDeadlineBanner(){
   const el=document.getElementById('deadline-banner');if(!el)return;

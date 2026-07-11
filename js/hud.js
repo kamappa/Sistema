@@ -24,7 +24,7 @@ function renderTree(){
     t.nodes.forEach((n,i)=>{const un=lvl>=n[1];
       if(i>0){const pu=lvl>=t.nodes[i-1][1];row+=`<div class="tree-link ${pu?'un':''}" style="color:${a.color}"></div>`;}
       row+=`<div class="node ${un?'un':''}" style="color:${a.color}"><div class="nd-dot">${un?'★':n[1]}</div><div class="nd-lbl">${n[0]}</div></div>`;});
-    return `<div class="tree"><div class="tree-h"><span class="adot" style="background:${a.color};box-shadow:0 0 8px ${a.color}"></span>${a.name}</div><div class="tree-row">${row}</div></div>`;}).join('');
+    return `<div class="tree dom-${t.attr}"><div class="tree-h"><span class="adot" style="background:${a.color};box-shadow:0 0 8px ${a.color}"></span>${a.name}</div><div class="tree-row">${row}</div></div>`;}).join('');
 }
 /* ===== REALITY ENGINE — TÍTULOS COM EVIDÊNCIA ===== */
 const titleOpenSet=new Set();

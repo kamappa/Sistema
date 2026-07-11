@@ -371,6 +371,53 @@
   @keyframes sideglow{0%,100%{opacity:.3}50%{opacity:1}}
   .scanline{position:absolute;left:0;right:0;top:0;height:2px;z-index:2;pointer-events:none;
     background:linear-gradient(90deg,transparent,rgba(167,139,250,.55),transparent)}
+  /* ===== cada domínio tem alma (F4 v3) — assinatura mínima por atributo,
+     só no hover das linhas de atributos e dos blocos das skill trees ===== */
+  .attr,.tree{position:relative}
+  .attr::before,.attr::after,.tree::before,.tree::after{pointer-events:none}
+  /* Ofício — precisão militar: cantos duros que encaixam com tick (steps) */
+  .dom-oficio::before,.dom-oficio::after{content:"";position:absolute;width:11px;height:11px;opacity:0;
+    transition:opacity .18s steps(2,end),transform .18s steps(2,end)}
+  .dom-oficio::before{top:0;left:-7px;border-top:1.5px solid #38bdf8;border-left:1.5px solid #38bdf8;transform:translate(5px,5px)}
+  .dom-oficio::after{bottom:0;right:-7px;border-bottom:1.5px solid #38bdf8;border-right:1.5px solid #38bdf8;transform:translate(-5px,-5px)}
+  .dom-oficio:hover::before,.dom-oficio:hover::after{opacity:.9;transform:translate(0,0)}
+  /* Saber — constelação: pontos ligados que emergem e derivam */
+  .dom-saber::after{content:"";position:absolute;right:76px;top:0;width:92px;height:40px;opacity:0;z-index:0;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 92 42'%3E%3Cpath d='M8 32L28 12L48 22L66 6L84 18' fill='none' stroke='%2334d399' stroke-width='.7' opacity='.5'/%3E%3Cg fill='%2334d399'%3E%3Ccircle cx='8' cy='32' r='1.6'/%3E%3Ccircle cx='28' cy='12' r='2.1'/%3E%3Ccircle cx='48' cy='22' r='1.4'/%3E%3Ccircle cx='66' cy='6' r='2.3'/%3E%3Ccircle cx='84' cy='18' r='1.5'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;
+    transition:opacity .55s ease,transform 2.4s ease;transform:translateY(3px)}
+  .dom-saber:hover::after{opacity:.7;transform:translateY(-1px)}
+  /* Corpo — batimento: o losango pulsa como um coração */
+  .dom-corpo:hover .adot{animation:heartbeat 1.15s ease-in-out infinite}
+  @keyframes heartbeat{0%,45%,100%{transform:rotate(45deg) scale(1)}
+    10%{transform:rotate(45deg) scale(1.4)}20%{transform:rotate(45deg) scale(1)}
+    30%{transform:rotate(45deg) scale(1.28)}}
+  /* Mente — deriva etérea: névoa violeta que atravessa devagar */
+  .dom-mente::after{content:"";position:absolute;inset:-4px;opacity:0;
+    background:radial-gradient(90px 30px at 18% 50%,rgba(167,139,250,.18),transparent 70%);
+    transition:opacity .8s ease;animation:menteDrift 7.3s ease-in-out infinite alternate}
+  .dom-mente:hover::after{opacity:1}
+  @keyframes menteDrift{0%{transform:translateX(0)}100%{transform:translateX(55%)}}
+  /* Vínculos — partículas douradas que cintilam */
+  .dom-vinculos::after{content:"";position:absolute;inset:0;opacity:0;
+    background:
+      radial-gradient(2px 2px at 16% 28%,rgba(251,191,36,.9),transparent 65%),
+      radial-gradient(1.5px 1.5px at 40% 72%,rgba(251,146,60,.85),transparent 65%),
+      radial-gradient(2px 2px at 62% 22%,rgba(251,191,36,.8),transparent 65%),
+      radial-gradient(1.6px 1.6px at 84% 58%,rgba(251,146,60,.9),transparent 65%),
+      radial-gradient(1.8px 1.8px at 30% 52%,rgba(251,191,36,.7),transparent 65%);
+    transition:opacity .5s ease;animation:vincTwinkle 3.9s ease-in-out infinite}
+  .dom-vinculos:hover::after{opacity:1}
+  @keyframes vincTwinkle{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  /* Disciplina — grid geométrico que se revela */
+  .dom-disciplina::after{content:"";position:absolute;inset:0;opacity:0;
+    background-image:linear-gradient(rgba(239,68,68,.13) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(239,68,68,.13) 1px,transparent 1px);
+    background-size:14px 14px;
+    -webkit-mask-image:linear-gradient(90deg,#000 25%,transparent 85%);
+    mask-image:linear-gradient(90deg,#000 25%,transparent 85%);
+    transition:opacity .45s ease}
+  .dom-disciplina:hover::after{opacity:1}
+
   /* ===== barras são energia (F3 v3) — plasma lento + ponta luminosa ===== */
   .oxp-fill,.arc-count-fill,.tit-fill,.afill,.vf{background-size:240% 100%!important;
     animation:plasma 9.7s ease-in-out infinite alternate;position:relative;overflow:hidden}

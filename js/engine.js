@@ -128,7 +128,7 @@ function render(){
   // attrs
   document.getElementById('attrs').innerHTML=ATTRS.map(a=>{
     const s=S.attrs[a.id],nd=need(s.level),pct=Math.round(s.xp/nd*100),ar=rankOf(s.level);
-    return `<div class="attr">
+    return `<div class="attr dom-${a.id}">
       <div class="ah"><div class="an"><span class="adot" style="background:${a.color};box-shadow:0 0 8px ${a.color}"></span>${a.name}
         <span class="ar" style="color:${ar.color};border-color:${ar.color}">${ar.l}</span></div>
         <div class="alv">Nv <b>${s.level}</b></div></div>

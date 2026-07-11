@@ -371,8 +371,31 @@
   @keyframes sideglow{0%,100%{opacity:.3}50%{opacity:1}}
   .scanline{position:absolute;left:0;right:0;top:0;height:2px;z-index:2;pointer-events:none;
     background:linear-gradient(90deg,transparent,rgba(167,139,250,.55),transparent)}
-  .oxp-fill,.arc-count-fill,.tit-fill{background-size:200% 100%!important;animation:shimmer 6.7s linear infinite}
-  @keyframes shimmer{0%{background-position:120% 0}100%{background-position:-80% 0}}
+  /* ===== barras são energia (F3 v3) — plasma lento + ponta luminosa ===== */
+  .oxp-fill,.arc-count-fill,.tit-fill,.afill,.vf{background-size:240% 100%!important;
+    animation:plasma 9.7s ease-in-out infinite alternate;position:relative;overflow:hidden}
+  @keyframes plasma{0%{background-position:0% 0}100%{background-position:100% 0}}
+  .oxp-fill::after,.afill::after,.arc-count-fill::after,.vf::after{content:"";position:absolute;
+    right:0;top:0;bottom:0;width:8px;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.55));
+    animation:tipglow 3.7s ease-in-out infinite}
+  @keyframes tipglow{0%,100%{opacity:.3}50%{opacity:.9}}
+  /* topbar glass (F3 v3) */
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;gap:14px;
+    padding:10px clamp(14px,4vw,40px);
+    background:rgba(14,8,25,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(167,139,250,.22);box-shadow:0 8px 30px rgba(7,4,15,.45);
+    transform:translateY(-110%);opacity:0;
+    transition:transform .45s cubic-bezier(.22,1,.36,1),opacity .4s ease,padding .35s ease}
+  .topbar.on{transform:translateY(0);opacity:1}
+  .topbar.mini{padding:5px clamp(14px,4vw,40px)}
+  .tb-sys{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--sky);opacity:.8}
+  .tb-rank{font-family:var(--disp);font-weight:700;font-size:18px;line-height:1;color:var(--sky);text-shadow:0 0 10px currentColor}
+  .tb-lvl{font-family:var(--mono);font-size:11px;color:var(--mut)}
+  .tb-lvl b{color:var(--ink)}
+  .tb-bar{flex:1;max-width:220px;height:4px;margin-left:auto;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
+  .tb-fill{height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#f0abfc);background-size:240% 100%;
+    animation:plasma 9.7s ease-in-out infinite alternate;transition:width .9s cubic-bezier(.22,1,.36,1)}
   .wchip{animation:rise .5s cubic-bezier(.22,1,.36,1) both}
   .whisper{transition:opacity .4s ease,border-color .3s ease}
   .whisper:hover{border-color:var(--violet)}

@@ -33,6 +33,7 @@ function addXp(attr,amt,silent){
   const t=today();const last=S.history[S.history.length-1];
   if(last&&last.d===t)last.v+=amt;else S.history.push({d:t,v:amt});
   if(!silent&&ups.length){ups.forEach(u=>toast('Nível aumentado',AM[u].name+' subiu para nível '+S.attrs[u].level,AM[u].color));celebrate(AM[ups[0]].color);}
+  if(amt>0&&!silent&&window.barBurst)barBurst(attr); // mini-burst na ponta da barra (F3 v3)
   return ups;
 }
 const overallLevel=()=>ATTRS.reduce((s,a)=>s+S.attrs[a.id].level,0)-(ATTRS.length-1);
@@ -101,8 +102,8 @@ function render(){
   const realUn=Object.entries(S.titleUnlocked||{}).sort((a,b)=>a[1]<b[1]?-1:1);
   const lastReal=realUn.length?TITLES_REAL.find(t=>t.id===realUn[realUn.length-1][0]):null;
   document.getElementById('title').textContent=lastReal?('👑 '+lastReal.name):titleOf(lvl);
-  document.getElementById('qd').textContent=S.objectives.filter(o=>o.status==='done').length;
-  const allH=[...S.oblig,...S.extras];document.getElementById('bstk').textContent=Math.max(0,...allH.map(h=>h.streak));
+  setNum('qd',S.objectives.filter(o=>o.status==='done').length);
+  const allH=[...S.oblig,...S.extras];setNum('bstk',Math.max(0,...allH.map(h=>h.streak)));
 
   // rank badge
   const rb=document.getElementById('rankbadge');rb.style.borderColor=r.color;rb.style.color=r.color;
@@ -118,6 +119,12 @@ function render(){
   document.getElementById('rank-prog-lbl').textContent='Rank '+r.l+(r.l!=='S'?' → '+RANKS[RANKS.indexOf(r)+1].l:'');
   document.getElementById('oxp-txt').textContent='Nível '+lvl;
 
+  // topbar glass (F3 v3) — espelho do essencial, sem estado próprio
+  const tbr=document.getElementById('tb-rank');
+  if(tbr){tbr.textContent=r.l;tbr.style.color=r.color;
+    document.getElementById('tb-lvln').textContent=lvl;
+    document.getElementById('tb-fill').style.width=(rankFrac*100)+'%';}
+
   // attrs
   document.getElementById('attrs').innerHTML=ATTRS.map(a=>{
     const s=S.attrs[a.id],nd=need(s.level),pct=Math.round(s.xp/nd*100),ar=rankOf(s.level);
@@ -125,9 +132,14 @@ function render(){
       <div class="ah"><div class="an"><span class="adot" style="background:${a.color};box-shadow:0 0 8px ${a.color}"></span>${a.name}
         <span class="ar" style="color:${ar.color};border-color:${ar.color}">${ar.l}</span></div>
         <div class="alv">Nv <b>${s.level}</b></div></div>
-      <div class="abar"><div class="afill" style="width:${pct}%;background:linear-gradient(90deg,${a.color},${a.color}aa)"></div></div>
+      <div class="abar"><div class="afill" data-a="${a.id}" style="width:${pct}%;background:linear-gradient(90deg,${a.color},${a.color}88 45%,${a.color} 75%,${a.color}cc)"></div></div>
       <div class="axp">${s.xp} / ${nd} XP</div></div>`;
   }).join('');
+  /* easing visual entre renders — o innerHTML novo nasceria já na largura final */
+  const pv=window.__barPv||(window.__barPv={});
+  document.querySelectorAll('#attrs .afill').forEach(f=>{const k=f.dataset.a,w=f.style.width;
+    if(pv[k]!==undefined&&pv[k]!==w){f.style.width=pv[k];f.getBoundingClientRect();f.style.width=w;}
+    pv[k]=w;});
 
   renderRadar(r,lvl);
 

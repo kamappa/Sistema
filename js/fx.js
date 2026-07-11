@@ -189,6 +189,18 @@ function setNum(id,val,fmt){
       vx:(Math.random()-.5)*.6,vy:(Math.random()-.5)*.6-.15,
       r:.6+Math.random()*1.1,life:24,tr:true,c:'196,178,255'});
   },{passive:true});
+  /* faísca localizada (F3 v3) — 3-5 partículas na ponta de uma barra que enche */
+  window.dustSpark=function(x,y,hex,n){
+    if(rm.matches)return;
+    let c='167,139,250';
+    if(/^#[0-9a-f]{6}$/i.test(hex||''))c=parseInt(hex.slice(1,3),16)+','+parseInt(hex.slice(3,5),16)+','+parseInt(hex.slice(5,7),16);
+    for(let i=0;i<(n||4);i++){
+      const an=-Math.PI/2+(Math.random()-.5)*1.6,sp=.5+Math.random()*1.2;
+      ps.push({x:x+(Math.random()-.5)*4,y:y+(Math.random()-.5)*4,r:.8+Math.random()*1.2,
+        vx:Math.cos(an)*sp,vy:Math.sin(an)*sp,ph:0,c:c,life:34+Math.random()*16});
+    }
+    start();
+  };
   /* rebentamento efémero (level-up); gancho reutilizável pela fase C */
   window.dustBurst=function(hex){
     if(rm.matches)return;
@@ -210,6 +222,29 @@ function setNum(id,val,fmt){
   rm.addEventListener('change',()=>rm.matches?stop():start());
   window.dustStart=start;
   size();if(!document.documentElement.classList.contains('boot'))start();
+})();
+
+/* mini-burst na ponta da barra de um atributo que ganhou XP (F3 v3) —
+   espera pelo render para ler a largura nova; só se a barra estiver no viewport */
+window.barBurst=function(attr){
+  setTimeout(()=>{try{
+    const f=document.querySelector('#attrs .afill[data-a="'+attr+'"]');if(!f)return;
+    const r=f.getBoundingClientRect();
+    if(!r.width||r.bottom<0||r.top>innerHeight)return;
+    const c=(window.AM&&AM[attr])?AM[attr].color:'#a78bfa';
+    if(window.dustSpark)dustSpark(r.right,r.top+r.height/2,c,3+Math.floor(Math.random()*3));
+  }catch(e){}},180);
+};
+
+/* topbar glass (F3 v3) — aparece depois do herói, encolhe em scroll fundo */
+(function(){
+  const tb=document.getElementById('topbar');if(!tb)return;
+  let tick=false;
+  function upd(){tick=false;
+    tb.classList.toggle('on',scrollY>430);
+    tb.classList.toggle('mini',scrollY>1100);}
+  addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(upd)}},{passive:true});
+  upd();
 })();
 
 /* scanline única — varre um painel de cima a baixo quando chega conteúdo novo (F2 v3) */

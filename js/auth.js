@@ -83,6 +83,7 @@ async function bootState(){
   S.training=S.training||{prog:{push:0,pull:0,legs:0,core:0},sessions:[]};S.training.prog=S.training.prog||{push:0,pull:0,legs:0,core:0};S.training.sessions=S.training.sessions||[];
   S.sleep=S.sleep||{bedT:'23:30',wakeT:'07:30',logs:[]};S.sleep.logs=S.sleep.logs||[];
   S.objectives=S.objectives||[];S.shadows=S.shadows||[];S.oracle=S.oracle||{reports:[]};S.radarAccepted=S.radarAccepted||{};
+  S.oracleChat=S.oracleChat||{d:null,count:0};
   S.recall=S.recall||{};
   S.recallToday=S.recallToday||null;
   if(S.recallToday&&!S.recallToday.results)S.recallToday.results={};

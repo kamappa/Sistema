@@ -98,6 +98,18 @@
     </div>
   </div>
 
+  <!-- ORÁCULO · CONSELHO -->
+  <div class="cols" id="conselho-row">
+    <div class="panel reveal" style="animation-delay:.095s">
+      <div class="ptitle"><b>Oráculo · Conselho</b> · conselheiro estratégico <span class="oc-quota" id="oc-quota"></span></div>
+      <div id="oc-log" class="oc-log"></div>
+      <div class="oc-row">
+        <textarea id="oc-in" rows="2" maxlength="2000" placeholder="Pergunta ao Oráculo — decisões, dúvidas, rumo..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendConselho();}"></textarea>
+        <button class="btn" id="oc-send" onclick="sendConselho()">Enviar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="cols">
     <!-- ATTRIBUTES -->
     <div class="panel reveal" style="animation-delay:.1s">
@@ -232,7 +244,7 @@
 
 <!-- Ordem de carregamento (scripts clássicos, globals partilhados — não converter
      em ES modules sem migrar os onclick inline): data → fx → engine → world → hud
-     → recall → treino → sono → objetivos → radar → auth (contém init(), é o último). -->
+     → recall → treino → sono → objetivos → radar → conselho → auth (contém init(), é o último). -->
 <script src="js/data.js"></script>
 <script src="js/fx.js"></script>
 <script src="js/engine.js"></script>
@@ -243,6 +255,7 @@
 <script src="js/sono.js"></script>
 <script src="js/objetivos.js"></script>
 <script src="js/radar.js"></script>
+<script src="js/conselho.js"></script>
 <script src="js/auth.js"></script>
 </body>
 </html>

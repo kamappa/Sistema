@@ -13,7 +13,7 @@ function fresh(){
     extras:EXTRAS.map(h=>({...h,streak:0,lastDone:null,lastGain:0})),
     history:[{d:today(),v:0}], totalXP:0, log:[], lastDayCheck:today(), seenAch:[], debuffs:{}, events:[], notifOn:false, notified:{},
     worldArc:null, whisper:{}, titleEv:{}, titleUnlocked:{}, recovery:null, weather:null,
-    training:{prog:{push:0,pull:0,legs:0,core:0},sessions:[]}, sleep:{bedT:'23:30',wakeT:'07:30',logs:[]}, objectives:[], shadows:[], oracle:{reports:[]}, radarAccepted:{}, recall:{}, recallToday:null, customQ:[], studyStreak:{count:0,lastDay:null}, v:3};
+    training:{prog:{push:0,pull:0,legs:0,core:0},sessions:[]}, sleep:{bedT:'23:30',wakeT:'07:30',logs:[]}, objectives:[], shadows:[], oracle:{reports:[]}, radarAccepted:{}, recall:{}, recallToday:null, customQ:[], studyStreak:{count:0,lastDay:null}, oracleChat:{d:null,count:0}, v:3};
 }
 
 /* ===== DATAS ===== */
@@ -148,7 +148,7 @@ function render(){
 
   renderXpLine();
 
-  renderGreet();renderAchievements();renderDebuffs();renderTree();renderWorld();renderNews();renderOracleRep();renderTitles();renderTraining();renderSleep();renderRecall();renderObjectives();renderShadows();renderCalendar();renderDeadlineBanner();checkNotif();
+  renderGreet();renderAchievements();renderDebuffs();renderTree();renderWorld();renderNews();renderOracleRep();renderConselho();renderTitles();renderTraining();renderSleep();renderRecall();renderObjectives();renderShadows();renderCalendar();renderDeadlineBanner();checkNotif();
 
   const log=document.getElementById('log');
   log.innerHTML=S.log.length?S.log.map(l=>`<div class="li"><span>${l.text}</span><span class="${l.gain<0?'b':'g'}">${l.gain<0?'':'+'}${l.gain} XP</span></div>`).join(''):'<div class="log-empty">Sem atividade ainda. Marca um obrigatório para começares.</div>';

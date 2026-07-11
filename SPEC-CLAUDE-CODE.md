@@ -75,6 +75,31 @@ animação do CSS):
   celebra) + contadores animados (`setNum()` em nível/XP total, 600ms,
   escrita direta com reduced-motion ou página oculta)
 
+## Missão 3 v2 — Universo Vivo (CONCLUÍDA)
+
+Redesign profundo sobre a Missão 3: minimalismo premium + HUD futurista
+(referências: Raycast, Framer, Stripe, Solo Leveling). Regras: só
+transform/opacity — com blur de 200ms como exceção deliberada nos
+momentos altos —, reduced-motion respeitado, touch intocado, lógica
+intocada. Inclui fix de integridade: reversões de XP (desmarcar hábito,
+regredir objetivo) removem a entrada correspondente do registo (unlog).
+
+- Fase 1: motor de ambiente — `--amb1/2/3` e `--horizon` interpoladas ao
+  minuto entre 10 âncoras horárias (madrugada índigo → amanhecer com
+  âmbar → dia luminoso → pôr do sol no horizonte → noite = estado
+  "casa"); meteo real modula (chuva dessatura e as partículas descem;
+  céu limpo aviva); coordenadas Open-Meteo = V. N. Famalicão
+- Fase 2: boot sequence 1x/sessão (<2.5s, saltável com clique: fundo →
+  partículas → saudação typewriter → painéis em stagger; bootstrap de
+  1 linha no head) + voz do Sistema nos toasts (Missão aceite — Sistema
+  sincronizado; Conhecimento assimilado; Pilar confirmado) + o Oráculo
+  escreve o relatório (sysTypeHTML, teto 2.5s, só na 1ª visualização)
+- Fase 3: presença — tilt 3D nos painéis (máx 3°), botões magnéticos
+  (±2.5px) com glow, aurora segue o rato; só pointer:fine
+- Fase 4: momentos cinematográficos — A R I S E (overlay tipográfico +
+  flash + cinePulse + dupla vaga) e level-up/rank-up com cinePulse;
+  quietude visual no resto do sistema
+
 ## Missão 4 — CLAUDE.md (CONCLUÍDA)
 
 Criar `CLAUDE.md` na raiz a partir do PROMPT.md (contexto do Daniel, regras

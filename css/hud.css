@@ -22,7 +22,8 @@
     background-size:46px 46px;
     -webkit-mask-image:radial-gradient(circle at 50% 25%,#000,transparent 78%);mask-image:radial-gradient(circle at 50% 25%,#000,transparent 78%);}
   /* fundo vivo — Missão 3 fase A */
-  .aurora{position:fixed;inset:-20%;z-index:0;pointer-events:none;overflow:hidden}
+  .aurora{position:fixed;inset:-20%;z-index:0;pointer-events:none;overflow:hidden;
+    transition:transform 2.4s ease-out;will-change:transform}
   .aurora i{position:absolute;border-radius:50%;will-change:transform}
   .aurora i:nth-child(1){width:56vmax;height:56vmax;left:-12%;top:-18%;
     background:radial-gradient(circle,var(--amb1),transparent 62%);
@@ -281,7 +282,7 @@
   .wchip.blue{border-color:rgba(167,139,250,.5);color:#bae6fd;background:rgba(167,139,250,.06)}
   .wchip.green{border-color:rgba(52,211,153,.5);color:#a7f3d0;background:rgba(52,211,153,.06)}
   .mini{font-family:var(--mono);font-size:10.5px;border:1px solid var(--line2);background:transparent;color:var(--sky);padding:5px 11px;cursor:pointer;transition:.15s}
-  .mini:hover{background:rgba(167,139,250,.08)}
+  .mini:hover{background:rgba(167,139,250,.08);box-shadow:0 0 12px rgba(167,139,250,.22)}
   .mini.warm{color:var(--orange);border-color:rgba(251,146,60,.5)}
   .mini.warm:hover{background:rgba(251,146,60,.08)}
   .whisper{width:100%;border:1px dashed var(--line2);padding:10px 13px;display:flex;align-items:center;gap:11px;flex-wrap:wrap;font-size:13px;background:rgba(167,139,250,.03)}
@@ -315,7 +316,7 @@
   .req .rauto{font-family:var(--mono);font-size:9.5px;color:var(--violet)}
   /* ===== camada de animação ===== */
   html{scroll-behavior:smooth}
-  .panel{transition:border-color .35s ease,box-shadow .35s ease}
+  .panel{transition:border-color .35s ease,box-shadow .35s ease,transform .18s ease-out}
   .panel:hover{border-color:var(--line2);box-shadow:0 0 24px rgba(139,92,246,.07)}
   .hab,.q,.tit,.ach,.dbf{transition:border-color .22s ease,background .22s ease,transform .22s cubic-bezier(.22,1,.36,1)}
   .hab:hover,.q:hover{transform:translateX(4px)}

@@ -29,10 +29,10 @@ function xpMult(attr){let m=1;const a=seasonArcNow();
 async function fetchWeather(){
   if(S.weather&&S.weather.d===today())return;
   try{
-    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.55&longitude=-8.43&daily=temperature_2m_max,precipitation_sum&forecast_days=1&timezone=auto');
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.41&longitude=-8.52&daily=temperature_2m_max,precipitation_sum&forecast_days=1&timezone=auto');
     const j=await r.json();
     S.weather={d:today(),tmax:j.daily.temperature_2m_max[0],rain:j.daily.precipitation_sum[0]};
-    localSave();render();
+    localSave();render();if(window.ambientApply)ambientApply();
   }catch(e){}
 }
 

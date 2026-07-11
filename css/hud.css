@@ -6,6 +6,9 @@
     --pink:#f472b6; --orange:#fb923c; --red:#ef4444; --gold:#fbbf24;
     --disp:'Rajdhani',sans-serif; --body:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
     --notch:14px;
+    /* motor de ambiente (ciclo do dia) — defaults = noite, o estado "casa" */
+    --amb1:rgba(139,92,246,.16); --amb2:rgba(240,171,252,.10);
+    --amb3:rgba(139,92,246,.07); --horizon:rgba(249,115,22,0);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased}
@@ -22,14 +25,16 @@
   .aurora{position:fixed;inset:-20%;z-index:0;pointer-events:none;overflow:hidden}
   .aurora i{position:absolute;border-radius:50%;will-change:transform}
   .aurora i:nth-child(1){width:56vmax;height:56vmax;left:-12%;top:-18%;
-    background:radial-gradient(circle,rgba(139,92,246,.16),transparent 62%);
+    background:radial-gradient(circle,var(--amb1),transparent 62%);
     animation:aur1 46s ease-in-out infinite alternate}
   .aurora i:nth-child(2){width:48vmax;height:48vmax;right:-14%;bottom:-20%;
-    background:radial-gradient(circle,rgba(240,171,252,.10),transparent 60%);
+    background:radial-gradient(circle,var(--amb2),transparent 60%);
     animation:aur2 58s ease-in-out infinite alternate}
   .aurora i:nth-child(3){width:38vmax;height:38vmax;left:30%;top:38%;
-    background:radial-gradient(circle,rgba(167,139,250,.07),transparent 65%);
+    background:radial-gradient(circle,var(--amb3),transparent 65%);
     animation:aur3 72s ease-in-out infinite alternate}
+  .horizon{position:fixed;left:0;right:0;bottom:0;height:38vh;z-index:0;pointer-events:none;
+    background:linear-gradient(to top,var(--horizon),transparent)}
   @keyframes aur1{to{transform:translate(9vw,7vh) scale(1.12)}}
   @keyframes aur2{to{transform:translate(-8vw,-6vh) scale(1.18)}}
   @keyframes aur3{to{transform:translate(6vw,-8vh) scale(.92)}}

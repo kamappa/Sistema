@@ -85,6 +85,37 @@ function acceptConselhoMission(btn,ev){
   toast('Missão aceite','⚔️ '+t+' — Sistema sincronizado','#a78bfa');floatXP('+ missão','#a78bfa',ev);save();
 }
 
+/* ===== MAPA DE CONHECIMENTO (fase 4) =====
+   100% cliente, 100% dados reais: agrega S.recall por tema via questionPool().
+   Tema só aparece com ≥5 perguntas vistas; antes disso não há sinal honesto. */
+function renderMapa(){
+  const el=document.getElementById('kmap');if(!el)return;
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const themes={};
+  questionPool().forEach(q=>{
+    const r=S.recall[q.id];if(!r||!r.seen)return;
+    const th=themes[q.tema]=themes[q.tema]||{n:0,seen:0,correct:0,qs:[]};
+    th.n++;th.seen+=r.seen;th.correct+=r.correct;th.qs.push({q,r});
+  });
+  const ids=Object.keys(themes);
+  if(!ids.length){el.innerHTML='<div class="up-empty">Ainda sem dados de revisão. Responde ao lote diário e o mapa desenha-se sozinho.</div>';return;}
+  el.innerHTML=ids.sort((a,b)=>themes[b].n-themes[a].n).map(id=>{
+    const t=themes[id];const meta=RECALL_THEMES[id]||{label:id,color:'var(--sky)'};
+    if(t.n<5)return `<div class="km-row km-insuf">
+      <div class="km-head"><span class="wchip" style="border-color:${meta.color};color:${meta.color}">${meta.label}</span>
+      <span class="km-note">dados insuficientes (${t.n}/5 perguntas vistas) — continua a responder</span></div></div>`;
+    const pct=Math.round(t.correct/t.seen*100);
+    const worst=t.qs.sort((a,b)=>a.r.ease-b.r.ease).slice(0,2);
+    return `<div class="km-row">
+      <div class="km-head"><span class="wchip" style="border-color:${meta.color};color:${meta.color}">${meta.label}</span>
+        <b class="km-pct" style="color:${pct>=75?'var(--em)':pct>=50?'var(--orange)':'var(--red)'}">${pct}%</b>
+        <span class="km-note">${t.n} perguntas · ${t.seen} respostas</span></div>
+      <div class="km-bar"><div style="width:${pct}%;background:${meta.color}"></div></div>
+      ${worst.map(w=>`<div class="km-weak">▾ ${esc(w.q.q.slice(0,90))}${w.q.q.length>90?'…':''} <span class="km-ease">${w.q.id} · ease ${w.r.ease.toFixed(2)}</span></div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
 async function sendConselho(){
   if(ocBusy)return;
   const inp=document.getElementById('oc-in');const qtxt=(inp.value||'').trim();

@@ -100,6 +100,54 @@ regredir objetivo) removem a entrada correspondente do registo (unlog).
   flash + cinePulse + dupla vaga) e level-up/rank-up com cinePulse;
   quietude visual no resto do sistema
 
+## Missão 3 v3 — O Sistema Existe (CONCLUÍDA)
+
+Diretiva definitiva sobre a v2: "vida não é animação — é o sistema existir
+mesmo quando o utilizador para". Nada 100% estático, mas quase tudo a
+mover-se tão pouco que só se nota quando se procura. Regras invioláveis:
+transform/opacity (box-shadow permitido por precedente da v2),
+reduced-motion mata tudo, degradação corta efeitos e não fps, dados
+sempre reais, lógica intocada. Verificação nova: screenshot headless
+antes/depois de cada fase (ver nota no fim).
+
+- Fase 1: palco em 3 camadas — campo de estrelas (120/50) com parallax
+  de scroll, cintilação dessincronizada e brilho comandado pela hora;
+  nebulosas gigantes com núcleo (gradiente duplo) em deriva de minutos;
+  partículas com profundidade z (70/35); estrela cadente rara (60-120s);
+  rasto do rato (pointer:fine, máx 8); guarda de FPS que corta densidade
+- Fase 2: idle universal com períodos primos (3.1-13s) — batimento no
+  chip de rank, halo do anel do avatar, losangos a flutuar com delays
+  próprios, luzes de canto desfasadas, gradiente lento nos títulos,
+  calendário (hoje + pontos de eventos), glow lateral nas missões em
+  curso; scanline única via panelScan() quando o Radar traz itens <12h
+  ou há relatório novo do Oráculo
+- Fase 3: barras de energia — plasma lento (9.7s) + ponta luminosa que
+  desaparece a 0%; easing entre renders (repõe largura anterior 1 frame);
+  mini-burst de 3-5 partículas no addXp (gancho de 1 linha); count-up em
+  streak/missões; topbar glass fixa (rank+nível+XP, espelho do render,
+  aparece após o herói, encolhe em scroll fundo)
+- Fase 4: assinatura por domínio (hover em Atributos e Skill Trees,
+  classe dom-<id>) — Ofício cantos duros steps(2); Saber constelação
+  SVG; Corpo batimento no losango; Mente névoa em travessia; Vínculos
+  partículas douradas; Disciplina grid com máscara
+- Fase 5: Shadow Army — raridade determinística por nível (3 Comum,
+  6 Rara/azul, 10 Épica/roxa+partículas, 15 Lendária/dourada+shimmer),
+  auras inset (o clip-path corta box-shadow exterior!), idle
+  dessincronizado por carta, hover ergue e revela a data; cineMoment()
+  genérico (escurece 400ms → luz cresce → texto entra → dissolve, 2.6s)
+  usado por A R I S E e Conquistas, com toast como fallback
+- Fase 6: calendário — mês desliza na direção da navegação, hover
+  expande célula com mini-card via content:attr(title) (clip-path
+  levantado no hover), selo ✓ em dias passados com XP no S.history,
+  eventos flutuam 1px
+
+Verificação (novo método, ver memória do Claude Code): o --screenshot
+do Brave headless está partido nesta máquina; a alternativa que funciona
+é servidor HTTP local (PowerShell HttpListener) + CDP por WebSocket
+(Page.captureScreenshot, Runtime.evaluate para semear estado real,
+Input.dispatchMouseEvent para hover). Com o CDN bloqueado o init() entra
+em modo offline sem login — HUD completo visível.
+
 ## Missão 4 — CLAUDE.md (CONCLUÍDA)
 
 Criar `CLAUDE.md` na raiz a partir do PROMPT.md (contexto do Daniel, regras

@@ -19,12 +19,26 @@ function floatXP(txt,color,ev){try{
   s.style.left=x+'px';s.style.top=y+'px';s.style.color=color||'#a78bfa';
   document.body.appendChild(s);setTimeout(()=>s.remove(),960);
 }catch(err){}}
+function cinePulse(){ // 200ms de blur — reservado aos momentos altos (M3v2 fase 4)
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const w=document.querySelector('.wrap');if(!w)return;
+  w.classList.remove('cine');void w.offsetWidth;w.classList.add('cine');
+}
 function celebrate(color){try{
   const f=document.createElement('div');f.className='lvlflash';
   f.style.setProperty('--fc',(color||'#a78bfa')+'55');
   document.body.appendChild(f);setTimeout(()=>f.remove(),950);
   if(window.dustBurst)dustBurst(color);
+  cinePulse();
 }catch(err){}}
+window.cineArise=function(){ // flash violeta + A R I S E + pulse + dupla vaga
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const ov=document.createElement('div');ov.className='arise-ov';
+  ov.innerHTML='<b>A R I S E</b>';document.body.appendChild(ov);
+  setTimeout(()=>ov.remove(),1450);
+  celebrate('#a78bfa');
+  if(window.dustBurst)setTimeout(()=>dustBurst('#a78bfa'),300);
+};
 let lastRankL=null;
 function rankCeremony(r){try{
   toast('RANK UP','⬆ Alcançaste o Rank '+r.l,r.color);

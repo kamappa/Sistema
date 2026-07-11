@@ -44,6 +44,17 @@
   html.boot.boot-greet .greet{animation:none!important;opacity:1;transition:opacity .3s}
   .typing::after{content:"▍";color:var(--sky);margin-left:1px;animation:curblink .9s steps(1) infinite}
   @keyframes curblink{50%{opacity:0}}
+  /* momentos cinematográficos (Missão 3v2 fase 4) — o único uso de blur, 200ms */
+  .wrap.cine{animation:cinepulse .2s ease-out}
+  @keyframes cinepulse{0%{filter:blur(0)}40%{filter:blur(2.5px)}100%{filter:blur(0)}}
+  .arise-ov{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;pointer-events:none;
+    background:radial-gradient(60% 45% at 50% 50%,rgba(139,92,246,.16),transparent 70%);
+    animation:ariseov 1.4s ease-out forwards}
+  .arise-ov b{font-family:var(--disp);font-weight:700;font-size:clamp(34px,7vw,64px);
+    letter-spacing:.5em;padding-left:.5em;color:#cabcff;
+    text-shadow:0 0 30px rgba(167,139,250,.8);animation:ariset 1.4s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes ariseov{0%{opacity:0}12%{opacity:1}75%{opacity:1}100%{opacity:0}}
+  @keyframes ariset{0%{opacity:0;transform:scale(.85)}18%{opacity:1}70%{opacity:1;transform:scale(1.02)}100%{opacity:0;transform:scale(1.06)}}
   @keyframes aur1{to{transform:translate(9vw,7vh) scale(1.12)}}
   @keyframes aur2{to{transform:translate(-8vw,-6vh) scale(1.18)}}
   @keyframes aur3{to{transform:translate(6vw,-8vh) scale(.92)}}

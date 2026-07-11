@@ -48,7 +48,8 @@ function cycleObj(id,ev){ev.stopPropagation();
   if(next==='done'){const p=PRI[o.pri];addXp(o.area,p.xp);o.doneDate=today();
     S.shadows.push({id:'s'+Date.now(),ref:o.id,name:o.title,lvl:p.lvl,d:today()});
     plog('🗡 ARISE: '+o.title,p.xp);floatXP('+'+p.xp+' XP',AM[o.area].color,ev);
-    toast('A R I S E','🗡 '+o.title+' ergueu-se — Sombra Nv '+p.lvl,'#a78bfa');}
+    toast('A R I S E','🗡 '+o.title+' ergueu-se — Sombra Nv '+p.lvl,'#a78bfa');
+    if(window.cineArise)cineArise();}
   if(o.status==='done'&&next!=='done'){const p=PRI[o.pri];addXp(o.area,-p.xp);unlog('🗡 ARISE: '+o.title,o.doneDate);S.shadows=S.shadows.filter(s=>s.ref!==o.id);delete o.doneDate;}
   o.status=next;save();
 }

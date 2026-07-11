@@ -174,9 +174,46 @@ pilar Saber:
   via `questionPool()`/`findQuestion()`; gancho vazio `oracleRefreshQuestions()`
   reservado para o Oráculo injetar perguntas no futuro (sem lógica ainda)
 
+## Missão 6 — Oráculo · Conselho (CONCLUÍDA)
+
+O Oráculo evoluiu de relatórios agendados para conselheiro estratégico
+interativo. A fonte da Edge Function passou a ser versionada em
+`supabase/functions/oraculo/index.ts` (descarregada da produção e comparada
+antes de mexer; radar/report ficaram intocados além do router de modos).
+Deploy via CLI do Supabase (`~/bin/supabase.exe`, login interativo do Daniel).
+
+- Fase 1: `?mode=chat` na Edge Function — JWT da sessão (radar/report mantêm
+  ORACLE_TOKEN; deploy com `--no-verify-jwt` porque a validação é interna),
+  CORS para kamappa.github.io, constituição do conselheiro (5 lentes do
+  Conselho, socrático, Reality Check, mundo real/Patrícia, proteção contra
+  sobrecarga, ~450 palavras), contexto real do `app_state` (`resumoEstado`:
+  atributos, streaks, obrigatórios, missões+prazos, sono, debuffs, recall
+  agregado por tema via prefixo do id) + últimos 2 relatórios; guarda de
+  custo 12 msgs/dia lida de `S.oracleChat` (o cliente incrementa, o servidor
+  revalida — best-effort, não é segurança)
+- Fase 2: `js/conselho.js` + painel no HUD — chat na identidade do sistema,
+  teatro de pensamento (linhas em sequência; ambiente, não engano),
+  typewriter saltável com clique e desligado com reduced-motion; falha de
+  rede devolve a quota e tira a mensagem do histórico (o sistema nunca mente)
+- Fase 3: aceitar como missão — a constituição pede a ação final na linha
+  "⚔ Ação (48h): ..."; o botão só aparece quando o Oráculo a declara;
+  aceitar cria missão via triage com tag 🔮 Do Oráculo e prazo a 48h
+- Fase 4: Mapa de Conhecimento — 100% cliente, agrega S.recall por tema
+  (taxa de acerto, nº perguntas vistas, 2 piores ease); tema só aparece
+  com ≥5 perguntas vistas, antes disso "dados insuficientes"
+- Fase 5: Sussurro do Conselheiro — `?mode=sussurro` (JWT, max_tokens 150),
+  1 chamada/dia com cache em `S.sussurro`, linha na saudação; sem nada
+  digno devolve null e não aparece nada (silêncio > ruído)
+- Fase 6: teste end-to-end com utilizador efémero (admin API, apagado no
+  fim) — verificado que sem dados o Oráculo recusa inventar números e diz
+  o que registar; verificação headless (CDP) do HUD com os painéis novos
+
+Nota de produção observada na fase 1: o token do radar/report também é
+aceite por query param `?t=` — funcional, mas tokens em URL podem ficar em
+logs; candidato a limpeza futura.
+
 ## Backlog (depois da v1.0)
 
-- Chat flutuante do Oráculo (modo chat na mesma Edge Function)
 - Botões Aceitar/Recusar para propostas do relatório escreverem no estado
 - Evidence Locker (Supabase Storage nos requisitos dos Títulos Reais)
 - PWA (manifest + service worker) e notificações push

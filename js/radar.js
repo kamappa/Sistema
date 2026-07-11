@@ -56,13 +56,17 @@ function renderOracleRep(){
     ${r.recompensa?`<div class="orc-sec"><b>🎁 Recompensa sugerida:</b> ${r.recompensa}</div>`:''}
     ${r.titulo?`<div class="orc-sec"><b>🎖 Título da semana:</b> ${r.titulo}</div>`:''}
     ${r.legado?`<div class="orc-leg">👑 ${r.legado}</div>`:''}`;
+  /* o Oráculo escreve — só na 1ª visualização de cada relatório, saltável com clique */
+  const k='orcSeen:'+(REPORT.created_at||'');
+  try{if(!sessionStorage.getItem(k)&&window.sysTypeHTML){sessionStorage.setItem(k,'1');
+    sysTypeHTML([...el.querySelectorAll('.orc-sec,.orc-leg')],2500);}}catch(e){}
 }
 function acceptOracleMission(i,ev){
   const r=REPORT&&REPORT.report;if(!r||!r.missoes_propostas||!r.missoes_propostas[i])return;
   const m=r.missoes_propostas[i];
   const tr=triage(m.t||'Missão do Oráculo',m.deadline||null);
   S.objectives.push({id:'o'+Date.now(),title:m.t||'Missão do Oráculo',area:(m.area&&AM[m.area])?m.area:(tr.area||'oficio'),pri:(m.pri&&PRI[m.pri])?m.pri:tr.imp,auto:true,deadline:m.deadline||null,status:'pend',created:today(),tags:['🔮 Do Oráculo',...(tr.tags||[])],oracle:true});
-  toast('Missão aceite','⚔️ Entrou na lista-mestra','#a78bfa');floatXP('+ missão','#a78bfa',ev);save();
+  toast('Missão aceite','⚔️ Sistema sincronizado','#a78bfa');floatXP('+ missão','#a78bfa',ev);save();
 }
 function acceptRadarMission(id,ev){
   const it=RADAR.find(x=>x.id===id);if(!it||!it.missao||!it.missao.t)return;
@@ -70,5 +74,5 @@ function acceptRadarMission(id,ev){
   const m=it.missao;const tr=triage(m.t,m.deadline||null);
   S.objectives.push({id:'o'+Date.now(),title:m.t,area:(m.area&&AM[m.area])?m.area:(tr.area||'oficio'),pri:(m.pri&&PRI[m.pri])?m.pri:tr.imp,auto:true,deadline:m.deadline||null,status:'pend',created:today(),tags:['📡 Do Radar',...(tr.tags||[])],oracle:true});
   S.radarAccepted[id]=true;
-  toast('Missão do Radar aceite','⚔️ '+m.t,'#fbbf24');floatXP('+ missão','#fbbf24',ev);save();
+  toast('Missão aceite','⚔️ '+m.t+' — Sistema sincronizado','#fbbf24');floatXP('+ missão','#fbbf24',ev);save();
 }

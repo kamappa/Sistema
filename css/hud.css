@@ -35,6 +35,14 @@
     animation:aur3 72s ease-in-out infinite alternate}
   .horizon{position:fixed;left:0;right:0;bottom:0;height:38vh;z-index:0;pointer-events:none;
     background:linear-gradient(to top,var(--horizon),transparent)}
+  /* boot sequence (Missão 3v2 fase 2) */
+  html.boot .aurora,html.boot .horizon,html.boot #dust{opacity:0}
+  html.boot.boot-on .aurora,html.boot.boot-on .horizon{opacity:1;transition:opacity .4s ease}
+  html.boot.boot-on #dust{opacity:1;transition:opacity .6s .15s}
+  html.boot .reveal{animation:none!important;opacity:0}
+  html.boot.boot-greet .greet{animation:none!important;opacity:1;transition:opacity .3s}
+  .typing::after{content:"▍";color:var(--sky);margin-left:1px;animation:curblink .9s steps(1) infinite}
+  @keyframes curblink{50%{opacity:0}}
   @keyframes aur1{to{transform:translate(9vw,7vh) scale(1.12)}}
   @keyframes aur2{to{transform:translate(-8vw,-6vh) scale(1.18)}}
   @keyframes aur3{to{transform:translate(6vw,-8vh) scale(.92)}}

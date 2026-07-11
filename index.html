@@ -14,6 +14,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="css/hud.css">
+<!-- bootstrap do boot sequence: tem de correr antes do 1º paint (por isso é a única
+     linha de JS inline); 1x por sessão; nunca com prefers-reduced-motion -->
+<script>try{if(!sessionStorage.getItem('sysboot')&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('boot')}catch(e){}</script>
 </head>
 <body>
 <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>

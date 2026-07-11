@@ -157,6 +157,7 @@ function answerRecall(id,grade,ev){
   const th=RECALL_THEMES[q.tema]||{label:q.tema};
   plog('📖 Revisão · '+th.label,gain);
   floatXP('+'+gain+' XP',AM.saber.color,ev);
+  if(grade==='ok')toast('Conhecimento assimilado','📖 '+th.label+' · +'+gain+' XP','#34d399');
   recallRevealed=false;
   if(S.recallToday.ids.every(qid=>qid in S.recallToday.results))bumpStudyStreak();
   save();

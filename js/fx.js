@@ -111,7 +111,57 @@ function setNum(id,val,fmt){
   addEventListener('resize',size);
   document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
   rm.addEventListener('change',()=>rm.matches?stop():start());
-  size();start();
+  window.dustStart=start;
+  size();if(!document.documentElement.classList.contains('boot'))start();
+})();
+
+/* máquina de escrever do Sistema — sysType (texto simples) e sysTypeHTML (tags intactas) */
+const typers=[];
+window.sysTypeFlush=()=>typers.splice(0).forEach(f=>f());
+window.sysType=function(el,ms){
+  if(!el||!el.textContent||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const txt=el.textContent;let i=0,fast=false;typers.push(()=>fast=true);
+  el.textContent='';el.classList.add('typing');
+  (function step(){
+    if(fast||i>=txt.length){el.textContent=txt;el.classList.remove('typing');return}
+    el.textContent=txt.slice(0,++i);setTimeout(step,ms||20);
+  })();
+};
+window.sysTypeHTML=function(els,budget){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const nodes=[];els.forEach(el=>(function walk(n){[...n.childNodes].forEach(c=>{
+    if(c.nodeType===3&&c.nodeValue.trim()){nodes.push([c,c.nodeValue]);c.nodeValue='';}
+    else if(c.nodeType===1)walk(c)})})(el));
+  const total=nodes.reduce((s,x)=>s+x[1].length,0);if(!total)return;
+  const ms=Math.max(5,Math.min(20,(budget||2500)/total));
+  let ni=0,ci=0,fast=false;typers.push(()=>fast=true);
+  document.addEventListener('click',sysTypeFlush,{once:true});
+  (function step(){
+    if(fast){for(let j=ni;j<nodes.length;j++)nodes[j][0].nodeValue=nodes[j][1];return}
+    const nt=nodes[ni];nt[0].nodeValue=nt[1].slice(0,++ci);
+    if(ci>=nt[1].length){ni++;ci=0}
+    if(ni<nodes.length)setTimeout(step,ms);
+  })();
+};
+
+/* boot sequence — fundo (400ms) → partículas → saudação escrita → painéis em stagger.
+   Total ~2.1s, saltável com clique, só na 1ª abertura da sessão (flag no <head>). */
+(function(){
+  const R=document.documentElement;
+  if(!R.classList.contains('boot'))return;
+  try{sessionStorage.setItem('sysboot','1')}catch(e){}
+  const timers=[];let live=true;
+  const at=(ms,fn)=>timers.push(setTimeout(fn,ms));
+  function typeGreet(){const el=document.getElementById('greet-h');
+    if(!el||!el.textContent){if(live)at(120,typeGreet);return}sysType(el,20);}
+  function finish(){if(!live)return;live=false;timers.forEach(clearTimeout);
+    R.classList.add('boot-on','boot-greet');R.classList.remove('boot');
+    sysTypeFlush();if(window.dustStart)dustStart();}
+  document.addEventListener('click',finish,{once:true});
+  at(60,()=>R.classList.add('boot-on'));
+  at(420,()=>{if(window.dustStart)dustStart()});
+  at(620,()=>{R.classList.add('boot-greet');typeGreet()});
+  at(1150,()=>{live=false;R.classList.remove('boot')});
 })();
 
 /* reveal ao entrar no viewport — painéis abaixo da dobra erguem-se ao scroll */

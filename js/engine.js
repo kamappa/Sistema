@@ -39,6 +39,7 @@ const overallLevel=()=>ATTRS.reduce((s,a)=>s+S.attrs[a.id].level,0)-(ATTRS.lengt
 
 /* ===== LOG ===== */
 function plog(text,gain){S.log.unshift({text,gain,d:today()});S.log=S.log.slice(0,14)}
+function unlog(text,d){const i=S.log.findIndex(e=>e.text===text&&(!d||e.d===d));if(i>-1)S.log.splice(i,1)}
 
 /* ===== FECHO DO DIA (penalização) ===== */
 function processDayClose(){
@@ -65,7 +66,7 @@ function toggleHabit(list,id,ev){
     h.streak=(h.lastDone===yday())?h.streak+1:1;h.lastDone=today();
     const bonus=Math.min(h.streak,10);const g=Math.round((h.xp+bonus)*xpMult(h.attr));h.lastGain=g;
     addXp(h.attr,g);plog(h.name,g);floatXP('+'+g+' XP',AM[h.attr].color,ev);
-  }else{const back=h.lastGain||h.xp;addXp(h.attr,-back);floatXP('\u2212'+back+' XP','#ef4444',ev);h.lastDone=null;h.streak=Math.max(0,h.streak-1);}
+  }else{const back=h.lastGain||h.xp;addXp(h.attr,-back);unlog(h.name,today());floatXP('\u2212'+back+' XP','#ef4444',ev);h.lastDone=null;h.streak=Math.max(0,h.streak-1);}
   save();
 }
 function resetAll(){if(confirm('Reiniciar todo o progresso? Não há volta atrás.')){S=fresh();save();}}

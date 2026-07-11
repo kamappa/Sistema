@@ -37,6 +37,10 @@ function renderNews(){
           <div class="rd-src">${i.source||''} <span class="wchip" style="border-color:${a.c};color:${a.c};padding:1px 7px;font-size:9px;margin-left:6px">${a.l}</span>${tm?` <span class="rd-time">· ${tm}</span>`:''}</div>
           ${(i.missao&&i.missao.t)?`<button class="mini warm" style="margin-top:7px" onclick="acceptRadarMission('${i.id}',event)">${S.radarAccepted[i.id]?'✓ Missão aceite':'＋ Aceitar missão do Radar'}</button>`:''}
         </div></div>`}).join('')}).join('');
+  /* scanline 1x/sessão quando o Radar traz itens novos (<12h) */
+  try{if(window.panelScan&&!sessionStorage.getItem('scanRadar')
+    &&RADAR.some(i=>i.created_at&&Date.now()-new Date(i.created_at).getTime()<12*3600000)){
+    sessionStorage.setItem('scanRadar','1');panelScan(el);}}catch(e){}
 }
 function renderOracleRep(){
   const el=document.getElementById('oracle-rep');if(!el)return;
@@ -59,7 +63,8 @@ function renderOracleRep(){
   /* o Oráculo escreve — só na 1ª visualização de cada relatório, saltável com clique */
   const k='orcSeen:'+(REPORT.created_at||'');
   try{if(!sessionStorage.getItem(k)&&window.sysTypeHTML){sessionStorage.setItem(k,'1');
-    sysTypeHTML([...el.querySelectorAll('.orc-sec,.orc-leg')],2500);}}catch(e){}
+    sysTypeHTML([...el.querySelectorAll('.orc-sec,.orc-leg')],2500);
+    if(window.panelScan)panelScan(el);}}catch(e){}
 }
 function acceptOracleMission(i,ev){
   const r=REPORT&&REPORT.report;if(!r||!r.missoes_propostas||!r.missoes_propostas[i])return;

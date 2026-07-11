@@ -212,6 +212,19 @@ function setNum(id,val,fmt){
   size();if(!document.documentElement.classList.contains('boot'))start();
 })();
 
+/* scanline única — varre um painel de cima a baixo quando chega conteúdo novo (F2 v3) */
+window.panelScan=function(el){
+  if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const p=el.closest('.panel')||el;
+  if(p.querySelector(':scope>.scanline'))return;
+  const s=document.createElement('div');s.className='scanline';p.appendChild(s);
+  const a=s.animate(
+    [{transform:'translateY(0)',opacity:0},{opacity:.9,offset:.1},{opacity:.6,offset:.85},
+     {transform:'translateY('+Math.max(0,p.clientHeight-2)+'px)',opacity:0}],
+    {duration:1500,easing:'cubic-bezier(.4,0,.2,1)'});
+  a.onfinish=a.oncancel=()=>s.remove();
+};
+
 /* máquina de escrever do Sistema — sysType (texto simples) e sysTypeHTML (tags intactas) */
 const typers=[];
 window.sysTypeFlush=()=>typers.splice(0).forEach(f=>f());

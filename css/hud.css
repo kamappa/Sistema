@@ -340,11 +340,38 @@
   .hab:active,.q:active,.btn:active,.mini:active,.rst:active{transform:scale(.97)}
   .hab.done .chk svg{animation:chkpop .35s cubic-bezier(.34,1.8,.5,1) both}
   @keyframes chkpop{0%{transform:scale(0) rotate(-30deg)}100%{transform:scale(1) rotate(0)}}
-  .rankbadge{animation:rankbreath 3.6s ease-in-out infinite}
-  @keyframes rankbreath{0%,100%{box-shadow:0 0 12px -4px currentColor}50%{box-shadow:0 0 26px -2px currentColor}}
-  .rankbadge.rankpop{animation:rankpop 1s cubic-bezier(.34,1.6,.4,1),rankbreath 3.6s ease-in-out 1s infinite}
+  /* ===== idle universal (F2 v3) — períodos primos e dessincronizados:
+     3.1 / 4.3 / 4.7 / 5.3 / 5.9 / 6.1 / 6.7 / 7.1 / 7.9 / 13s.
+     Nada respira em uníssono; tudo tão pouco que só se nota quando se procura. */
+  .rankbadge{animation:rankbeat 4.3s ease-in-out infinite}
+  @keyframes rankbeat{ /* batimento: duas pulsações curtas, depois repouso */
+    0%,28%,100%{box-shadow:0 0 12px -4px currentColor;transform:scale(1)}
+    6%{box-shadow:0 0 24px -2px currentColor;transform:scale(1.015)}
+    12%{box-shadow:0 0 13px -4px currentColor;transform:scale(1)}
+    18%{box-shadow:0 0 26px -2px currentColor;transform:scale(1.02)}}
+  .rankbadge.rankpop{animation:rankpop 1s cubic-bezier(.34,1.6,.4,1),rankbeat 4.3s ease-in-out 1s infinite}
   @keyframes rankpop{0%{transform:scale(1)}35%{transform:scale(1.35) rotate(3deg)}100%{transform:scale(1)}}
-  .oxp-fill,.arc-count-fill,.tit-fill{background-size:200% 100%!important;animation:shimmer 3.2s linear infinite}
+  .avatar-ring::after{content:"";position:absolute;inset:-7px;border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle,transparent 56%,rgba(167,139,250,.22) 70%,transparent 80%);
+    animation:ringpulse 6.1s ease-in-out infinite}
+  @keyframes ringpulse{0%,100%{opacity:.25;transform:scale(.985)}50%{opacity:1;transform:scale(1.012)}}
+  .panel::before{animation:cornerbreath 7.9s ease-in-out infinite}
+  @keyframes cornerbreath{0%,100%{opacity:.5}50%{opacity:1}}
+  .cols .panel:last-child::before{animation-delay:-3.1s}
+  .wrap>.panel:nth-of-type(2n)::before{animation-delay:-5.3s}
+  .ptitle b{background:linear-gradient(100deg,var(--sky) 10%,#f0abfc 48%,var(--sky) 86%);
+    background-size:220% 100%;-webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:titledrift 13s ease-in-out infinite alternate}
+  @keyframes titledrift{0%{background-position:0% 0}100%{background-position:100% 0}}
+  .obj-row.doing{position:relative}
+  .obj-row.doing::before{content:"";position:absolute;left:0;top:0;bottom:0;width:52px;pointer-events:none;
+    background:linear-gradient(90deg,rgba(167,139,250,.16),transparent);
+    animation:sideglow 7.1s ease-in-out infinite}
+  @keyframes sideglow{0%,100%{opacity:.3}50%{opacity:1}}
+  .scanline{position:absolute;left:0;right:0;top:0;height:2px;z-index:2;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(167,139,250,.55),transparent)}
+  .oxp-fill,.arc-count-fill,.tit-fill{background-size:200% 100%!important;animation:shimmer 6.7s linear infinite}
   @keyframes shimmer{0%{background-position:120% 0}100%{background-position:-80% 0}}
   .wchip{animation:rise .5s cubic-bezier(.22,1,.36,1) both}
   .whisper{transition:opacity .4s ease,border-color .3s ease}
@@ -354,8 +381,14 @@
   .toast{transition:transform .55s cubic-bezier(.2,1.3,.35,1),border-color .3s}
   .streak{transition:transform .25s}.hab:hover .streak{transform:scale(1.15)}
   .cal-cell{transition:border-color .2s,box-shadow .2s}.cal-cell:hover{border-color:var(--line2)}
-  .adot{animation:dotglow 4s ease-in-out infinite}
+  .adot{animation:dotglow 4.7s ease-in-out infinite,dotfloat 5.9s ease-in-out infinite}
   @keyframes dotglow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.45)}}
+  @keyframes dotfloat{0%,100%{transform:translateY(0) rotate(45deg)}50%{transform:translateY(-1.5px) rotate(45deg)}}
+  .attr:nth-child(2) .adot{animation-delay:-1.7s,-2.3s}
+  .attr:nth-child(3) .adot{animation-delay:-3.1s,-.9s}
+  .attr:nth-child(4) .adot{animation-delay:-.7s,-4.1s}
+  .attr:nth-child(5) .adot{animation-delay:-2.9s,-1.9s}
+  .attr:nth-child(6) .adot{animation-delay:-4.3s,-3.7s}
   /* ===== inputs & micro-fx ===== */
   input,select,textarea{border-radius:2px;caret-color:var(--violet);transition:border-color .2s,box-shadow .25s}
   input:focus,select:focus{border-color:var(--violet)!important;box-shadow:0 0 0 2px rgba(167,139,250,.16),0 0 16px rgba(139,92,246,.18)}
@@ -367,8 +400,13 @@
   .btn:hover{background-position:85% 0}
   .cal-cell{cursor:pointer}
   .cal-cell.empty{cursor:default}
-  .cal-cell.today{animation:todaypulse 3.4s ease-in-out infinite}
+  .cal-cell.today{animation:todaypulse 5.3s ease-in-out infinite}
   @keyframes todaypulse{0%,100%{box-shadow:inset 0 0 8px rgba(167,139,250,.15)}50%{box-shadow:inset 0 0 18px rgba(167,139,250,.38)}}
+  .cal-dot{animation:evdot 4.3s ease-in-out infinite}
+  @keyframes evdot{0%,100%{opacity:.5;transform:scale(.88)}50%{opacity:1;transform:scale(1.12)}}
+  .cal-dots .cal-dot:nth-child(2){animation-delay:-1.3s}
+  .cal-dots .cal-dot:nth-child(3){animation-delay:-2.9s}
+  .cal-dots .cal-dot:nth-child(4){animation-delay:-3.7s}
   .cal-ev{font-family:var(--mono);font-size:8.5px;line-height:1.2;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .fxp{position:fixed;z-index:99;font-family:var(--mono);font-weight:700;font-size:14px;pointer-events:none;transform:translate(-50%,-50%);animation:fxp .95s cubic-bezier(.2,.8,.3,1) forwards;text-shadow:0 0 12px currentColor}
   @keyframes fxp{0%{opacity:0;transform:translate(-50%,-40%) scale(.7)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-170%) scale(1.15)}}

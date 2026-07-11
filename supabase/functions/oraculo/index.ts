@@ -113,11 +113,11 @@ function resumoEstado(st: Record<string, any>): Record<string, unknown> {
 }
 
 // chamada multi-turno própria do chat — não toca no claude() do radar/report
-async function chatClaude(system: string, messages: Array<{ role: string; content: string }>): Promise<string> {
+async function chatClaude(system: string, messages: Array<{ role: string; content: string }>, maxTokens = CHAT_MAX_TOKENS): Promise<string> {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": AK, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: CHAT_MAX_TOKENS, system, messages }),
+    body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: maxTokens, system, messages }),
   });
   const j = await r.json();
   if (j.error) throw new Error(JSON.stringify(j.error));
@@ -168,10 +168,33 @@ async function chatHandler(req: Request): Promise<Response> {
   }
 }
 
+/* ===== MODO SUSSURRO — uma linha contextual do dia (fase 5) =====
+   1 chamada/dia gerida pelo cliente (cache em S.sussurro). Silêncio > ruído:
+   sem nada digno de nota, a função devolve linha:null e a saudação fica como está. */
+async function sussurroHandler(req: Request): Promise<Response> {
+  const H = chatCors(req);
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  try {
+    const jwt = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+    const sb = createClient(SB_URL, SB_KEY);
+    const { data: userData } = await sb.auth.getUser(jwt);
+    if (!userData?.user) return new Response(JSON.stringify({ error: "não autenticado" }), { status: 401, headers: H });
+    const { data: row } = await sb.from("app_state").select("state").eq("user_id", userData.user.id).maybeSingle();
+    const st = (row?.state ?? {}) as Record<string, any>;
+    const sys = "És o Oráculo do Sistema do Daniel. Recebes o estado real dele e escreves NO MÁXIMO UMA linha (≤140 caracteres, pt-PT) verdadeiramente útil para HOJE — por exemplo um prazo próximo cruzado com um tema fraco no recall, um obrigatório em risco, uma sequência a proteger. Regras: só factos presentes no estado; nada de números inventados; sem saudações, sem emojis, sem aspas. Se não houver nada digno de nota, responde exatamente SILENCIO.";
+    const linha = (await chatClaude(sys, [{ role: "user", content: "ESTADO:\n" + JSON.stringify(resumoEstado(st)) }], 150)).trim();
+    const out = /^sil[êe]ncio\.?$/i.test(linha) || !linha ? null : linha.slice(0, 200);
+    return new Response(JSON.stringify({ linha: out }), { status: 200, headers: H });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: H });
+  }
+}
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   const mode = url.searchParams.get("mode") || "radar";
-  // modo chat (browser): auth por JWT + CORS — tratado à parte; radar/report intocados abaixo
+  // modos de browser (JWT + CORS) — tratados à parte; radar/report intocados abaixo
+  if (mode === "sussurro") return sussurroHandler(req);
   if (mode === "chat" || req.method === "OPTIONS") return chatHandler(req);
   // Controlo de acesso: token por header ou query, com limpeza de espaços/quebras de linha.
   const got = (req.headers.get("x-oracle-token") ?? url.searchParams.get("t") ?? "").trim();

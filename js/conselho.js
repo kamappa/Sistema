@@ -26,6 +26,7 @@ function renderConselho(){
   const left=ocQuotaLeft();
   q.textContent=left>0?left+'/'+OC_LIMIT+' hoje':'limite de hoje atingido';
   const btn=document.getElementById('oc-send');if(btn)btn.disabled=left<=0||ocBusy;
+  showSussurro();fetchSussurro();
 }
 
 function ocBubble(cls,text){
@@ -61,6 +62,37 @@ function ocType(el,txt){
     if(i%12===0&&log)log.scrollTop=log.scrollHeight;
     setTimeout(step,ms);
   })();
+}
+
+/* ===== SUSSURRO DO CONSELHEIRO (fase 5) =====
+   Uma linha contextual do dia, gerada do estado real (1 chamada/dia, cache
+   em S.sussurro). Silêncio > ruído: sem linha, a saudação fica como está. */
+let ocSussFetched=false;
+async function fetchSussurro(){
+  if(ocSussFetched||!USER||!sb)return;
+  ocSussFetched=true;
+  const t=today();
+  if(S.sussurro&&S.sussurro.d===t)return; /* já temos o de hoje (linha ou silêncio) */
+  try{
+    const{data:{session}}=await sb.auth.getSession();
+    const r=await fetch(SUPABASE_URL+'/functions/v1/oraculo?mode=sussurro',{
+      method:'POST',
+      headers:{'content-type':'application/json','apikey':SUPABASE_ANON,'authorization':'Bearer '+session.access_token},
+      body:'{}'});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)return; /* em erro, silêncio — nunca inventar uma linha */
+    S.sussurro={d:t,line:j.linha||null};save();
+  }catch(e){}
+}
+function showSussurro(){
+  const eq=document.getElementById('greet-q');if(!eq)return;
+  const old=document.getElementById('sussurro-line');
+  const s=S&&S.sussurro;
+  if(!s||s.d!==today()||!s.line){if(old)old.remove();return;}
+  if(old){old.textContent='🔮 '+s.line;return;}
+  const d=document.createElement('div');d.id='sussurro-line';d.className='sussurro';
+  d.textContent='🔮 '+s.line;
+  eq.insertAdjacentElement('afterend',d);
 }
 
 /* ===== ACEITAR COMO MISSÃO (fase 3) =====

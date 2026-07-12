@@ -87,6 +87,26 @@ async function vaultContextDeep(days = 7, maxChars = VAULT_DEEP_CHARS): Promise<
   }
 }
 
+// leitura leve (radar diário e sussurro): só ficheiros alterados 24h + headings.
+// Falha = string vazia — o radar/sussurro seguem sem mencionar estudo.
+async function vaultContextLight(hours = 24): Promise<string> {
+  try {
+    if (!VTOKEN) return "";
+    const { files } = await vaultChanges(new Date(Date.now() - hours * 3600e3).toISOString());
+    if (!files.length) return "";
+    let out = "";
+    for (const f of files.slice(0, 10)) {
+      let heads: string[] = [];
+      try {
+        heads = (await vaultFile(f)).split("\n").filter((l) => /^#{1,4}\s/.test(l)).slice(0, 8).map((l) => l.replace(/^#+\s*/, "").trim());
+      } catch { /* lista o ficheiro na mesma, sem headings */ }
+      out += "- " + f.slice(VPATH.length + 1) + (heads.length ? " · " + heads.join(" | ") : "") + "\n";
+      if (out.length >= VAULT_LIGHT_CHARS) { out = out.slice(0, VAULT_LIGHT_CHARS) + "\n[truncado]"; break; }
+    }
+    return out;
+  } catch { return ""; }
+}
+
 const PERFIL =
   "Daniel, estudante de Segurança e Proteção de Dados para SI (IPCA Braga), a trabalhar na Worten. " +
   "Objetivos: auditoria ISO 27001, NIS2, RGPD/proteção de dados, AI Governance (EU AI Act, ISO/IEC 42001, NIST AI RMF), " +
@@ -234,9 +254,15 @@ async function chatHandler(req: Request): Promise<Response> {
       data: (r.created_at ?? "").slice(0, 10), resumo: r.report?.resumo ?? null, alerta: r.report?.alerta ?? null,
     }));
 
+    // leitura do vault sob demanda: só quando a pergunta é sobre estudo (e só para o operador)
+    const pergunta = msgs[msgs.length - 1].content.toLowerCase();
+    const sobreEstudo = /estud|vault|obsidian|nota|apontament|resum|revis|aprend|mat[ée]ria|recall/.test(pergunta);
+    const vaultDeep = row && sobreEstudo ? await vaultContextDeep(7, 12000) : "";
+
     const system = CONSTITUICAO +
       "\n\nESTADO REAL DO DANIEL (única fonte legítima de números):\n" + JSON.stringify(resumoEstado(st)) +
-      "\n\nÚLTIMOS RELATÓRIOS SEMANAIS:\n" + JSON.stringify(relatorios);
+      "\n\nÚLTIMOS RELATÓRIOS SEMANAIS:\n" + JSON.stringify(relatorios) +
+      (vaultDeep ? "\n\nNOTAS DE ESTUDO REAIS DO VAULT (últimos 7 dias — usa-as quando a conversa tocar no estudo dele):\n" + vaultDeep : "");
     const reply = await chatClaude(system, msgs);
     return new Response(JSON.stringify({ reply }), { status: 200, headers: H });
   } catch (e) {
@@ -257,8 +283,10 @@ async function sussurroHandler(req: Request): Promise<Response> {
     if (!userData?.user) return new Response(JSON.stringify({ error: "não autenticado" }), { status: 401, headers: H });
     const { data: row } = await sb.from("app_state").select("state").eq("user_id", userData.user.id).maybeSingle();
     const st = (row?.state ?? {}) as Record<string, any>;
-    const sys = "És o Oráculo do Sistema do Daniel. Recebes o estado real dele e escreves NO MÁXIMO UMA linha (≤140 caracteres, pt-PT) verdadeiramente útil para HOJE — por exemplo um prazo próximo cruzado com um tema fraco no recall, um obrigatório em risco, uma sequência a proteger. Regras: só factos presentes no estado; nada de números inventados; sem saudações, sem emojis, sem aspas. Se não houver nada digno de nota, responde exatamente SILENCIO.";
-    const linha = (await chatClaude(sys, [{ role: "user", content: "ESTADO:\n" + JSON.stringify(resumoEstado(st)) }], 150)).trim();
+    // vault só para o operador real (tem estado no Sistema) — não para contas soltas
+    const vaultLight = row ? await vaultContextLight(24) : "";
+    const sys = "És o Oráculo do Sistema do Daniel. Recebes o estado real dele e escreves NO MÁXIMO UMA linha (≤140 caracteres, pt-PT) verdadeiramente útil para HOJE — por exemplo um prazo próximo cruzado com um tema fraco no recall, um obrigatório em risco, uma sequência a proteger, ou uma ponte entre o que ele estudou ontem no vault e o dia de hoje. Regras: só factos presentes no estado ou nas notas; nada de números inventados; sem saudações, sem emojis, sem aspas. Se não houver nada digno de nota, responde exatamente SILENCIO.";
+    const linha = (await chatClaude(sys, [{ role: "user", content: "ESTADO:\n" + JSON.stringify(resumoEstado(st)) + (vaultLight ? "\n\nESTUDO NAS ÚLTIMAS 24H (vault):\n" + vaultLight : "") }], 150)).trim();
     const out = /^sil[êe]ncio\.?$/i.test(linha) || !linha ? null : linha.slice(0, 200);
     return new Response(JSON.stringify({ linha: out }), { status: 200, headers: H });
   } catch (e) {
@@ -311,10 +339,16 @@ Deno.serve(async (req) => {
   const { data: users, error } = await sb.from("app_state").select("user_id,state");
   if (error) return new Response("db: " + error.message, { status: 500 });
 
+  // leitura leve do vault 1x por corrida (não por utilizador — o vault é do Daniel)
+  const vaultLight = mode === "radar" ? await vaultContextLight(24) : "";
+
   for (const u of users || []) {
     if (mode === "radar") {
       const txt = await claude(
         "És o Radar do 'Sistema' de " + PERFIL + " Respondes APENAS com JSON válido, sem texto fora do JSON.",
+        (vaultLight
+          ? "O QUE ELE ESTUDOU NAS ÚLTIMAS 24H (notas do vault Obsidian — usa isto para afinar a relevância; quando um item se ligar a algo que ele estudou ontem, di-lo na relevance):\n" + vaultLight + "\n\n"
+          : "") +
         "Pesquisa na web as novidades das últimas 24-72 horas mais relevantes para os objetivos dele, em duas categorias: " +
           "(1) NOTÍCIAS: cibersegurança (incidentes/vulnerabilidades relevantes), NIS2, RGPD/privacidade (CNPD, EDPB), " +
           "ISO 27001/auditoria/conformidade, AI Governance (EU AI Act, ISO 42001) e IA quando toca a carreira dele; " +

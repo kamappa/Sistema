@@ -57,8 +57,9 @@ estratégico, curiosidade.
 - Sistemas no HUD: atributos+ranks E-S, hexágono, hábitos (3 obrigatórios com
   penalização + extras personalizáveis), missões (quadro antigo), objetivos-
   mestra (triagem automática de prioridade/área/tags, prazos, faixa URGENTE,
-  Sombras), treino calistenia (4 linhas de progressão, 8 passos, adaptação),
-  regulador de sono (backfill, anti-farm), calendário, conquistas, debuffs,
+  Sombras), treino calistenia (4 linhas de força + pavimento pélvico, 8
+  passos, adaptação, teto diário de XP), regulador de sono (backfill,
+  anti-farm), calendário, conquistas, debuffs,
   skill trees, Títulos Reais (evidência), World Engine (arcos sazonais,
   meteo, sussurros, Double XP), Radar Diário (notícias + alto impacto +
   missões deriváveis), relatório do Oráculo (com missões propostas,

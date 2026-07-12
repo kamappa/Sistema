@@ -14,8 +14,9 @@
 - Sistemas no HUD: atributos+ranks E-S, hexágono, hábitos (3 obrigatórios com
   penalização + extras personalizáveis), missões (quadro antigo), objetivos-mestra
   (triagem automática de prioridade/área/tags, prazos, faixa URGENTE, Sombras),
-  treino calistenia (4 linhas de progressão, 8 passos, adaptação), regulador de
-  sono (backfill, anti-farm), calendário, conquistas, debuffs, skill trees,
+  treino calistenia (4 linhas de força + pavimento pélvico, 8 passos,
+  adaptação, teto diário de XP), regulador de sono (backfill, anti-farm),
+  calendário, conquistas, debuffs, skill trees,
   Títulos Reais (evidência), World Engine (arcos sazonais, meteo, sussurros,
   Double XP), Radar Diário (notícias + alto impacto + missões deriváveis),
   relatório do Oráculo (com missões propostas, recompensa, título da semana),
@@ -211,6 +212,34 @@ Deploy via CLI do Supabase (`~/bin/supabase.exe`, login interativo do Daniel).
 Nota de produção observada na fase 1: o token do radar/report também é
 aceite por query param `?t=` — funcional, mas tokens em URL podem ficar em
 logs; candidato a limpeza futura.
+
+## Missão 7 — Auditoria de integridade do XP + Pavimento Pélvico (CONCLUÍDA)
+
+Auditoria completa às vias de XP ("o sistema nunca mente"), fechada em
+2026-07-12, seguida de uma extensão ao treino. Verificação headless (CDP,
+Runtime.evaluate a exercitar os fluxos reais) em cada parte.
+
+- Notas A e B (commits b2a3745, 111f381): streak com memória `undo` no
+  toggle; regra única do xpMult (avanços de progressão também multiplicam)
+- Toasts legíveis (7d9929c): duração por texto, pausa em hover, dispensar
+- 4 fugas de XP (66ad9c6):
+  1. Apagar missão "feita" reverte XP exato + Sombra + entrada do registo,
+     com confirmação no UI; cancelar não altera nada
+  2. Treino: registo ilimitado (dados honestos) mas XP com teto diário —
+     1.ª sessão completa, 2.ª a metade, 3.ª+ registada a 0 XP
+  3. Pilar do sono: a marca automática grava `lastGain=0`; desmarcar
+     devolve o valor exato gravado (o +17 da noite vive no registo do sono)
+  4. Antídoto de debuff: 1 uso por debuff por dia (`S.antidote` datado);
+     repetir não dá efeito nem XP
+- Parte 2 (9a9cbb5): 5.ª linha de treino "Pavimento Pélvico" (Kegel) —
+  `PROG.kegel` com 8 passos (lentas Xs/Xs × reps + rápidas 1s/1s × reps,
+  × ciclos; do 3s/3s ×8 · 2 ciclos ao 10s/10s ×12 + rápidas ×20 · 3
+  ciclos), cartão com "sessão feita" + sensação (fora de TLINES: protocolo
+  prescrito, não "melhor série"), evolui com 3 dias distintos no alvo
+  (derivado das sessões, sem contador paralelo), XP de Corpo dentro da
+  sessão datada normal, notas de técnica na UI
+- Parte 3 (Ponte do Vault): por apresentar — a especificação ficou na
+  conversa perdida; aguarda o Daniel
 
 ## Backlog — fila atual (ordenada; atualizada 2026-07-11)
 

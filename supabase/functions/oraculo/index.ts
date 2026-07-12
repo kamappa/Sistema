@@ -294,6 +294,59 @@ async function sussurroHandler(req: Request): Promise<Response> {
   }
 }
 
+/* ===== ESCRITA NO VAULT — o relatório semanal volta como nota Markdown ===== */
+function b64utf8(s: string): string {
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 8192) bin += String.fromCharCode(...bytes.subarray(i, i + 8192));
+  return btoa(bin);
+}
+
+function reportMd(rep: Record<string, any>, d: string): string {
+  const L: string[] = ["---", "tipo: relatorio-oraculo", "data: " + d, "---", "", "# Relatório do Oráculo — " + d, ""];
+  const sec = (t: string, v: unknown) => { if (v && v !== "null") L.push("## " + t, "", String(v), ""); };
+  sec("Resumo", rep.resumo);
+  sec("Estudo", rep.estudo);
+  sec("Treino", rep.treino);
+  sec("Sono", rep.sono);
+  sec("Alerta", rep.alerta);
+  if (Array.isArray(rep.missoes_propostas) && rep.missoes_propostas.length) {
+    L.push("## Missões propostas", "");
+    for (const m of rep.missoes_propostas) L.push("- **" + (m.t ?? "") + "** — " + (m.why ?? ""));
+    L.push("");
+  }
+  if (Array.isArray(rep.recursos) && rep.recursos.length) {
+    L.push("## Para complementar o estudo", "");
+    for (const r of rep.recursos) L.push("- [" + (r.titulo ?? r.url) + "](" + (r.url ?? "") + ") · " + (r.fonte ?? "") + " — " + (r.porque ?? ""));
+    L.push("");
+  }
+  sec("Recompensa", rep.recompensa);
+  sec("Título da semana", rep.titulo);
+  sec("Legado", rep.legado);
+  return L.join("\n");
+}
+
+// PUT via contents API; se a nota do dia já existir (re-corrida), substitui-a (sha)
+async function vaultWriteReport(rep: Record<string, any>, d: string): Promise<string> {
+  if (!VTOKEN) throw new Error("VAULT_TOKEN em falta");
+  const path = `Oraculo/relatorio-${d}.md`;
+  let sha: string | undefined;
+  try { sha = (await gh(`/repos/${VREPO}/contents/${path}`)).sha; } catch { /* nota nova */ }
+  const r = await fetch(`https://api.github.com/repos/${VREPO}/contents/${path}`, {
+    method: "PUT",
+    headers: {
+      authorization: "Bearer " + VTOKEN,
+      accept: "application/vnd.github+json",
+      "x-github-api-version": "2022-11-28",
+      "user-agent": "oraculo-sistema",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ message: `oraculo: relatório semanal ${d}`, content: b64utf8(reportMd(rep, d)), ...(sha ? { sha } : {}) }),
+  });
+  if (!r.ok) throw new Error("github write " + r.status);
+  return path;
+}
+
 /* ===== REPORT SEMANAL — geração isolada (usada pelo cron e pelo dry-run) ===== */
 async function gerarReport(st: Record<string, unknown>): Promise<Record<string, any>> {
   const vault = await vaultContextDeep(7);
@@ -381,6 +434,9 @@ Deno.serve(async (req) => {
       const st = { ...(u.state as Record<string, unknown>) };
       const rep = await gerarReport(st);
       await sb.from("oracle_reports").insert({ user_id: u.user_id, report: rep });
+      // escrita no vault depois de o report estar salvo na BD — falhar aqui não perde nada
+      try { await vaultWriteReport(rep, new Date().toISOString().slice(0, 10)); }
+      catch (e) { console.log("vault write falhou:", String(e)); }
     }
   }
   return new Response("ok " + mode, { status: 200 });

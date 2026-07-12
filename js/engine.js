@@ -64,11 +64,13 @@ function toggleHabit(list,id,ev){
   const h=S[list].find(x=>x.id===id);if(!h)return;
   const done=h.lastDone===today();
   if(!done){
+    /* memória para o toggle (Nota A): desmarcar repõe exatamente este estado */
+    h.undo={streak:h.streak,lastDone:h.lastDone};
     h.streak=(h.lastDone===yday())?h.streak+1:1;h.lastDone=today();
     const bonus=Math.min(h.streak,10);const g=Math.round((h.xp+bonus)*xpMult(h.attr));h.lastGain=g;
     addXp(h.attr,g);plog(h.name,g);floatXP('+'+g+' XP',AM[h.attr].color,ev);
     if(list==='oblig')toast('Pilar confirmado',h.name+' · +'+g+' XP',AM[h.attr].color);
-  }else{const back=h.lastGain||h.xp;addXp(h.attr,-back);unlog(h.name,today());floatXP('\u2212'+back+' XP','#ef4444',ev);h.lastDone=null;h.streak=Math.max(0,h.streak-1);}
+  }else{const back=h.lastGain||h.xp;addXp(h.attr,-back);unlog(h.name,today());floatXP('\u2212'+back+' XP','#ef4444',ev);if(h.undo){h.streak=h.undo.streak;h.lastDone=h.undo.lastDone;delete h.undo;}else{h.lastDone=null;h.streak=Math.max(0,h.streak-1);}}
   save();
 }
 function resetAll(){if(confirm('Reiniciar todo o progresso? Não há volta atrás.')){S=fresh();save();}}

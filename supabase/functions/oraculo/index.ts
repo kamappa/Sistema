@@ -377,10 +377,56 @@ async function gerarReport(st: Record<string, unknown>): Promise<Record<string, 
   return (jsonFrom(txt) as Record<string, any>) || { resumo: txt.slice(0, 900) };
 }
 
+/* ===== DIAGNÓSTICO DA PONTE — JWT + operador (linha em app_state) =====
+   vault-check: prova de leitura (e escrita com ?write=1) sem chamar a Anthropic.
+   report-dry: gera o report completo (vault + pesquisa) SEM gravar na BD nem no
+   vault — para testar a ponta a ponta sem sujar o histórico real. */
+async function operador(req: Request): Promise<Record<string, any> | null> {
+  const jwt = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+  const sb = createClient(SB_URL, SB_KEY);
+  const { data: userData } = await sb.auth.getUser(jwt);
+  if (!userData?.user) return null;
+  const { data: row } = await sb.from("app_state").select("state").eq("user_id", userData.user.id).maybeSingle();
+  return row ? ((row.state ?? {}) as Record<string, any>) : null;
+}
+
+async function vaultCheckHandler(req: Request): Promise<Response> {
+  const H = chatCors(req);
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  try {
+    if (!(await operador(req))) return new Response(JSON.stringify({ error: "só o operador" }), { status: 403, headers: H });
+    const out: Record<string, unknown> = { tokenConfigurado: VTOKEN.length > 0 };
+    const info = await vaultChanges(new Date(Date.now() - 7 * 864e5).toISOString());
+    out.commits7d = info.commits.length;
+    out.ficheiros7d = info.files;
+    out.light24h = (await vaultContextLight(24)) || null;
+    if (new URL(req.url).searchParams.get("write") === "1")
+      out.escrita = await vaultWriteReport({ resumo: "Teste de escrita da Ponte do Vault — pode apagar esta nota." }, "teste");
+    return new Response(JSON.stringify(out), { status: 200, headers: H });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: H });
+  }
+}
+
+async function reportDryHandler(req: Request): Promise<Response> {
+  const H = chatCors(req);
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
+  try {
+    const st = await operador(req);
+    if (!st) return new Response(JSON.stringify({ error: "só o operador" }), { status: 403, headers: H });
+    const rep = await gerarReport(st);
+    return new Response(JSON.stringify({ dry: true, report: rep }), { status: 200, headers: H });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: H });
+  }
+}
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   const mode = url.searchParams.get("mode") || "radar";
   // modos de browser (JWT + CORS) — tratados à parte; radar/report intocados abaixo
+  if (mode === "vault-check") return vaultCheckHandler(req);
+  if (mode === "report-dry") return reportDryHandler(req);
   if (mode === "sussurro") return sussurroHandler(req);
   if (mode === "chat" || req.method === "OPTIONS") return chatHandler(req);
   // Controlo de acesso: token por header ou query, com limpeza de espaços/quebras de linha.

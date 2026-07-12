@@ -124,7 +124,7 @@ function recallQuestionHTML(q,idx,total){
 }
 function recallSummaryHTML(set,results){
   const acertos=set.filter(q=>results[q.id]==='ok').length;
-  const totalGain=set.reduce((s,q)=>s+8+(results[q.id]==='ok'?4:0),0);
+  const totalGain=set.reduce((s,q)=>s+Math.round((8+(results[q.id]==='ok'?4:0))*xpMult('saber')),0);
   const amanha=set.filter(q=>{const r=S.recall[q.id];return r&&r.due===addDays(today(),1);}).length;
   return `<div class="rc-summary">
     <div class="rc-sum-h">📖 Revisão concluída</div>
@@ -152,7 +152,8 @@ function answerRecall(id,grade,ev){
   const q=findQuestion(id);if(!q)return;
   reviewQuestion(id,grade);
   S.recallToday.results[id]=grade;
-  const gain=8+(grade==='ok'?4:0);
+  /* regra Nota B: xpMult aplica-se ao recall (arco/Double XP/Rainy Focus) */
+  const gain=Math.round((8+(grade==='ok'?4:0))*xpMult('saber'));
   addXp('saber',gain);
   const th=RECALL_THEMES[q.tema]||{label:q.tema};
   plog('📖 Revisão · '+th.label,gain);

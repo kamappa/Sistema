@@ -23,8 +23,10 @@ function finishTraining(ev){
     else{extraOk=true;xp+=10;addXp('disciplina',5);}
   }
   addXp('corpo',xp);
-  if(adv.length){addXp('corpo',30*adv.length);toast('EVOLUÇÃO DE PROGRESSÃO','↑ '+adv.join(' · '),'#34d399');}
-  S.training.sessions.push({d:today(),lines,extra:extraOk,notes,adv:adv.length,xp:xp+30*adv.length});
+  /* regra Nota B: avanços de progressão também multiplicam (arco/Double XP) */
+  const advXp=adv.length?Math.round(30*adv.length*xpMult('corpo')):0;
+  if(adv.length){addXp('corpo',advXp);toast('EVOLUÇÃO DE PROGRESSÃO','↑ '+adv.join(' · '),'#34d399');}
+  S.training.sessions.push({d:today(),lines,extra:extraOk,notes,adv:adv.length,xp:xp+advXp});
   plog('🏋️ Treino ('+logged+' linhas'+(extraOk?' + extra':'')+')',xp);
   floatXP('+'+xp+' XP','#f472b6',ev);save();
 }

@@ -13,7 +13,13 @@ function renderAchievements(){
 }
 /* ===== ESTADOS / DEBUFFS ===== */
 function toggleDebuff(id){S.debuffs[id]=!S.debuffs[id];save();}
-function applyAntidote(id,e){e.stopPropagation();S.debuffs[id]=false;addXp('disciplina',10);plog('Antídoto: '+DEBUFFS.find(d=>d.id===id).name,10);toast('Antídoto aplicado','+10 Disciplina · bem gerido','#34d399');save();}
+function applyAntidote(id,e){e.stopPropagation();
+  /* Fuga 4 — 1 antídoto por debuff e por dia; repetições não dão efeito nem XP
+     (o estado desliga-se manualmente no cartão, se for esse o caso) */
+  S.antidote=S.antidote||{};
+  if(S.antidote[id]===today()){toast('Antídoto já usado hoje','1× por estado e por dia. Se o estado voltou, desliga-o no cartão — sem XP repetido.','#fb923c');return;}
+  S.antidote[id]=today();
+  S.debuffs[id]=false;addXp('disciplina',10);plog('Antídoto: '+DEBUFFS.find(d=>d.id===id).name,10);toast('Antídoto aplicado','+10 Disciplina · bem gerido','#34d399');save();}
 function renderDebuffs(){
   document.getElementById('dbfs').innerHTML=DEBUFFS.map(d=>{const act=!!S.debuffs[d.id];
     return `<div class="dbf ${act?'act':''}" onclick="toggleDebuff('${d.id}')">

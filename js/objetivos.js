@@ -40,7 +40,13 @@ function addObjective(ev){
 }
 function delObjective(id,ev){ev.stopPropagation();
   const o=S.objectives.find(x=>x.id===id);
-  if(o&&o.status==='done')S.shadows=S.shadows.filter(s=>s.ref!==id);
+  /* Fuga 1 — apagar = nunca existiu: missão feita reverte XP exato + Sombra + log */
+  if(o&&o.status==='done'){
+    const p=PRI[o.pri];
+    if(!confirm('Esta missão está FEITA. Apagar reverte o XP ganho (−'+p.xp+' '+AM[o.area].name+'), remove a Sombra e a entrada do registo — como se nunca tivesse existido. Confirmar?'))return;
+    addXp(o.area,-p.xp);unlog('🗡 ARISE: '+o.title,o.doneDate);
+    S.shadows=S.shadows.filter(s=>s.ref!==id);
+  }
   S.objectives=S.objectives.filter(x=>x.id!==id);save();}
 function cycleObj(id,ev){ev.stopPropagation();
   const o=S.objectives.find(x=>x.id===id);if(!o)return;

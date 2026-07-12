@@ -17,18 +17,24 @@ function finishTraining(ev){
   const extra=document.getElementById('tr-extra').checked;
   const notes=document.getElementById('tr-notes').value.trim();
   const consec=consecTrained();
-  let xp=Math.round((15+logged*6)*xpMult('corpo'));let extraOk=false;
+  /* Fuga 2 — teto diário de XP: 1.ª sessão completa, 2.ª a metade, 3.ª+ a zero.
+     O registo é sempre guardado (dados honestos); só o pagamento é limitado. */
+  const nToday=S.training.sessions.filter(s=>s.d===today()).length;
+  const fator=nToday===0?1:nToday===1?0.5:0;
+  let xp=Math.round((15+logged*6)*xpMult('corpo')*fator);let extraOk=false;
   if(extra){
     if(consec>=3)toast('Trava do Sistema','4º dia seguido — o músculo cresce no descanso. Extra sem bónus hoje.','#fb923c');
-    else{extraOk=true;xp+=10;addXp('disciplina',5);}
+    else{extraOk=true;xp+=Math.round(10*fator);const dg=Math.round(5*fator);if(dg)addXp('disciplina',dg);}
   }
-  addXp('corpo',xp);
+  if(xp)addXp('corpo',xp);
   /* regra Nota B: avanços de progressão também multiplicam (arco/Double XP) */
-  const advXp=adv.length?Math.round(30*adv.length*xpMult('corpo')):0;
-  if(adv.length){addXp('corpo',advXp);toast('EVOLUÇÃO DE PROGRESSÃO','↑ '+adv.join(' · '),'#34d399');}
+  const advXp=adv.length?Math.round(30*adv.length*xpMult('corpo')*fator):0;
+  if(adv.length){if(advXp)addXp('corpo',advXp);toast('EVOLUÇÃO DE PROGRESSÃO','↑ '+adv.join(' · '),'#34d399');}
   S.training.sessions.push({d:today(),lines,extra:extraOk,notes,adv:adv.length,xp:xp+advXp});
-  plog('🏋️ Treino ('+logged+' linhas'+(extraOk?' + extra':'')+')',xp);
-  floatXP('+'+xp+' XP','#f472b6',ev);save();
+  plog('🏋️ Treino ('+logged+' linhas'+(extraOk?' + extra':'')+(nToday?' · '+(nToday+1)+'ª sessão do dia':'')+')',xp+advXp);
+  if(nToday===1)toast('Sessão registada','2.ª sessão de hoje — XP a metade. O músculo cresce no descanso.','#fb923c');
+  else if(nToday>=2)toast('Sessão registada','3.ª+ sessão de hoje — registada sem XP. Dados honestos, corpo protegido.','#fb923c');
+  floatXP((xp+advXp)>0?'+'+(xp+advXp)+' XP':'registado','#f472b6',ev);save();
 }
 function trAdvice(){
   const ss=S.training.sessions;

@@ -70,7 +70,11 @@ function toggleHabit(list,id,ev){
     const bonus=Math.min(h.streak,10);const g=Math.round((h.xp+bonus)*xpMult(h.attr));h.lastGain=g;
     addXp(h.attr,g);plog(h.name,g);floatXP('+'+g+' XP',AM[h.attr].color,ev);
     if(list==='oblig')toast('Pilar confirmado',h.name+' · +'+g+' XP',AM[h.attr].color);
-  }else{const back=h.lastGain||h.xp;addXp(h.attr,-back);unlog(h.name,today());floatXP('\u2212'+back+' XP','#ef4444',ev);if(h.undo){h.streak=h.undo.streak;h.lastDone=h.undo.lastDone;delete h.undo;}else{h.lastDone=null;h.streak=Math.max(0,h.streak-1);}}
+  }else{
+    /* Fuga 3 — reversão devolve o valor exato gravado, mesmo quando é 0
+       (pilar marcado pela via do sono dá lastGain=0: a marca não pagou nada) */
+    const back=(h.lastGain!==undefined&&h.lastGain!==null)?h.lastGain:h.xp;
+    addXp(h.attr,-back);unlog(h.name,today());floatXP('\u2212'+back+' XP','#ef4444',ev);if(h.undo){h.streak=h.undo.streak;h.lastDone=h.undo.lastDone;delete h.undo;}else{h.lastDone=null;h.streak=Math.max(0,h.streak-1);}}
   save();
 }
 function resetAll(){if(confirm('Reiniciar todo o progresso? Não há volta atrás.')){S=fresh();save();}}

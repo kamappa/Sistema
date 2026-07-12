@@ -17,7 +17,9 @@ function logSleep(ev){
     L.rw=true;addXp('corpo',12);addXp('disciplina',5);
     plog('😴 Noite no alvo ('+h+'h)',17);floatXP('+17 XP','#34d399',ev);
     const so=S.oblig.find(x=>x.id==='o_sono');
-    if(dt===today()&&so&&so.lastDone!==today()){so.streak=(so.lastDone===yday())?so.streak+1:1;so.lastDone=today();so.lastGain=0;}
+    /* marca o pilar com undo (Nota A) e lastGain=0 — esta marca não paga XP,
+       o prémio da noite (+17) vive no registo do sono e não é revertível daqui */
+    if(dt===today()&&so&&so.lastDone!==today()){so.undo={streak:so.streak,lastDone:so.lastDone};so.streak=(so.lastDone===yday())?so.streak+1:1;so.lastDone=today();so.lastGain=0;}
   }else if(!recent){plog('😴 Registo retroativo '+dt+' ('+h+'h)',0);toast('Registo retroativo','Guardado para análise. XP só em registos do próprio dia — anti-farm.','#a78bfa');}
   else if(h<7.5){plog('😴 Noite curta ('+h+'h)',0);toast('Registado','Noite curta ('+h+'h). Sem drama — o alvo de hoje é recuperar.','#fb923c');}
   save();

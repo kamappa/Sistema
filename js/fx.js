@@ -3,16 +3,33 @@
    (partículas + reveal ao scroll). Sem estado do Sistema — puramente
    visual. Extraído do index.html — Missão 2 fase 3. */
 
-/* ===== TOAST ===== */
-let tmr;
-function toast(t,s,color,penalty){
+/* ===== TOAST =====
+   Duração: base 5s + 60ms/carácter (teto 12s); eventos importantes
+   (penalizações, rank up, títulos) ficam 15s ou até dispensar. Hover/toque
+   pausa o temporizador; o ✕ dispensa. */
+let tmr,tRemain=0,tLast=0,tPaused=false;
+function toast(t,s,color,penalty,important){
   const el=document.getElementById('toast');
   document.getElementById('tt').textContent=t;document.getElementById('ts').textContent=s||'';
   el.classList.toggle('pen',!!penalty);
   document.getElementById('tk').textContent=penalty?'Aviso':'Sistema';
   if(color&&!penalty)el.style.borderColor=color;
-  el.classList.add('show');clearTimeout(tmr);tmr=setTimeout(()=>el.classList.remove('show'),2800);
+  el.classList.add('show');
+  const n=((t||'')+(s||'')).length;
+  tRemain=(important||penalty)?15000:Math.min(12000,5000+60*n);
+  tPaused=false;armToast();
 }
+function armToast(){clearTimeout(tmr);if(tPaused)return;tLast=Date.now();tmr=setTimeout(hideToast,tRemain);}
+function hideToast(){clearTimeout(tmr);tPaused=false;const el=document.getElementById('toast');if(el)el.classList.remove('show');}
+function pauseToast(){if(tPaused)return;tPaused=true;clearTimeout(tmr);tRemain=Math.max(0,tRemain-(Date.now()-tLast));}
+function resumeToast(){if(!tPaused)return;tPaused=false;if(tRemain<800)tRemain=800;armToast();}
+(function(){
+  const el=document.getElementById('toast');if(!el)return;
+  el.addEventListener('mouseenter',pauseToast);
+  el.addEventListener('mouseleave',resumeToast);
+  el.addEventListener('touchstart',pauseToast,{passive:true});
+  el.addEventListener('touchend',resumeToast,{passive:true});
+})();
 function floatXP(txt,color,ev){try{
   const e=ev||window.event;const x=e&&e.clientX?e.clientX:innerWidth/2,y=e&&e.clientY?e.clientY:130;
   const s=document.createElement('div');s.className='fxp';s.textContent=txt;
@@ -52,7 +69,7 @@ window.cineArise=function(){ // A R I S E cinematográfico + pulse + dupla vaga
 };
 let lastRankL=null;
 function rankCeremony(r){try{
-  toast('RANK UP','⬆ Alcançaste o Rank '+r.l,r.color);
+  toast('RANK UP','⬆ Alcançaste o Rank '+r.l,r.color,false,true);
   celebrate(r.color);
   const rb=document.getElementById('rankbadge');
   if(rb){rb.classList.remove('rankpop');void rb.offsetWidth;rb.classList.add('rankpop');}

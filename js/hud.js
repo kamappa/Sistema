@@ -41,7 +41,7 @@ function toggleReq(tid,rid,ev){ev.stopPropagation();
   if(S.titleEv[tid][rid])floatXP('\u2713 evid\u00eancia','#fbbf24',ev);
   if(titleProg(t).pct===100&&!S.titleUnlocked[tid]){
     S.titleUnlocked[tid]=today();plog('👑 Título real: '+t.name,0);
-    toast('TÍTULO REAL DESBLOQUEADO','👑 '+t.name+' — com evidência. Isto é teu.','#fbbf24');
+    toast('TÍTULO REAL DESBLOQUEADO','👑 '+t.name+' — com evidência. Isto é teu.','#fbbf24',false,true);
   }
   if(titleProg(t).pct<100&&S.titleUnlocked[tid])delete S.titleUnlocked[tid];
   save()}

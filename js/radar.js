@@ -49,6 +49,7 @@ function renderOracleRep(){
   const r=REPORT.report||{};const dt=(REPORT.created_at||'').slice(0,10);
   const prop=(r.propostas||[]).map(p=>`<div class="rd-item"><span style="flex:none">🜂</span><div class="rd-b"><div class="rd-t">${p.t||''}</div><div class="rd-s">${p.why||''}</div></div></div>`).join('');
   const mp=(r.missoes_propostas||[]).map((m,i)=>`<div class="rd-item"><span style="flex:none">⚔️</span><div class="rd-b"><div class="rd-t">${m.t||''}</div><div class="rd-s">${m.why||''}</div></div><button class="mini" onclick="acceptOracleMission(${i},event)">＋ Aceitar</button></div>`).join('');
+  const rec=(r.recursos||[]).filter(x=>x&&x.url).map(x=>`<div class="rd-item"><span style="flex:none">📖</span><div class="rd-b"><a class="rd-t" href="${x.url}" target="_blank" rel="noopener">${x.titulo||x.url}</a><div class="rd-s">${x.porque||''}</div><div class="rd-src">${x.fonte||''}</div></div></div>`).join('');
   el.innerHTML=`
     <div class="tr-stats"><span class="wchip gold">📜 Relatório de ${dt.slice(8,10)}/${dt.slice(5,7)}</span></div>
     ${r.resumo?`<div class="orc-sec">${r.resumo}</div>`:''}
@@ -58,6 +59,7 @@ function renderOracleRep(){
     ${r.alerta&&r.alerta!=='null'?`<div class="orc-sec" style="color:#fca5a5"><b>⚠ Alerta:</b> ${r.alerta}</div>`:''}
     ${prop?`<div class="up-lbl">Propostas do Oráculo</div>${prop}`:''}
     ${mp?`<div class="up-lbl">Missões propostas</div>${mp}`:''}
+    ${rec?`<div class="up-lbl">Para complementar o estudo</div>${rec}`:''}
     ${r.recompensa?`<div class="orc-sec"><b>🎁 Recompensa sugerida:</b> ${r.recompensa}</div>`:''}
     ${r.titulo?`<div class="orc-sec"><b>🎖 Título da semana:</b> ${r.titulo}</div>`:''}
     ${r.legado?`<div class="orc-leg">👑 ${r.legado}</div>`:''}`;

@@ -367,9 +367,12 @@ async function gerarReport(st: Record<string, unknown>): Promise<Record<string, 
       '"alerta":"anomalia detetada ou null",' +
       '"propostas":[{"t":"título curto","why":"porquê, ligado aos dados"}],' +
       '"missoes_propostas":[{"t":"missão concreta e criativa","why":"ligação aos dados/objetivos dele","area":"oficio|saber|corpo|mente|vinculos|disciplina","pri":"P1|P2|P3","deadline":"YYYY-MM-DD ou null"}],' +
+      '"recursos":[{"titulo":"","url":"","fonte":"EUR-Lex|ENISA|CNCS|CNPD|EDPB|curso|artigo","porque":"1 linha: como complementa o que ele estudou"}],' +
       '"recompensa":"uma recompensa criativa, proporcional ao que ele conquistou esta semana",' +
       '"titulo":"um título honorífico da semana, criativo/humorístico (narrativo, nunca uma credencial)",' +
-      '"legado":"uma pergunta de reflexão para a semana"}',
+      '"legado":"uma pergunta de reflexão para a semana"}' +
+      "\n\nPara a secção recursos: usa a pesquisa web para encontrar 2-3 recursos concretos DIRETAMENTE ligados ao que o vault mostra que ele anda a estudar — legislação no EUR-Lex, guias ENISA/CNCS/CNPD/EDPB, cursos, artigos técnicos. REGRA INVIOLÁVEL: só incluis URLs devolvidos pela pesquisa web nesta conversa; nunca escrevas um URL de memória. Sem vault novo ou sem resultados dignos, devolve recursos:[].",
+    true,
   );
   return (jsonFrom(txt) as Record<string, any>) || { resumo: txt.slice(0, 900) };
 }

@@ -11,6 +11,82 @@ const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABA
 const AK = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const TOKEN = (Deno.env.get("ORACLE_TOKEN") ?? "").trim();
 
+/* ===== PONTE DO VAULT — leitura do repo privado do Obsidian =====
+   O Oráculo só vê a árvore Sistema/Estudo/ do repo vault-sistema (privacidade
+   por desenho: o resto do vault do Daniel nunca entra nesse repo). Token
+   fine-grained VAULT_TOKEN nos Secrets. Falha de leitura nunca derruba um
+   modo: o report recebe um aviso honesto, o radar/sussurro seguem sem vault. */
+const VTOKEN = (Deno.env.get("VAULT_TOKEN") ?? "").trim();
+const VREPO = "kamappa/vault-sistema";
+const VPATH = "Sistema/Estudo";
+const VAULT_DEEP_CHARS = 30000; // ~8k tokens
+const VAULT_LIGHT_CHARS = 6000; // ~1.5k tokens
+
+async function gh(path: string): Promise<any> {
+  const r = await fetch("https://api.github.com" + path, {
+    headers: {
+      authorization: "Bearer " + VTOKEN,
+      accept: "application/vnd.github+json",
+      "x-github-api-version": "2022-11-28",
+      "user-agent": "oraculo-sistema",
+    },
+  });
+  if (!r.ok) throw new Error("github " + r.status + " " + path.split("?")[0]);
+  return r.json();
+}
+
+// ficheiros .md alterados em Sistema/Estudo desde `sinceIso` + timestamps dos
+// commits (registo de atividade real de estudo). 2-3 chamadas via compare API.
+async function vaultChanges(sinceIso: string): Promise<{ files: string[]; commits: Array<{ d: string; msg: string }> }> {
+  const commits = await gh(`/repos/${VREPO}/commits?path=${encodeURIComponent(VPATH)}&since=${encodeURIComponent(sinceIso)}&per_page=100`);
+  if (!Array.isArray(commits) || !commits.length) return { files: [], commits: [] };
+  const head = commits[0].sha;
+  const base = commits[commits.length - 1].parents?.[0]?.sha;
+  const soEstudo = (p: string) => p.startsWith(VPATH + "/") && p.endsWith(".md");
+  let files: string[] = [];
+  if (base) {
+    const cmp = await gh(`/repos/${VREPO}/compare/${base}...${head}`);
+    files = (cmp.files ?? []).map((f: any) => String(f.filename)).filter(soEstudo);
+  } else {
+    // a janela apanhou o primeiro commit do repo: sem pai para comparar, lista a árvore
+    const tree = await gh(`/repos/${VREPO}/git/trees/${head}?recursive=1`);
+    files = (tree.tree ?? []).map((t: any) => String(t.path)).filter(soEstudo);
+  }
+  return {
+    files,
+    commits: commits.map((c: any) => ({ d: String(c.commit?.author?.date ?? ""), msg: String(c.commit?.message ?? "").split("\n")[0] })),
+  };
+}
+
+async function vaultFile(path: string): Promise<string> {
+  const j = await gh(`/repos/${VREPO}/contents/` + path.split("/").map(encodeURIComponent).join("/"));
+  const bin = atob(String(j.content ?? "").replace(/\n/g, ""));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+}
+
+// leitura profunda (report semanal e chat sob demanda): conteúdo das notas
+// alteradas na janela, com teto de caracteres e truncagem declarada
+async function vaultContextDeep(days = 7, maxChars = VAULT_DEEP_CHARS): Promise<string> {
+  try {
+    if (!VTOKEN) return "";
+    const { files, commits } = await vaultChanges(new Date(Date.now() - days * 864e5).toISOString());
+    if (!files.length) return "";
+    let out = "ATIVIDADE (commits do vault — registo real de quando estudou):\n" +
+      commits.slice(0, 40).map((c) => c.d.slice(0, 16).replace("T", " ") + " — " + c.msg).join("\n") +
+      `\n\nNOTAS ALTERADAS (últimos ${days} dias):\n`;
+    for (const f of files.slice(0, 15)) {
+      if (out.length >= maxChars) { out += "\n[TRUNCADO: há mais notas alteradas do que o teto de leitura permite]"; break; }
+      let txt = "";
+      try { txt = await vaultFile(f); } catch { continue; }
+      const room = maxChars - out.length;
+      out += "\n===== " + f + " =====\n" + (txt.length > room ? txt.slice(0, room) + "\n[TRUNCADO]" : txt) + "\n";
+    }
+    return out;
+  } catch (e) {
+    return "AVISO: a leitura do vault falhou (" + String(e).slice(0, 120) + "). Analisa sem estes dados e declara a falha.";
+  }
+}
+
 const PERFIL =
   "Daniel, estudante de Segurança e Proteção de Dados para SI (IPCA Braga), a trabalhar na Worten. " +
   "Objetivos: auditoria ISO 27001, NIS2, RGPD/proteção de dados, AI Governance (EU AI Act, ISO/IEC 42001, NIST AI RMF), " +
@@ -190,6 +266,33 @@ async function sussurroHandler(req: Request): Promise<Response> {
   }
 }
 
+/* ===== REPORT SEMANAL — geração isolada (usada pelo cron e pelo dry-run) ===== */
+async function gerarReport(st: Record<string, unknown>): Promise<Record<string, any>> {
+  const vault = await vaultContextDeep(7);
+  const txt = await claude(
+    "És o Oráculo do 'Sistema' de " + PERFIL +
+      " Analisas apenas dados reais fornecidos; nunca inventas números nem tendências sem evidência. " +
+      "Se os dados forem escassos, dizes isso com honestidade. " +
+      "Nas missões, recompensa e título podes ser criativo e bem-humorado — mas sempre realista e ligado aos dados dele. " +
+      "Respondes APENAS com JSON válido.",
+    "Estado atual do Sistema dele (JSON): " + JSON.stringify(st).slice(0, 60000) +
+      (vault
+        ? "\n\nESTUDO REAL NO VAULT (notas Obsidian em Sistema/Estudo, com timestamps dos commits):\n" + vault
+        : "\n\nVAULT: sem alterações em Sistema/Estudo nos últimos 7 dias.") +
+      '\n\nEscreve o relatório semanal em pt-PT, formato JSON: ' +
+      '{"resumo":"3-4 frases sobre a semana","treino":"análise + 1 ajuste concreto (ou nota de dados insuficientes)",' +
+      '"sono":"análise do padrão de sono",' +
+      '"estudo":"o que ele realmente estudou no vault esta semana: temas, frequência real (timestamps dos commits), ligação aos objetivos e ao recall — ou nota honesta de que não há notas novas",' +
+      '"alerta":"anomalia detetada ou null",' +
+      '"propostas":[{"t":"título curto","why":"porquê, ligado aos dados"}],' +
+      '"missoes_propostas":[{"t":"missão concreta e criativa","why":"ligação aos dados/objetivos dele","area":"oficio|saber|corpo|mente|vinculos|disciplina","pri":"P1|P2|P3","deadline":"YYYY-MM-DD ou null"}],' +
+      '"recompensa":"uma recompensa criativa, proporcional ao que ele conquistou esta semana",' +
+      '"titulo":"um título honorífico da semana, criativo/humorístico (narrativo, nunca uma credencial)",' +
+      '"legado":"uma pergunta de reflexão para a semana"}',
+  );
+  return (jsonFrom(txt) as Record<string, any>) || { resumo: txt.slice(0, 900) };
+}
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   const mode = url.searchParams.get("mode") || "radar";
@@ -242,23 +345,7 @@ Deno.serve(async (req) => {
       await sb.from("radar_items").delete().eq("user_id", u.user_id).lt("d", cutoff);
     } else {
       const st = { ...(u.state as Record<string, unknown>) };
-      const txt = await claude(
-        "És o Oráculo do 'Sistema' de " + PERFIL +
-          " Analisas apenas dados reais fornecidos; nunca inventas números nem tendências sem evidência. " +
-          "Se os dados forem escassos, dizes isso com honestidade. " +
-          "Nas missões, recompensa e título podes ser criativo e bem-humorado — mas sempre realista e ligado aos dados dele. " +
-          "Respondes APENAS com JSON válido.",
-        "Estado atual do Sistema dele (JSON): " + JSON.stringify(st).slice(0, 60000) +
-          '\n\nEscreve o relatório semanal em pt-PT, formato JSON: ' +
-          '{"resumo":"3-4 frases sobre a semana","treino":"análise + 1 ajuste concreto (ou nota de dados insuficientes)",' +
-          '"sono":"análise do padrão de sono","alerta":"anomalia detetada ou null",' +
-          '"propostas":[{"t":"título curto","why":"porquê, ligado aos dados"}],' +
-          '"missoes_propostas":[{"t":"missão concreta e criativa","why":"ligação aos dados/objetivos dele","area":"oficio|saber|corpo|mente|vinculos|disciplina","pri":"P1|P2|P3","deadline":"YYYY-MM-DD ou null"}],' +
-          '"recompensa":"uma recompensa criativa, proporcional ao que ele conquistou esta semana",' +
-          '"titulo":"um título honorífico da semana, criativo/humorístico (narrativo, nunca uma credencial)",' +
-          '"legado":"uma pergunta de reflexão para a semana"}',
-      );
-      const rep = jsonFrom(txt) || { resumo: txt.slice(0, 900) };
+      const rep = await gerarReport(st);
       await sb.from("oracle_reports").insert({ user_id: u.user_id, report: rep });
     }
   }

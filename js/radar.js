@@ -54,6 +54,7 @@ function renderOracleRep(){
     ${r.resumo?`<div class="orc-sec">${r.resumo}</div>`:''}
     ${r.treino?`<div class="orc-sec"><b>🏋️ Treino:</b> ${r.treino}</div>`:''}
     ${r.sono?`<div class="orc-sec"><b>😴 Sono:</b> ${r.sono}</div>`:''}
+    ${r.estudo?`<div class="orc-sec"><b>📚 Estudo (vault):</b> ${r.estudo}</div>`:''}
     ${r.alerta&&r.alerta!=='null'?`<div class="orc-sec" style="color:#fca5a5"><b>⚠ Alerta:</b> ${r.alerta}</div>`:''}
     ${prop?`<div class="up-lbl">Propostas do Oráculo</div>${prop}`:''}
     ${mp?`<div class="up-lbl">Missões propostas</div>${mp}`:''}

@@ -49,11 +49,19 @@ estratégico, curiosidade.
   - `app_state`: JSONB com RLS, guarda o estado completo do HUD.
   - `radar_items`: itens do Radar Diário.
   - `oracle_reports`: relatórios semanais do Oráculo.
-- Oráculo: Edge Function `oraculo`, dois modos:
-  - Radar diário — agendado por `pg_cron` às 06:30 UTC.
+- Oráculo: Edge Function `oraculo` (fonte versionada em
+  `supabase/functions/oraculo/index.ts`; deploy pela CLI com `--no-verify-jwt`).
+  - Radar diário — agendado por `pg_cron` às 06:30 UTC (token por header).
   - Relatório semanal — agendado por `pg_cron` aos domingos às 19:00 UTC.
-  - Segredos (`ANTHROPIC_API_KEY`, `ORACLE_TOKEN`) vivem em Supabase Secrets,
-    nunca no código nem em commits.
+  - Conselho (`?mode=chat`) e Sussurro (`?mode=sussurro`) — JWT da sessão.
+  - Segredos (`ANTHROPIC_API_KEY`, `ORACLE_TOKEN`, `VAULT_TOKEN`) vivem em
+    Supabase Secrets, nunca no código nem em commits.
+- Ponte do Vault: repo privado `kamappa/vault-sistema` liga o vault Obsidian
+  (em `C:\Users\shohe\Documents\ObsidianVault`, com Obsidian Git a auto-commitar
+  a cada 15 min) ao Oráculo. Privacidade por desenho: só a árvore
+  `Sistema/Estudo/` entra no repo (`.gitignore` de whitelist). O Oráculo lê o
+  que o Daniel estuda (leve no radar/sussurro, profunda no report/chat) e
+  escreve os relatórios de volta em `Oraculo/relatorio-YYYY-MM-DD.md`.
 - Sistemas no HUD: atributos+ranks E-S, hexágono, hábitos (3 obrigatórios com
   penalização + extras personalizáveis), missões (quadro antigo), objetivos-
   mestra (triagem automática de prioridade/área/tags, prazos, faixa URGENTE,
@@ -63,7 +71,8 @@ estratégico, curiosidade.
   skill trees, Títulos Reais (evidência), World Engine (arcos sazonais,
   meteo, sussurros, Double XP), Radar Diário (notícias + alto impacto +
   missões deriváveis), relatório do Oráculo (com missões propostas,
-  recompensa, título da semana).
+  recompensa, título da semana, estudo lido do vault e recursos com pesquisa
+  web), Conselho interativo, Mapa de Conhecimento, Revisão Ativa (SM-2).
 
 ## Ver também
 

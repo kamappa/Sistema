@@ -241,6 +241,59 @@ Runtime.evaluate a exercitar os fluxos reais) em cada parte.
 - Parte 3 (Ponte do Vault): por apresentar — a especificação ficou na
   conversa perdida; aguarda o Daniel
 
+## Missão 8 — Ponte do Vault (CONCLUÍDA)
+
+Ligação bidirecional e autónoma entre o vault Obsidian do Daniel e o Oráculo:
+o Oráculo lê o que ele estuda e escreve as análises de volta no vault. Fechada
+em 2026-07-13. Regra de privacidade por desenho: o Oráculo só vê a árvore
+`Sistema/Estudo/` do repo `vault-sistema`; o resto do vault nunca entra nesse repo.
+
+Infraestrutura:
+- Repo privado `kamappa/vault-sistema` (auto-init, branch main)
+- Vault movido do OneDrive institucional do IPCA para
+  `C:\Users\shohe\Documents\ObsidianVault` (privacidade + evitar conflito
+  Git/OneDrive); Obsidian repontado; plugin Obsidian Git (auto-commit/push 15 min)
+- `.gitignore` de whitelist: só `Sistema/`, `Oraculo/`, `README.md`, `.gitignore`
+  entram no repo — tudo o resto do vault fica fora
+- Token fine-grained `VAULT_TOKEN` (leitura+escrita só neste repo) nos Secrets
+  do Supabase. Nota: o token tem de listar explicitamente o repo em "Repository
+  access" — um repo criado depois do token não entra sozinho (deu 404 até corrigir)
+
+Edge Function `oraculo` (radar/report/chat/sussurro intocados na lógica; só
+ganharam contexto do vault):
+- Helpers GitHub API: `gh()`, `vaultChanges()` (compare API para o diff da
+  janela; usa a árvore quando a janela apanha o 1º commit), `vaultFile()`
+- `vaultContextDeep()` — report semanal e chat sob demanda: conteúdo das notas
+  alteradas 7d, teto ~8k tokens (~30k chars) com truncagem declarada; timestamps
+  dos commits = registo real de atividade de estudo
+- `vaultContextLight()` — radar e sussurro: ficheiros alterados 24h + headings,
+  teto ~1.5k tokens; afina a relevância das notícias e liga estudo de ontem a hoje
+- Chat lê o vault só quando a pergunta é sobre estudo (regex de deteção)
+- Falha de leitura nunca derruba um modo: report recebe aviso honesto,
+  radar/sussurro seguem sem vault
+- Escrita: `vaultWriteReport()` grava `Oraculo/relatorio-YYYY-MM-DD.md` (Markdown
+  com frontmatter) via contents API depois de o report estar salvo na BD;
+  re-corrida no mesmo dia substitui a nota (sha). Falha só regista em log
+- Secção "Para complementar o estudo": `gerarReport()` usa pesquisa web (como o
+  radar) e devolve 2-3 recursos ligados ao estudo real; regra inviolável no
+  prompt — só URLs devolvidos pela pesquisa, nunca de memória
+- Campos novos no report JSON: `estudo` e `recursos`; render no HUD (js/radar.js)
+- Modos de diagnóstico `vault-check` (leitura + escrita com `?write=1`) e
+  `report-dry` (report completo sem gravar), gate JWT + operador (linha em app_state)
+
+Verificação (2026-07-13): utilizador efémero via admin API, apagado no fim.
+`vault-check` confirmou leitura (README.md, heading) e escrita (nota de teste,
+removida a seguir). `report-dry` gerou o report completo — leitura honesta ("setup,
+não estudo mensurável"), campo `estudo` correto, e 2 recursos ENISA com URLs reais
+verificados a 200. Guarda-custo estimado abaixo.
+
+Guarda-custo (estimativa apresentada e aceite antes de aplicar):
+- Leitura leve diária (radar + sussurro): ~1.5k tokens de input cada, 2×/dia ⇒
+  ~3k tokens/dia acrescidos ao que já se gastava
+- Leitura profunda semanal (report): até ~8k tokens de input, 1×/semana; a
+  pesquisa web dos recursos acrescenta as chamadas de search já usadas pelo radar
+- Chat: só quando a pergunta é sobre estudo, teto 12k chars
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-11)
 
 1. Vigia de Estágios (próxima missão)

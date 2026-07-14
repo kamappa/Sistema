@@ -294,13 +294,12 @@ Guarda-custo (estimativa apresentada e aceite antes de aplicar):
   pesquisa web dos recursos acrescenta as chamadas de search já usadas pelo radar
 - Chat: só quando a pergunta é sobre estudo, teto 12k chars
 
-## Backlog — fila atual (ordenada; atualizada 2026-07-11)
+## Backlog — fila atual (ordenada; atualizada 2026-07-14)
 
 1. Vigia de Estágios (próxima missão)
-2. Missão 2 refactor
-3. Missão 4 WebGL — gated: exige o refactor feito + Rank C alcançado
-4. Sons opt-in
-5. Camada adaptativa do recall — gated: exige histórico de uso suficiente
+2. Missão 4 WebGL — gated: refactor já feito (Missão 2), falta Rank C alcançado
+3. Sons opt-in
+4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 
 Ideias antigas retiradas da fila nesta revisão (recuperáveis se voltarem a
 ganhar prioridade): botões Aceitar/Recusar do relatório a escrever no estado;

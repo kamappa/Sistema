@@ -41,9 +41,14 @@ estratégico, curiosidade.
 
 ## Arquitetura atual (v1.0 — julho 2026)
 
-- Frontend: `index.html` único (~128KB), publicado por GitHub Pages a cada
-  push para `main` (repositório `kamappa/Sistema`, sem workflow de build —
-  Pages serve diretamente da raiz).
+- Frontend: site estático publicado por GitHub Pages a cada push para `main`
+  (repositório `kamappa/Sistema`, sem workflow de build — Pages serve
+  diretamente da raiz). Depois da Missão 2, o antigo monólito está partido:
+  `index.html` (~266 linhas, só HTML) carrega 11 scripts clássicos por ordem
+  documentada (`data → fx → engine → world → hud → recall → treino → sono →
+  objetivos → radar → conselho → auth`, este último com `init()`) e o estilo
+  vive em `css/hud.css`. Scripts clássicos, não ES modules — os `onclick`
+  inline do HTML exigem funções globais.
 - Backend: Supabase.
   - Auth de utilizador único (Daniel).
   - `app_state`: JSONB com RLS, guarda o estado completo do HUD.

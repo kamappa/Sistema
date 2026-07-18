@@ -339,6 +339,25 @@ Sprint 1 — Motor Visual, por fases (diff → OK → commit):
 
 Sprint 1 — Motor Visual: CONCLUÍDO 2026-07-18 (push 3dc422b).
 
+Sprint 2 — World Engine / Living World (CONCLUÍDO 2026-07-18):
+- 2A: nebulosa em 2ª camada com domain warp e cor própria; estrela cadente
+  de volta (WebGL, rara 60-120s, invisível entre voos, relógio pausa em
+  background). `Stage.debug.meteor()`.
+- 2B: `js/bus.js` (pub/sub) + emissores de 1 linha (addXp→`xp:gain`,
+  rankCeremony→`rank:up`); `react.js` — energia com decaimento ~2s:
+  nebulosas respiram, céu pulsa, poeira acelera (tempo elástico uWarp).
+  Arco sazonal ativo tinge a 2ª nebulosa (summer laranja / winter azul /
+  harvest âmbar / bloom rosa); Recovery acalma o mundo inteiro. Tudo
+  derivado de S com guardas.
+- 2C: respiração da cena (~22s, ±0.4%) + ritmo do dia (`pace` nos
+  keyframes do Solar: 1.1x de manhã, 0.7x de madrugada) no tempo elástico.
+- 2D: bateria automatizada — cadeia real addXp→Bus→energia confirmada
+  (0.61 após +5 XP), reduced-motion com eventos a cair no vazio sem
+  erros, consola limpa. FPS em aparelho: palco só ganhou trabalho de
+  shader marginal desde a medição do Sprint 1; Daniel re-verifica com
+  `?fps=1` no próximo uso normal.
+- Debug: `Stage.debug.{setHour,meteor,pulse,energy,world}`.
+
 Sprints seguintes (roadmap): 2 World Engine · 3 Motion · 4 Constellation
 System · 5 Oráculo vivo · 6 Polimento.
 

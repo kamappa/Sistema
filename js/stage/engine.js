@@ -12,6 +12,7 @@ export function createEngine(canvas,tier,world,updateWorld){
   const scene=new THREE.Scene();
   const camera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
   const layers=[];
+  const stats={dt:16.7,degraded:false}; /* ema do frame time — overlay ?fps=1 (1D) */
   let raf=0,last=0,t=0,glowT=-9;
   let scroll=scrollY||0;
   let degraded=false,ft=0,fn=0;
@@ -26,10 +27,11 @@ export function createEngine(canvas,tier,world,updateWorld){
     raf=requestAnimationFrame(tick);
     if(!last)last=now;
     const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;
+    stats.dt+=(dt*1000-stats.dt)*.05;
     /* guarda de FPS — abaixo de ~48fps sustentados degrada uma vez */
     if(dt<.2){ft+=dt;fn++;}
     if(fn>=150){
-      if(!degraded&&ft/fn>.021){degraded=true;layers.forEach(l=>l.degrade&&l.degrade());size();}
+      if(!degraded&&ft/fn>.021){degraded=true;stats.degraded=true;layers.forEach(l=>l.degrade&&l.degrade());size();}
       ft=0;fn=0;
     }
     if(t-glowT>5){glowT=t;updateWorld();}
@@ -47,7 +49,7 @@ export function createEngine(canvas,tier,world,updateWorld){
   canvas.addEventListener('webglcontextrestored',()=>start());
   return{
     add(l){layers.push(l);if(l.mesh)scene.add(l.mesh);},
-    size,start,stop,
+    size,start,stop,stats,
     get running(){return !!raf;},
     renderer};
 }

@@ -62,4 +62,18 @@ function init(tier){
   rm.addEventListener('change',()=>rm.matches?engine.stop():engine.start());
   if(!document.documentElement.classList.contains('boot'))engine.start();
   else setTimeout(()=>engine.start(),1500); /* rede de segurança se o boot não chamar dustStart */
+  /* overlay de frame time (?fps=1) — verificação da 1D em hardware real */
+  if(new URLSearchParams(location.search).get('fps')){
+    const el=document.createElement('div');
+    el.style.cssText='position:fixed;top:8px;right:8px;z-index:99;padding:4px 8px;'
+      +'font:11px/1.4 monospace;color:#a7f3d0;background:rgba(4,2,10,.7);'
+      +'border:1px solid rgba(167,139,250,.3);pointer-events:none';
+    document.body.appendChild(el);
+    setInterval(()=>{
+      const ms=engine.stats.dt;
+      el.textContent=tier+(engine.stats.degraded?'↓':'')+' · '
+        +ms.toFixed(1)+' ms · '+Math.round(1000/ms)+' fps'
+        +(engine.running?'':' · pausado');
+    },500);
+  }
 }

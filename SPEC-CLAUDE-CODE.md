@@ -358,6 +358,22 @@ Sprint 2 — World Engine / Living World (CONCLUÍDO 2026-07-18):
   `?fps=1` no próximo uso normal.
 - Debug: `Stage.debug.{setHour,meteor,pulse,energy,world}`.
 
+Sprint 3 — Motion profundo (CONCLUÍDO 2026-07-18):
+- 3A: barras com física — `Motion.fillBar` (mola sub-amortecida, token
+  `fill`; registo por chave que sobrevive a re-renders por innerHTML) nas
+  barras do herói/topbar/atributos; `setNum` migrado de easing cúbico para
+  mola; transitions CSS de largura removidas.
+- 3B: onda de conclusão — `cardWave` (~700ms, recortada pelo clip-path):
+  hábito marcado → cor do atributo; missão concluída → violeta; disparada
+  após o re-render; reversões não celebram. Toast mantém a curva CSS de
+  overshoot (migração para mola real = custo sem ganho percetível).
+- 3C: Oráculo a pensar (moldura do Conselho respira + botão pulsa,
+  entra/sai no ocTheaterStart/stop) + logout adormece o mundo (650ms).
+- 3D: bateria — fluxo de conclusão completo sob reduced-motion sem uma
+  única animação (onda ausente, barra direta, tier off, zero erros);
+  consola limpa; overlay `?fps=1` operacional. FPS em aparelho: Daniel
+  re-verifica com `?fps=1` no uso normal.
+
 Sprints seguintes (roadmap): 2 World Engine · 3 Motion · 4 Constellation
 System · 5 Oráculo vivo · 6 Polimento.
 

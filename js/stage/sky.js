@@ -49,12 +49,8 @@ export function createSky(tier){
   const mesh=new THREE.Mesh(geo,mat);
   mesh.frustumCulled=false;mesh.renderOrder=0;
   return{mesh,
+    uniforms:mat.uniforms, /* o Solar Engine escreve as cores/amplitudes aqui */
     resize(W,H){mat.uniforms.uRes.value.set(W,H);},
-    update(t,dt,ctx){
-      mat.uniforms.uTime.value=t;
-      /* à chuva a nebulosidade acalma (a 1B assume o resto do meteo) */
-      const alvo=ctx.world.rain?.03:.05;
-      mat.uniforms.uNebAmp.value+=(alvo-mat.uniforms.uNebAmp.value)*Math.min(1,dt*2);
-    },
+    update(t){mat.uniforms.uTime.value=t;},
     degrade(){mat.uniforms.uDetail.value=1;}};
 }

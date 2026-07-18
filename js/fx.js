@@ -232,42 +232,7 @@ document.addEventListener('animationend',e=>{ // liberta o transform após o ris
   rm.addEventListener('change',()=>{if(rm.matches)reset()});
 })();
 
-/* motor de ambiente — ciclo do dia com meteo (Missão 3v2 fase 1)
-   Interpola --amb1/2/3 e --horizon entre âncoras horárias, ao minuto.
-   Meteo (S.weather): chuva dessatura e abranda; céu limpo aviva.
-   Sem JS os defaults CSS são o estado noturno. */
-(function(){
-  const A=[ // [hora, amb1, amb2, horizonte] — rgba em arrays
-    [0,  [139,92,246,.14],[240,171,252,.09],[217,70,239,0]],
-    [2,  [76,29,149,.10], [30,58,138,.10],  [249,115,22,0]],
-    [5,  [67,56,202,.12], [30,64,175,.10],  [251,146,60,.02]],
-    [7.5,[139,92,246,.14],[251,191,36,.09], [251,146,60,.10]],
-    [10, [139,92,246,.19],[240,171,252,.12],[251,146,60,0]],
-    [13, [147,107,255,.22],[240,171,252,.13],[251,146,60,0]],
-    [17, [139,92,246,.18],[244,114,182,.11],[251,146,60,.04]],
-    [19.5,[168,85,247,.16],[244,114,182,.12],[249,115,22,.13]],
-    [21.5,[139,92,246,.16],[240,171,252,.10],[217,70,239,.05]],
-    [24, [139,92,246,.14],[240,171,252,.09],[217,70,239,0]],
-  ];
-  const mix=(c1,c2,k)=>c1.map((v,i)=>v+(c2[i]-v)*k);
-  const css=c=>'rgba('+Math.round(c[0])+','+Math.round(c[1])+','+Math.round(c[2])+','+c[3].toFixed(3)+')';
-  window.ambientRain=false;
-  function apply(){
-    const d=new Date(),h=d.getHours()+d.getMinutes()/60,st=document.documentElement.style;
-    let i=0;while(i<A.length-2&&A[i+1][0]<=h)i++;
-    const k=(h-A[i][0])/(A[i+1][0]-A[i][0]);
-    let rain=false,clear=false;
-    try{const w=S&&S.weather;
-      if(w&&w.d===new Date().toISOString().slice(0,10)){rain=w.rain>=8;clear=w.rain===0;}}catch(e){}
-    window.ambientRain=rain;
-    const tune=c=>{let a=c[3];if(rain)a*=.65;if(clear)a*=1.15;
-      return rain?[c[0]*.7+34,c[1]*.7+40,c[2]*.7+52,a]:[c[0],c[1],c[2],a]};
-    const a1=tune(mix(A[i][1],A[i+1][1],k)),a2=tune(mix(A[i][2],A[i+1][2],k));
-    st.setProperty('--amb1',css(a1));st.setProperty('--amb2',css(a2));
-    st.setProperty('--amb3',css([a1[0],a1[1],a1[2],a1[3]*.45]));
-    const hz=mix(A[i][3],A[i+1][3],k);hz[3]*=rain?.4:1;
-    st.setProperty('--horizon',css(hz));
-  }
-  window.ambientApply=apply; // exposto para verificação e para o fetchWeather refrescar
-  apply();setInterval(apply,60000);
-})();
+/* motor de ambiente — absorvido pelo Solar Engine (js/stage/solar.js, Missão 12
+   fase 1B): a mesma curva de luz alimenta o céu WebGL e as variáveis CSS
+   --amb1/2/3 e --horizon. window.ambientApply e window.ambientRain continuam a
+   existir com a mesma semântica — o fetchWeather (world.js) não mudou. */

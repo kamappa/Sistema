@@ -46,7 +46,7 @@ export function createEngine(canvas,tier,world,updateWorld){
   canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();stop();});
   canvas.addEventListener('webglcontextrestored',()=>start());
   return{
-    add(l){layers.push(l);scene.add(l.mesh);},
+    add(l){layers.push(l);if(l.mesh)scene.add(l.mesh);},
     size,start,stop,
     get running(){return !!raf;},
     renderer};

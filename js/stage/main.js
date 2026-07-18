@@ -9,9 +9,13 @@ import {createEngine} from './engine.js';
 import {createSky} from './sky.js';
 import {createStars} from './stars.js';
 import {createDust} from './dust.js';
+import {createSolarCss,createSolarLayer} from './solar.js';
 
 const rm=matchMedia('(prefers-reduced-motion: reduce)');
 window.Stage={tier:'off'};
+/* o lado CSS do Solar corre sempre — mesmo com o palco off, a UI é iluminada
+   pelo mundo (cores ao longo de minutos não são movimento) */
+createSolarCss(world,updateWorld);
 const cap=detect();
 if(cap.tier!=='off')init(cap.tier);
 else if(cap.reason==='rm'){
@@ -30,10 +34,16 @@ function init(tier){
   const canvas=document.getElementById('dust');if(!canvas)return;
   updateWorld();
   const engine=createEngine(canvas,tier,world,updateWorld);
-  const dust=createDust(tier);
-  engine.add(createSky(tier));engine.add(createStars(tier));engine.add(dust);
+  const sky=createSky(tier),dust=createDust(tier);
+  /* o Solar atualiza primeiro (escreve world.glow e as cores do céu),
+     as estrelas leem depois — a ordem das camadas importa */
+  engine.add(createSolarLayer(sky,world));
+  engine.add(sky);engine.add(createStars(tier));engine.add(dust);
   engine.size();
-  window.Stage={tier,engine,debug:{setHour(h){setHourOverride(h);updateWorld();}}};
+  window.Stage={tier,engine,debug:{setHour(h){
+    setHourOverride(h);updateWorld();
+    if(window.ambientApply)ambientApply();
+  }}};
   /* façade clássica — mesmos nomes e semântica do fundo 2D removido */
   window.dustStart=()=>{if(!rm.matches)engine.start();};
   window.dustBurst=hex=>{

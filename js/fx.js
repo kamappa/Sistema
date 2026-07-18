@@ -76,24 +76,26 @@ function rankCeremony(r){try{
   if(rb){rb.classList.remove('rankpop');void rb.offsetWidth;rb.classList.add('rankpop');}
   if(window.dustBurst)setTimeout(()=>dustBurst(r.color),350);
 }catch(err){}}
-/* contador animado — retoma do valor visível; direto com reduced-motion/página oculta */
+/* contador animado — desde a M12·3A corre numa mola (Motion), não em easing
+   cúbico; retoma do valor visível; direto com reduced-motion/página oculta */
 const numAnim={};
 function setNum(id,val,fmt){
   fmt=fmt||(v=>String(Math.round(v)));
   const el=document.getElementById(id);if(!el)return;
   const prev=numAnim[id]?numAnim[id].val:(parseFloat((el.textContent||'').replace(/[^\d.-]/g,''))||0);
-  if(numAnim[id]&&numAnim[id].raf)cancelAnimationFrame(numAnim[id].raf);
-  if(Math.abs(val-prev)<1||document.hidden||matchMedia('(prefers-reduced-motion: reduce)').matches){
-    el.textContent=fmt(val);numAnim[id]={val:val};return;
+  const a=numAnim[id]||(numAnim[id]={val:prev});
+  a.fmt=fmt;
+  if(Math.abs(val-prev)<1||document.hidden||!window.Motion
+     ||matchMedia('(prefers-reduced-motion: reduce)').matches){
+    el.textContent=fmt(val);a.val=val;if(a.sp)a.sp.snap(val);return;
   }
-  const t0=performance.now(),dur=600;
-  function step(now){
-    const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3),v=prev+(val-prev)*e;
-    el.textContent=fmt(v);numAnim[id].val=v;
-    if(k<1)numAnim[id].raf=requestAnimationFrame(step);
-    else numAnim[id]={val:val};
+  if(!a.sp){
+    a.sp=new Motion.Spring(1,Motion.TOK.gentle,x=>{
+      a.val=x[0];const e=document.getElementById(id);if(e)e.textContent=a.fmt(x[0]);
+    });
+    a.sp.snap(prev);
   }
-  numAnim[id]={val:prev,raf:requestAnimationFrame(step)};
+  a.sp.set(val);
 }
 /* fundo vivo — desde a Missão 12 (Sprint 1, fase 1A) o palco é WebGL e vive
    em js/stage/ (ilha de ES modules, Three.js vendorizado em js/vendor/). A

@@ -10,7 +10,8 @@ window.Motion=(function(){
      snappy: presses e botões magnéticos (leve overshoot vivo)
      gentle: tilt de painéis e glow do cursor (crítico, sem oscilar)
      slow:   massas grandes (aurora) */
-  const TOK={snappy:{k:260,c:30},gentle:{k:120,c:22},slow:{k:50,c:14}};
+  const TOK={snappy:{k:260,c:30},gentle:{k:120,c:22},slow:{k:50,c:14},
+    fill:{k:60,c:15}}; /* barras: ligeiramente sub-amortecida — passa um fio além do alvo e assenta */
   const springs=new Set();let raf=0,last=0;
   function loop(now){
     raf=0;
@@ -40,6 +41,29 @@ window.Motion=(function(){
     }
   }
   return{TOK,Spring};
+})();
+
+/* barras com física (Missão 12 · 3A) — a largura enche por mola. O registo é
+   por CHAVE, não por elemento: sobrevive aos re-renders por innerHTML (o
+   elemento novo nasce onde a mola ia e a mola continua). Reduced-motion ou
+   primeiro render: valor direto, sem animação. */
+window.Motion.fillBar=(function(){
+  const reg={},rm=matchMedia('(prefers-reduced-motion: reduce)');
+  return function(key,el,pct){
+    if(!el)return;
+    if(rm.matches){el.style.width=pct+'%';if(reg[key])reg[key].sp.snap(pct);return;}
+    let b=reg[key];
+    if(!b){
+      b=reg[key]={el:el,sp:null};
+      b.sp=new Motion.Spring(1,Motion.TOK.fill,
+        x=>{if(b.el)b.el.style.width=Math.max(0,x[0]).toFixed(2)+'%';});
+      b.sp.snap(pct);el.style.width=pct+'%';
+      return;
+    }
+    b.el=el;
+    el.style.width=Math.max(0,b.sp.x[0]).toFixed(2)+'%';
+    b.sp.set(pct);
+  };
 })();
 
 /* presença com física — tilt 3D, botões magnéticos, aurora e glow que segue o

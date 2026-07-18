@@ -122,7 +122,8 @@ function render(){
   const frac=ATTRS.reduce((s,a)=>s+S.attrs[a.id].xp/need(S.attrs[a.id].level),0)/ATTRS.length;
   document.getElementById('oring').style.strokeDashoffset=289*(1-frac);
   const rankFrac=Math.min(1,(into+frac)/span);
-  document.getElementById('oxp-fill').style.width=(rankFrac*100)+'%';
+  if(window.Motion&&Motion.fillBar)Motion.fillBar('oxp',document.getElementById('oxp-fill'),rankFrac*100);
+  else document.getElementById('oxp-fill').style.width=(rankFrac*100)+'%';
   document.getElementById('rank-prog-lbl').textContent='Rank '+r.l+(r.l!=='S'?' → '+RANKS[RANKS.indexOf(r)+1].l:'');
   document.getElementById('oxp-txt').textContent='Nível '+lvl;
 
@@ -130,7 +131,8 @@ function render(){
   const tbr=document.getElementById('tb-rank');
   if(tbr){tbr.textContent=r.l;tbr.style.color=r.color;
     document.getElementById('tb-lvln').textContent=lvl;
-    document.getElementById('tb-fill').style.width=(rankFrac*100)+'%';}
+    if(window.Motion&&Motion.fillBar)Motion.fillBar('tb',document.getElementById('tb-fill'),rankFrac*100);
+    else document.getElementById('tb-fill').style.width=(rankFrac*100)+'%';}
 
   // attrs
   document.getElementById('attrs').innerHTML=ATTRS.map(a=>{
@@ -142,11 +144,11 @@ function render(){
       <div class="abar"><div class="afill" data-a="${a.id}" style="width:${pct}%;background:linear-gradient(90deg,${a.color},${a.color}88 45%,${a.color} 75%,${a.color}cc)"></div></div>
       <div class="axp">${s.xp} / ${nd} XP</div></div>`;
   }).join('');
-  /* easing visual entre renders — o innerHTML novo nasceria já na largura final */
-  const pv=window.__barPv||(window.__barPv={});
-  document.querySelectorAll('#attrs .afill').forEach(f=>{const k=f.dataset.a,w=f.style.width;
-    if(pv[k]!==undefined&&pv[k]!==w){f.style.width=pv[k];f.getBoundingClientRect();f.style.width=w;}
-    pv[k]=w;});
+  /* barras com física (M12·3A) — a mola é registada por atributo e sobrevive
+     ao innerHTML novo; o template traz a largura-alvo, a mola persegue-a */
+  document.querySelectorAll('#attrs .afill').forEach(f=>{
+    if(window.Motion&&Motion.fillBar)Motion.fillBar('attr:'+f.dataset.a,f,parseFloat(f.style.width)||0);
+  });
 
   renderRadar(r,lvl);
 

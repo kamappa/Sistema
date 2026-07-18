@@ -121,7 +121,8 @@
   .oxp{margin-top:16px}
   .oxp-head{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--mut);margin-bottom:5px}
   .oxp-bar{height:8px;background:rgba(255,255,255,.05);border:1px solid var(--line);overflow:hidden}
-  .oxp-fill{height:100%;background:linear-gradient(90deg,#8b5cf6,#f0abfc);transition:width .9s cubic-bezier(.22,1,.36,1)}
+  /* larguras das barras: sem transition — a mola (js/motion.js, M12·3A) manda */
+  .oxp-fill{height:100%;background:linear-gradient(90deg,#8b5cf6,#f0abfc)}
 
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
   @media(max-width:820px){.cols{grid-template-columns:1fr}}
@@ -134,7 +135,7 @@
   .ar{font-family:var(--mono);font-size:11px;font-weight:700;padding:1px 7px;border:1px solid;letter-spacing:.05em}
   .alv{font-family:var(--mono);font-size:12px;color:var(--mut)}.alv b{color:#fff}
   .abar{height:8px;background:rgba(255,255,255,.05);border:1px solid var(--line);overflow:hidden}
-  .afill{height:100%;transition:width .8s cubic-bezier(.22,1,.36,1)}
+  .afill{height:100%}
   .axp{font-family:var(--mono);font-size:9.5px;color:var(--mut2);margin-top:2px;text-align:right}
 
   /* radar */
@@ -468,7 +469,7 @@
   .tb-lvl b{color:var(--ink)}
   .tb-bar{flex:1;max-width:220px;height:4px;margin-left:auto;background:rgba(255,255,255,.06);border:1px solid var(--line);overflow:hidden}
   .tb-fill{height:100%;width:0;background:linear-gradient(90deg,#8b5cf6,#f0abfc);background-size:240% 100%;
-    animation:plasma 9.7s ease-in-out infinite alternate;transition:width .9s cubic-bezier(.22,1,.36,1)}
+    animation:plasma 9.7s ease-in-out infinite alternate}
   .wchip{animation:rise .5s cubic-bezier(.22,1,.36,1) both}
   .whisper{transition:opacity .4s ease,border-color .3s ease}
   .whisper:hover{border-color:var(--violet)}

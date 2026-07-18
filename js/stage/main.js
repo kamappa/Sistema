@@ -12,12 +12,17 @@ import {createDust} from './dust.js';
 import {createMeteor} from './meteor.js';
 import {createReact} from './react.js';
 import {createSolarCss,createSolarLayer} from './solar.js';
+import {initConstellation} from './constellation.js';
 
 const rm=matchMedia('(prefers-reduced-motion: reduce)');
 window.Stage={tier:'off'};
 /* o lado CSS do Solar corre sempre — mesmo com o palco off, a UI é iluminada
    pelo mundo (cores ao longo de minutos não são movimento) */
 createSolarCss(world,updateWorld);
+/* constelações (Sprint 4): independentes do tier do palco — o render é
+   estático/on-demand (sem movimento), por isso reduced-motion não as apaga;
+   sem WebGL o init desiste sozinho */
+initConstellation();
 const cap=detect();
 if(cap.tier!=='off')init(cap.tier);
 else if(cap.reason==='rm'){

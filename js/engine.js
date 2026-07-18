@@ -157,6 +157,7 @@ function render(){
 
   document.getElementById('oblig').innerHTML=S.oblig.map(h=>habHTML(h,'oblig',true)).join('');
   document.getElementById('extras').innerHTML=S.extras.map(h=>habHTML(h,'extras',false)).join('');
+  if(window.renderConstellation)renderConstellation(); // céu reavalia a evidência (M12·4A)
 
   renderXpLine();
 

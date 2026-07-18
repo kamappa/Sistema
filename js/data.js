@@ -173,3 +173,61 @@ const KW_AREA=[
 const FUN_TAGS=['🔥 Hot Quest','🗡 Digna de Sombra','☕ Café e Foco','🧠 XP Mental','👑 Material de Lenda','🌫 Missão Sombria'];
 const QUOTES=[["A felicidade da tua vida depende da qualidade dos teus pensamentos.","Marco Aurélio"],["Não é porque as coisas são difíceis que não ousamos; é porque não ousamos que elas são difíceis.","Séneca"],["Não expliques a tua filosofia. Encarna-a.","Epicteto"],["Uma vida não examinada não merece ser vivida.","Sócrates"],["Somos o que fazemos repetidamente. A excelência não é um ato, é um hábito.","Aristóteles"],["Tens poder sobre a tua mente — não sobre os acontecimentos. Percebe isto e encontrarás força.","Marco Aurélio"],["Quem tem um porquê enfrenta quase qualquer como.","Nietzsche"],["Conhece-te a ti mesmo.","Oráculo de Delfos"],["Ninguém se banha duas vezes no mesmo rio.","Heraclito"],["A maior vitória é a vitória sobre ti próprio.","Platão"],["Escolhe um trabalho que ames e não terás de trabalhar um único dia.","Confúcio"],["Uma viagem de mil léguas começa com um único passo.","Lao Tsé"],["Conhece o inimigo e conhece-te a ti mesmo; não temerás o resultado de cem batalhas.","Sun Tzu"],["Penso, logo existo.","Descartes"],["Não estragues o que tens desejando o que não tens.","Epicuro"],["A sorte favorece a mente preparada.","Pasteur"]];
 const RAREA={cyber:{l:'Cyber',c:'#ef4444'},nis2:{l:'NIS2',c:'#a78bfa'},rgpd:{l:'RGPD',c:'#34d399'},iso27001:{l:'ISO 27001',c:'#38bdf8'},aigov:{l:'AI Gov',c:'#f472b6'},ai:{l:'IA',c:'#c084fc'},evento:{l:'📅 Evento',c:'#fbbf24'}};
+
+/* ===== CONSTELAÇÕES (Missão 12 · Sprint 4) =====
+   Cada estrela tem uma regra de evidência declarativa avaliada de S — não
+   existe caminho no código para acender uma estrela à mão ("o Núcleo nunca
+   mente"). req: {lvl:N} nível do atributo ≥N · {title:'id'} Título Real
+   desbloqueado · {streak:N} melhor streak ≥N · {done:N} missões concluídas
+   da área ≥N. Posições desenhadas à mão (0..1). */
+const CONSTELLATIONS={
+  oficio:{stars:[
+    {id:'rgpd',n:'RGPD',x:.18,y:.60,req:{lvl:2}},
+    {id:'nis2',n:'NIS2',x:.32,y:.42,req:{lvl:4}},
+    {id:'iso',n:'ISO 27001',x:.50,y:.30,req:{lvl:6}},
+    {id:'lead',n:'Lead Auditor',x:.68,y:.40,req:{lvl:8}},
+    {id:'grc',n:'GRC',x:.84,y:.56,req:{lvl:10}},
+    {id:'cncs',n:'Cyber Foundations',x:.26,y:.78,req:{title:'cncs'}},
+    {id:'privacy',n:'Privacy Apprentice',x:.09,y:.36,req:{title:'rgpd_appr'}},
+    {id:'aignov',n:'AI Gov Novice',x:.58,y:.66,req:{title:'aigov_novice'}},
+    {id:'aigpra',n:'AI Gov Practitioner',x:.74,y:.80,req:{title:'aigov_pract'}},
+    {id:'camp',n:'Campanha de Ofício',x:.92,y:.30,req:{done:5}},
+  ],links:[['privacy','rgpd'],['rgpd','nis2'],['nis2','iso'],['iso','lead'],['lead','grc'],['rgpd','cncs'],['cncs','aignov'],['aignov','aigpra'],['grc','camp']]},
+  saber:{stars:[
+    {id:'leit',n:'Leitura',x:.15,y:.54,req:{lvl:2}},
+    {id:'not',n:'Notas',x:.33,y:.38,req:{lvl:4}},
+    {id:'sint',n:'Síntese',x:.52,y:.30,req:{lvl:6}},
+    {id:'ens',n:'Ensinar',x:.70,y:.40,req:{lvl:8}},
+    {id:'esp',n:'Especialista',x:.86,y:.56,req:{lvl:12}},
+    {id:'cons',n:'Estudo constante',x:.42,y:.66,req:{streak:7}},
+    {id:'camp',n:'Campanha de Saber',x:.64,y:.76,req:{done:5}},
+  ],links:[['leit','not'],['not','sint'],['sint','ens'],['ens','esp'],['not','cons'],['cons','camp']]},
+  corpo:{stars:[
+    {id:'sono',n:'Sono',x:.16,y:.50,req:{lvl:2}},
+    {id:'trei',n:'Treino',x:.36,y:.34,req:{lvl:4}},
+    {id:'nut',n:'Nutrição',x:.56,y:.30,req:{lvl:6}},
+    {id:'fis',n:'Físico',x:.76,y:.42,req:{lvl:8}},
+    {id:'temp',n:'Templo',x:.46,y:.64,req:{streak:14}},
+    {id:'camp',n:'Campanha do Corpo',x:.70,y:.74,req:{done:3}},
+  ],links:[['sono','trei'],['trei','nut'],['nut','fis'],['trei','temp'],['temp','camp']]},
+  mente:{stars:[
+    {id:'rot',n:'Rotina',x:.18,y:.56,req:{lvl:2}},
+    {id:'plan',n:'Planeamento',x:.38,y:.40,req:{lvl:4}},
+    {id:'rev',n:'Revisão',x:.58,y:.32,req:{lvl:6}},
+    {id:'est',n:'Estabilidade',x:.78,y:.44,req:{lvl:8}},
+    {id:'camp',n:'Campanha da Mente',x:.52,y:.68,req:{done:3}},
+  ],links:[['rot','plan'],['plan','rev'],['rev','est'],['plan','camp']]},
+  vinculos:{stars:[
+    {id:'com',n:'Comunicação',x:.20,y:.54,req:{lvl:2}},
+    {id:'net',n:'Networking',x:.46,y:.36,req:{lvl:4}},
+    {id:'lid',n:'Liderança',x:.72,y:.48,req:{lvl:6}},
+    {id:'camp',n:'Campanha de Vínculos',x:.52,y:.70,req:{done:3}},
+  ],links:[['com','net'],['net','lid'],['net','camp']]},
+  disciplina:{stars:[
+    {id:'cons',n:'Constância',x:.16,y:.52,req:{lvl:2}},
+    {id:'foco',n:'Foco',x:.36,y:.36,req:{lvl:4}},
+    {id:'sist',n:'Sistemas',x:.58,y:.30,req:{lvl:6}},
+    {id:'mest',n:'Mestria',x:.80,y:.40,req:{lvl:8}},
+    {id:'forja',n:'Forja',x:.50,y:.66,req:{streak:21}},
+  ],links:[['cons','foco'],['foco','sist'],['sist','mest'],['foco','forja']]},
+};

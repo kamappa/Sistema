@@ -461,10 +461,10 @@ eventos (recrutamento + ciber/NIS2/ISO 27001/RGPD); cadência diária.
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
-3. Universe Navigation / Living Memory / Celestial Core (roadmap M12,
+2. Universe Navigation / Living Memory / Celestial Core (roadmap M12,
    abrir como missões próprias quando o Daniel decidir)
-4. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)
-5. Camada adaptativa do recall — gated: exige histórico de uso suficiente
+3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)
+4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 
 Ideias antigas retiradas da fila nesta revisão (recuperáveis se voltarem a
 ganhar prioridade): botões Aceitar/Recusar do relatório a escrever no estado;

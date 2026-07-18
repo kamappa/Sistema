@@ -397,8 +397,10 @@ Sprint 4 — Constellation System (CONCLUÍDO 2026-07-18):
   escolha persistida, reduced-motion = céu estático mas funcional
   (cartões incluídos), consola limpa em todas as corridas.
 
-Sprint 5 — Oráculo vivo (DEPLOYADO 2026-07-18; aguarda validação da voz
-pelo Daniel no uso real):
+Sprint 5 — Oráculo vivo (CONCLUÍDO 2026-07-18 — deployado e validado em
+produção com utilizador efémero, apagado no fim: a voz respondeu com
+linguagem das constelações, tom do Summer Arc, zero elogios vazios e a
+regra dos números reais a disparar primeiro perante estado vazio):
 - Servidor (Edge Function `oraculo`, deploy CLI --project-ref): bloco VOZ
   por cima da CONSTITUICAO — Guardião do Núcleo, linguagem das
   constelações ancorada em dados ("a imagem ilustra, o dado sustenta"),

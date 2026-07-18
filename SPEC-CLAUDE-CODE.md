@@ -294,7 +294,7 @@ Guarda-custo (estimativa apresentada e aceite antes de aplicar):
   pesquisa web dos recursos acrescenta as chamadas de search já usadas pelo radar
 - Chat: só quando a pergunta é sobre estudo, teto 12k chars
 
-## Missão 12 — Living Operating System (EM CURSO)
+## Missão 12 — Living Operating System (SPRINTS 1-6 CONCLUÍDOS 2026-07-18)
 
 Visão-mãe em `SYSTEM-EVOLUTION-ROADMAP.md` (raiz do repo, guardada tal e qual
 a 2026-07-18). Era o item "Missão 4 WebGL" do backlog; o gate "falta Rank C"
@@ -418,15 +418,34 @@ regra dos números reais a disparar primeiro perante estado vazio):
 - Verificação pendente do Daniel: pergunta ao Conselho (voz do Guardião +
   mundo a abrandar) e/ou `report-dry` para ver a profecia.
 
+Sprint 6 — Polimento (CONCLUÍDO 2026-07-18; a porta fica aberta):
+- Auditoria: aurora tinha transition CSS de 2.4s EM CIMA da mola do
+  motion.js (dupla suavização) — removida, a mola é a única dona do
+  movimento; Solar CSS pausa em background e re-aplica ao voltar.
+- Consola 100% limpa: meta mobile-web-app-capable moderno + favicon
+  (icon-192) — warning e 404 eliminados.
+- Calibração de intensidade (resposta ao "está igual" do Daniel):
+  nebulosas +20% (multiplicador único na amostra do Solar), 2ª camada
+  .042/.065, estrelas de fundo mais vivas, estrelas acesas 20px.
+- Polimento fino CONTINUA quando o Daniel trouxer fricção de uso real —
+  registar aqui como itens do Sprint 6b quando chegarem.
+
+Missão 12 — estado final: os 6 sprints do plano estão concluídos e no ar.
+Fases futuras do roadmap (SYSTEM-EVOLUTION-ROADMAP.md) ainda por abrir
+como missões próprias: Universe Navigation, Living Memory, World Events
+completos, Celestial Core, sons opt-in.
+
 Sprints seguintes (roadmap): 2 World Engine · 3 Motion · 4 Constellation
 System · 5 Oráculo vivo · 6 Polimento.
 
-## Backlog — fila atual (ordenada; atualizada 2026-07-18)
+## Backlog — fila atual (ordenada; atualizada 2026-07-18, pós-Missão 12)
 
-1. Missão 12 — Living Operating System (EM CURSO, Sprint 1)
-2. Vigia de Estágios
-3. Sons opt-in (o roadmap da Missão 12 dá-lhes contexto novo — Oráculo/mundo)
-4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
+1. Vigia de Estágios (próxima missão)
+2. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
+3. Universe Navigation / Living Memory / Celestial Core (roadmap M12,
+   abrir como missões próprias quando o Daniel decidir)
+4. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)
+5. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 
 Ideias antigas retiradas da fila nesta revisão (recuperáveis se voltarem a
 ganhar prioridade): botões Aceitar/Recusar do relatório a escrever no estado;

@@ -721,3 +721,9 @@
   .cfb{font-size:12px;margin:4px 0;color:var(--mut)}
   .cfb.on{color:var(--ink)}
   .cfb.dim{color:var(--mut2);font-style:italic}
+
+  /* ===== VIGIA DE ESTÁGIOS (Missão 13) — vagas destacadas no radar, mesmo
+     tratamento do rd-hot mas em verde e sem pulso (oportunidade, não alarme) ===== */
+  .rd-vaga{border:1px solid rgba(52,211,153,.45)!important;background:rgba(52,211,153,.05);
+    padding:9px 11px!important;margin:7px 0;
+    clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}

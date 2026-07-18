@@ -27,7 +27,7 @@ function renderNews(){
       const ct=i.created_at?new Date(i.created_at):null;
       const tm=ct?String(ct.getHours()).padStart(2,'0')+':'+String(ct.getMinutes()).padStart(2,'0'):'';
       const isNew=ct&&(Date.now()-ct.getTime())<12*3600000;
-      return `<div class="rd-item ${i.impact==='alto'?'rd-hot':''}">
+      return `<div class="rd-item ${i.impact==='alto'?'rd-hot':''} ${i.area==='vaga'?'rd-vaga':''}">
         ${ic?`<img class="rd-ico" src="${ic}" alt="" loading="lazy" onerror="this.style.display='none'">`:''}
         <div class="rd-b">
           ${i.impact==='alto'?'<div class="rd-hotlbl">⚡ ALTO IMPACTO</div>':''}

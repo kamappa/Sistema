@@ -503,14 +503,45 @@ Deno.serve(async (req) => {
       );
       const items = (jsonFrom(txt) as Array<Record<string, unknown>>) || [];
       const d = new Date().toISOString().slice(0, 10);
-      for (const it of items.slice(0, 8)) {
+      /* dedupe por URL contra os últimos 30 dias (Missão 13) — vale para as
+         notícias E para a Vigia: só o que é novo entra; silêncio > repetição */
+      const cutoff30 = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+      const { data: seenRows } = await sb.from("radar_items").select("url")
+        .eq("user_id", u.user_id).gte("d", cutoff30);
+      const seen = new Set((seenRows ?? []).map((r: { url: string | null }) => r.url).filter(Boolean));
+      const insertItem = async (it: Record<string, unknown>) => {
+        const itUrl = String(it.url ?? "");
+        if (itUrl && seen.has(itUrl)) return;
+        if (itUrl) seen.add(itUrl);
         await sb.from("radar_items").insert({
           user_id: u.user_id, d,
-          title: String(it.title ?? ""), source: String(it.source ?? ""), url: String(it.url ?? ""),
+          title: String(it.title ?? ""), source: String(it.source ?? ""), url: itUrl,
           summary: String(it.summary ?? ""), relevance: String(it.relevance ?? ""), area: String(it.area ?? "ai"),
           impact: it.impact ? String(it.impact) : null,
           missao: it.missao ?? null,
         });
+      };
+      for (const it of items.slice(0, 8)) await insertItem(it);
+      /* ===== VIGIA DE ESTÁGIOS (Missão 13) — 2ª pesquisa focada =====
+         Vagas de estágio/trainee (ciber/GRC/ISO 27001/RGPD/AI Gov, Norte de
+         Portugal + remoto PT) e eventos (recrutamento + técnicos). Cada vaga
+         traz missao P1 "Candidatar" derivável no HUD com um clique. */
+      try {
+        const vtxt = await claude(
+          "És a Vigia de Estágios do 'Sistema' de " + PERFIL + " Respondes APENAS com JSON válido, sem texto fora do JSON.",
+          "Pesquisa na web oportunidades REAIS e ATUAIS para ele, em duas categorias: " +
+            "(1) VAGAS: estágios (curriculares, profissionais, de verão) e programas trainee em cibersegurança, GRC, auditoria ISO 27001, proteção de dados/RGPD ou AI Governance, no NORTE de Portugal (Braga, Porto, Guimarães, Aveiro) ou remoto a partir de Portugal — usa area 'vaga'. " +
+            "(2) EVENTOS: feiras de emprego/recrutamento tech e eventos, webinars ou formações de cibersegurança, NIS2, auditoria ISO 27001 ou RGPD, em Portugal ou online, nas próximas semanas — usa area 'evento' e inclui a data no summary. " +
+            "REGRA INVIOLÁVEL: só incluis itens com URL devolvido pela pesquisa web NESTA conversa; nunca escrevas um URL de memória. Se não encontrares nada digno de nota, devolve []. " +
+            'Para cada VAGA acrescenta obrigatoriamente "missao":{"t":"Candidatar: [vaga] ([organização])","why":"1 linha: porquê esta","area":"oficio","pri":"P1","deadline":"YYYY-MM-DD se o prazo de candidatura for conhecido, senão null"}. ' +
+            "Devolve um array JSON de 0 a 6 itens no formato: " +
+            '[{"title":"","source":"","url":"","summary":"1-2 frases pt-PT (vagas: requisitos-chave e prazo; eventos: data e local)","relevance":"1 frase: porque interessa ao Daniel AGORA","area":"vaga|evento"}]',
+          true,
+        );
+        const vitems = (jsonFrom(vtxt) as Array<Record<string, unknown>>) || [];
+        for (const it of vitems.slice(0, 6)) await insertItem(it);
+      } catch (e) {
+        console.log("vigia falhou (radar segue):", String(e));
       }
       // higiene: apaga itens com mais de 30 dias (a UI mostra 7)
       const cutoff = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);

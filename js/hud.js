@@ -27,14 +27,8 @@ function renderDebuffs(){
       <div class="dbf-body"><div class="ef">Efeito: ${d.ef}</div><div class="an3">Antídoto: ${d.an}</div>
         <button class="antbtn" onclick="applyAntidote('${d.id}',event)">✓ Apliquei o antídoto (+10 Disciplina)</button></div></div>`;}).join('');
 }
-/* ===== SKILL TREES ===== */
-function renderTree(){
-  document.getElementById('trees').innerHTML=TREES.map(t=>{const a=AM[t.attr],lvl=S.attrs[t.attr].level;let row='';
-    t.nodes.forEach((n,i)=>{const un=lvl>=n[1];
-      if(i>0){const pu=lvl>=t.nodes[i-1][1];row+=`<div class="tree-link ${pu?'un':''}" style="color:${a.color}"></div>`;}
-      row+=`<div class="node ${un?'un':''}" style="color:${a.color}"><div class="nd-dot">${un?'★':n[1]}</div><div class="nd-lbl">${n[0]}</div></div>`;});
-    return `<div class="tree dom-${t.attr}"><div class="tree-h"><span class="adot" style="background:${a.color};box-shadow:0 0 8px ${a.color}"></span>${a.name}</div><div class="tree-row">${row}</div></div>`;}).join('');
-}
+/* ===== SKILL TREES ===== (M12·4C: substituídas pelas Constelações — os nós
+   por nível vivem agora em CONSTELLATIONS/data.js, forma nova, dados iguais) */
 /* ===== REALITY ENGINE — TÍTULOS COM EVIDÊNCIA ===== */
 const titleOpenSet=new Set();
 function reqMet(t,r){if(r.auto)return isTitleUnlocked(r.auto);return!!(S.titleEv[t.id]&&S.titleEv[t.id][r.id])}

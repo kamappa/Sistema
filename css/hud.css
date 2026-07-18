@@ -711,3 +711,11 @@
   .const-card .ck{font-family:var(--mono);font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
   .const-card .cx{position:absolute;top:4px;right:8px;cursor:pointer;color:var(--mut)}
   .const-card .now{color:var(--mut);margin-top:4px;line-height:1.45}
+  .const-opts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  /* fallback DOM sem WebGL (4C) */
+  .const-dom{height:auto!important;min-height:0}
+  .const-dom canvas{display:none}
+  .const-dom #const-labels{position:static;pointer-events:auto;padding:6px 2px}
+  .cfb{font-size:12px;margin:4px 0;color:var(--mut)}
+  .cfb.on{color:var(--ink)}
+  .cfb.dim{color:var(--mut2);font-style:italic}

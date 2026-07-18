@@ -56,7 +56,16 @@ export function domainState(attr){
   c.stars.forEach((s,i)=>{
     disc[s.id]=!lit[s.id]&&((adj[s.id]||[]).some(o=>lit[o])||i===0);
   });
-  return{c,lit,disc};
+  /* Estrela de Escolha (4C) — identidade, não evidência; mas o desbloqueio é
+     gated por evidência e a escolha é reversível */
+  let choice=null;
+  if(c.choice){
+    const unlocked=evalReq(attr,c.choice.unlock);
+    let chosen=null;
+    try{chosen=(S&&S.constellation&&S.constellation.choices&&S.constellation.choices[attr])||null;}catch(e){}
+    choice={def:c.choice,state:unlocked?(chosen?'chosen':'pending'):'hidden',chosen};
+  }
+  return{c,lit,disc,choice};
 }
 
 const hxv=h=>[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];
@@ -79,7 +88,7 @@ void main(){
   gl_FragColor=vec4(col,1.);
 }`;
 const ST_VERT=`
-attribute float aSize;attribute float aMode;attribute float aHov;attribute float aBirth;
+attribute float aSize;attribute float aMode;attribute float aHov;attribute float aBirth;attribute float aPulse;
 uniform vec2 uRes;uniform float uPix;uniform float uTime;uniform vec2 uPan;
 varying float vMode;varying float vB;
 float back(float k){k=clamp(k,0.,1.);float s=1.70158;k-=1.;return k*k*((s+1.)*k+s)+1.;}
@@ -88,7 +97,8 @@ void main(){
   float b=aBirth<0.?1.:back(clamp((uTime-aBirth)/1.2,0.,1.));
   gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
   float tw=.92+.08*sin(uTime*1.6+position.x*.05);
-  gl_PointSize=aSize*uPix*b*(1.+aHov*.4)*tw;
+  float inv=1.+aPulse*.25*sin(uTime*2.6); /* escolha pendente convida ao clique */
+  gl_PointSize=aSize*uPix*b*(1.+aHov*.4)*tw*inv;
   vMode=aMode;vB=clamp(b,0.,1.);
 }`;
 const ST_FRAG=`uniform vec3 uCol;varying float vMode;varying float vB;
@@ -120,12 +130,68 @@ void main(){
   gl_FragColor=vec4(uCol*a,a);
 }`;
 
+/* sem WebGL (4C) — o céu em DOM: a informação nunca se perde. Mantém os
+   chips, os três estados e a Estrela de Escolha; sem animação, mas os
+   nascimentos emitem na mesma no bus. */
+function initDomFallback(){
+  const labels=document.getElementById('const-labels');
+  const chips=document.getElementById('const-chips');
+  const cv=document.getElementById('constel-cv');
+  if(!labels||!chips)return;
+  if(cv)cv.style.display='none';
+  labels.parentElement.classList.add('const-dom');
+  let domain='oficio';
+  const prevLit={};let baseline=false;
+  function evaluateAll(){
+    for(const attr in CONSTELLATIONS){
+      const st=domainState(attr);if(!st)continue;
+      const prev=prevLit[attr]||{};
+      st.c.stars.forEach(s=>{
+        if(st.lit[s.id]&&!prev[s.id]&&baseline&&window.Bus)Bus.emit('star:lit',{attr:attr,id:s.id});
+      });
+      prevLit[attr]=st.lit;
+    }
+    baseline=true;
+  }
+  function buildChips(){
+    chips.innerHTML=ATTRS.map(a=>
+      `<div class="const-chip ${a.id===domain?'on':''}" data-d="${a.id}">
+        <span class="cd" style="background:${a.color}"></span>${a.name}</div>`).join('');
+    [...chips.children].forEach(el=>el.onclick=()=>{domain=el.dataset.d;buildChips();drawDom();});
+  }
+  function drawDom(){
+    const st=domainState(domain);if(!st)return;
+    const dcol=(typeof AM!=='undefined'&&AM[domain])?AM[domain].color:'#a78bfa';
+    const hid=st.c.stars.filter(s=>!st.lit[s.id]&&!st.disc[s.id]).length;
+    let html=st.c.stars.filter(s=>st.lit[s.id]).map(s=>
+      `<div class="cfb on" style="color:${dcol}">★ ${s.n}</div>`).join('');
+    html+=st.c.stars.filter(s=>st.disc[s.id]).map(()=>`<div class="cfb">✦ ─────</div>`).join('');
+    if(hid)html+=`<div class="cfb dim">… e ${hid} estrelas escondidas</div>`;
+    if(st.choice&&st.choice.state==='chosen')
+      html+=`<div class="cfb on" style="color:${dcol}">◈ Caminho: ${st.choice.chosen}</div>`;
+    else if(st.choice&&st.choice.state==='pending')
+      html+=`<div class="cfb">◈ Caminho por escolher: ${st.choice.def.options.map(o=>
+        `<button class="mini" data-o="${o}">${o}</button>`).join(' ')}</div>`;
+    labels.innerHTML=html;
+    labels.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{
+      try{
+        S.constellation=S.constellation||{};S.constellation.choices=S.constellation.choices||{};
+        S.constellation.choices[domain]=b.dataset.o;
+      }catch(e){return;}
+      if(window.Bus)Bus.emit('star:choice',{attr:domain,opt:b.dataset.o});
+      if(typeof save==='function')save();else drawDom();
+    });
+  }
+  window.renderConstellation=()=>{evaluateAll();drawDom();};
+  buildChips();evaluateAll();drawDom();
+}
+
 export function initConstellation(){
   const cv=document.getElementById('constel-cv');
   if(!cv||typeof CONSTELLATIONS==='undefined')return;
   let renderer;
   try{renderer=new THREE.WebGLRenderer({canvas:cv,antialias:false,depth:false,stencil:false});}
-  catch(e){return;} /* sem WebGL: fallback DOM na 4C */
+  catch(e){initDomFallback();return;}
   const scene=new THREE.Scene();
   const camera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
   const labels=document.getElementById('const-labels');
@@ -179,7 +245,8 @@ export function initConstellation(){
     baseline=true;
   }
   function stateKey(st){
-    return domain+'|'+st.c.stars.map(s=>st.lit[s.id]?'1':st.disc[s.id]?'d':'0').join('');
+    return domain+'|'+st.c.stars.map(s=>st.lit[s.id]?'1':st.disc[s.id]?'d':'0').join('')
+      +'|'+(st.choice?st.choice.state+(st.choice.chosen||''):'');
   }
   function draw(force){
     const st=domainState(domain);if(!st)return;
@@ -228,16 +295,34 @@ export function initConstellation(){
       const l=new THREE.LineSegments(g,m);l.frustumCulled=false;l.renderOrder=1;
       scene.add(l);
     };
+    /* estrela de escolha — pendente pulsa; escolhida acende com o nome do caminho */
+    let choiceStar=null;
+    if(st.choice&&st.choice.state!=='hidden'){
+      const d=st.choice.def;
+      choiceStar={id:d.id,n:st.choice.chosen||'',x:d.x,y:d.y,_choice:true,_state:st.choice.state};
+      const L=byId[d.link];
+      if(L&&visSt(L)){
+        const len=Math.hypot((L.x-d.x)*W,(L.y-d.y)*H);
+        const b=births[domain+':'+d.id];const bt=(b!=null)?b:-1;
+        const g=st.choice.state==='chosen'?mk.lit:mk.dim;
+        g.pos.push(d.x*W,d.y*H,0,L.x*W,L.y*H,0);
+        g.t.push(0,1);g.px.push(0,len);g.birth.push(bt,bt);
+      }
+    }
     mkLines(mk.dim,.09,0);mkLines(mk.lit,.34,1);
     /* estrelas */
     shown=st.c.stars.filter(visSt);
+    if(choiceStar)shown=shown.concat(choiceStar);
     if(shown.length){
       const n=shown.length;
       const pos=new Float32Array(n*3),sz=new Float32Array(n),md=new Float32Array(n),
-        hv=new Float32Array(n),bi=new Float32Array(n);
+        hv=new Float32Array(n),bi=new Float32Array(n),pu=new Float32Array(n);
       shown.forEach((s,i)=>{
         pos[i*3]=s.x*W;pos[i*3+1]=s.y*H;
-        sz[i]=st.lit[s.id]?18:6;md[i]=st.lit[s.id]?1:0;
+        if(s._choice){
+          sz[i]=s._state==='chosen'?18:11;md[i]=s._state==='chosen'?1:0;
+          pu[i]=s._state==='pending'?1:0;
+        }else{sz[i]=st.lit[s.id]?18:6;md[i]=st.lit[s.id]?1:0;}
         const b=births[domain+':'+s.id];bi[i]=(b!=null)?b:-1;
       });
       starGeo=new THREE.BufferGeometry();
@@ -246,6 +331,7 @@ export function initConstellation(){
       starGeo.setAttribute('aMode',new THREE.BufferAttribute(md,1));
       starGeo.setAttribute('aHov',new THREE.BufferAttribute(hv,1));
       starGeo.setAttribute('aBirth',new THREE.BufferAttribute(bi,1));
+      starGeo.setAttribute('aPulse',new THREE.BufferAttribute(pu,1));
       const m=new THREE.ShaderMaterial({vertexShader:ST_VERT,fragmentShader:ST_FRAG,
         transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
         uniforms:{uRes:{value:new THREE.Vector2(W,H)},uPix:{value:pix},
@@ -253,10 +339,15 @@ export function initConstellation(){
       starPts=new THREE.Points(starGeo,m);starPts.frustumCulled=false;starPts.renderOrder=2;
       scene.add(starPts);
       if(labels)shown.forEach(s=>{
-        if(!st.lit[s.id])return;
-        const d=document.createElement('div');d.className='const-lb';
-        d.style.left=(s.x*100)+'%';d.style.top=(s.y*100)+'%';d.style.color=dcol;
-        d.textContent=s.n;labels.appendChild(d);
+        const isLit=s._choice?s._state==='chosen':st.lit[s.id];
+        const pend=s._choice&&s._state==='pending';
+        if(!isLit&&!pend)return;
+        const d=document.createElement('div');
+        d.className='const-lb'+(pend?' dim':'');
+        d.style.left=(s.x*100)+'%';d.style.top=(s.y*100)+'%';
+        if(isLit)d.style.color=dcol;
+        d.textContent=pend?'escolher caminho':s.n;
+        labels.appendChild(d);
       });
     }
     renderer.render(scene,camera);
@@ -282,19 +373,55 @@ export function initConstellation(){
     return best;
   }
   function hideCard(){if(card){card.remove();card=null;}}
+  function place(s){
+    card.style.left=Math.min(80,Math.max(5,s.x*100))+'%';
+    card.style.top=Math.min(62,Math.max(5,s.y*100))+'%';
+    card.querySelector('.cx').onclick=hideCard;
+    wrap.appendChild(card);
+  }
   function showCard(s){
     hideCard();
     const st=curState;if(!st)return;
+    if(s._choice){
+      const an=(typeof AM!=='undefined'&&AM[domain])?AM[domain].name:domain;
+      card=document.createElement('div');card.className='const-card';
+      if(s._state==='pending'){
+        card.innerHTML=`<span class="cx">✕</span><div class="ck">Estrela de Escolha</div>
+          <b>Caminho de ${an}</b>
+          <div class="now">Identidade, não evidência: escolhe a tua especialização. Podes reconsiderar mais tarde.</div>
+          <div class="const-opts">${st.choice.def.options.map(o=>`<button class="mini" data-o="${o}">${o}</button>`).join('')}</div>`;
+      }else{
+        card.innerHTML=`<span class="cx">✕</span><div class="ck">Estrela de Escolha</div>
+          <b>${st.choice.chosen}</b>
+          <div class="now">O teu caminho em ${an}.</div>
+          <div class="const-opts"><button class="mini" data-r="1">Reconsiderar</button></div>`;
+      }
+      place(s);
+      card.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{
+        try{
+          S.constellation=S.constellation||{};S.constellation.choices=S.constellation.choices||{};
+          S.constellation.choices[domain]=b.dataset.o;
+        }catch(e){return;}
+        births[domain+':'+st.choice.def.id]=tNow();
+        if(window.Bus)Bus.emit('star:choice',{attr:domain,opt:b.dataset.o});
+        hideCard();
+        if(typeof save==='function')save();else draw(true);
+      });
+      const rb=card.querySelector('[data-r]');
+      if(rb)rb.onclick=()=>{
+        try{delete S.constellation.choices[domain];}catch(e){}
+        hideCard();
+        if(typeof save==='function')save();else draw(true);
+      };
+      return;
+    }
     const lit=st.lit[s.id],r=reqText(domain,s.req);
     card=document.createElement('div');card.className='const-card';
     card.innerHTML=`<span class="cx">✕</span>
       <div class="ck">${lit?'Estrela acesa':'Estrela adormecida'}</div>
       <b>${lit?s.n:'✦ ─────'}</b>
       <div class="now">${lit?'Evidência cumprida: '+r.need:'Evidência: '+r.need+'<br>'+r.now}</div>`;
-    card.style.left=Math.min(85,Math.max(5,s.x*100))+'%';
-    card.style.top=Math.min(70,Math.max(5,s.y*100))+'%';
-    card.querySelector('.cx').onclick=hideCard;
-    wrap.appendChild(card);
+    place(s);
   }
   cv.addEventListener('pointermove',e=>{
     const r=cv.getBoundingClientRect();

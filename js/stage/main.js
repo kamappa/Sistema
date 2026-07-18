@@ -56,7 +56,7 @@ function init(tier){
     meteor(){meteor.fire();},
     pulse(v){react.fire(v);},
     energy(){return react.value;},
-    world(){return{hour:world.hour,pace:world.pace,glow:world.glow,arc:world.arc,recovery:world.recovery};},
+    world(){return{hour:world.hour,pace:world.pace,glow:world.glow,arc:world.arc,recovery:world.recovery,presence:world.presence};},
   }};
   /* façade clássica — mesmos nomes e semântica do fundo 2D removido */
   window.dustStart=()=>{if(!rm.matches)engine.start();};

@@ -180,6 +180,7 @@ async function sendConselho(){
     if(r.ok&&j.reply){
       ok=true;
       OC_HIST.push({role:'assistant',content:j.reply});
+      if(window.Bus)Bus.emit('oracle:spoke'); // o mundo abranda e escuta (M12·S5)
       ocType(ocBubble('oc-orc',''),j.reply);
       ocOfferMission(j.reply);
     }else if(j.error==='limite'){

@@ -90,7 +90,7 @@ export function createSolarLayer(sky,world){
       const s=sampleSolar(world.hour,{rain:world.rain,clear:false});
       const k=Math.min(1,dt*.5);
       const u=sky.uniforms;
-      const calm=world.recovery?.75:1;
+      const calm=(world.recovery?.75:1)*(1+(world.presence||0)*.25); /* o Oráculo presente: a nebulosa encorpa */
       lerpC(u.cTop.value,s.top,k);lerpC(u.cMid.value,s.mid,k);lerpC(u.cBot.value,s.bot,k);
       lerpC(u.cNeb.value,s.neb,k);lerpC(u.cHor.value,s.horGl,k);
       u.uNebAmp.value+=(s.nebAmp*calm-u.uNebAmp.value)*k;

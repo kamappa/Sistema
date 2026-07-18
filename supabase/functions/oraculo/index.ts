@@ -164,6 +164,33 @@ Regras invioláveis:
 
 Sê direto, caloroso e exigente. pt-PT sempre. Texto simples com quebras de linha (sem markdown pesado). Máximo ~450 palavras por resposta. Termina consultas de decisão com UMA ação concreta para as próximas 48h, numa linha final que comece exatamente por "⚔ Ação (48h): " — é essa linha que o Sistema pode converter em missão. Noutros tipos de resposta não uses esse marcador.`;
 
+/* ===== A VOZ DO GUARDIÃO (Missão 12 · Sprint 5) =====
+   Camada de identidade POR CIMA da CONSTITUICAO — nunca a substitui: as
+   regras invioláveis (números reais, proteção, mundo real) mandam sempre.
+   O tom muda subtilmente com o arco sazonal (mesmo mapa de meses do
+   frontend em data.js). */
+function arcoAtual(): string {
+  const m = new Date().getMonth() + 1;
+  if ([6, 7, 8, 9].includes(m)) return "summer";
+  if ([10, 11].includes(m)) return "harvest";
+  if ([12, 1, 2].includes(m)) return "winter";
+  return "bloom";
+}
+const TOM_ARCO: Record<string, string> = {
+  summer: "Estamos no Summer Arc (exposição, estágio, networking): o teu tom está um grau mais enérgico e voltado para o mundo exterior.",
+  harvest: "Estamos no Harvest Arc (consolidação): o teu tom é o de quem faz o balanço — sereno, retrospetivo, focado no que ficou.",
+  winter: "Estamos no Winter Forge (construção profunda): o teu tom é mais silencioso e exigente — menos palavras, mais peso.",
+  bloom: "Estamos no Bloom Arc (abrir portas): o teu tom é curioso e encorajador de experiências novas.",
+};
+const VOZ = `
+
+IDENTIDADE — O GUARDIÃO DO NÚCLEO:
+Não és um chatbot: és uma entidade do Sistema que observa o universo do Daniel — as constelações dele acendem com evidência real (níveis dos atributos, streaks, Títulos Reais, missões concluídas; vês tudo isso no ESTADO). Quando ajudar a ver melhor, traduz acontecimentos reais para essa linguagem ("a constelação do Saber cresceu mais depressa do que a do Corpo") — mas a imagem ilustra, o dado sustenta: nunca substituis números por metáfora.
+Tom: sóbrio, de mestre que fala pouco e a tempo. NUNCA elogios vazios ("bom trabalho", "parabéns!"); reconhecimento, quando merecido, é específico e seco. Às vezes a resposta mais sábia é curta.
+Humildade: fazes leituras, não certezas. Se os dados de hoje contradisserem uma leitura tua anterior (vês os últimos relatórios), di-lo sem drama: "interpretei mal os sinais".
+Caminhos: se ele escolheu caminhos nas constelações (campo caminhosEscolhidos do ESTADO), isso é identidade — pesa-os nas recomendações sem nunca bloquear o resto.
+` + TOM_ARCO[arcoAtual()];
+
 function chatCors(req: Request): Record<string, string> {
   const o = req.headers.get("origin") ?? "";
   const ok = o === "https://kamappa.github.io" || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o);
@@ -201,6 +228,12 @@ function resumoEstado(st: Record<string, any>): Record<string, unknown> {
     missoesPendentes: (st.objectives ?? []).filter((o: any) => o.status !== "done").slice(0, 20)
       .map((o: any) => ({ t: o.title, pri: o.pri, prazo: o.deadline, estado: o.status, area: o.area })),
     missoesConcluidas: (st.objectives ?? []).filter((o: any) => o.status === "done").length,
+    /* constelações (M12·S5) — o Guardião fala do céu a partir destes dados */
+    titulosReais: Object.keys(st.titleUnlocked ?? {}),
+    melhorStreak: Math.max(0, ...[...(st.oblig ?? []), ...(st.extras ?? [])].map((h: any) => h.streak ?? 0)),
+    missoesFeitasPorArea: (st.objectives ?? []).filter((o: any) => o.status === "done")
+      .reduce((m: Record<string, number>, o: any) => { m[o.area] = (m[o.area] ?? 0) + 1; return m; }, {}),
+    caminhosEscolhidos: st.constellation?.choices ?? {},
     eventosProximos: (st.events ?? []).filter((e: any) => e.date >= hoje).sort((a: any, b: any) => (a.date < b.date ? -1 : 1)).slice(0, 10),
     sonoUltimos7: (st.sleep?.logs ?? []).slice(-7),
     treinoSessoes14d: (st.training?.sessions ?? []).filter((s: any) => (s.d ?? s.date ?? "") >= dias(14)).length,
@@ -259,7 +292,7 @@ async function chatHandler(req: Request): Promise<Response> {
     const sobreEstudo = /estud|vault|obsidian|nota|apontament|resum|revis|aprend|mat[ée]ria|recall/.test(pergunta);
     const vaultDeep = row && sobreEstudo ? await vaultContextDeep(7, 12000) : "";
 
-    const system = CONSTITUICAO +
+    const system = CONSTITUICAO + VOZ +
       "\n\nESTADO REAL DO DANIEL (única fonte legítima de números):\n" + JSON.stringify(resumoEstado(st)) +
       "\n\nÚLTIMOS RELATÓRIOS SEMANAIS:\n" + JSON.stringify(relatorios) +
       (vaultDeep ? "\n\nNOTAS DE ESTUDO REAIS DO VAULT (últimos 7 dias — usa-as quando a conversa tocar no estudo dele):\n" + vaultDeep : "");
@@ -285,7 +318,7 @@ async function sussurroHandler(req: Request): Promise<Response> {
     const st = (row?.state ?? {}) as Record<string, any>;
     // vault só para o operador real (tem estado no Sistema) — não para contas soltas
     const vaultLight = row ? await vaultContextLight(24) : "";
-    const sys = "És o Oráculo do Sistema do Daniel. Recebes o estado real dele e escreves NO MÁXIMO UMA linha (≤140 caracteres, pt-PT) verdadeiramente útil para HOJE — por exemplo um prazo próximo cruzado com um tema fraco no recall, um obrigatório em risco, uma sequência a proteger, ou uma ponte entre o que ele estudou ontem no vault e o dia de hoje. Regras: só factos presentes no estado ou nas notas; nada de números inventados; sem saudações, sem emojis, sem aspas. Se não houver nada digno de nota, responde exatamente SILENCIO.";
+    const sys = "És o Oráculo do Sistema do Daniel. Recebes o estado real dele e escreves NO MÁXIMO UMA linha (≤140 caracteres, pt-PT) verdadeiramente útil para HOJE — por exemplo um prazo próximo cruzado com um tema fraco no recall, um obrigatório em risco, uma sequência a proteger, ou uma ponte entre o que ele estudou ontem no vault e o dia de hoje. Regras: só factos presentes no estado ou nas notas; nada de números inventados; sem saudações, sem emojis, sem aspas. Fala como o Guardião do Núcleo: sóbrio, específico, sem elogios vazios; podes usar a linguagem das constelações quando iluminar o dado. Se não houver nada digno de nota, responde exatamente SILENCIO.";
     const linha = (await chatClaude(sys, [{ role: "user", content: "ESTADO:\n" + JSON.stringify(resumoEstado(st)) + (vaultLight ? "\n\nESTUDO NAS ÚLTIMAS 24H (vault):\n" + vaultLight : "") }], 150)).trim();
     const out = /^sil[êe]ncio\.?$/i.test(linha) || !linha ? null : linha.slice(0, 200);
     return new Response(JSON.stringify({ linha: out }), { status: 200, headers: H });
@@ -320,6 +353,7 @@ function reportMd(rep: Record<string, any>, d: string): string {
     for (const r of rep.recursos) L.push("- [" + (r.titulo ?? r.url) + "](" + (r.url ?? "") + ") · " + (r.fonte ?? "") + " — " + (r.porque ?? ""));
     L.push("");
   }
+  sec("Profecia", rep.profecia);
   sec("Recompensa", rep.recompensa);
   sec("Título da semana", rep.titulo);
   sec("Legado", rep.legado);
@@ -355,7 +389,8 @@ async function gerarReport(st: Record<string, unknown>): Promise<Record<string, 
       " Analisas apenas dados reais fornecidos; nunca inventas números nem tendências sem evidência. " +
       "Se os dados forem escassos, dizes isso com honestidade. " +
       "Nas missões, recompensa e título podes ser criativo e bem-humorado — mas sempre realista e ligado aos dados dele. " +
-      "Respondes APENAS com JSON válido.",
+      VOZ +
+      " Respondes APENAS com JSON válido.",
     "Estado atual do Sistema dele (JSON): " + JSON.stringify(st).slice(0, 60000) +
       (vault
         ? "\n\nESTUDO REAL NO VAULT (notas Obsidian em Sistema/Estudo, com timestamps dos commits):\n" + vault
@@ -368,6 +403,7 @@ async function gerarReport(st: Record<string, unknown>): Promise<Record<string, 
       '"propostas":[{"t":"título curto","why":"porquê, ligado aos dados"}],' +
       '"missoes_propostas":[{"t":"missão concreta e criativa","why":"ligação aos dados/objetivos dele","area":"oficio|saber|corpo|mente|vinculos|disciplina","pri":"P1|P2|P3","deadline":"YYYY-MM-DD ou null"}],' +
       '"recursos":[{"titulo":"","url":"","fonte":"EUR-Lex|ENISA|CNCS|CNPD|EDPB|curso|artigo","porque":"1 linha: como complementa o que ele estudou"}],' +
+      '"profecia":"UMA previsão condicional VERIFICÁVEL, ancorada numa tendência real dos dados desta semana, no formato \'Se [condição concreta que depende dele] durante [prazo], [consequência esperada no Sistema]\' — fala como o Guardião (podes usar a linguagem das constelações); se os dados não sustentarem nenhuma previsão honesta, null",' +
       '"recompensa":"uma recompensa criativa, proporcional ao que ele conquistou esta semana",' +
       '"titulo":"um título honorífico da semana, criativo/humorístico (narrativo, nunca uma credencial)",' +
       '"legado":"uma pergunta de reflexão para a semana"}' +

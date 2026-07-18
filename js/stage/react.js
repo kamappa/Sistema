@@ -4,21 +4,28 @@
    deliberadamente mais calmo — os pulsos chegam amortecidos. A energia vive
    em world.energy e as outras camadas (céu, poeira) leem-na do ctx. */
 export function createReact(world){
-  let energy=0;
+  let energy=0,presence=0;
   if(window.Bus){
     Bus.on('xp:gain',d=>{if(d&&d.amt>0)energy=Math.min(1.4,energy+(world.recovery?.25:.8));});
     Bus.on('rank:up',()=>{energy=1.6;});
     Bus.on('star:lit',()=>{energy=Math.max(energy,1.2);}); /* uma estrela nasceu (4B) */
     Bus.on('star:choice',()=>{energy=Math.max(energy,1);}); /* um caminho foi escolhido (4C) */
+    /* presença do Oráculo (S5) — não é energia: é gravidade. O mundo abranda
+       e escuta durante ~6s; decai devagar */
+    Bus.on('oracle:spoke',()=>{presence=1;});
   }
   return{
     resize(){},
     update(t,dt,ctx){
       energy*=Math.exp(-dt*1.8);
       if(energy<.001)energy=0;
+      presence*=Math.exp(-dt*.5);
+      if(presence<.001)presence=0;
       ctx.world.energy=energy;
+      ctx.world.presence=presence;
     },
     fire(v){energy=v==null?1:v;}, /* Stage.debug.pulse() */
     get value(){return energy;},  /* Stage.debug.energy() — verificação */
+    get presenceValue(){return presence;},
   };
 }

@@ -115,10 +115,11 @@ export function createDust(tier){
     update(t,dt,ctx){
       now=t;
       /* tempo elástico: energia acelera (+150% no pico), Recovery acalma,
-         e o ritmo do dia (world.pace, Solar) comanda a base — a "música
-         visual": de manhã o mundo acorda, à noite desacelera */
+         o ritmo do dia (world.pace, Solar) comanda a base, e a presença do
+         Oráculo (S5) abranda o mundo enquanto ele fala */
       am.uniforms.uWarp.value+=dt*(ctx.world.pace||1)
-        *(1+(ctx.world.energy||0)*1.5)*(ctx.world.recovery?.8:1);
+        *(1+(ctx.world.energy||0)*1.5)*(ctx.world.recovery?.8:1)
+        *(1-(ctx.world.presence||0)*.3);
       am.uniforms.uTime.value=t;pm.uniforms.uTime.value=t;
       am.uniforms.uBreath.value=ctx.breath||1;
       am.uniforms.uFall.value+=((ctx.world.rain?1:0)-am.uniforms.uFall.value)*Math.min(1,dt);

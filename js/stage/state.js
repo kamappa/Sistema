@@ -2,7 +2,7 @@
    hour/rain alimentam o Solar Engine (solar.js), que por sua vez escreve
    world.glow (brilho das estrelas) a partir da mesma curva de luz.
    window.ambientRain é escrito pelo lado CSS do Solar (weatherNow ← S.weather). */
-export const world={hour:0,glow:1,rain:false,arc:null,recovery:false,energy:0,pace:1};
+export const world={hour:0,glow:1,rain:false,arc:null,recovery:false,energy:0,pace:1,presence:0};
 let hourOverride=null;
 export function setHourOverride(h){hourOverride=h;} // Stage.debug — verificação da 1D
 export function updateWorld(){

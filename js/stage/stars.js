@@ -7,14 +7,15 @@ const VERT=`
 attribute float aSize;attribute float aFreq;attribute float aPhase;
 attribute float aDrift;attribute float aAmp;attribute float aTint;
 uniform float uTime;uniform vec2 uRes;uniform float uScroll;
-uniform float uGlow;uniform float uPix;
+uniform float uGlow;uniform float uPix;uniform float uBreath;
 varying float vA;varying float vTint;
 void main(){
   vec2 p=position.xy;
   p.x=mod(p.x+uTime*aDrift,uRes.x+8.)-4.;
   float wrap=uRes.y+8.;
   p.y=mod(p.y-uScroll*(1.-position.z)*.06+4.,wrap)-4.;
-  gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
+  /* respiração: zoom quase impercetível sobre o centro (clip space) */
+  gl_Position=vec4(vec2(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.)*uBreath,0.,1.);
   gl_PointSize=aSize*uPix;
   vA=aAmp*(.62+.38*sin(uTime*aFreq+aPhase))*uGlow;
   vTint=aTint;
@@ -43,7 +44,7 @@ export function createStars(tier){
   const mat=new THREE.ShaderMaterial({vertexShader:VERT,fragmentShader:FRAG,
     transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
     uniforms:{uTime:{value:0},uRes:{value:new THREE.Vector2(1,1)},uScroll:{value:0},
-      uGlow:{value:1},uPix:{value:1}}});
+      uGlow:{value:1},uPix:{value:1},uBreath:{value:1}}});
   const pts=new THREE.Points(geo,mat);
   pts.frustumCulled=false;pts.renderOrder=1;
   return{mesh:pts,
@@ -65,6 +66,7 @@ export function createStars(tier){
       mat.uniforms.uTime.value=t;
       mat.uniforms.uScroll.value=ctx.scroll;
       mat.uniforms.uGlow.value=ctx.world.glow;
+      mat.uniforms.uBreath.value=ctx.breath||1;
     },
     degrade(){geo.setDrawRange(0,Math.ceil(N/2));}};
 }

@@ -37,6 +37,9 @@ export function createEngine(canvas,tier,world,updateWorld){
     if(t-glowT>5){glowT=t;updateWorld();}
     scroll+=((scrollY||0)-scroll)*.1;
     ctx.scroll=scroll;ctx.t=t;
+    /* respiração da cena (2C) — ciclo ~22s, ±0.4%: quase impercetível,
+       mas o palco nunca está parado */
+    ctx.breath=1+.004*Math.sin(t*.286);
     layers.forEach(l=>l.update(t,dt,ctx));
     renderer.render(scene,camera);
   }

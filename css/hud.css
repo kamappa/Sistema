@@ -25,9 +25,11 @@
     background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
     background-size:46px 46px;
     -webkit-mask-image:radial-gradient(circle at 50% 25%,#000,transparent 78%);mask-image:radial-gradient(circle at 50% 25%,#000,transparent 78%);}
-  /* fundo vivo — Missão 3 fase A */
+  /* fundo vivo — Missão 3 fase A. Sem transition no transform (M12·6): a mola
+     do motion.js é a única dona do movimento — a transition antiga em cima da
+     mola dava dupla suavização e o seguimento ficava mole */
   .aurora{position:fixed;inset:-20%;z-index:0;pointer-events:none;overflow:hidden;
-    transition:transform 2.4s ease-out;will-change:transform}
+    will-change:transform}
   /* nebulosas gigantes (F1 v3) — o patamar central no gradiente dá-lhes corpo
      sem tocar no motor de ambiente; deriva ao longo de minutos, só transform */
   .aurora i{position:absolute;border-radius:50%;will-change:transform}

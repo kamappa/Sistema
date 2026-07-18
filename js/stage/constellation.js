@@ -320,9 +320,9 @@ export function initConstellation(){
       shown.forEach((s,i)=>{
         pos[i*3]=s.x*W;pos[i*3+1]=s.y*H;
         if(s._choice){
-          sz[i]=s._state==='chosen'?18:11;md[i]=s._state==='chosen'?1:0;
+          sz[i]=s._state==='chosen'?20:11;md[i]=s._state==='chosen'?1:0;
           pu[i]=s._state==='pending'?1:0;
-        }else{sz[i]=st.lit[s.id]?18:6;md[i]=st.lit[s.id]?1:0;}
+        }else{sz[i]=st.lit[s.id]?20:6;md[i]=st.lit[s.id]?1:0;} /* calibração M12·6 */
         const b=births[domain+':'+s.id];bi[i]=(b!=null)?b:-1;
       });
       starGeo=new THREE.BufferGeometry();

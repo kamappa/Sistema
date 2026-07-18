@@ -55,7 +55,7 @@ export function createStars(tier){
         pos[i*3]=Math.random()*W;pos[i*3+1]=Math.random()*(H+8);pos[i*3+2]=z;
         size[i]=(.8+z*2.1)*(big?1.5:1);
         drift[i]=.18+z*.72;
-        amp[i]=(.08+Math.random()*.28)*(big?1.5:1);
+        amp[i]=(.10+Math.random()*.30)*(big?1.5:1); /* calibração M12·6 */
         freq[i]=6.283/(2.6+Math.random()*5.4);
         phase[i]=Math.random()*6.283;
         tint[i]=Math.random()<.12?1:0;

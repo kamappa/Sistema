@@ -35,7 +35,7 @@ export function sampleSolar(hour,wx){
   let i=0;while(i<K.length-2&&K[i+1][0]<=h)i++;
   const k=Math.min(1,Math.max(0,(h-K[i][0])/(K[i+1][0]-K[i][0]))),A=K[i],B=K[i+1];
   let top=mixV(A[1],B[1],k),mid=mixV(A[2],B[2],k),bot=mixV(A[3],B[3],k),
-    neb=mixV(A[4],B[4],k),nebAmp=mixN(A[5],B[5],k),
+    neb=mixV(A[4],B[4],k),nebAmp=mixN(A[5],B[5],k)*1.2, /* calibração M12·6: +20% de presença */
     horGl=mixV(A[6],B[6],k),horAmp=mixN(A[7],B[7],k),glow=mixN(A[8],B[8],k),
     pace=mixN(A[12],B[12],k);
   let a1=mixV(A[9],B[9],k),a2=mixV(A[10],B[10],k),hc=mixV(A[11],B[11],k);
@@ -73,7 +73,9 @@ export function createSolarCss(world,updateWorld){
     st.setProperty('--amb3',s.css.amb3);st.setProperty('--horizon',s.css.horizon);
   }
   window.ambientApply=apply;
-  apply();setInterval(apply,60000);
+  apply();
+  setInterval(()=>{if(!document.hidden)apply();},60000); /* poupa em background (M12·6) */
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)apply();});
   return{apply};
 }
 
@@ -97,7 +99,7 @@ export function createSolarLayer(sky,world){
       u.uHorAmp.value+=(s.horAmp-u.uHorAmp.value)*k;
       const tint=world.arc&&ARC_TINT[world.arc];
       lerpC(u.cNeb2.value,tint||NEB2_BASE,k);
-      u.uNeb2Amp.value+=((tint?.055:.035)*calm-u.uNeb2Amp.value)*k;
+      u.uNeb2Amp.value+=((tint?.065:.042)*calm-u.uNeb2Amp.value)*k; /* calibração M12·6 */
       world.glow+=(s.glow*(world.recovery?.9:1)-world.glow)*k;
       world.pace+=(s.pace-world.pace)*k;
     }};

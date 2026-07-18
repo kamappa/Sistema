@@ -51,7 +51,7 @@ export function createSky(tier){
       cBot:{value:new THREE.Color('#150b28')},cNeb:{value:new THREE.Color('#8b5cf6')},
       cNeb2:{value:new THREE.Color('#f0abfc')},cHor:{value:new THREE.Color('#d946ef')},
       /* cNeb2/uNeb2Amp: em 2B passam a ser a tinta do arco sazonal ativo */
-      uNebAmp:{value:.05},uNeb2Amp:{value:.035},uHorAmp:{value:.045},uPulse:{value:0},uBreath:{value:1}}});
+      uNebAmp:{value:.06},uNeb2Amp:{value:.042},uHorAmp:{value:.045},uPulse:{value:0},uBreath:{value:1}}});
   const mesh=new THREE.Mesh(geo,mat);
   mesh.frustumCulled=false;mesh.renderOrder=0;
   return{mesh,

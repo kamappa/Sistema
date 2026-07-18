@@ -397,6 +397,25 @@ Sprint 4 — Constellation System (CONCLUÍDO 2026-07-18):
   escolha persistida, reduced-motion = céu estático mas funcional
   (cartões incluídos), consola limpa em todas as corridas.
 
+Sprint 5 — Oráculo vivo (DEPLOYADO 2026-07-18; aguarda validação da voz
+pelo Daniel no uso real):
+- Servidor (Edge Function `oraculo`, deploy CLI --project-ref): bloco VOZ
+  por cima da CONSTITUICAO — Guardião do Núcleo, linguagem das
+  constelações ancorada em dados ("a imagem ilustra, o dado sustenta"),
+  tom sóbrio sem elogios vazios, humildade ("interpretei mal os sinais"),
+  tom por arco sazonal (mesmo mapa de meses do frontend). Entra no chat,
+  report e sussurro (versão leve). `resumoEstado` ganha titulosReais,
+  melhorStreak, missoesFeitasPorArea e caminhosEscolhidos — as Estrelas
+  de Escolha pesam nas recomendações (dívida da 4C paga). Report ganha
+  `profecia` (condicional verificável ou null), renderizada no HUD (🔮)
+  e na nota do vault. Custo: ~+350 tokens input/chamada, ~+100 output
+  semanal.
+- Frontend: `oracle:spoke` no bus quando o Conselho responde — o mundo
+  abranda e escuta (poeira −30%, nebulosa encorpada, decaimento ~6s).
+- Radar das 06:30 e report de domingo intocados na lógica; nada de sons.
+- Verificação pendente do Daniel: pergunta ao Conselho (voz do Guardião +
+  mundo a abrandar) e/ou `report-dry` para ver a profecia.
+
 Sprints seguintes (roadmap): 2 World Engine · 3 Motion · 4 Constellation
 System · 5 Oráculo vivo · 6 Polimento.
 

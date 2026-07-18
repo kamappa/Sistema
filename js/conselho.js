@@ -40,12 +40,17 @@ function ocBubble(cls,text){
 const OC_THEATER=['A consultar memórias…','A analisar o teu estado…','A reunir o Conselho…','A pesar os trade-offs…'];
 function ocTheaterStart(){
   const log=document.getElementById('oc-log');
+  /* o Oráculo a pensar (M12·3C) — a moldura do painel ganha um brilho lento e
+     o botão pulsa enquanto a resposta não chega; todos os caminhos de saída
+     passam pelo stop(), por isso a classe nunca fica presa */
+  const panel=log.closest('.panel');
+  if(panel)panel.classList.add('oc-thinking');
   const d=document.createElement('div');d.className='oc-think';
   d.innerHTML='<span class="dot"></span><span class="oc-think-t"></span>';
   log.appendChild(d);log.scrollTop=log.scrollHeight;
   const t=d.querySelector('.oc-think-t');let i=0;t.textContent=OC_THEATER[0];
   const iv=setInterval(()=>{i=(i+1)%OC_THEATER.length;t.textContent=OC_THEATER[i];},2200);
-  return{stop:()=>{clearInterval(iv);d.remove();}};
+  return{stop:()=>{clearInterval(iv);d.remove();if(panel)panel.classList.remove('oc-thinking');}};
 }
 
 /* máquina de escrever do Oráculo — texto simples, saltável com clique,

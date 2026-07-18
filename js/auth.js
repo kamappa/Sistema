@@ -58,7 +58,14 @@ async function doSignup(){
   else authErr('Conta criada. Confirma o email que recebeste e depois clica Entrar.',true);
 }
 function goOffline(){USER=null;hideAuth();bootState();}
-async function doLogout(){if(sb)await sb.auth.signOut();location.reload();}
+async function doLogout(){
+  /* a interface adormece (M12·3C) — o mundo esvai-se antes de sair */
+  if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    document.documentElement.classList.add('sys-sleep');
+    await new Promise(r=>setTimeout(r,650));
+  }
+  if(sb)await sb.auth.signOut();location.reload();
+}
 async function enterSystem(){
   hideAuth();document.getElementById('logout-btn').style.display='';
   await bootState();

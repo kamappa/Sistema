@@ -358,6 +358,17 @@
   html{scroll-behavior:smooth}
   .panel{transition:border-color .35s ease,box-shadow .35s ease,transform .18s ease-out}
   .panel:hover{border-color:var(--line2);box-shadow:0 0 24px rgba(139,92,246,.07)}
+  /* o Oráculo a pensar (M12·3C) — brilho lento na moldura + botão a pulsar */
+  .panel.oc-thinking{animation:ocbreathe 2.6s ease-in-out infinite}
+  .oc-thinking #oc-send{animation:ocsend 2.6s ease-in-out infinite}
+  @keyframes ocbreathe{0%,100%{box-shadow:0 0 16px rgba(167,139,250,.05)}
+    50%{box-shadow:0 0 34px rgba(167,139,250,.2);border-color:var(--line2)}}
+  @keyframes ocsend{50%{box-shadow:0 0 14px rgba(167,139,250,.45)}}
+  /* a interface adormece no logout (M12·3C) */
+  html.sys-sleep body{opacity:0;transition:opacity .6s ease}
+  @media (prefers-reduced-motion: reduce){
+    .panel.oc-thinking,.oc-thinking #oc-send{animation:none}
+    html.sys-sleep body{transition:none}}
   /* glow que segue o cursor (Missão 12 · 1C) — --mx/--my movidos por spring em
      js/motion.js; o clip-path do painel recorta o pseudo-elemento sozinho */
   .panel{--mx:50%;--my:50%}

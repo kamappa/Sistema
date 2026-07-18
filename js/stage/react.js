@@ -8,6 +8,7 @@ export function createReact(world){
   if(window.Bus){
     Bus.on('xp:gain',d=>{if(d&&d.amt>0)energy=Math.min(1.4,energy+(world.recovery?.25:.8));});
     Bus.on('rank:up',()=>{energy=1.6;});
+    Bus.on('star:lit',()=>{energy=Math.max(energy,1.2);}); /* uma estrela nasceu (4B) */
   }
   return{
     resize(){},

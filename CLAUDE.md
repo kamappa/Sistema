@@ -78,7 +78,11 @@ estratégico, curiosidade.
   Sombras), treino calistenia (4 linhas de força + pavimento pélvico, 8
   passos, adaptação, teto diário de XP), regulador de sono (backfill,
   anti-farm), calendário, conquistas, debuffs,
-  skill trees, Títulos Reais (evidência), World Engine (arcos sazonais,
+  Constelações (céu de evidência por domínio — estrelas acendem por
+  nível/título/streak/missões, nunca à mão; Estrelas de Escolha reversíveis;
+  substituíram as skill trees na Missão 12), motor visual WebGL (céu
+  procedural + Solar Engine a iluminar céu e UI pela hora real + mundo que
+  reage a XP/rank/estrelas via bus), Títulos Reais (evidência), World Engine (arcos sazonais,
   meteo, sussurros, Double XP), Radar Diário (notícias + alto impacto +
   missões deriváveis), relatório do Oráculo (com missões propostas,
   recompensa, título da semana, estudo lido do vault e recursos com pesquisa

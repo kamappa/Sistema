@@ -6,9 +6,13 @@
     --pink:#f472b6; --orange:#fb923c; --red:#ef4444; --gold:#fbbf24;
     --disp:'Rajdhani',sans-serif; --body:'Inter',sans-serif; --mono:'JetBrains Mono',monospace;
     --notch:14px;
-    /* motor de ambiente (ciclo do dia) — defaults = noite, o estado "casa" */
+    /* motor de ambiente (ciclo do dia) — defaults = noite, o estado "casa";
+       escrito pelo Solar Engine (js/stage/solar.js) desde a Missão 12 */
     --amb1:rgba(139,92,246,.16); --amb2:rgba(240,171,252,.10);
     --amb3:rgba(139,92,246,.07); --horizon:rgba(249,115,22,0);
+    /* tokens de duração (Missão 12 · 1C) — transições CSS novas usam estes;
+       movimento contínuo usa springs (js/motion.js), nunca easing linear */
+    --dur-quick:.12s; --dur-base:.24s; --dur-slow:.48s;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased}
@@ -348,6 +352,14 @@
   html{scroll-behavior:smooth}
   .panel{transition:border-color .35s ease,box-shadow .35s ease,transform .18s ease-out}
   .panel:hover{border-color:var(--line2);box-shadow:0 0 24px rgba(139,92,246,.07)}
+  /* glow que segue o cursor (Missão 12 · 1C) — --mx/--my movidos por spring em
+     js/motion.js; o clip-path do painel recorta o pseudo-elemento sozinho */
+  .panel{--mx:50%;--my:50%}
+  .panel::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;
+    background:radial-gradient(340px 240px at var(--mx) var(--my),rgba(167,139,250,.08),transparent 70%);
+    transition:opacity var(--dur-slow) ease}
+  .panel:hover::after{opacity:1}
+  @media (prefers-reduced-motion: reduce){.panel::after{display:none}}
   .hab,.q,.tit,.ach,.dbf{transition:border-color .22s ease,background .22s ease,transform .22s cubic-bezier(.22,1,.36,1)}
   .hab:hover,.q:hover{transform:translateX(4px)}
   .tit:hover,.ach:hover,.dbf:hover{transform:translateY(-2px)}

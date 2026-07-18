@@ -196,41 +196,13 @@ window.sysTypeHTML=function(els,budget){
   els.forEach(el=>{el.classList.add('io');io.observe(el)});
 })();
 
-/* presença — tilt 3D, botões magnéticos, aurora segue o rato (Missão 3v2 fase 3)
-   Só desktop (pointer:fine); reduced-motion desliga em runtime. */
+/* presença — desde a Missão 12 (fase 1C) o tilt, os botões magnéticos, a
+   aurora e o glow do cursor vivem em js/motion.js, com springs físicas em vez
+   de transform direto por pointermove. */
 document.addEventListener('animationend',e=>{ // liberta o transform após o rise
   if(e.animationName==='rise'&&e.target.classList.contains('reveal'))
     e.target.classList.remove('reveal','io','in');
 });
-(function(){
-  if(!matchMedia('(pointer:fine)').matches)return;
-  const rm=matchMedia('(prefers-reduced-motion: reduce)');
-  const aurora=document.querySelector('.aurora');
-  let curP=null,curB=null,lastA=0;
-  const reset=()=>{if(curP){curP.style.transform='';curP=null}
-    if(curB){curB.style.transform='';curB=null}
-    if(aurora)aurora.style.transform='';};
-  document.addEventListener('pointermove',e=>{
-    if(rm.matches)return;
-    const p=e.target.closest?e.target.closest('.panel'):null;
-    if(curP&&curP!==p){curP.style.transform='';}
-    curP=p;
-    if(p){const r=p.getBoundingClientRect();
-      const kx=(e.clientY-r.top)/r.height-.5,ky=(e.clientX-r.left)/r.width-.5;
-      p.style.transform='perspective(900px) rotateX('+(-kx*3).toFixed(2)+'deg) rotateY('+(ky*3).toFixed(2)+'deg)';}
-    const b=e.target.closest?e.target.closest('.btn,.mini,.rc-btn,.notif-btn,.cal-nav,.antbtn'):null;
-    if(curB&&curB!==b){curB.style.transform='';}
-    curB=b;
-    if(b){const r=b.getBoundingClientRect();
-      b.style.transform='translate('+(((e.clientX-r.left)/r.width-.5)*5).toFixed(1)+'px,'
-                                    +(((e.clientY-r.top)/r.height-.5)*5).toFixed(1)+'px)';}
-    if(aurora&&e.timeStamp-lastA>200){lastA=e.timeStamp;
-      aurora.style.transform='translate('+((e.clientX/innerWidth-.5)*36).toFixed(0)+'px,'
-                                         +((e.clientY/innerHeight-.5)*24).toFixed(0)+'px)';}
-  },{passive:true});
-  document.addEventListener('pointerout',e=>{if(!e.relatedTarget)reset()});
-  rm.addEventListener('change',()=>{if(rm.matches)reset()});
-})();
 
 /* motor de ambiente — absorvido pelo Solar Engine (js/stage/solar.js, Missão 12
    fase 1B): a mesma curva de luz alimenta o céu WebGL e as variáveis CSS

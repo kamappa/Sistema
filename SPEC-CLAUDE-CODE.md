@@ -332,12 +332,12 @@ Sprint 1 — Motor Visual, por fases (diff → OK → commit):
   botões magnéticos e aurora migrados para alvos de mola com inércia; glow
   que segue o cursor via `--mx/--my` (nasce no ponto de entrada;
   `.panel::after`, escondido com reduced-motion).
-- 1D (parte automatizável CONCLUÍDA 2026-07-18; aguarda medição em hardware
-  real): reduced-motion emulado por CDP → tier off, engine ausente, tilt
-  morto; consola limpa em todas as corridas; overlay `?fps=1`
-  (tier · ms · fps · ↓ se degradado · pausado). Falta: 60fps confirmados
-  pelo Daniel no desktop e no Brave do telemóvel (após push), teste de
-  reduced-motion e de separador oculto em aparelho real.
+- 1D (CONCLUÍDA 2026-07-18): reduced-motion emulado por CDP → tier off,
+  engine ausente, tilt morto; consola limpa em todas as corridas; overlay
+  `?fps=1` (tier · ms · fps · ↓ se degradado · pausado). 60fps confirmados
+  pelo Daniel em hardware real — desktop e Brave do telemóvel.
+
+Sprint 1 — Motor Visual: CONCLUÍDO 2026-07-18 (push 3dc422b).
 
 Sprints seguintes (roadmap): 2 World Engine · 3 Motion · 4 Constellation
 System · 5 Oráculo vivo · 6 Polimento.

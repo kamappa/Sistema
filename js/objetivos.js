@@ -58,6 +58,9 @@ function cycleObj(id,ev){ev.stopPropagation();
     if(window.cineArise)cineArise();}
   if(o.status==='done'&&next!=='done'){const p=PRI[o.pri];addXp(o.area,-p.xp);unlog('🗡 ARISE: '+o.title,o.doneDate);S.shadows=S.shadows.filter(s=>s.ref!==o.id);delete o.doneDate;}
   o.status=next;save();
+  /* onda de conclusão (M12·3B) — depois do save/render, no elemento novo */
+  if(next==='done'&&window.cardWave)
+    cardWave(document.querySelector('.obj-row[data-oid="'+id+'"]'),'rgba(167,139,250,.5)');
 }
 function renderObjectives(){
   const el=document.getElementById('objs');if(!el)return;
@@ -72,7 +75,7 @@ function renderObjectives(){
   const rows=list.map(o=>{const p=PRI[o.pri];let dl='';
     if(o.deadline){const d=daysUntil(o.deadline);const c=d<=3?'#ef4444':d<=7?'#fb923c':'var(--mut)';
       dl=`<span class="up-x" style="color:${c}">${d<0?'atrasado':d===0?'hoje':d+'d'}</span>`;}
-    return`<div class="obj-row ${o.status}">
+    return`<div class="obj-row ${o.status}" data-oid="${o.id}">
       <span class="obj-st" onclick="cycleObj('${o.id}',event)" title="pendente → em curso → feito">${OSTL[o.status]}</span>
       <span class="obj-t">${o.title}</span>
       <span class="wchip" style="border-color:${AM[o.area].color};color:${AM[o.area].color};padding:2px 8px">${AM[o.area].name}</span>

@@ -77,6 +77,9 @@ function toggleHabit(list,id,ev){
     const back=(h.lastGain!==undefined&&h.lastGain!==null)?h.lastGain:h.xp;
     addXp(h.attr,-back);unlog(h.name,today());floatXP('\u2212'+back+' XP','#ef4444',ev);if(h.undo){h.streak=h.undo.streak;h.lastDone=h.undo.lastDone;delete h.undo;}else{h.lastDone=null;h.streak=Math.max(0,h.streak-1);}}
   save();
+  /* onda de conclus\u00e3o (M12\u00b73B) \u2014 depois do save/render, no elemento novo */
+  if(!done&&window.cardWave)
+    cardWave(document.querySelector('.hab[data-hid="'+id+'"]'),hexA(AM[h.attr].color,.5));
 }
 function resetAll(){if(confirm('Reiniciar todo o progresso? Não há volta atrás.')){S=fresh();save();}}
 
@@ -85,7 +88,7 @@ function resetAll(){if(confirm('Reiniciar todo o progresso? Não há volta atrá
 const chkI='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#04121f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 function habHTML(h,list,oblig){
   const done=h.lastDone===today();
-  return `<div class="hab ${done?'done':''} ${oblig?'oblig':''}" onclick="toggleHabit('${list}','${h.id}',event)">
+  return `<div class="hab ${done?'done':''} ${oblig?'oblig':''}" data-hid="${h.id}" onclick="toggleHabit('${list}','${h.id}',event)">
     <div class="chk">${chkI}</div>
     <div class="hb"><div class="hn">${h.name}</div>
       <div class="hm">${AM[h.attr].name} · +${h.xp} XP${oblig?' · <span class="pen">falha −'+h.pen+'</span>':''}</div></div>

@@ -103,6 +103,21 @@ function setNum(id,val,fmt){
    mesmos nomes e semântica — por isso celebrate/rankCeremony/barBurst e o
    boot sequence continuam intactos. */
 
+/* onda de conclusão (M12·3B) — uma luz atravessa o cartão uma vez (~700ms).
+   Chamar DEPOIS do render (o innerHTML novo destruiria a onda a meio).
+   O clip-path do cartão recorta-a; reduced-motion = nada. */
+window.cardWave=function(el,color){
+  if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  if(!('animate'in el))return;
+  const w=document.createElement('div');w.className='cwave';
+  if(color)w.style.setProperty('--wc',color);
+  el.appendChild(w);
+  const a=w.animate(
+    [{transform:'translateX(-110%)'},{transform:'translateX(110%)'}],
+    {duration:700,easing:'cubic-bezier(.22,1,.36,1)'});
+  a.onfinish=a.oncancel=()=>w.remove();
+};
+
 /* mini-burst na ponta da barra de um atributo que ganhou XP (F3 v3) —
    espera pelo render para ler a largura nova; só se a barra estiver no viewport */
 window.barBurst=function(attr){

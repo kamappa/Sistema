@@ -438,10 +438,29 @@ completos, Celestial Core, sons opt-in.
 Sprints seguintes (roadmap): 2 World Engine · 3 Motion · 4 Constellation
 System · 5 Oráculo vivo · 6 Polimento.
 
-## Backlog — fila atual (ordenada; atualizada 2026-07-18, pós-Missão 12)
+## Missão 13 — Vigia de Estágios (DEPLOYADA 2026-07-19; 1ª corrida real
+no radar das 06:30 UTC seguinte)
 
-1. Vigia de Estágios (próxima missão)
-2. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
+Decisões do Daniel: Norte de Portugal + remoto; estágios/trainee E
+eventos (recrutamento + ciber/NIS2/ISO 27001/RGPD); cadência diária.
+- Servidor: 2ª pesquisa web na corrida do radar — vagas (area 'vaga',
+  com `missao` P1 "Candidatar" obrigatória, deadline se detetável) e
+  eventos (area 'evento'). Regra inviolável: só URLs da pesquisa dessa
+  conversa; sem nada digno → []. Try/catch: a Vigia falhar nunca derruba
+  o radar.
+- Dedupe por URL contra 30 dias em radar_items — aplicado TAMBÉM às
+  notícias (defeito antigo do radar corrigido: podia repetir itens).
+- HUD: área 'vaga' no RAREA (🎯 verde), destaque tipo alto-impacto sem
+  pulso; botão de aceitar missão reutiliza o fluxo existente
+  (verificado com item simulado).
+- Custo: +1 chamada com pesquisa/dia (~duplica o radar matinal; o report
+  semanal continua a dominar o custo total).
+- Verificar após a 1ª corrida real: qualidade das vagas e ruído — afinar
+  a query se vier lixo.
+
+## Backlog — fila atual (ordenada; atualizada 2026-07-19)
+
+1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
 3. Universe Navigation / Living Memory / Celestial Core (roadmap M12,
    abrir como missões próprias quando o Daniel decidir)
 4. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)

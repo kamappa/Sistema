@@ -319,15 +319,25 @@ Sprint 1 — Motor Visual, por fases (diff → OK → commit):
   temporárias: estrela cadente (volta no Sprint 2/Living World) e rasto do
   rato (substituído pelo glow-segue-cursor na 1C). Verificação de fumo:
   headless Brave/CDP — consola limpa, façade a disparar, screenshots ok.
-- 1B: Solar Engine — luz contínua comandada pela hora real, único escritor de
-  `--amb1/2/3`/`--horizon` (absorve o motor de ambiente do fx.js); meteo a
-  modular; a UI inteira iluminada pelo mundo.
-- 1C: tokens de motion + springs (js/motion.js) — migrar tilt/botões
-  magnéticos para física com inércia, glow que segue o cursor; sem easing
-  linear em lado nenhum.
-- 1D: verificação dura — 60fps em hardware real (desktop + Brave do
-  telemóvel), consola limpa, reduced-motion = zero movimento, pausa com
-  separador oculto; overlay `?fps=1`.
+- 1B (CONCLUÍDA 2026-07-18): Solar Engine — curva contínua de keyframes
+  horários (06h azul fria → golden → sunset → moonlight → deep night) em
+  `js/stage/solar.js`; a mesma amostra alimenta os uniforms do céu WebGL
+  (lerp por frame) e as variáveis CSS `--amb1/2/3`/`--horizon` (único
+  escritor; absorveu o motor de ambiente do fx.js). Meteo real modula
+  (chuva dessatura/acalma; céu limpo aviva); `ambientApply`/`ambientRain`
+  mantêm nome e semântica. O lado CSS corre mesmo com o palco off.
+- 1C (CONCLUÍDA 2026-07-18): motion físico — `js/motion.js` (script
+  clássico): integrador de molas partilhado (loop rAF único que dorme em
+  idle), tokens snappy/gentle/slow + `--dur-quick/base/slow` em CSS; tilt,
+  botões magnéticos e aurora migrados para alvos de mola com inércia; glow
+  que segue o cursor via `--mx/--my` (nasce no ponto de entrada;
+  `.panel::after`, escondido com reduced-motion).
+- 1D (parte automatizável CONCLUÍDA 2026-07-18; aguarda medição em hardware
+  real): reduced-motion emulado por CDP → tier off, engine ausente, tilt
+  morto; consola limpa em todas as corridas; overlay `?fps=1`
+  (tier · ms · fps · ↓ se degradado · pausado). Falta: 60fps confirmados
+  pelo Daniel no desktop e no Brave do telemóvel (após push), teste de
+  reduced-motion e de separador oculto em aparelho real.
 
 Sprints seguintes (roadmap): 2 World Engine · 3 Motion · 4 Constellation
 System · 5 Oráculo vivo · 6 Polimento.

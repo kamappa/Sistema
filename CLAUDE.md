@@ -44,11 +44,16 @@ estratégico, curiosidade.
 - Frontend: site estático publicado por GitHub Pages a cada push para `main`
   (repositório `kamappa/Sistema`, sem workflow de build — Pages serve
   diretamente da raiz). Depois da Missão 2, o antigo monólito está partido:
-  `index.html` (~266 linhas, só HTML) carrega 11 scripts clássicos por ordem
-  documentada (`data → fx → engine → world → hud → recall → treino → sono →
-  objetivos → radar → conselho → auth`, este último com `init()`) e o estilo
-  vive em `css/hud.css`. Scripts clássicos, não ES modules — os `onclick`
-  inline do HTML exigem funções globais.
+  `index.html` carrega 13 scripts clássicos por ordem documentada
+  (`data → bus → fx → motion → engine → world → hud → recall → treino →
+  sono → objetivos → radar → conselho → auth`, este último com `init()`) e
+  o estilo vive em `css/hud.css`. Scripts clássicos, não ES modules — os
+  `onclick` inline do HTML exigem funções globais. Exceção deliberada
+  (Missão 12): o palco visual é uma ilha de ES modules em `js/stage/`
+  (Three.js r170 vendorizado em `js/vendor/`, sem build step) que corre
+  depois dos clássicos e só EXPORTA globals (façade `dustStart`/`dustBurst`/
+  `dustSpark`/`Stage`, `ambientApply`); `js/bus.js` é o pub/sub que liga o
+  código clássico ao palco (`xp:gain`, `rank:up`, `star:lit`, `star:choice`).
 - Backend: Supabase.
   - Auth de utilizador único (Daniel).
   - `app_state`: JSONB com RLS, guarda o estado completo do HUD.

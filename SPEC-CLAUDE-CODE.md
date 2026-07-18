@@ -374,6 +374,29 @@ Sprint 3 — Motion profundo (CONCLUÍDO 2026-07-18):
   consola limpa; overlay `?fps=1` operacional. FPS em aparelho: Daniel
   re-verifica com `?fps=1` no uso normal.
 
+Sprint 4 — Constellation System (CONCLUÍDO 2026-07-18):
+- 4A: catálogo `CONSTELLATIONS` em data.js (6 domínios, 37+6 estrelas,
+  posições à mão) com regras de evidência declarativas — {lvl}/{title}/
+  {streak}/{done} — avaliadas de S; SEM caminho manual ("o Núcleo nunca
+  mente"). Canvas WebGL próprio no painel, render on demand, estados
+  acesa/descoberta/oculta (nome só nas acesas — descoberta é mistério).
+- 4B: nevoeiro fbm do domínio, energia a correr nas ligações acesas,
+  paralaxe com profundidade, hover, cartão de evidência (regra + estado
+  atual por extenso; nome escondido nas adormecidas), nascimento com
+  overshoot + ligações a desenharem-se + `star:lit` no bus (mundo pulsa;
+  1ª avaliação é baseline; deteção em todos os domínios). Loop rAF só
+  com painel visível e sem reduced-motion.
+- 4C: Estrelas de Escolha (1/domínio; desbloqueio por evidência; cartão
+  "identidade, não evidência"; reversível; `S.constellation.choices`;
+  `star:choice`) — influência em radar/missões/Oráculo fica para o
+  Sprint 5. Fallback DOM sem WebGL (lista honesta + escolha funcional).
+  Skill Trees removidas (painel + renderTree + TREES) — os nós por nível
+  são as espinhas das constelações; Títulos Reais intocado (é o cofre da
+  evidência que acende estrelas-chave).
+- 4D: bateria — evidência real a acender estrelas (addXp→nível→star:lit),
+  escolha persistida, reduced-motion = céu estático mas funcional
+  (cartões incluídos), consola limpa em todas as corridas.
+
 Sprints seguintes (roadmap): 2 World Engine · 3 Motion · 4 Constellation
 System · 5 Oráculo vivo · 6 Polimento.
 

@@ -294,11 +294,49 @@ Guarda-custo (estimativa apresentada e aceite antes de aplicar):
   pesquisa web dos recursos acrescenta as chamadas de search já usadas pelo radar
 - Chat: só quando a pergunta é sobre estudo, teto 12k chars
 
-## Backlog — fila atual (ordenada; atualizada 2026-07-14)
+## Missão 12 — Living Operating System (EM CURSO)
 
-1. Vigia de Estágios (próxima missão)
-2. Missão 4 WebGL — gated: refactor já feito (Missão 2), falta Rank C alcançado
-3. Sons opt-in
+Visão-mãe em `SYSTEM-EVOLUTION-ROADMAP.md` (raiz do repo, guardada tal e qual
+a 2026-07-18). Era o item "Missão 4 WebGL" do backlog; o gate "falta Rank C"
+foi levantado deliberadamente pelo Daniel ao lançar a missão. Decisões de
+arquitetura fechadas: Three.js vanilla incremental (r170 vendorizado em
+`js/vendor/`, sem CDN em runtime), SEM React e SEM build step — a app continua
+scripts clássicos + GitHub Pages; o palco WebGL é uma ilha de ES modules em
+`js/stage/` que só EXPORTA globals (façade `dustStart`/`dustBurst`/`dustSpark`
+com os nomes do antigo fundo 2D — fx/engine/boot intocados). Performance
+budget inegociável: 60fps desktop e mobile; degradação progressiva
+(tier full/lite/off em `caps.js` + guarda de FPS em runtime que nunca promove
+de volta); `prefers-reduced-motion` = palco nem nasce; pausa total com
+`document.hidden`. Regra de cada adição: "isto faz o Sistema parecer mais
+vivo?" — se não, não entra. Sem sons no Sprint 1.
+
+Sprint 1 — Motor Visual, por fases (diff → OK → commit):
+- 1A (CONCLUÍDA 2026-07-18): céu procedural (gradiente 3 cores + fbm lento +
+  glow de horizonte + dithering), estrelas com cintilação/parallax no shader,
+  poeira com pool pré-alocado de bursts (zero alocações em runtime); substitui
+  o fundo canvas 2D no mesmo canvas `#dust` (movido para antes da aurora no
+  DOM — céu opaco por baixo, nebulosas CSS por cima). Perdas deliberadas e
+  temporárias: estrela cadente (volta no Sprint 2/Living World) e rasto do
+  rato (substituído pelo glow-segue-cursor na 1C). Verificação de fumo:
+  headless Brave/CDP — consola limpa, façade a disparar, screenshots ok.
+- 1B: Solar Engine — luz contínua comandada pela hora real, único escritor de
+  `--amb1/2/3`/`--horizon` (absorve o motor de ambiente do fx.js); meteo a
+  modular; a UI inteira iluminada pelo mundo.
+- 1C: tokens de motion + springs (js/motion.js) — migrar tilt/botões
+  magnéticos para física com inércia, glow que segue o cursor; sem easing
+  linear em lado nenhum.
+- 1D: verificação dura — 60fps em hardware real (desktop + Brave do
+  telemóvel), consola limpa, reduced-motion = zero movimento, pausa com
+  separador oculto; overlay `?fps=1`.
+
+Sprints seguintes (roadmap): 2 World Engine · 3 Motion · 4 Constellation
+System · 5 Oráculo vivo · 6 Polimento.
+
+## Backlog — fila atual (ordenada; atualizada 2026-07-18)
+
+1. Missão 12 — Living Operating System (EM CURSO, Sprint 1)
+2. Vigia de Estágios
+3. Sons opt-in (o roadmap da Missão 12 dá-lhes contexto novo — Oráculo/mundo)
 4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 
 Ideias antigas retiradas da fila nesta revisão (recuperáveis se voltarem a

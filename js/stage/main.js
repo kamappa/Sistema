@@ -9,6 +9,7 @@ import {createEngine} from './engine.js';
 import {createSky} from './sky.js';
 import {createStars} from './stars.js';
 import {createDust} from './dust.js';
+import {createMeteor} from './meteor.js';
 import {createSolarCss,createSolarLayer} from './solar.js';
 
 const rm=matchMedia('(prefers-reduced-motion: reduce)');
@@ -34,16 +35,19 @@ function init(tier){
   const canvas=document.getElementById('dust');if(!canvas)return;
   updateWorld();
   const engine=createEngine(canvas,tier,world,updateWorld);
-  const sky=createSky(tier),dust=createDust(tier);
+  const sky=createSky(tier),dust=createDust(tier),meteor=createMeteor(tier);
   /* o Solar atualiza primeiro (escreve world.glow e as cores do céu),
      as estrelas leem depois — a ordem das camadas importa */
   engine.add(createSolarLayer(sky,world));
-  engine.add(sky);engine.add(createStars(tier));engine.add(dust);
+  engine.add(sky);engine.add(createStars(tier));engine.add(meteor);engine.add(dust);
   engine.size();
-  window.Stage={tier,engine,debug:{setHour(h){
-    setHourOverride(h);updateWorld();
-    if(window.ambientApply)ambientApply();
-  }}};
+  window.Stage={tier,engine,debug:{
+    setHour(h){
+      setHourOverride(h);updateWorld();
+      if(window.ambientApply)ambientApply();
+    },
+    meteor(){meteor.fire();},
+  }};
   /* façade clássica — mesmos nomes e semântica do fundo 2D removido */
   window.dustStart=()=>{if(!rm.matches)engine.start();};
   window.dustBurst=hex=>{

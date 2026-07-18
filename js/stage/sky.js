@@ -14,8 +14,8 @@ void main(){vUv=position.xy*.5+.5;gl_Position=vec4(position.xy,1.,1.);}
 const FRAG=`
 varying vec2 vUv;
 uniform float uTime;uniform vec2 uRes;uniform float uDetail;
-uniform vec3 cTop;uniform vec3 cMid;uniform vec3 cBot;uniform vec3 cNeb;uniform vec3 cHor;
-uniform float uNebAmp;uniform float uHorAmp;
+uniform vec3 cTop;uniform vec3 cMid;uniform vec3 cBot;uniform vec3 cNeb;uniform vec3 cNeb2;uniform vec3 cHor;
+uniform float uNebAmp;uniform float uNeb2Amp;uniform float uHorAmp;
 float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
   return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
@@ -23,10 +23,14 @@ void main(){
   float h=vUv.y;
   vec3 col=mix(cBot,cMid,smoothstep(0.,.55,h));
   col=mix(col,cTop,smoothstep(.5,1.,h));
+  /* nebulosa em camadas (2A) — a 1ª é larga e difusa; a 2ª, mais fina, faz
+     domain warp sobre a 1ª (aspeto de gás) e concentra-se em manchas (pow) */
   vec2 p=vec2(vUv.x*uRes.x/max(uRes.y,1.),vUv.y)*2.6;
   float n=noise(p+vec2(uTime*.006,uTime*.004));
   if(uDetail>1.5)n=n*.68+.32*noise(p*2.3-vec2(uTime*.004,uTime*.007));
   col+=cNeb*n*uNebAmp*(1.-h*.55);
+  float n2=noise(p*1.7+vec2(n*.8,-n*.5)+vec2(-uTime*.003,uTime*.005));
+  col+=cNeb2*n2*n2*uNeb2Amp*(1.-h*.35);
   col+=cHor*pow(1.-h,3.)*uHorAmp;
   float vg=smoothstep(1.25,.35,length(vUv-vec2(.5,.42)));
   col*=mix(.9,1.,vg);
@@ -44,8 +48,9 @@ export function createSky(tier){
       uDetail:{value:tier==='full'?2:1},
       cTop:{value:new THREE.Color('#050310')},cMid:{value:new THREE.Color('#0a0618')},
       cBot:{value:new THREE.Color('#150b28')},cNeb:{value:new THREE.Color('#8b5cf6')},
-      cHor:{value:new THREE.Color('#d946ef')},
-      uNebAmp:{value:.05},uHorAmp:{value:.045}}});
+      cNeb2:{value:new THREE.Color('#f0abfc')},cHor:{value:new THREE.Color('#d946ef')},
+      /* cNeb2/uNeb2Amp: em 2B passam a ser a tinta do arco sazonal ativo */
+      uNebAmp:{value:.05},uNeb2Amp:{value:.035},uHorAmp:{value:.045}}});
   const mesh=new THREE.Mesh(geo,mat);
   mesh.frustumCulled=false;mesh.renderOrder=0;
   return{mesh,

@@ -76,7 +76,10 @@ export function createSolarCss(world,updateWorld){
 }
 
 /* lado WebGL — camada do engine; converge para a amostra ao longo de segundos
-   (a fonte já se move ao longo de minutos — transições impercetíveis) */
+   (a fonte já se move ao longo de minutos — transições impercetíveis).
+   2B: o arco sazonal ativo tinge a 2ª nebulosa; Recovery acalma o mundo. */
+const ARC_TINT={summer:[251,146,60],harvest:[245,158,11],winter:[96,165,250],bloom:[244,114,182]};
+const NEB2_BASE=[240,171,252];
 export function createSolarLayer(sky,world){
   const lerpC=(c,v,k)=>{c.r+=(v[0]/255-c.r)*k;c.g+=(v[1]/255-c.g)*k;c.b+=(v[2]/255-c.b)*k;};
   return{
@@ -85,10 +88,14 @@ export function createSolarLayer(sky,world){
       const s=sampleSolar(world.hour,{rain:world.rain,clear:false});
       const k=Math.min(1,dt*.5);
       const u=sky.uniforms;
+      const calm=world.recovery?.75:1;
       lerpC(u.cTop.value,s.top,k);lerpC(u.cMid.value,s.mid,k);lerpC(u.cBot.value,s.bot,k);
       lerpC(u.cNeb.value,s.neb,k);lerpC(u.cHor.value,s.horGl,k);
-      u.uNebAmp.value+=(s.nebAmp-u.uNebAmp.value)*k;
+      u.uNebAmp.value+=(s.nebAmp*calm-u.uNebAmp.value)*k;
       u.uHorAmp.value+=(s.horAmp-u.uHorAmp.value)*k;
-      world.glow+=(s.glow-world.glow)*k;
+      const tint=world.arc&&ARC_TINT[world.arc];
+      lerpC(u.cNeb2.value,tint||NEB2_BASE,k);
+      u.uNeb2Amp.value+=((tint?.055:.035)*calm-u.uNeb2Amp.value)*k;
+      world.glow+=(s.glow*(world.recovery?.9:1)-world.glow)*k;
     }};
 }

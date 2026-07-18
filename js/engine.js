@@ -25,6 +25,7 @@ const diffDays=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
 /* ===== XP / NÍVEIS ===== */
 const need=l=>40+l*20;
 function addXp(attr,amt,silent){
+  if(window.Bus)Bus.emit('xp:gain',{attr:attr,amt:amt}); // o mundo reage (M12·2B)
   const a=S.attrs[attr];a.xp+=amt;const ups=[];
   if(amt>=0){while(a.xp>=need(a.level)){a.xp-=need(a.level);a.level++;ups.push(attr)}}
   else{while(a.xp<0){if(a.level<=1){a.xp=0;break}a.level--;a.xp+=need(a.level)}}

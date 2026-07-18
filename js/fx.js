@@ -69,6 +69,7 @@ window.cineArise=function(){ // A R I S E cinematográfico + pulse + dupla vaga
 };
 let lastRankL=null;
 function rankCeremony(r){try{
+  if(window.Bus)Bus.emit('rank:up',{rank:r.l,color:r.color}); // o mundo reage (M12·2B)
   toast('RANK UP','⬆ Alcançaste o Rank '+r.l,r.color,false,true);
   celebrate(r.color);
   const rb=document.getElementById('rankbadge');

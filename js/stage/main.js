@@ -10,6 +10,7 @@ import {createSky} from './sky.js';
 import {createStars} from './stars.js';
 import {createDust} from './dust.js';
 import {createMeteor} from './meteor.js';
+import {createReact} from './react.js';
 import {createSolarCss,createSolarLayer} from './solar.js';
 
 const rm=matchMedia('(prefers-reduced-motion: reduce)');
@@ -36,9 +37,10 @@ function init(tier){
   updateWorld();
   const engine=createEngine(canvas,tier,world,updateWorld);
   const sky=createSky(tier),dust=createDust(tier),meteor=createMeteor(tier);
-  /* o Solar atualiza primeiro (escreve world.glow e as cores do céu),
-     as estrelas leem depois — a ordem das camadas importa */
-  engine.add(createSolarLayer(sky,world));
+  const react=createReact(world);
+  /* ordem das camadas: Solar (cores/glow) → React (energia) escrevem;
+     céu, estrelas, meteoro e poeira leem depois */
+  engine.add(createSolarLayer(sky,world));engine.add(react);
   engine.add(sky);engine.add(createStars(tier));engine.add(meteor);engine.add(dust);
   engine.size();
   window.Stage={tier,engine,debug:{
@@ -47,6 +49,8 @@ function init(tier){
       if(window.ambientApply)ambientApply();
     },
     meteor(){meteor.fire();},
+    pulse(v){react.fire(v);},
+    energy(){return react.value;},
   }};
   /* façade clássica — mesmos nomes e semântica do fundo 2D removido */
   window.dustStart=()=>{if(!rm.matches)engine.start();};

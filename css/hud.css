@@ -709,6 +709,7 @@
     transform-origin:0 0} /* as labels escalam com o dolly a partir do canto do céu */
   .const-lb{position:absolute;transform:translate(-50%,10px);font-family:var(--mono);font-size:10px;
     letter-spacing:.06em;color:var(--ink);text-shadow:0 0 8px rgba(0,0,0,.85);white-space:nowrap}
+  .const-lb.dim{color:var(--mut);opacity:.8} /* domínio ainda sem estrelas acesas */
   .const-card{position:absolute;z-index:5;min-width:170px;max-width:250px;padding:10px 12px;
     background:rgba(10,6,20,.94);border:1px solid var(--line2);font-size:11.5px;color:var(--ink);
     box-shadow:0 0 24px rgba(0,0,0,.5);pointer-events:auto}

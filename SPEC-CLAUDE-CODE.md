@@ -429,6 +429,15 @@ Sprint 6 — Polimento (CONCLUÍDO 2026-07-18; a porta fica aberta):
   .042/.065, estrelas de fundo mais vivas, estrelas acesas 20px.
 - Polimento fino CONTINUA quando o Daniel trouxer fricção de uso real —
   registar aqui como itens do Sprint 6b quando chegarem.
+- Sprint 6b (2026-07-19, fricção real do Daniel — constelações): blocos
+  quadrados no fundo (hash sin(dot)*43758 degenerado em GPUs ANGLE/D3D →
+  hash sem seno de Hoskins no ruído e no dither); profundidade do céu
+  (poeira neutra + 2 camadas de estrelas distantes com paralaxe própria +
+  estrelas escondidas como pontos ténues sem nome nem clique); zoom
+  cinematográfico por dolly (uZoom/uOff nos shaders, re-render à resolução
+  nativa — nunca escala de bitmap) com Motion.Spring: wheel ancorado ao
+  cursor, pinch, arrasto, duplo-clique; reduced-motion assenta sem
+  animação. Commit f39c93b, push feito.
 
 Missão 12 — estado final: os 6 sprints do plano estão concluídos e no ar.
 Fases futuras do roadmap (SYSTEM-EVOLUTION-ROADMAP.md) ainda por abrir
@@ -458,11 +467,41 @@ eventos (recrutamento + ciber/NIS2/ISO 27001/RGPD); cadência diária.
 - Verificar após a 1ª corrida real: qualidade das vagas e ruído — afinar
   a query se vier lixo.
 
+## Missão 14 — Universe Navigation · Fase 1: Vista de Universo
+(CONCLUÍDA 2026-07-19)
+
+Primeira fase do item "Universe Navigation" do roadmap (SYSTEM-EVOLUTION-
+ROADMAP.md), deliberadamente confinada ao painel das Constelações — a
+navegação universal entre painéis do HUD fica para fases futuras.
+
+- O Céu do Operador abre na Vista de Universo: as 6 constelações em anel
+  (a identidade do hexágono), cada uma com a sua cor, ligações e os três
+  estados de estrela; escondidas como pontos ténues também aqui.
+- Núcleo ao centro — nunca editável: o brilho É a fração de estrelas
+  acesas de todo o céu (evidência; os estados nomeados do Núcleo ficam
+  para a missão Celestial Core).
+- Navegação cinematográfica com a mola de câmara da M12: clicar numa
+  constelação (ou no chip da área) mergulha nela — fly-in com
+  continuidade matemática (a câmara do destino nasce no ponto equivalente
+  à do modo anterior; sem cortes). Zoom-out no limite do domínio,
+  duplo-clique ou o chip "✦ Universo" regressam (fly-out). Reduced-motion
+  troca de vista sem animação; o rAF continua a só correr com o painel
+  visível.
+- Chips ganharam "✦ Universo"; a label de cada domínio acende na cor da
+  área quando tem ≥1 estrela acesa, apagada caso contrário.
+- Defeitos apanhados na verificação: uniRegions era limpo no early-return
+  do draw (o clique morria após qualquer re-render — corrigido); label do
+  domínio das 6h saía do céu (clamp a 93%).
+- Verificação headless (CDP): ciclo completo universo → fly-in (Ofício) →
+  zoom no domínio → fly-out; consola limpa em todas as corridas.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
-2. Universe Navigation / Living Memory / Celestial Core (roadmap M12,
-   abrir como missões próprias quando o Daniel decidir)
+   (aberto em permanência; 1º item registado a 2026-07-19)
+2. Universe Navigation — fases seguintes (navegação entre painéis do HUD);
+   Living Memory / Celestial Core (roadmap M12, abrir como missões
+   próprias quando o Daniel decidir)
 3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)
 4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 

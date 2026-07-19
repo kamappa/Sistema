@@ -60,6 +60,7 @@ function renderOracleRep(){
     ${prop?`<div class="up-lbl">Propostas do Oráculo</div>${prop}`:''}
     ${mp?`<div class="up-lbl">Missões propostas</div>${mp}`:''}
     ${rec?`<div class="up-lbl">Para complementar o estudo</div>${rec}`:''}
+    ${r.efemeride&&r.efemeride!=='null'?`<div class="orc-sec"><b>🕯 Efeméride:</b> ${r.efemeride}</div>`:''}
     ${r.profecia&&r.profecia!=='null'?`<div class="orc-sec orc-prof"><b>🔮 Profecia:</b> ${r.profecia}</div>`:''}
     ${r.recompensa?`<div class="orc-sec"><b>🎁 Recompensa sugerida:</b> ${r.recompensa}</div>`:''}
     ${r.titulo?`<div class="orc-sec"><b>🎖 Título da semana:</b> ${r.titulo}</div>`:''}

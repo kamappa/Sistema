@@ -190,6 +190,7 @@ Tom: sóbrio, de mestre que fala pouco e a tempo. NUNCA elogios vazios ("bom tra
 Humildade: fazes leituras, não certezas. Se os dados de hoje contradisserem uma leitura tua anterior (vês os últimos relatórios), di-lo sem drama: "interpretei mal os sinais".
 Caminhos: se ele escolheu caminhos nas constelações (campo caminhosEscolhidos do ESTADO), isso é identidade — pesa-os nas recomendações sem nunca bloquear o resto.
 Núcleo: o campo nucleo do ESTADO traz o estado do Núcleo do Operador (Dormente → Desperto → Ressonante → Ascendente → Celeste → Transcendente; deriva só de evidência e nunca se edita) e o número de estrelas nascidas. Usa-o com parcimónia como imagem do arco maior ("o teu Núcleo já ressoa") — a imagem ilustra, o dado sustenta; nunca reveles quantas estrelas faltam.
+Memórias: o campo memoriasDoDia do ESTADO traz efemérides reais de hoje (datas verdadeiras do percurso dele). Quando existirem, podes evocá-las para dar profundidade — nunca inventes datas nem efemérides.
 ` + TOM_ARCO[arcoAtual()];
 
 function chatCors(req: Request): Record<string, string> {
@@ -201,6 +202,39 @@ function chatCors(req: Request): Record<string, string> {
     "access-control-allow-methods": "POST, OPTIONS",
     "content-type": "application/json",
   };
+}
+
+/* Living Memory (M15·F3) — efemérides reais de hoje, derivadas do estado;
+   espelho compacto do memoria.js do cliente. Máx 2; sem nada digno, [].
+   Uma memória nunca derruba um modo. */
+function memoriasHoje(st: Record<string, any>): string[] {
+  const out: string[] = [];
+  try {
+    const hoje = new Date().toISOString().slice(0, 10);
+    const dias = (a: string, b: string) => Math.round((new Date(b).getTime() - new Date(a).getTime()) / 864e5);
+    const anos = (n: number) => n === 365 ? "um ano" : (n / 365) + " anos";
+    const nasc = st.history?.[0]?.d;
+    if (nasc) {
+      const n = dias(nasc, hoje);
+      if (n > 0 && n % 365 === 0) out.push("Há " + anos(n) + ", o Sistema acendeu-se pela primeira vez.");
+      else if ([30, 50, 100, 150, 200, 250, 300, 500, 730, 1000].includes(n)) out.push("O Sistema existe há " + n + " dias.");
+    }
+    for (const [id, d] of Object.entries(st.titleUnlocked ?? {}) as [string, string][]) {
+      const n = dias(d, hoje);
+      if (n > 0 && n % 365 === 0) out.push("Há " + anos(n) + " provou o Título Real " + id + ".");
+    }
+    for (const [k, b] of Object.entries(st.constellation?.born ?? {}) as [string, any][]) {
+      if (!b?.d || b.o) continue; /* datas apenas observadas não têm aniversário real */
+      const n = dias(b.d, hoje);
+      if (n > 0 && n % 365 === 0) out.push("Há " + anos(n) + " nasceu a estrela " + k.replace(":", " · ") + ".");
+    }
+    const pk = st.streakPeak;
+    if (pk?.d) {
+      const n = dias(pk.d, hoje);
+      if ([30, 100, 365].includes(n)) out.push("Há " + n + " dias atingiu o melhor streak de sempre: " + pk.v + " dias (" + pk.h + ").");
+    }
+  } catch (_e) { /* silêncio */ }
+  return out.slice(0, 2);
 }
 
 // resumo compacto do estado — só dados reais; o tema do recall vem do prefixo
@@ -245,6 +279,7 @@ function resumoEstado(st: Record<string, any>): Record<string, unknown> {
         estrelasNascidas: Object.keys(st.constellation?.born ?? {}).length,
       };
     })(),
+    memoriasDoDia: memoriasHoje(st), /* Living Memory (M15·F3) */
     eventosProximos: (st.events ?? []).filter((e: any) => e.date >= hoje).sort((a: any, b: any) => (a.date < b.date ? -1 : 1)).slice(0, 10),
     sonoUltimos7: (st.sleep?.logs ?? []).slice(-7),
     treinoSessoes14d: (st.training?.sessions ?? []).filter((s: any) => (s.d ?? s.date ?? "") >= dias(14)).length,
@@ -364,6 +399,7 @@ function reportMd(rep: Record<string, any>, d: string): string {
     for (const r of rep.recursos) L.push("- [" + (r.titulo ?? r.url) + "](" + (r.url ?? "") + ") · " + (r.fonte ?? "") + " — " + (r.porque ?? ""));
     L.push("");
   }
+  sec("Efeméride", rep.efemeride);
   sec("Profecia", rep.profecia);
   sec("Recompensa", rep.recompensa);
   sec("Título da semana", rep.titulo);
@@ -414,6 +450,7 @@ async function gerarReport(st: Record<string, unknown>): Promise<Record<string, 
       '"propostas":[{"t":"título curto","why":"porquê, ligado aos dados"}],' +
       '"missoes_propostas":[{"t":"missão concreta e criativa","why":"ligação aos dados/objetivos dele","area":"oficio|saber|corpo|mente|vinculos|disciplina","pri":"P1|P2|P3","deadline":"YYYY-MM-DD ou null"}],' +
       '"recursos":[{"titulo":"","url":"","fonte":"EUR-Lex|ENISA|CNCS|CNPD|EDPB|curso|artigo","porque":"1 linha: como complementa o que ele estudou"}],' +
+      '"efemeride":"se o campo memoriasDoDia do ESTADO trouxer memórias, escolhe UMA e devolve-a reescrita na voz do Guardião (1 linha, a data real intacta — nunca inventes efemérides); senão null",' +
       '"profecia":"UMA previsão condicional VERIFICÁVEL, ancorada numa tendência real dos dados desta semana, no formato \'Se [condição concreta que depende dele] durante [prazo], [consequência esperada no Sistema]\' — fala como o Guardião (podes usar a linguagem das constelações); se os dados não sustentarem nenhuma previsão honesta, null",' +
       '"recompensa":"uma recompensa criativa, proporcional ao que ele conquistou esta semana",' +
       '"titulo":"um título honorífico da semana, criativo/humorístico (narrativo, nunca uma credencial)",' +

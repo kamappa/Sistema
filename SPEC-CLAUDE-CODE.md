@@ -525,7 +525,16 @@ mesmo se a evidência regrediu; datas "observadas" o=1 não têm
 aniversário). Eco visual no céu: no dia do aniversário a estrela pulsa
 suavemente (aPulse) no domínio e no universo. Verificado headless:
 pico+rollback exatos, os dois textos novos, render com pulso sem erros.
-Fase futura (quando decidido): memórias no radar/report do Oráculo.
+Fase 3 (CONCLUÍDA 2026-07-19, deployada): o Oráculo lembra-se —
+`memoriasHoje(st)` na Edge Function (espelho compacto do memoria.js:
+idade do Sistema, aniversários de títulos/estrelas nascidas sem o=1,
+eco do melhor streak; máx 2, nunca derruba um modo) entra no
+resumoEstado como `memoriasDoDia` (chat/sussurro herdam pela VOZ, que
+fica proibida de inventar efemérides). O report semanal ganha o campo
+`efemeride` (o Guardião reescreve UMA memória com a data real intacta;
+null sem nada digno), renderizado no HUD (🕯, antes da Profecia) e na
+nota do vault. Custo marginal. Verificado: deploy + preflight 204;
+render cliente confirmado em headless com relatório injetado.
 
 ## Missão 16 — O Céu Renasce (CONCLUÍDA 2026-07-19; 5 fases A–E)
 
@@ -616,10 +625,9 @@ ao céu; a influência no mundo inteiro (react/Oráculo) fica para a Fase 2.
    (aberto em permanência; 1º item registado a 2026-07-19)
 2. Universe Navigation — fases seguintes (navegação entre painéis do HUD;
    reestrutura a app inteira — exige decisões de design do Daniel)
-3. Memórias no radar/report do Oráculo (Living Memory · fase futura)
-4. Sons opt-in (contexto novo do roadmap — Oráculo/mundo; exige o gosto
+3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo; exige o gosto
    do Daniel presente)
-5. Camada adaptativa do recall — gated: exige histórico de uso suficiente
+4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)
 4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 

@@ -798,12 +798,22 @@ export function initConstellation(){
   }
   function hideCard(){if(card){card.remove();card=null;}}
   function place(s){
-    /* posição no ecrã = mundo × câmara (o cartão segue o dolly) */
-    const sx=s.x*W*cam.z+cam.x,sy=s.y*H*cam.z+cam.y;
+    /* posição no ecrã = mundo × câmara-ALVO: o cartão espera a mola no destino */
+    const sx=s.x*W*zt+oxT,sy=s.y*H*zt+oyT;
     card.style.left=Math.min(W*.8,Math.max(W*.05,sx))+'px';
     card.style.top=Math.min(H*.62,Math.max(H*.05,sy))+'px';
     card.querySelector('.cx').onclick=hideCard;
     wrap.appendChild(card);
+  }
+  /* clicar numa estrela: dolly-in suave a enquadrá-la + o cartão da sua
+     história (com rm o cartão abre sem viagem) */
+  function focusStar(s){
+    if(!rm.matches){
+      zt=Math.min(zmax(),Math.max(zt,1.7));
+      oxT=W*.5-s.x*W*zt;oyT=H*.42-s.y*H*zt;
+      setCam(false);
+    }
+    showCard(s);
   }
   function showCard(s){
     hideCard();
@@ -841,13 +851,25 @@ export function initConstellation(){
       };
       return;
     }
+    /* a história da estrela: domínio, evidência que a fez nascer, data;
+       nas estrelas de Título, a ponte para o cofre da evidência */
+    const anm=(typeof AM!=='undefined'&&AM[domain])?AM[domain].name:domain;
+    const dcl=(typeof AM!=='undefined'&&AM[domain])?AM[domain].color:'#a78bfa';
     const r=reqText(domain,s.req),bi=bornInfo(domain,s.id);
     card=document.createElement('div');card.className='const-card';
     card.innerHTML=`<span class="cx">✕</span>
-      <div class="ck">Estrela nascida</div>
+      <div class="ck" style="color:${dcl}">Estrela · ${anm}</div>
       <b>${s.n}</b>
-      <div class="now">Evidência: ${r.need}${bi?'<br>'+bi:''}</div>`;
+      <div class="now">Evidência: ${r.need}${bi?'<br>'+bi:''}</div>
+      ${(s.req&&s.req.title)?'<div class="const-opts"><button class="mini" data-tit="1">Ver nos Títulos Reais</button></div>':''}`;
     place(s);
+    const tb=card.querySelector('[data-tit]');
+    if(tb)tb.onclick=()=>{
+      hideCard();
+      const el=document.getElementById('titles');
+      const pn=el&&el.closest('.panel');
+      if(pn)pn.scrollIntoView({behavior:rm.matches?'auto':'smooth',block:'center'});
+    };
   }
   /* zoom cinematográfico: wheel ancorado ao cursor, pinch, arrasto quando
      ampliado, duplo-clique repõe. Tudo alvos da mola — a câmara persegue. */
@@ -930,12 +952,35 @@ export function initConstellation(){
       return;
     }
     const i=starAt(e.clientX-r.left,e.clientY-r.top);
-    if(i>=0)showCard(shown[i]);else hideCard();
+    if(i>=0)focusStar(shown[i]);else hideCard();
   });
+  /* abertura cinematográfica (1×/sessão): a câmara nasce em grande plano
+     sobre a última estrela nascida e recua em mola até à Vista de Universo.
+     Sem estrelas ou com reduced-motion, abre direto. */
+  let cineOpened=false;
+  function cinematicOpen(){
+    try{
+      if(rm.matches||mode!=='universe'||!camSpring)return;
+      const reg=S&&S.constellation&&S.constellation.born;if(!reg)return;
+      let best=null,bd='';
+      for(const k in reg){const d=reg[k].d||'';if(d>=bd){bd=d;best=k;}}
+      if(!best)return;
+      const parts=best.split(':'),attr=parts[0],id=parts[1];
+      const i=(typeof ATTRS!=='undefined')?ATTRS.findIndex(a=>a.id===attr):-1;
+      const c=(typeof CONSTELLATIONS!=='undefined')&&CONSTELLATIONS[attr];
+      const s=c&&c.stars.find(x=>x.id===id);
+      if(i<0||!s)return;
+      const an=uniAnchor(i,ATTRS.length);
+      const px=(an.x+s.x*UNI.s)*W,py=(an.y+s.y*UNI.s)*H,Z0=2.0;
+      camSpring.snap(Z0,W*.5-px*Z0,H*.45-py*Z0);
+      zt=1;oxT=0;oyT=0;setCam(false);
+    }catch(e){}
+  }
   if('IntersectionObserver'in window){
     new IntersectionObserver(es=>{
       vis=es[0].isIntersecting;
-      if(vis){draw(false);start();}else stop();
+      if(vis){draw(false);start();if(!cineOpened){cineOpened=true;cinematicOpen();}}
+      else stop();
     }).observe(wrap);
   }else{vis=true;start();}
   document.addEventListener('visibilitychange',()=>document.hidden?stop():start());

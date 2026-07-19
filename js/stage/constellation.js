@@ -10,7 +10,12 @@ import * as THREE from '../vendor/three.module.min.js';
    quando uma regra passa a verdadeira em sessão, a estrela nasce com
    overshoot e as ligações desenham-se com energia; Bus.emit('star:lit').
    O loop rAF só corre com o painel visível e sem reduced-motion — caso
-   contrário o céu é uma frame estática on demand. */
+   contrário o céu é uma frame estática on demand.
+   Profundidade e dolly (pós-M12): fundo com poeira + duas camadas de estrelas
+   distantes com paralaxe; estrelas escondidas como pontos ténues sem nome nem
+   clique; zoom por câmara (uZoom/uOff nos shaders, nunca escala de bitmap)
+   com Motion.Spring — wheel/pinch/arrasto/duplo-clique; reduced-motion
+   assenta sem animação. */
 
 function evalReq(attr,req){
   try{
@@ -72,50 +77,76 @@ const hxv=h=>[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseI
 
 const BG_VERT=`varying vec2 vUv;
 void main(){vUv=position.xy*.5+.5;gl_Position=vec4(position.xy,1.,1.);}`;
+/* hash sem seno (Hoskins) — o hash sin(dot)*43758 degenera em GPUs ANGLE/D3D
+   quando o argumento passa a precisão do float32 (era a causa dos blocos
+   quadrados no fundo); este é estável a qualquer magnitude */
 const BG_FRAG=`varying vec2 vUv;uniform vec3 uTint;uniform float uTime;uniform float uDetail;
-float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+uniform vec2 uRes;uniform float uZoom;uniform vec2 uOff;
+float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));
+  q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
   return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
+/* campo de estrelas distante: uma estrela ténue por célula (sem vizinhança —
+   o offset fica no miolo da célula, logo nunca corta nas bordas) */
+float field(vec2 px,float cell,float thr,float seed){
+  vec2 g=px/cell;vec2 i=floor(g),f=fract(g);
+  float h=hash(i+seed);
+  if(h<thr)return 0.;
+  vec2 c=vec2(hash(i+seed+7.3),hash(i+seed+2.9))*.6+.2;
+  float r=mix(.04,.10,hash(i+seed+4.7));
+  float tw=.78+.22*sin(uTime*(.5+h)+h*40.);
+  return smoothstep(r,r*.25,length(f-c))*mix(.3,1.,h)*tw;
+}
 void main(){
-  vec3 col=mix(vec3(.016,.012,.043),vec3(.043,.027,.09),vUv.y*.7);
-  vec2 p=vUv*3.1;
+  vec3 col=mix(vec3(.027,.022,.062),vec3(.062,.042,.118),vUv.y*.7);
+  /* nevoeiro do domínio — em coordenadas de mundo: acompanha o dolly de leve */
+  vec2 px=vUv*uRes;
+  vec2 p=((px-uOff*.25)/(1.+(uZoom-1.)*.25))/uRes*3.1;
   float n=noise(p+vec2(uTime*.008,-uTime*.005));
   if(uDetail>1.5)n=n*.7+.3*noise(p*2.2+vec2(-uTime*.006,uTime*.009));
-  col+=uTint*n*n*.10*(1.-vUv.y*.4);
+  col+=uTint*n*n*.16*(1.-vUv.y*.35);
+  col+=vec3(.05,.045,.09)*n*.09; /* poeira neutra: tira o preto absoluto */
+  /* duas camadas de estrelas distantes com paralaxe própria (profundidade) */
+  float s=field((px-uOff*.35)/(1.+(uZoom-1.)*.35),44.,.62,11.)*.34
+         +field((px-uOff*.6)/(1.+(uZoom-1.)*.6),66.,.55,29.)*.55;
+  col+=mix(vec3(.72,.7,.88),uTint,.35)*s;
   float vg=smoothstep(1.15,.3,length(vUv-vec2(.5,.5)));
   col*=mix(.85,1.,vg);
   col+=(hash(gl_FragCoord.xy)-.5)/255.;
   gl_FragColor=vec4(col,1.);
 }`;
 const ST_VERT=`
-attribute float aSize;attribute float aMode;attribute float aHov;attribute float aBirth;attribute float aPulse;
+attribute float aSize;attribute float aMode;attribute float aHov;attribute float aBirth;attribute float aPulse;attribute float aFade;
 uniform vec2 uRes;uniform float uPix;uniform float uTime;uniform vec2 uPan;
-varying float vMode;varying float vB;
+uniform float uZoom;uniform vec2 uOff;
+varying float vMode;varying float vB;varying float vFade;
 float back(float k){k=clamp(k,0.,1.);float s=1.70158;k-=1.;return k*k*((s+1.)*k+s)+1.;}
 void main(){
-  vec2 p=position.xy+uPan*(1.4-aMode*.6); /* as ténues, mais fundas, mexem mais */
+  /* dolly: as posições vivem em px de mundo; a câmara escala e desloca */
+  vec2 p=position.xy*uZoom+uOff+uPan*(1.4-aMode*.6); /* as ténues, mais fundas, mexem mais */
   float b=aBirth<0.?1.:back(clamp((uTime-aBirth)/1.2,0.,1.));
   gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
   float tw=.92+.08*sin(uTime*1.6+position.x*.05);
   float inv=1.+aPulse*.25*sin(uTime*2.6); /* escolha pendente convida ao clique */
-  gl_PointSize=aSize*uPix*b*(1.+aHov*.4)*tw*inv;
-  vMode=aMode;vB=clamp(b,0.,1.);
+  gl_PointSize=aSize*uPix*uZoom*b*(1.+aHov*.4)*tw*inv;
+  vMode=aMode;vB=clamp(b,0.,1.);vFade=aFade;
 }`;
-const ST_FRAG=`uniform vec3 uCol;varying float vMode;varying float vB;
+const ST_FRAG=`uniform vec3 uCol;varying float vMode;varying float vB;varying float vFade;
 void main(){
   float d=length(gl_PointCoord-.5);
   float core=smoothstep(.3,.06,d);
   float halo=smoothstep(.5,.1,d)*.55;
-  float a=mix(core*.4+halo*.1,core+halo,vMode)*vB;
+  float a=mix(core*.4+halo*.1,core+halo,vMode)*vB*vFade;
   vec3 col=mix(vec3(.6,.56,.76),uCol,vMode);
   gl_FragColor=vec4(col*a,a);
 }`;
 const LN_VERT=`
 attribute float aT;attribute float aPx;attribute float aBirth;
 uniform vec2 uRes;uniform float uTime;uniform vec2 uPan;
+uniform float uZoom;uniform vec2 uOff;
 varying float vT;varying float vPx;varying float vB;
 void main(){
-  vec2 p=position.xy+uPan;
+  vec2 p=position.xy*uZoom+uOff+uPan;
   gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
   vT=aT;vPx=aPx;
   vB=aBirth<0.?1.:clamp((uTime-aBirth)/1.4,0.,1.);
@@ -206,19 +237,54 @@ export function initConstellation(){
   let panX=0,panY=0,panTX=0,panTY=0;
   let starGeo=null,starPts=null,hovIdx=-1,shown=[],curState=null,card=null;
   const uTime={value:0},uPan={value:new THREE.Vector2(0,0)};
+  const uRes={value:new THREE.Vector2(1,1)},uZoom={value:1},uOff={value:new THREE.Vector2(0,0)};
   const prevLit={};let baseline=false; /* 1ª avaliação não emite nascimentos */
   const births={}; /* 'attr:id' → instante do nascimento */
+
+  /* ===== câmara (dolly) — zoom por uniform, nunca por escala de bitmap:
+     re-renderiza à resolução nativa, logo nítido a qualquer distância.
+     A mola é a mesma física do resto do sistema (Motion.Spring · gentle);
+     com reduced-motion o zoom assenta de imediato, sem animação. ===== */
+  const ZMIN=1,ZMAX=3;
+  let zt=1,oxT=0,oyT=0; /* alvos da mola: zoom + offset da câmara em px */
+  const cam={z:1,x:0,y:0}; /* estado presente (o que a mola já percorreu) */
+  function moveLabels(){
+    if(labels)labels.style.transform='translate('+(cam.x+panX).toFixed(1)+'px,'
+      +(cam.y+panY).toFixed(1)+'px) scale('+cam.z.toFixed(3)+')';
+  }
+  function syncCam(){
+    uZoom.value=cam.z;uOff.value.set(cam.x,cam.y);
+    moveLabels();
+    if(!raf)renderer.render(scene,camera); /* frame estática on demand */
+  }
+  const camSpring=(window.Motion&&Motion.Spring)
+    ?new Motion.Spring(3,Motion.TOK.gentle,v=>{cam.z=v[0];cam.x=v[1];cam.y=v[2];syncCam();})
+    :null;
+  if(camSpring)camSpring.snap(1,0,0);
+  function clampOff(){ /* a janela nunca sai do céu */
+    oxT=Math.min(0,Math.max(W*(1-zt),oxT));
+    oyT=Math.min(0,Math.max(H*(1-zt),oyT));
+  }
+  function setCam(snap){
+    clampOff();
+    if(camSpring&&!rm.matches&&!snap)camSpring.set(zt,oxT,oyT);
+    else if(camSpring)camSpring.snap(zt,oxT,oyT);
+    else{cam.z=zt;cam.x=oxT;cam.y=oyT;syncCam();}
+  }
+  function resetCam(){zt=1;oxT=0;oyT=0;setCam(false);}
 
   function buildChips(){
     if(!chips||typeof ATTRS==='undefined')return;
     chips.innerHTML=ATTRS.map(a=>
       `<div class="const-chip ${a.id===domain?'on':''}" data-d="${a.id}">
         <span class="cd" style="background:${a.color};box-shadow:0 0 6px ${a.color}"></span>${a.name}</div>`).join('');
-    [...chips.children].forEach(el=>el.onclick=()=>{domain=el.dataset.d;buildChips();hideCard();draw(true);});
+    [...chips.children].forEach(el=>el.onclick=()=>{domain=el.dataset.d;buildChips();hideCard();resetCam();draw(true);});
   }
   function size(){
     W=wrap.clientWidth||600;H=wrap.clientHeight||340;
     renderer.setPixelRatio(pix);renderer.setSize(W,H,false);
+    uRes.value.set(W,H);
+    clampOff(); /* o resize pode encolher a janela válida do offset */
   }
   function clear(){
     while(scene.children.length){
@@ -262,7 +328,8 @@ export function initConstellation(){
     bg.setAttribute('position',new THREE.BufferAttribute(new Float32Array([-1,-1,0,3,-1,0,-1,3,0]),3));
     const bgm=new THREE.ShaderMaterial({vertexShader:BG_VERT,fragmentShader:BG_FRAG,
       depthTest:false,depthWrite:false,
-      uniforms:{uTint:{value:new THREE.Vector3(...tint)},uTime:uTime,uDetail:{value:lite?1:2}}});
+      uniforms:{uTint:{value:new THREE.Vector3(...tint)},uTime:uTime,uDetail:{value:lite?1:2},
+        uRes:uRes,uZoom:uZoom,uOff:uOff}});
     const bgMesh=new THREE.Mesh(bg,bgm);bgMesh.frustumCulled=false;bgMesh.renderOrder=0;
     scene.add(bgMesh);
     /* ligações */
@@ -290,8 +357,8 @@ export function initConstellation(){
       g.setAttribute('aBirth',new THREE.BufferAttribute(new Float32Array(d.birth),1));
       const m=new THREE.ShaderMaterial({vertexShader:LN_VERT,fragmentShader:LN_FRAG,
         transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
-        uniforms:{uRes:{value:new THREE.Vector2(W,H)},uCol:{value:new THREE.Vector3(...tint)},
-          uOp:{value:op},uTime:uTime,uPan:uPan,uFlow:{value:flow}}});
+        uniforms:{uRes:uRes,uCol:{value:new THREE.Vector3(...tint)},
+          uOp:{value:op},uTime:uTime,uPan:uPan,uFlow:{value:flow},uZoom:uZoom,uOff:uOff}});
       const l=new THREE.LineSegments(g,m);l.frustumCulled=false;l.renderOrder=1;
       scene.add(l);
     };
@@ -310,15 +377,42 @@ export function initConstellation(){
       }
     }
     mkLines(mk.dim,.09,0);mkLines(mk.lit,.34,1);
-    /* estrelas */
+    const starMat=()=>new THREE.ShaderMaterial({vertexShader:ST_VERT,fragmentShader:ST_FRAG,
+      transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
+      uniforms:{uRes:uRes,uPix:{value:pix},
+        uCol:{value:new THREE.Vector3(...tint)},uTime:uTime,uPan:uPan,uZoom:uZoom,uOff:uOff}});
+    /* estrelas escondidas — o mistério do roadmap: a constelação existe mas
+       ainda não se lê. Pontos muito ténues, sem nome, sem hover, sem clique;
+       a silhueta dá profundidade sem revelar a evidência. */
+    const hidden=st.c.stars.filter(s=>!visSt(s));
+    if(hidden.length){
+      const n=hidden.length;
+      const pos=new Float32Array(n*3),sz=new Float32Array(n),md=new Float32Array(n),
+        hv=new Float32Array(n),bi=new Float32Array(n),pu=new Float32Array(n),fd=new Float32Array(n);
+      hidden.forEach((s,i)=>{
+        pos[i*3]=s.x*W;pos[i*3+1]=s.y*H;
+        sz[i]=5;bi[i]=-1;fd[i]=.32;
+      });
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+      g.setAttribute('aSize',new THREE.BufferAttribute(sz,1));
+      g.setAttribute('aMode',new THREE.BufferAttribute(md,1));
+      g.setAttribute('aHov',new THREE.BufferAttribute(hv,1));
+      g.setAttribute('aBirth',new THREE.BufferAttribute(bi,1));
+      g.setAttribute('aPulse',new THREE.BufferAttribute(pu,1));
+      g.setAttribute('aFade',new THREE.BufferAttribute(fd,1));
+      const hp=new THREE.Points(g,starMat());hp.frustumCulled=false;hp.renderOrder=2;
+      scene.add(hp);
+    }
+    /* estrelas visíveis (acesas + descobertas + escolha) */
     shown=st.c.stars.filter(visSt);
     if(choiceStar)shown=shown.concat(choiceStar);
     if(shown.length){
       const n=shown.length;
       const pos=new Float32Array(n*3),sz=new Float32Array(n),md=new Float32Array(n),
-        hv=new Float32Array(n),bi=new Float32Array(n),pu=new Float32Array(n);
+        hv=new Float32Array(n),bi=new Float32Array(n),pu=new Float32Array(n),fd=new Float32Array(n);
       shown.forEach((s,i)=>{
-        pos[i*3]=s.x*W;pos[i*3+1]=s.y*H;
+        pos[i*3]=s.x*W;pos[i*3+1]=s.y*H;fd[i]=1;
         if(s._choice){
           sz[i]=s._state==='chosen'?20:11;md[i]=s._state==='chosen'?1:0;
           pu[i]=s._state==='pending'?1:0;
@@ -332,11 +426,8 @@ export function initConstellation(){
       starGeo.setAttribute('aHov',new THREE.BufferAttribute(hv,1));
       starGeo.setAttribute('aBirth',new THREE.BufferAttribute(bi,1));
       starGeo.setAttribute('aPulse',new THREE.BufferAttribute(pu,1));
-      const m=new THREE.ShaderMaterial({vertexShader:ST_VERT,fragmentShader:ST_FRAG,
-        transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
-        uniforms:{uRes:{value:new THREE.Vector2(W,H)},uPix:{value:pix},
-          uCol:{value:new THREE.Vector3(...tint)},uTime:uTime,uPan:uPan}});
-      starPts=new THREE.Points(starGeo,m);starPts.frustumCulled=false;starPts.renderOrder=2;
+      starGeo.setAttribute('aFade',new THREE.BufferAttribute(fd,1));
+      starPts=new THREE.Points(starGeo,starMat());starPts.frustumCulled=false;starPts.renderOrder=3;
       scene.add(starPts);
       if(labels)shown.forEach(s=>{
         const isLit=s._choice?s._state==='chosen':st.lit[s.id];
@@ -358,24 +449,26 @@ export function initConstellation(){
     uTime.value=tNow();
     panX+=(panTX-panX)*.06;panY+=(panTY-panY)*.06;
     uPan.value.set(panX,panY);
-    if(labels)labels.style.transform='translate('+panX.toFixed(1)+'px,'+panY.toFixed(1)+'px)';
+    moveLabels();
     renderer.render(scene,camera);
   }
   const start=()=>{if(!raf&&vis&&!rm.matches&&!document.hidden)raf=requestAnimationFrame(tick);};
   const stop=()=>{cancelAnimationFrame(raf);raf=0;};
   /* hover + clique — cartão de evidência */
   function starAt(mx,my){
-    let best=-1,bd=18;
+    let best=-1,bd=Math.max(14,18*cam.z);
     shown.forEach((s,i)=>{
-      const d=Math.hypot(s.x*W+panX-mx,s.y*H+panY-my);
+      const d=Math.hypot(s.x*W*cam.z+cam.x+panX-mx,s.y*H*cam.z+cam.y+panY-my);
       if(d<bd){bd=d;best=i;}
     });
     return best;
   }
   function hideCard(){if(card){card.remove();card=null;}}
   function place(s){
-    card.style.left=Math.min(80,Math.max(5,s.x*100))+'%';
-    card.style.top=Math.min(62,Math.max(5,s.y*100))+'%';
+    /* posição no ecrã = mundo × câmara (o cartão segue o dolly) */
+    const sx=s.x*W*cam.z+cam.x,sy=s.y*H*cam.z+cam.y;
+    card.style.left=Math.min(W*.8,Math.max(W*.05,sx))+'px';
+    card.style.top=Math.min(H*.62,Math.max(H*.05,sy))+'px';
     card.querySelector('.cx').onclick=hideCard;
     wrap.appendChild(card);
   }
@@ -423,8 +516,60 @@ export function initConstellation(){
       <div class="now">${lit?'Evidência cumprida: '+r.need:'Evidência: '+r.need+'<br>'+r.now}</div>`;
     place(s);
   }
+  /* zoom cinematográfico: wheel ancorado ao cursor, pinch, arrasto quando
+     ampliado, duplo-clique repõe. Tudo alvos da mola — a câmara persegue. */
+  const ptrs=new Map();let pinch=null,drag=null,clickSquelch=false;
+  cv.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const r=cv.getBoundingClientRect();
+    const mx=e.clientX-r.left,my=e.clientY-r.top;
+    const z0=zt;
+    zt=Math.min(ZMAX,Math.max(ZMIN,zt*Math.exp(-e.deltaY*.0016)));
+    if(zt===z0)return;
+    /* o ponto sob o cursor fica no lugar durante o dolly */
+    oxT=mx-(mx-oxT)*(zt/z0);oyT=my-(my-oyT)*(zt/z0);
+    hideCard();setCam(false);
+  },{passive:false});
+  cv.addEventListener('dblclick',()=>{hideCard();resetCam();});
+  cv.addEventListener('pointerdown',e=>{
+    clickSquelch=false;
+    ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(ptrs.size===2){
+      const[a,b]=[...ptrs.values()];
+      pinch={d:Math.hypot(a.x-b.x,a.y-b.y)};drag=null;
+    }else if(zt>1.001){
+      drag={x:e.clientX,y:e.clientY,ox:oxT,oy:oyT,moved:false};
+      try{cv.setPointerCapture(e.pointerId);}catch(err){}
+    }
+  });
+  const endPtr=e=>{
+    ptrs.delete(e.pointerId);
+    if(ptrs.size<2)pinch=null;
+    if(drag){drag=null;cv.style.cursor='';}
+  };
+  cv.addEventListener('pointerup',endPtr);
+  cv.addEventListener('pointercancel',endPtr);
   cv.addEventListener('pointermove',e=>{
     const r=cv.getBoundingClientRect();
+    if(ptrs.has(e.pointerId))ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(pinch&&ptrs.size===2){
+      const[a,b]=[...ptrs.values()];
+      const d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d>0&&pinch.d>0){
+        const mx=(a.x+b.x)/2-r.left,my=(a.y+b.y)/2-r.top;
+        const z0=zt;
+        zt=Math.min(ZMAX,Math.max(ZMIN,zt*d/pinch.d));
+        if(zt!==z0){oxT=mx-(mx-oxT)*(zt/z0);oyT=my-(my-oyT)*(zt/z0);hideCard();setCam(false);}
+      }
+      pinch.d=d;clickSquelch=true;
+      return;
+    }
+    if(drag){
+      const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+      if(Math.abs(dx)+Math.abs(dy)>3){drag.moved=true;clickSquelch=true;cv.style.cursor='grabbing';}
+      if(drag.moved){oxT=drag.ox+dx;oyT=drag.oy+dy;setCam(false);}
+      return;
+    }
     const i=starAt(e.clientX-r.left,e.clientY-r.top);
     if(i!==hovIdx){
       hovIdx=i;cv.style.cursor=i>=0?'pointer':'';
@@ -436,6 +581,7 @@ export function initConstellation(){
   },{passive:true});
   cv.addEventListener('pointerleave',()=>{panTX=0;panTY=0;},{passive:true});
   cv.addEventListener('click',e=>{
+    if(clickSquelch){clickSquelch=false;return;}
     const r=cv.getBoundingClientRect();
     const i=starAt(e.clientX-r.left,e.clientY-r.top);
     if(i>=0)showCard(shown[i]);else hideCard();

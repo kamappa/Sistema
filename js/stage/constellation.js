@@ -118,6 +118,12 @@ function bornInfo(attr,id){
 }
 
 const hxv=h=>[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];
+/* profundidade determinística por estrela (0=funda, 1=próxima) — nunca aleatória
+   em runtime, para o parallax ser estável entre sessões */
+const zOf=s=>{let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return .15+.7*((h%1000)/1000);};
+/* peso da evidência → tamanho e difração (títulos e campanhas brilham mais) */
+const szOf=s=>s.req?((s.req.title||s.req.done!=null)?22:(s.req.streak!=null)?20:17):20;
+const spOf=s=>(s.req&&(s.req.title||s.req.done!=null))?1:0;
 
 const BG_VERT=`varying vec2 vUv;
 void main(){vUv=position.xy*.5+.5;gl_Position=vec4(position.xy,1.,1.);}`;
@@ -151,37 +157,46 @@ void main(){
   gl_FragColor=vec4(col,1.);
 }`;
 const ST_VERT=`
-attribute float aSize;attribute float aMode;attribute float aHov;attribute float aBirth;attribute float aPulse;attribute float aFade;
+attribute float aSize;attribute float aMode;attribute float aHov;attribute float aBirth;attribute float aPulse;attribute float aFade;attribute float aSpike;attribute float aZ;
 uniform vec2 uRes;uniform float uPix;uniform float uTime;uniform vec2 uPan;
 uniform float uZoom;uniform vec2 uOff;
-varying float vMode;varying float vB;varying float vFade;
+varying float vMode;varying float vB;varying float vFade;varying float vSpike;
 float back(float k){k=clamp(k,0.,1.);float s=1.70158;k-=1.;return k*k*((s+1.)*k+s)+1.;}
 void main(){
-  /* dolly: as posições vivem em px de mundo; a câmara escala e desloca */
-  vec2 p=position.xy*uZoom+uOff+uPan*(1.4-aMode*.6); /* as ténues, mais fundas, mexem mais */
+  /* dolly: px de mundo; profundidade real — as próximas (aZ→1) mexem mais */
+  vec2 p=position.xy*uZoom+uOff+uPan*(.55+aZ*.95);
   float b=aBirth<0.?1.:back(clamp((uTime-aBirth)/1.2,0.,1.));
   gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
-  float tw=.92+.08*sin(uTime*1.6+position.x*.05);
+  float tw=.94+.06*sin(uTime*1.6+position.x*.05);
   float inv=1.+aPulse*.25*sin(uTime*2.6); /* escolha pendente convida ao clique */
-  gl_PointSize=aSize*uPix*uZoom*b*(1.+aHov*.4)*tw*inv;
-  vMode=aMode;vB=clamp(b,0.,1.);vFade=aFade;
+  gl_PointSize=aSize*uPix*uZoom*b*(1.+aHov*.4)*tw*inv*(.85+.3*aZ);
+  vMode=aMode;vB=clamp(b,0.,1.);vFade=aFade;vSpike=aSpike;
 }`;
-const ST_FRAG=`uniform vec3 uCol;varying float vMode;varying float vB;varying float vFade;
+const ST_FRAG=`uniform vec3 uCol;varying float vMode;varying float vB;varying float vFade;varying float vSpike;
 void main(){
-  float d=length(gl_PointCoord-.5);
-  float core=smoothstep(.3,.06,d);
-  float halo=smoothstep(.5,.1,d)*.55;
-  float a=mix(core*.4+halo*.1,core+halo,vMode)*vB*vFade;
+  vec2 q=gl_PointCoord-.5;
+  float d=length(q);
+  float core=smoothstep(.17,.09,d);               /* ponto de luz nítido */
+  float hot=smoothstep(.09,.02,d);                /* coração quase branco */
+  float halo=exp(-d*7.5)*.32*smoothstep(.5,.18,d); /* halo curto, sem borrão */
+  float sp=0.;
+  if(vSpike>0.){ /* difração em cruz — só nas estrelas de maior evidência */
+    sp=(pow(max(0.,1.-abs(q.x)*9.),7.)+pow(max(0.,1.-abs(q.y)*9.),7.))
+       *smoothstep(.5,.06,d)*.4*vSpike;
+  }
+  float a=mix((core*.5+halo*.2)*.6,core*.85+hot*.6+halo+sp,vMode)*vB*vFade;
   vec3 col=mix(vec3(.6,.56,.76),uCol,vMode);
+  col=mix(col,vec3(1.),hot*.7);
   gl_FragColor=vec4(col*a,a);
 }`;
 const LN_VERT=`
-attribute float aT;attribute float aPx;attribute float aBirth;
+attribute float aT;attribute float aPx;attribute float aBirth;attribute float aZ;
 uniform vec2 uRes;uniform float uTime;uniform vec2 uPan;
 uniform float uZoom;uniform vec2 uOff;
 varying float vT;varying float vPx;varying float vB;
 void main(){
-  vec2 p=position.xy*uZoom+uOff+uPan;
+  /* cada ponta herda a profundidade da sua estrela — a linha fica presa */
+  vec2 p=position.xy*uZoom+uOff+uPan*(.55+aZ*.95);
   gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
   vT=aT;vPx=aPx;
   vB=aBirth<0.?1.:clamp((uTime-aBirth)/1.4,0.,1.);
@@ -191,8 +206,9 @@ uniform vec3 uCol;uniform float uOp;uniform float uTime;uniform float uFlow;
 varying float vT;varying float vPx;varying float vB;
 void main(){
   float flow=mix(1.,.7+.3*sin(vPx*.11-uTime*2.1),uFlow); /* energia a correr */
+  float grad=mix(.72,1.12,vT); /* leve gradiente de energia ao longo da linha */
   float drawn=step(vT,vB); /* nascimento: a ligação desenha-se de A para B */
-  float a=uOp*flow*drawn;
+  float a=uOp*flow*grad*drawn;
   gl_FragColor=vec4(uCol*a,a);
 }`;
 
@@ -418,6 +434,7 @@ export function initConstellation(){
     g.setAttribute('aT',new THREE.BufferAttribute(new Float32Array(d.t),1));
     g.setAttribute('aPx',new THREE.BufferAttribute(new Float32Array(d.px),1));
     g.setAttribute('aBirth',new THREE.BufferAttribute(new Float32Array(d.birth),1));
+    g.setAttribute('aZ',new THREE.BufferAttribute(new Float32Array(d.z),1));
     const m=new THREE.ShaderMaterial({vertexShader:LN_VERT,fragmentShader:LN_FRAG,
       transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
       uniforms:{uRes:uRes,uCol:{value:new THREE.Vector3(...tint)},
@@ -431,13 +448,16 @@ export function initConstellation(){
       uniforms:{uRes:uRes,uPix:{value:pix},
         uCol:{value:new THREE.Vector3(...tint)},uTime:uTime,uPan:uPan,uZoom:uZoom,uOff:uOff}});
   }
-  /* pontos genéricos: {x,y}=px de mundo, sz, md (0 ténue/1 acesa), bi, pu, fd */
+  /* pontos genéricos: {x,y}=px de mundo, sz, md (0 ténue/1 acesa), bi, pu, fd,
+     sp (difração 0..1), z (profundidade 0..1) */
   function mkPoints(list,tint,order){
     const n=list.length;if(!n)return null;
     const pos=new Float32Array(n*3),sz=new Float32Array(n),md=new Float32Array(n),
-      hv=new Float32Array(n),bi=new Float32Array(n),pu=new Float32Array(n),fd=new Float32Array(n);
+      hv=new Float32Array(n),bi=new Float32Array(n),pu=new Float32Array(n),fd=new Float32Array(n),
+      sp=new Float32Array(n),zz=new Float32Array(n);
     list.forEach((p,i)=>{pos[i*3]=p.x;pos[i*3+1]=p.y;sz[i]=p.sz;md[i]=p.md||0;
-      bi[i]=(p.bi!=null)?p.bi:-1;pu[i]=p.pu||0;fd[i]=(p.fd!=null)?p.fd:1;});
+      bi[i]=(p.bi!=null)?p.bi:-1;pu[i]=p.pu||0;fd[i]=(p.fd!=null)?p.fd:1;
+      sp[i]=p.sp||0;zz[i]=(p.z!=null)?p.z:.5;});
     const g=new THREE.BufferGeometry();
     g.setAttribute('position',new THREE.BufferAttribute(pos,3));
     g.setAttribute('aSize',new THREE.BufferAttribute(sz,1));
@@ -446,6 +466,8 @@ export function initConstellation(){
     g.setAttribute('aBirth',new THREE.BufferAttribute(bi,1));
     g.setAttribute('aPulse',new THREE.BufferAttribute(pu,1));
     g.setAttribute('aFade',new THREE.BufferAttribute(fd,1));
+    g.setAttribute('aSpike',new THREE.BufferAttribute(sp,1));
+    g.setAttribute('aZ',new THREE.BufferAttribute(zz,1));
     const pts=new THREE.Points(g,starMatG(tint));pts.frustumCulled=false;pts.renderOrder=order;
     scene.add(pts);
     return g;
@@ -467,7 +489,7 @@ export function initConstellation(){
     /* ligações — apenas entre estrelas nascidas */
     const visSt=s=>st.lit[s.id];
     const byId={};st.c.stars.forEach(s=>byId[s.id]=s);
-    const mk={lit:{pos:[],t:[],px:[],birth:[]},dim:{pos:[],t:[],px:[],birth:[]}};
+    const mk={lit:{pos:[],t:[],px:[],birth:[],z:[]},dim:{pos:[],t:[],px:[],birth:[],z:[]}};
     st.c.links.forEach(([a,b])=>{
       const A=byId[a],B=byId[b];
       if(!visSt(A)||!visSt(B))return;
@@ -479,6 +501,7 @@ export function initConstellation(){
       const bt=(bA!=null||bB!=null)?Math.max(bA||0,bB||0):-1;
       g.pos.push(A.x*W,A.y*H,0,B.x*W,B.y*H,0);
       g.t.push(0,1);g.px.push(0,len);g.birth.push(bt,bt);
+      g.z.push(zOf(domain+a),zOf(domain+b));
     });
     const mkLines=(d,op,flow)=>mkLinesG(d,op,flow,tint);
     /* estrela de escolha — pendente pulsa; escolhida acende com o nome do caminho */
@@ -493,9 +516,10 @@ export function initConstellation(){
         const g=st.choice.state==='chosen'?mk.lit:mk.dim;
         g.pos.push(d.x*W,d.y*H,0,L.x*W,L.y*H,0);
         g.t.push(0,1);g.px.push(0,len);g.birth.push(bt,bt);
+        g.z.push(zOf(domain+d.id),zOf(domain+L.id));
       }
     }
-    mkLines(mk.dim,.09,0);mkLines(mk.lit,.34,1);
+    mkLines(mk.dim,.10,0);mkLines(mk.lit,.42,1);
     /* estrelas nascidas + escolha — nada mais existe no céu (silêncio total
        sobre o que falta; o registo born guarda as datas) */
     shown=st.c.stars.filter(visSt);
@@ -503,13 +527,14 @@ export function initConstellation(){
     if(shown.length){
       const n=shown.length;
       const pos=new Float32Array(n*3),sz=new Float32Array(n),md=new Float32Array(n),
-        hv=new Float32Array(n),bi=new Float32Array(n),pu=new Float32Array(n),fd=new Float32Array(n);
+        hv=new Float32Array(n),bi=new Float32Array(n),pu=new Float32Array(n),fd=new Float32Array(n),
+        sp=new Float32Array(n),zz=new Float32Array(n);
       shown.forEach((s,i)=>{
-        pos[i*3]=s.x*W;pos[i*3+1]=s.y*H;fd[i]=1;
+        pos[i*3]=s.x*W;pos[i*3+1]=s.y*H;fd[i]=1;zz[i]=zOf(domain+s.id);
         if(s._choice){
           sz[i]=s._state==='chosen'?20:11;md[i]=s._state==='chosen'?1:0;
-          pu[i]=s._state==='pending'?1:0;
-        }else{sz[i]=20;md[i]=1;} /* nascidas: sempre acesas (calibração M12·6) */
+          pu[i]=s._state==='pending'?1:0;sp[i]=s._state==='chosen'?.7:0;
+        }else{sz[i]=szOf(s);md[i]=1;sp[i]=spOf(s);} /* peso da evidência */
         const b=births[domain+':'+s.id];bi[i]=(b!=null)?b:-1;
       });
       starGeo=new THREE.BufferGeometry();
@@ -520,6 +545,8 @@ export function initConstellation(){
       starGeo.setAttribute('aBirth',new THREE.BufferAttribute(bi,1));
       starGeo.setAttribute('aPulse',new THREE.BufferAttribute(pu,1));
       starGeo.setAttribute('aFade',new THREE.BufferAttribute(fd,1));
+      starGeo.setAttribute('aSpike',new THREE.BufferAttribute(sp,1));
+      starGeo.setAttribute('aZ',new THREE.BufferAttribute(zz,1));
       starPts=new THREE.Points(starGeo,starMatG(tint));starPts.frustumCulled=false;starPts.renderOrder=3;
       scene.add(starPts);
       if(labels)shown.forEach(s=>{
@@ -563,7 +590,7 @@ export function initConstellation(){
       const P=s=>({x:(an.x+s.x*UNI.s)*W,y:(an.y+s.y*UNI.s)*H});
       const byId={};st.c.stars.forEach(s=>byId[s.id]=s);
       const visSt=s=>st.lit[s.id];
-      const mk={lit:{pos:[],t:[],px:[],birth:[]},dim:{pos:[],t:[],px:[],birth:[]}};
+      const mk={lit:{pos:[],t:[],px:[],birth:[],z:[]},dim:{pos:[],t:[],px:[],birth:[],z:[]}};
       st.c.links.forEach(([x,y])=>{
         const A=byId[x],B=byId[y];
         if(!visSt(A)||!visSt(B))return;
@@ -574,19 +601,21 @@ export function initConstellation(){
         const bt=(bA!=null||bB!=null)?Math.max(bA||0,bB||0):-1;
         g.pos.push(pa.x,pa.y,0,pb.x,pb.y,0);
         g.t.push(0,1);g.px.push(0,len);g.birth.push(bt,bt);
+        g.z.push(zOf(a.id+x),zOf(a.id+y));
       });
-      mkLinesG(mk.dim,.07,0,tint);mkLinesG(mk.lit,.3,1,tint);
+      mkLinesG(mk.dim,.08,0,tint);mkLinesG(mk.lit,.36,1,tint);
       const vis=[];
       st.c.stars.forEach(s=>{
         total++;if(st.lit[s.id])litN++;
         if(!visSt(s))return; /* silêncio: o que não nasceu não existe no céu */
         const p=P(s),b=births[a.id+':'+s.id];
-        vis.push({x:p.x,y:p.y,sz:9,md:1,bi:(b!=null)?b:-1});
+        vis.push({x:p.x,y:p.y,sz:spOf(s)?10:8,md:1,bi:(b!=null)?b:-1,z:zOf(a.id+s.id)});
       });
       if(st.choice&&st.choice.state!=='hidden'){
         const d=st.choice.def,p=P(d);
         vis.push({x:p.x,y:p.y,sz:st.choice.state==='chosen'?9:5,
-          md:st.choice.state==='chosen'?1:0,pu:st.choice.state==='pending'?1:0});
+          md:st.choice.state==='chosen'?1:0,pu:st.choice.state==='pending'?1:0,
+          z:zOf(a.id+d.id)});
       }
       mkPoints(vis,tint,3);
       const cx=an.x+UNI.s/2,cy=an.y+UNI.s/2;
@@ -604,7 +633,7 @@ export function initConstellation(){
     });
     /* o Núcleo — nunca editável; o brilho É a fração de estrelas acesas */
     const frac=total?litN/total:0;
-    mkPoints([{x:.5*W,y:.5*H,sz:26,md:1,fd:.3+.7*frac}],hxv('#a78bfa'),3);
+    mkPoints([{x:.5*W,y:.5*H,sz:26,md:1,fd:.3+.7*frac,sp:1,z:.5}],hxv('#a78bfa'),3);
     renderer.render(scene,camera);
   }
   /* loop — só com o painel visível e sem reduced-motion */

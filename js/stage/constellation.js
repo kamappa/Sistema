@@ -1,24 +1,22 @@
 import * as THREE from '../vendor/three.module.min.js';
 
-/* Constelações (Missão 12 · Sprint 4 · 4A+4B) — o céu do Operador.
-   4A: canvas WebGL próprio, estados acesa/descoberta/oculta por regras de
-   evidência declaradas em CONSTELLATIONS (data.js) — nunca à mão.
-   4B: vida — nevoeiro do domínio, fluxo de energia nas ligações acesas,
-   paralaxe subtil com o cursor, hover com pulso, clique → cartão de
-   evidência (honestidade: mostra a regra e o estado atual; o NOME de uma
-   estrela adormecida fica escondido — mistério do roadmap), e o NASCIMENTO:
-   quando uma regra passa a verdadeira em sessão, a estrela nasce com
-   overshoot e as ligações desenham-se com energia; Bus.emit('star:lit').
-   O loop rAF só corre com o painel visível e sem reduced-motion — caso
-   contrário o céu é uma frame estática on demand.
-   Profundidade e dolly (pós-M12): fundo com poeira + duas camadas de estrelas
-   distantes com paralaxe; estrelas escondidas como pontos ténues sem nome nem
-   clique; zoom por câmara (uZoom/uOff nos shaders, nunca escala de bitmap)
-   com Motion.Spring — wheel/pinch/arrasto/duplo-clique; reduced-motion
-   assenta sem animação.
-   Vista de Universo (Missão 14 · Universe Navigation · Fase 1): abre nas 6
-   constelações em anel com o Núcleo ao centro (brilho = fração de estrelas
-   acesas — evidência, nunca à mão); clicar mergulha num domínio (fly-in com
+/* Constelações — o céu do Operador (M12·S4 → M14 → M16).
+   Conceito M16 (Fase A): as estrelas NASCEM, não se acendem. O céu só
+   contém estrelas cuja evidência (CONSTELLATIONS, data.js) é verdadeira
+   AGORA; nada de adormecidas/descobertas visíveis, nenhuma contagem do que
+   falta — silêncio total, cada nascimento é surpresa. Se a evidência
+   regride, a estrela recolhe; S.constellation.born guarda a data do
+   primeiro nascimento (títulos usam a data real de titleUnlocked; a
+   migração inicial marca o=1 = "observada", nunca data inventada).
+   O vazio nunca é morto: poeira, nebulosa na cor do domínio, respiração
+   lenta e grão de céu profundo (textura indistinta, sem pontos legíveis).
+   Nascimento em sessão: overshoot + ligações a desenharem-se +
+   Bus.emit('star:lit') (mini-supernova chega na Fase C).
+   Dolly por câmara (uZoom/uOff nos shaders, nunca escala de bitmap) com
+   Motion.Spring — wheel/pinch/arrasto/duplo-clique; reduced-motion assenta
+   sem animação; rAF só com o painel visível.
+   Vista de Universo (M14): 6 constelações em anel + Núcleo ao centro
+   (brilho = fração de estrelas nascidas); clicar mergulha (fly-in com
    continuidade de câmara), zoom-out no limite ou duplo-clique regressa. */
 
 function evalReq(attr,req){
@@ -56,15 +54,15 @@ function reqText(attr,req){
   }catch(e){}
   return{need:'—',now:''};
 }
+/* Conceito M16: as estrelas NASCEM (born-based). O céu só contém estrelas
+   cuja regra de evidência é verdadeira AGORA; se a evidência regride, a
+   estrela recolhe — o registo S.constellation.born guarda a data do
+   primeiro nascimento (facto histórico). Silêncio total sobre o que falta:
+   nenhuma estrela adormecida/descoberta é mostrada nem contada. */
 export function domainState(attr){
   const c=(typeof CONSTELLATIONS!=='undefined')&&CONSTELLATIONS[attr];
   if(!c)return null;
   const lit={};c.stars.forEach(s=>lit[s.id]=evalReq(attr,s.req));
-  const adj={};c.links.forEach(([a,b])=>{(adj[a]=adj[a]||[]).push(b);(adj[b]=adj[b]||[]).push(a);});
-  const disc={};
-  c.stars.forEach((s,i)=>{
-    disc[s.id]=!lit[s.id]&&((adj[s.id]||[]).some(o=>lit[o])||i===0);
-  });
   /* Estrela de Escolha (4C) — identidade, não evidência; mas o desbloqueio é
      gated por evidência e a escolha é reversível */
   let choice=null;
@@ -74,7 +72,49 @@ export function domainState(attr){
     try{chosen=(S&&S.constellation&&S.constellation.choices&&S.constellation.choices[attr])||null;}catch(e){}
     choice={def:c.choice,state:unlocked?(chosen?'chosen':'pending'):'hidden',chosen};
   }
-  return{c,lit,disc,choice};
+  return{c,lit,choice};
+}
+
+/* registo de nascimentos — a única escrita nova no estado. Idempotente:
+   só grava a primeira vez que uma regra passa a verdadeira. Datas honestas:
+   estrelas de Título usam a data real de S.titleUnlocked; na migração
+   inicial (bornInit ausente) o resto fica marcado o=1 — "evidência anterior
+   ao registo do céu, observada a <data>" — nunca uma data inventada.
+   O save é adiado para fora do ciclo de render (reentrância). */
+let bornSaveT=0;
+function bornSchedSave(){
+  if(bornSaveT)return;
+  bornSaveT=setTimeout(()=>{bornSaveT=0;try{if(typeof save==='function')save();}catch(e){}},50);
+}
+export function recordBirths(){
+  try{
+    if(typeof S==='undefined'||!S||typeof CONSTELLATIONS==='undefined')return;
+    S.constellation=S.constellation||{choices:{}};
+    const reg=S.constellation.born=S.constellation.born||{};
+    const first=!S.constellation.bornInit;
+    let dirty=false;
+    for(const attr in CONSTELLATIONS){
+      CONSTELLATIONS[attr].stars.forEach(s=>{
+        const k=attr+':'+s.id;
+        if(reg[k]||!evalReq(attr,s.req))return;
+        const e={d:(typeof today==='function')?today():new Date().toISOString().slice(0,10)};
+        if(s.req&&s.req.title&&S.titleUnlocked&&S.titleUnlocked[s.req.title])
+          e.d=S.titleUnlocked[s.req.title];
+        else if(first)e.o=1;
+        reg[k]=e;dirty=true;
+      });
+    }
+    if(first){S.constellation.bornInit=(typeof today==='function')?today():new Date().toISOString().slice(0,10);dirty=true;}
+    if(dirty)bornSchedSave();
+  }catch(e){}
+}
+function bornInfo(attr,id){
+  try{
+    const b=S.constellation&&S.constellation.born&&S.constellation.born[attr+':'+id];
+    if(!b||!b.d)return null;
+    const dt=b.d.slice(8,10)+'/'+b.d.slice(5,7)+'/'+b.d.slice(0,4);
+    return b.o?'Evidência anterior ao registo do céu — observada a '+dt:'★ Nasceu a '+dt;
+  }catch(e){return null;}
 }
 
 const hxv=h=>[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];
@@ -90,30 +130,21 @@ float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));
   q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
   return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
-/* campo de estrelas distante: uma estrela ténue por célula (sem vizinhança —
-   o offset fica no miolo da célula, logo nunca corta nas bordas) */
-float field(vec2 px,float cell,float thr,float seed){
-  vec2 g=px/cell;vec2 i=floor(g),f=fract(g);
-  float h=hash(i+seed);
-  if(h<thr)return 0.;
-  vec2 c=vec2(hash(i+seed+7.3),hash(i+seed+2.9))*.6+.2;
-  float r=mix(.04,.10,hash(i+seed+4.7));
-  float tw=.78+.22*sin(uTime*(.5+h)+h*40.);
-  return smoothstep(r,r*.25,length(f-c))*mix(.3,1.,h)*tw;
-}
 void main(){
   vec3 col=mix(vec3(.027,.022,.062),vec3(.062,.042,.118),vUv.y*.7);
-  /* nevoeiro do domínio — em coordenadas de mundo: acompanha o dolly de leve */
+  /* nevoeiro do domínio — coordenadas de mundo (acompanha o dolly de leve);
+     pureza absoluta: sem estrelas de enchimento — só poeira, nebulosa na cor
+     do domínio e uma respiração lenta (~22s). O vazio é um céu à espera. */
   vec2 px=vUv*uRes;
   vec2 p=((px-uOff*.25)/(1.+(uZoom-1.)*.25))/uRes*3.1;
+  float breathe=1.+.06*sin(uTime*.285); /* a respiração da cena (M12·2C) */
   float n=noise(p+vec2(uTime*.008,-uTime*.005));
   if(uDetail>1.5)n=n*.7+.3*noise(p*2.2+vec2(-uTime*.006,uTime*.009));
-  col+=uTint*n*n*.16*(1.-vUv.y*.35);
-  col+=vec3(.05,.045,.09)*n*.09; /* poeira neutra: tira o preto absoluto */
-  /* duas camadas de estrelas distantes com paralaxe própria (profundidade) */
-  float s=field((px-uOff*.35)/(1.+(uZoom-1.)*.35),44.,.62,11.)*.34
-         +field((px-uOff*.6)/(1.+(uZoom-1.)*.6),66.,.55,29.)*.55;
-  col+=mix(vec3(.72,.7,.88),uTint,.35)*s;
+  col+=uTint*n*n*.20*breathe*(1.-vUv.y*.35);
+  col+=vec3(.05,.045,.09)*n*.11; /* poeira neutra: tira o preto absoluto */
+  /* grão fino de céu profundo — textura indistinta, nunca pontos legíveis */
+  float g=noise(px*.22+vec2(7.3,2.9));
+  col+=vec3(.5,.48,.62)*smoothstep(.82,1.,g)*.05;
   float vg=smoothstep(1.15,.3,length(vUv-vec2(.5,.5)));
   col*=mix(.85,1.,vg);
   col+=(hash(gl_FragCoord.xy)-.5)/255.;
@@ -178,6 +209,7 @@ function initDomFallback(){
   let domain='oficio';
   const prevLit={};let baseline=false;
   function evaluateAll(){
+    recordBirths();
     for(const attr in CONSTELLATIONS){
       const st=domainState(attr);if(!st)continue;
       const prev=prevLit[attr]||{};
@@ -197,11 +229,10 @@ function initDomFallback(){
   function drawDom(){
     const st=domainState(domain);if(!st)return;
     const dcol=(typeof AM!=='undefined'&&AM[domain])?AM[domain].color:'#a78bfa';
-    const hid=st.c.stars.filter(s=>!st.lit[s.id]&&!st.disc[s.id]).length;
+    /* silêncio total: só estrelas nascidas; nada é contado nem sugerido */
     let html=st.c.stars.filter(s=>st.lit[s.id]).map(s=>
       `<div class="cfb on" style="color:${dcol}">★ ${s.n}</div>`).join('');
-    html+=st.c.stars.filter(s=>st.disc[s.id]).map(()=>`<div class="cfb">✦ ─────</div>`).join('');
-    if(hid)html+=`<div class="cfb dim">… e ${hid} estrelas escondidas</div>`;
+    if(!html)html=`<div class="cfb dim">O céu deste domínio ainda espera a primeira estrela.</div>`;
     if(st.choice&&st.choice.state==='chosen')
       html+=`<div class="cfb on" style="color:${dcol}">◈ Caminho: ${st.choice.chosen}</div>`;
     else if(st.choice&&st.choice.state==='pending')
@@ -352,6 +383,7 @@ export function initConstellation(){
   /* avalia TODOS os domínios: detecta nascimentos mesmo fora do domínio à vista */
   function evaluateAll(){
     if(typeof CONSTELLATIONS==='undefined')return;
+    recordBirths();
     for(const attr in CONSTELLATIONS){
       const st=domainState(attr);if(!st)continue;
       const prev=prevLit[attr]||{};
@@ -366,7 +398,7 @@ export function initConstellation(){
     baseline=true;
   }
   function stateKey(st){
-    return domain+'|'+st.c.stars.map(s=>st.lit[s.id]?'1':st.disc[s.id]?'d':'0').join('')
+    return domain+'|'+st.c.stars.map(s=>st.lit[s.id]?'1':'0').join('')
       +'|'+(st.choice?st.choice.state+(st.choice.chosen||''):'');
   }
   function addBg(tint){
@@ -432,8 +464,8 @@ export function initConstellation(){
     const dcol=(typeof AM!=='undefined'&&AM[domain])?AM[domain].color:'#a78bfa';
     const tint=hxv(dcol);
     addBg(tint);
-    /* ligações */
-    const visSt=s=>st.lit[s.id]||st.disc[s.id];
+    /* ligações — apenas entre estrelas nascidas */
+    const visSt=s=>st.lit[s.id];
     const byId={};st.c.stars.forEach(s=>byId[s.id]=s);
     const mk={lit:{pos:[],t:[],px:[],birth:[]},dim:{pos:[],t:[],px:[],birth:[]}};
     st.c.links.forEach(([a,b])=>{
@@ -464,11 +496,8 @@ export function initConstellation(){
       }
     }
     mkLines(mk.dim,.09,0);mkLines(mk.lit,.34,1);
-    /* estrelas escondidas — o mistério do roadmap: a constelação existe mas
-       ainda não se lê. Pontos muito ténues, sem nome, sem hover, sem clique;
-       a silhueta dá profundidade sem revelar a evidência. */
-    mkPoints(st.c.stars.filter(s=>!visSt(s)).map(s=>({x:s.x*W,y:s.y*H,sz:5,fd:.32})),tint,2);
-    /* estrelas visíveis (acesas + descobertas + escolha) */
+    /* estrelas nascidas + escolha — nada mais existe no céu (silêncio total
+       sobre o que falta; o registo born guarda as datas) */
     shown=st.c.stars.filter(visSt);
     if(choiceStar)shown=shown.concat(choiceStar);
     if(shown.length){
@@ -480,7 +509,7 @@ export function initConstellation(){
         if(s._choice){
           sz[i]=s._state==='chosen'?20:11;md[i]=s._state==='chosen'?1:0;
           pu[i]=s._state==='pending'?1:0;
-        }else{sz[i]=st.lit[s.id]?20:6;md[i]=st.lit[s.id]?1:0;} /* calibração M12·6 */
+        }else{sz[i]=20;md[i]=1;} /* nascidas: sempre acesas (calibração M12·6) */
         const b=births[domain+':'+s.id];bi[i]=(b!=null)?b:-1;
       });
       starGeo=new THREE.BufferGeometry();
@@ -513,7 +542,7 @@ export function initConstellation(){
     let k='U';
     for(const attr in CONSTELLATIONS){
       const st=domainState(attr);if(!st)continue;
-      k+='|'+attr+':'+st.c.stars.map(s=>st.lit[s.id]?'1':st.disc[s.id]?'d':'0').join('')
+      k+='|'+attr+':'+st.c.stars.map(s=>st.lit[s.id]?'1':'0').join('')
         +(st.choice?st.choice.state+(st.choice.chosen||''):'');
     }
     return k;
@@ -533,7 +562,7 @@ export function initConstellation(){
       const tint=hxv(a.color);
       const P=s=>({x:(an.x+s.x*UNI.s)*W,y:(an.y+s.y*UNI.s)*H});
       const byId={};st.c.stars.forEach(s=>byId[s.id]=s);
-      const visSt=s=>st.lit[s.id]||st.disc[s.id];
+      const visSt=s=>st.lit[s.id];
       const mk={lit:{pos:[],t:[],px:[],birth:[]},dim:{pos:[],t:[],px:[],birth:[]}};
       st.c.links.forEach(([x,y])=>{
         const A=byId[x],B=byId[y];
@@ -547,21 +576,19 @@ export function initConstellation(){
         g.t.push(0,1);g.px.push(0,len);g.birth.push(bt,bt);
       });
       mkLinesG(mk.dim,.07,0,tint);mkLinesG(mk.lit,.3,1,tint);
-      const vis=[],hid=[];
+      const vis=[];
       st.c.stars.forEach(s=>{
         total++;if(st.lit[s.id])litN++;
-        const p=P(s);
-        if(visSt(s)){
-          const b=births[a.id+':'+s.id];
-          vis.push({x:p.x,y:p.y,sz:st.lit[s.id]?9:4,md:st.lit[s.id]?1:0,bi:(b!=null)?b:-1});
-        }else hid.push({x:p.x,y:p.y,sz:3,fd:.3});
+        if(!visSt(s))return; /* silêncio: o que não nasceu não existe no céu */
+        const p=P(s),b=births[a.id+':'+s.id];
+        vis.push({x:p.x,y:p.y,sz:9,md:1,bi:(b!=null)?b:-1});
       });
       if(st.choice&&st.choice.state!=='hidden'){
         const d=st.choice.def,p=P(d);
         vis.push({x:p.x,y:p.y,sz:st.choice.state==='chosen'?9:5,
           md:st.choice.state==='chosen'?1:0,pu:st.choice.state==='pending'?1:0});
       }
-      mkPoints(hid,tint,2);mkPoints(vis,tint,3);
+      mkPoints(vis,tint,3);
       const cx=an.x+UNI.s/2,cy=an.y+UNI.s/2;
       uniRegions.push({attr:a.id,cx:cx*W,cy:cy*H,rx:UNI.s*W*.55,ry:UNI.s*H*.62});
       if(labels){
@@ -652,12 +679,12 @@ export function initConstellation(){
       };
       return;
     }
-    const lit=st.lit[s.id],r=reqText(domain,s.req);
+    const r=reqText(domain,s.req),bi=bornInfo(domain,s.id);
     card=document.createElement('div');card.className='const-card';
     card.innerHTML=`<span class="cx">✕</span>
-      <div class="ck">${lit?'Estrela acesa':'Estrela adormecida'}</div>
-      <b>${lit?s.n:'✦ ─────'}</b>
-      <div class="now">${lit?'Evidência cumprida: '+r.need:'Evidência: '+r.need+'<br>'+r.now}</div>`;
+      <div class="ck">Estrela nascida</div>
+      <b>${s.n}</b>
+      <div class="now">Evidência: ${r.need}${bi?'<br>'+bi:''}</div>`;
     place(s);
   }
   /* zoom cinematográfico: wheel ancorado ao cursor, pinch, arrasto quando

@@ -159,20 +159,25 @@ void main(){
 const ST_VERT=`
 attribute float aSize;attribute float aMode;attribute float aHov;attribute float aBirth;attribute float aPulse;attribute float aFade;attribute float aSpike;attribute float aZ;
 uniform vec2 uRes;uniform float uPix;uniform float uTime;uniform vec2 uPan;
-uniform float uZoom;uniform vec2 uOff;
-varying float vMode;varying float vB;varying float vFade;varying float vSpike;
+uniform float uZoom;uniform vec2 uOff;uniform float uRM;
+varying float vMode;varying float vB;varying float vFade;varying float vSpike;varying float vFlash;
 float back(float k){k=clamp(k,0.,1.);float s=1.70158;k-=1.;return k*k*((s+1.)*k+s)+1.;}
 void main(){
   /* dolly: px de mundo; profundidade real — as próximas (aZ→1) mexem mais */
   vec2 p=position.xy*uZoom+uOff+uPan*(.55+aZ*.95);
-  float b=aBirth<0.?1.:back(clamp((uTime-aBirth)/1.2,0.,1.));
+  float age=(aBirth<0.)?9.:max(uTime-aBirth,0.);
+  float bb=back(clamp(age/1.2,0.,1.));
+  /* rm: fade simples — alpha entra, tamanho não salta, sem clarão */
+  float b=(aBirth<0.)?1.:mix(bb,1.,uRM);
+  float flash=(aBirth<0.)?0.:exp(-age*4.5)*(1.-uRM); /* clarão da supernova */
   gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
   float tw=.94+.06*sin(uTime*1.6+position.x*.05);
   float inv=1.+aPulse*.25*sin(uTime*2.6); /* escolha pendente convida ao clique */
-  gl_PointSize=aSize*uPix*uZoom*b*(1.+aHov*.4)*tw*inv*(.85+.3*aZ);
-  vMode=aMode;vB=clamp(b,0.,1.);vFade=aFade;vSpike=aSpike;
+  gl_PointSize=aSize*uPix*uZoom*b*(1.+aHov*.4)*tw*inv*(.85+.3*aZ)*(1.+flash*2.6);
+  vMode=aMode;vB=(aBirth<0.)?1.:clamp(mix(bb,age/1.2,uRM),0.,1.);
+  vFade=aFade;vSpike=aSpike;vFlash=flash;
 }`;
-const ST_FRAG=`uniform vec3 uCol;varying float vMode;varying float vB;varying float vFade;varying float vSpike;
+const ST_FRAG=`uniform vec3 uCol;varying float vMode;varying float vB;varying float vFade;varying float vSpike;varying float vFlash;
 void main(){
   vec2 q=gl_PointCoord-.5;
   float d=length(q);
@@ -187,7 +192,49 @@ void main(){
   float a=mix((core*.5+halo*.2)*.6,core*.85+hot*.6+halo+sp,vMode)*vB*vFade;
   vec3 col=mix(vec3(.6,.56,.76),uCol,vMode);
   col=mix(col,vec3(1.),hot*.7);
+  col=mix(col,vec3(1.),min(vFlash,1.)*.85); /* pico branco do nascimento */
+  a*=1.+vFlash*1.2;
   gl_FragColor=vec4(col*a,a);
+}`;
+/* anel de choque do nascimento — o ponto cresce, o anel vive no sprite */
+const RG_VERT=`
+attribute float aStart;attribute vec3 aCol;
+uniform vec2 uRes;uniform float uTime;uniform float uPix;uniform float uZoom;uniform vec2 uOff;uniform vec2 uPan;
+varying float vAge;varying vec3 vCol;
+void main(){
+  vec2 p=position.xy*uZoom+uOff+uPan;
+  gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
+  float age=(aStart<0.)?9.:max(uTime-aStart,0.);
+  vAge=age;vCol=aCol;
+  gl_PointSize=mix(12.,150.,clamp(age/.85,0.,1.))*uPix*uZoom;
+}`;
+const RG_FRAG=`varying float vAge;varying vec3 vCol;
+void main(){
+  if(vAge>.85)discard;
+  float d=length(gl_PointCoord-.5);
+  float ring=smoothstep(.055,.012,abs(d-.40));
+  float a=ring*(1.-vAge/.85)*.5;
+  gl_FragColor=vec4(mix(vCol,vec3(1.),.4)*a,a);
+}`;
+/* partículas do nascimento — irradiam com ease-out e apagam-se */
+const PT_VERT=`
+attribute float aStart;attribute vec2 aDir;attribute float aSpd;attribute vec3 aCol;
+uniform vec2 uRes;uniform float uTime;uniform float uPix;uniform float uZoom;uniform vec2 uOff;uniform vec2 uPan;
+varying float vAge;varying vec3 vCol;
+void main(){
+  float age=(aStart<0.)?9.:max(uTime-aStart,0.);
+  vec2 world=position.xy+aDir*aSpd*(1.-exp(-age*2.6));
+  vec2 p=world*uZoom+uOff+uPan;
+  gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
+  vAge=age;vCol=aCol;
+  gl_PointSize=max(uPix*uZoom*4.*(1.-age/1.2),0.);
+}`;
+const PT_FRAG=`varying float vAge;varying vec3 vCol;
+void main(){
+  if(vAge>1.2)discard;
+  float d=length(gl_PointCoord-.5);
+  float a=smoothstep(.5,.12,d)*(1.-vAge/1.2)*.85;
+  gl_FragColor=vec4(mix(vCol,vec3(1.),.3)*a,a);
 }`;
 const LN_VERT=`
 attribute float aT;attribute float aPx;attribute float aBirth;attribute float aZ;
@@ -289,6 +336,7 @@ export function initConstellation(){
   let starGeo=null,starPts=null,hovIdx=-1,shown=[],curState=null,card=null;
   const uTime={value:0},uPan={value:new THREE.Vector2(0,0)};
   const uRes={value:new THREE.Vector2(1,1)},uZoom={value:1},uOff={value:new THREE.Vector2(0,0)};
+  const uRMu={value:rm.matches?1:0}; /* rm: nascimento = fade simples */
   const prevLit={};let baseline=false; /* 1ª avaliação não emite nascimentos */
   const births={}; /* 'attr:id' → instante do nascimento */
 
@@ -389,6 +437,8 @@ export function initConstellation(){
     clampOff(); /* o resize pode encolher a janela válida do offset */
   }
   function clear(){
+    /* os pools da supernova sobrevivem — soltar antes de descartar o resto */
+    if(fxPts&&fxPts.parent===scene){scene.remove(fxPts);scene.remove(fxRings);}
     while(scene.children.length){
       const o=scene.children.pop();
       if(o.geometry)o.geometry.dispose();
@@ -407,6 +457,7 @@ export function initConstellation(){
         if(st.lit[s.id]&&!prev[s.id]&&baseline){
           births[attr+':'+s.id]=tNow();
           if(window.Bus)Bus.emit('star:lit',{attr:attr,id:s.id});
+          spawnFor(attr,s); /* supernova (ou fade, com rm) se estiver à vista */
         }
       });
       prevLit[attr]=st.lit;
@@ -446,7 +497,87 @@ export function initConstellation(){
     return new THREE.ShaderMaterial({vertexShader:ST_VERT,fragmentShader:ST_FRAG,
       transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
       uniforms:{uRes:uRes,uPix:{value:pix},
-        uCol:{value:new THREE.Vector3(...tint)},uTime:uTime,uPan:uPan,uZoom:uZoom,uOff:uOff}});
+        uCol:{value:new THREE.Vector3(...tint)},uTime:uTime,uPan:uPan,uZoom:uZoom,uOff:uOff,uRM:uRMu}});
+  }
+  /* ===== supernova (M16 Fase C) — pools pré-alocados, zero alocações em
+     runtime; os objetos sobrevivem ao clear() e são re-adicionados à cena
+     em cada rebuild. Efémeros: um rebuild a meio só corta o rasto. ===== */
+  const FXP=lite?24:48,FXR=4;
+  let fxPts=null,fxRings=null,fxPtGeo=null,fxRingGeo=null,fxPtI=0,fxRingI=0;
+  function fxInit(){
+    const fxu={uRes:uRes,uTime:uTime,uPan:uPan,uZoom:uZoom,uOff:uOff,uPix:{value:pix}};
+    fxPtGeo=new THREE.BufferGeometry();
+    fxPtGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(FXP*3),3));
+    fxPtGeo.setAttribute('aStart',new THREE.BufferAttribute(new Float32Array(FXP).fill(-1),1));
+    fxPtGeo.setAttribute('aDir',new THREE.BufferAttribute(new Float32Array(FXP*2),2));
+    fxPtGeo.setAttribute('aSpd',new THREE.BufferAttribute(new Float32Array(FXP),1));
+    fxPtGeo.setAttribute('aCol',new THREE.BufferAttribute(new Float32Array(FXP*3),3));
+    fxPts=new THREE.Points(fxPtGeo,new THREE.ShaderMaterial({vertexShader:PT_VERT,fragmentShader:PT_FRAG,
+      transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:fxu}));
+    fxPts.frustumCulled=false;fxPts.renderOrder=4;
+    fxRingGeo=new THREE.BufferGeometry();
+    fxRingGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(FXR*3),3));
+    fxRingGeo.setAttribute('aStart',new THREE.BufferAttribute(new Float32Array(FXR).fill(-1),1));
+    fxRingGeo.setAttribute('aCol',new THREE.BufferAttribute(new Float32Array(FXR*3),3));
+    fxRings=new THREE.Points(fxRingGeo,new THREE.ShaderMaterial({vertexShader:RG_VERT,fragmentShader:RG_FRAG,
+      transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:fxu}));
+    fxRings.frustumCulled=false;fxRings.renderOrder=4;
+  }
+  function fxEnsure(){
+    if(!fxPts)fxInit();
+    if(fxPts.parent!==scene){scene.add(fxPts);scene.add(fxRings);}
+  }
+  function fxBirth(x,y,col){
+    fxEnsure();
+    const t=tNow(),n=lite?6:12,P=fxPtGeo.attributes;
+    for(let k=0;k<n;k++){
+      const i=fxPtI;fxPtI=(fxPtI+1)%FXP;
+      P.position.array[i*3]=x;P.position.array[i*3+1]=y;
+      const a=Math.random()*Math.PI*2;
+      P.aDir.array[i*2]=Math.cos(a);P.aDir.array[i*2+1]=Math.sin(a);
+      P.aSpd.array[i]=30+Math.random()*70;
+      P.aStart.array[i]=t;
+      P.aCol.array[i*3]=col[0];P.aCol.array[i*3+1]=col[1];P.aCol.array[i*3+2]=col[2];
+    }
+    for(const k in P)P[k].needsUpdate=true;
+    const R=fxRingGeo.attributes,ri=fxRingI;fxRingI=(fxRingI+1)%FXR;
+    R.position.array[ri*3]=x;R.position.array[ri*3+1]=y;
+    R.aStart.array[ri]=t;
+    R.aCol.array[ri*3]=col[0];R.aCol.array[ri*3+1]=col[1];R.aCol.array[ri*3+2]=col[2];
+    for(const k in R)R[k].needsUpdate=true;
+  }
+  /* rm/painel parado: um mini-loop de ~1.4s só para o fade do nascimento */
+  let fadeRaf=0,fadeEnd=0;
+  function miniLoop(){
+    if(raf)return; /* o loop normal já anima */
+    fadeEnd=performance.now()+1400;
+    if(fadeRaf)return;
+    const step=()=>{
+      uTime.value=tNow();
+      renderer.render(scene,camera);
+      if(performance.now()<fadeEnd)fadeRaf=requestAnimationFrame(step);
+      else fadeRaf=0;
+    };
+    fadeRaf=requestAnimationFrame(step);
+  }
+  /* nascimento visível: supernova + micro-push da câmara (a mola devolve) */
+  function spawnFor(attr,s){
+    if(!vis)return;
+    let x,y;
+    if(mode==='domain'){
+      if(attr!==domain)return;
+      x=s.x*W;y=s.y*H;
+    }else{
+      const i=(typeof ATTRS!=='undefined')?ATTRS.findIndex(a=>a.id===attr):-1;
+      if(i<0)return;
+      const an=uniAnchor(i,ATTRS.length);
+      x=(an.x+s.x*UNI.s)*W;y=(an.y+s.y*UNI.s)*H;
+    }
+    if(rm.matches){miniLoop();return;}
+    const col=hxv((typeof AM!=='undefined'&&AM[attr])?AM[attr].color:'#a78bfa');
+    fxBirth(x,y,col);
+    if(camSpring){camSpring.v[0]+=.55;camSpring.set(zt,oxT,oyT);}
+    miniLoop(); /* se o painel estiver visível mas o rAF parado */
   }
   /* pontos genéricos: {x,y}=px de mundo, sz, md (0 ténue/1 acesa), bi, pu, fd,
      sp (difração 0..1), z (profundidade 0..1) */
@@ -561,6 +692,7 @@ export function initConstellation(){
         labels.appendChild(d);
       });
     }
+    fxEnsure(); /* pools da supernova de volta à cena depois do rebuild */
     renderer.render(scene,camera);
   }
   /* Vista de Universo — todos os domínios num só céu; a chave de estado
@@ -634,6 +766,7 @@ export function initConstellation(){
     /* o Núcleo — nunca editável; o brilho É a fração de estrelas acesas */
     const frac=total?litN/total:0;
     mkPoints([{x:.5*W,y:.5*H,sz:26,md:1,fd:.3+.7*frac,sp:1,z:.5}],hxv('#a78bfa'),3);
+    fxEnsure();
     renderer.render(scene,camera);
   }
   /* loop — só com o painel visível e sem reduced-motion */
@@ -806,7 +939,7 @@ export function initConstellation(){
     }).observe(wrap);
   }else{vis=true;start();}
   document.addEventListener('visibilitychange',()=>document.hidden?stop():start());
-  rm.addEventListener('change',()=>{rm.matches?stop():start();});
+  rm.addEventListener('change',()=>{uRMu.value=rm.matches?1:0;rm.matches?stop():start();});
   let rsT=0;
   addEventListener('resize',()=>{clearTimeout(rsT);rsT=setTimeout(()=>draw(true),200);});
   /* chamado no fim de cada render() clássico */

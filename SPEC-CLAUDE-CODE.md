@@ -619,12 +619,38 @@ ao céu; a influência no mundo inteiro (react/Oráculo) fica para a Fase 2.
   intocados na lógica; ~+40 tokens input/chamada. Deploy CLI
   --no-verify-jwt; smoke test: preflight 204 com CORS correto.
 
+## Missão 19 — Universe Navigation · Fase 1: Dock Celeste
+(CONCLUÍDA 2026-07-19; forma escolhida pelo Daniel entre 3 opções)
+
+Navegação como viagem, não como salto — aditiva e reversível (o scroll
+normal fica intacto). A "estação espacial total" (eliminar o scroll,
+zonas por câmara) fica como missão futura própria.
+
+- `js/nav.js` (16º script... 15º clássico; ordem documentada no
+  index.html e CLAUDE.md): mini-hexágono fixo no bordo direito — Núcleo
+  ao centro (→ topo) + 6 zonas (Diário, Missões, Céu, Treino, Revisão,
+  Conselho), cada ponto na cor da sua área com tooltip mono.
+- Clicar viaja em mola (Motion.Spring · gentle) até ao painel; o
+  parallax de scroll do palco WebGL dá o dolly do céu de graça.
+  Re-aponta 1× a meio (a página pode crescer durante a viagem). Qualquer
+  wheel/touch/tecla do Daniel cancela a viagem na hora — a mão dele
+  manda sempre.
+- Ponto ativo = zona mais próxima do quarto superior do ecrã (robusto
+  mesmo quando o fim da página impede o encaixe exato).
+- Só desktop/pointer:fine e ≥900px — em mobile não nasce (sem clutter);
+  reduced-motion = salto direto; aparece 1.2s depois do boot.
+- Verificado headless (CDP): 7 pontos, viagem até ao Céu com encaixe
+  exato (painel a 50px do topo) e ponto ativo correto; consola limpa.
+  Nota: o rAF do headless corre em câmara-lenta (SwiftShader) — a
+  velocidade real da viagem confirma-se em hardware.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
    (aberto em permanência; 1º item registado a 2026-07-19)
-2. Universe Navigation — fases seguintes (navegação entre painéis do HUD;
-   reestrutura a app inteira — exige decisões de design do Daniel)
+2. Universe Navigation — fases seguintes ("estação espacial total":
+   eliminar o scroll, zonas por câmara — missão multi-sprint com plano
+   próprio quando o Daniel quiser)
 3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo; exige o gosto
    do Daniel presente)
 4. Camada adaptativa do recall — gated: exige histórico de uso suficiente

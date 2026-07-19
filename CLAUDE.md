@@ -44,10 +44,10 @@ estratégico, curiosidade.
 - Frontend: site estático publicado por GitHub Pages a cada push para `main`
   (repositório `kamappa/Sistema`, sem workflow de build — Pages serve
   diretamente da raiz). Depois da Missão 2, o antigo monólito está partido:
-  `index.html` carrega 14 scripts clássicos por ordem documentada
+  `index.html` carrega 15 scripts clássicos por ordem documentada
   (`data → bus → fx → motion → engine → world → hud → recall → treino →
-  sono → objetivos → radar → conselho → memoria → auth`, este último com
-  `init()`) e
+  sono → objetivos → radar → conselho → memoria → nav → auth`, este
+  último com `init()`) e
   o estilo vive em `css/hud.css`. Scripts clássicos, não ES modules — os
   `onclick` inline do HTML exigem funções globais. Exceção deliberada
   (Missão 12): o palco visual é uma ilha de ES modules em `js/stage/`

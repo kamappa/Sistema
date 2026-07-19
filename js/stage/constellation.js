@@ -134,6 +134,17 @@ export function coreState(){
   return{state:st,name:CORE_STATES[st].n,lit:lit,frac:frac};
 }
 
+/* eco visual da Living Memory (M15·F2): no aniversário anual do nascimento,
+   a estrela pulsa suavemente durante o dia — a memória vive no céu */
+function isAnniv(attr,id){
+  try{
+    const b=S.constellation&&S.constellation.born&&S.constellation.born[attr+':'+id];
+    if(!b||!b.d||b.o)return false; /* datas observadas não têm aniversário real */
+    const t=(typeof today==='function')?today():new Date().toISOString().slice(0,10);
+    return b.d.slice(5)===t.slice(5)&&b.d.slice(0,4)!==t.slice(0,4);
+  }catch(e){return false;}
+}
+
 function bornInfo(attr,id){
   try{
     const b=S.constellation&&S.constellation.born&&S.constellation.born[attr+':'+id];
@@ -750,7 +761,8 @@ export function initConstellation(){
         if(s._choice){
           sz[i]=s._state==='chosen'?20:11;md[i]=s._state==='chosen'?1:0;
           pu[i]=s._state==='pending'?1:0;sp[i]=s._state==='chosen'?.7:0;
-        }else{sz[i]=szOf(s);md[i]=1;sp[i]=spOf(s);} /* peso da evidência */
+        }else{sz[i]=szOf(s);md[i]=1;sp[i]=spOf(s);
+          if(isAnniv(domain,s.id))pu[i]=.3;} /* aniversário: a memória pulsa */
         const b=births[domain+':'+s.id];bi[i]=(b!=null)?b:-1;
       });
       starGeo=new THREE.BufferGeometry();
@@ -826,7 +838,8 @@ export function initConstellation(){
         total++;if(st.lit[s.id])litN++;
         if(!visSt(s))return; /* silêncio: o que não nasceu não existe no céu */
         const p=P(s),b=births[a.id+':'+s.id];
-        vis.push({x:p.x,y:p.y,sz:spOf(s)?10:8,md:1,bi:(b!=null)?b:-1,z:zOf(a.id+s.id)});
+        vis.push({x:p.x,y:p.y,sz:spOf(s)?10:8,md:1,bi:(b!=null)?b:-1,z:zOf(a.id+s.id),
+          pu:isAnniv(a.id,s.id)?.3:0});
       });
       if(st.choice&&st.choice.state!=='hidden'){
         const d=st.choice.def,p=P(d);

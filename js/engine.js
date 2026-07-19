@@ -66,8 +66,10 @@ function toggleHabit(list,id,ev){
   const done=h.lastDone===today();
   if(!done){
     /* memória para o toggle (Nota A): desmarcar repõe exatamente este estado */
-    h.undo={streak:h.streak,lastDone:h.lastDone};
+    h.undo={streak:h.streak,lastDone:h.lastDone,peak:S.streakPeak||null};
     h.streak=(h.lastDone===yday())?h.streak+1:1;h.lastDone=today();
+    /* pico histórico de streak (M15·F2) — datado no momento em que é real */
+    if(!S.streakPeak||h.streak>S.streakPeak.v)S.streakPeak={v:h.streak,d:today(),h:h.name};
     const bonus=Math.min(h.streak,10);const g=Math.round((h.xp+bonus)*xpMult(h.attr));h.lastGain=g;
     addXp(h.attr,g);plog(h.name,g);floatXP('+'+g+' XP',AM[h.attr].color,ev);
     if(list==='oblig')toast('Pilar confirmado',h.name+' · +'+g+' XP',AM[h.attr].color);
@@ -75,7 +77,7 @@ function toggleHabit(list,id,ev){
     /* Fuga 3 — reversão devolve o valor exato gravado, mesmo quando é 0
        (pilar marcado pela via do sono dá lastGain=0: a marca não pagou nada) */
     const back=(h.lastGain!==undefined&&h.lastGain!==null)?h.lastGain:h.xp;
-    addXp(h.attr,-back);unlog(h.name,today());floatXP('\u2212'+back+' XP','#ef4444',ev);if(h.undo){h.streak=h.undo.streak;h.lastDone=h.undo.lastDone;delete h.undo;}else{h.lastDone=null;h.streak=Math.max(0,h.streak-1);}}
+    addXp(h.attr,-back);unlog(h.name,today());floatXP('\u2212'+back+' XP','#ef4444',ev);if(h.undo){h.streak=h.undo.streak;h.lastDone=h.undo.lastDone;if(h.undo.peak!==undefined)S.streakPeak=h.undo.peak;delete h.undo;}else{h.lastDone=null;h.streak=Math.max(0,h.streak-1);}}
   save();
   /* onda de conclus\u00e3o (M12\u00b73B) \u2014 depois do save/render, no elemento novo */
   if(!done&&window.cardWave)

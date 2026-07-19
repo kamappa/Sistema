@@ -37,6 +37,21 @@ function memoriaDoDia(){
       if(n>0&&n%365===0)cands.push({p:1,txt:'Há '+memAnos(n)+', o Sistema acendeu-se pela primeira vez.'});
       else if(MEM_MARCOS.indexOf(n)>-1)cands.push({p:2,txt:'O Sistema existe há '+n+' dias. A primeira centelha: '+memData(nasc)+'.'});
     }
+    /* 1b — aniversários de estrelas nascidas (M15·F2): facto histórico,
+       vale mesmo que a evidência tenha entretanto regredido */
+    try{
+      const born=(S.constellation&&S.constellation.born)||{};
+      for(const k in born){
+        const bd=born[k]&&born[k].d;if(!bd)continue;
+        const n=diffDays(bd,t);
+        if(n>0&&n%365===0){
+          const parts=k.split(':');
+          const c=(typeof CONSTELLATIONS!=='undefined')&&CONSTELLATIONS[parts[0]];
+          const sst=c&&c.stars.find(x=>x.id===parts[1]);
+          if(sst)cands.push({p:1,txt:'Há '+memAnos(n)+' nasceu a estrela ★ '+sst.n+'.'});
+        }
+      }
+    }catch(e){}
     /* 3 — ecos dos primeiros passos */
     [[firstMissao,'concluíste a tua primeira missão'],
      [firstTitulo,'provaste o teu primeiro Título Real'],
@@ -45,6 +60,13 @@ function memoriaDoDia(){
       const n=diffDays(d,t);
       if(n===100||n===180)cands.push({p:3,txt:'Há '+n+' dias '+what+'.'});
     });
+    /* 3b — eco do melhor streak de sempre (M15·F2; registado no engine) */
+    if(S.streakPeak&&S.streakPeak.d){
+      const n=diffDays(S.streakPeak.d,t);
+      if(n===30||n===100||n===365)
+        cands.push({p:3,txt:'Há '+n+' dias atingiste o teu melhor streak de sempre: '
+          +S.streakPeak.v+' dias ('+S.streakPeak.h+').'});
+    }
     /* 4 — neste dia, há 30 dias (missões concluídas nesse dia exato) */
     const d30=memPastDate(30);
     const done30=dones.filter(o=>o.doneDate===d30);

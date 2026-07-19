@@ -516,10 +516,16 @@ inventado; sem memória digna do dia, silêncio (a regra do sussurro).
   semeada a prioridade decide bem (aniversário de título vence o marco
   dos 100 dias e o eco dos 30) e a linha entra no DOM; consola limpa.
 
-Fases futuras (abrir quando decidido): memórias no radar/report do
-Oráculo, eco visual no céu (a estrela da memória a pulsar no aniversário),
-streaks máximos históricos (exige passar a registá-los — hoje só existe o
-streak corrente).
+Fase 2 (CONCLUÍDA 2026-07-19): streaks máximos históricos —
+`S.streakPeak={v,d,h}` registado no toggleHabit no momento em que o pico
+é real; o undo do toggle guarda e repõe o pico anterior EXATO (o sistema
+nunca mente). Memórias novas: eco do melhor streak (30/100/365 dias
+depois) e aniversário anual de estrelas nascidas (facto histórico — vale
+mesmo se a evidência regrediu; datas "observadas" o=1 não têm
+aniversário). Eco visual no céu: no dia do aniversário a estrela pulsa
+suavemente (aPulse) no domínio e no universo. Verificado headless:
+pico+rollback exatos, os dois textos novos, render com pulso sem erros.
+Fase futura (quando decidido): memórias no radar/report do Oráculo.
 
 ## Missão 16 — O Céu Renasce (CONCLUÍDA 2026-07-19; 5 fases A–E)
 
@@ -596,19 +602,24 @@ ao céu; a influência no mundo inteiro (react/Oráculo) fica para a Fase 2.
   liam world.energy herdam de graça. Stage.debug.world() expõe core.
   Verificado headless: fresco 0.000/core 0; core:up → 1.185; repouso
   Ressonante = 0.100 exato com world.core=2; consola limpa.
-- Fase 2b (por abrir — exige DEPLOY da Edge Function, gate do Daniel):
-  o Oráculo consciente do estado do Núcleo — coreSeen/estado no
-  resumoEstado + nota na VOZ; radar/report/sussurro intocados na lógica.
+- Fase 2b (CONCLUÍDA 2026-07-19, deployada — autorização geral do Daniel
+  "continua até acabar o planeado"): resumoEstado ganha `nucleo`
+  {estado: Dormente..Transcendente via coreSeen, estrelasNascidas} e a
+  VOZ aprende a usá-lo com parcimónia ("o teu Núcleo já ressoa"),
+  proibida de revelar quantas estrelas faltam. Radar/report/chat/sussurro
+  intocados na lógica; ~+40 tokens input/chamada. Deploy CLI
+  --no-verify-jwt; smoke test: preflight 204 com CORS correto.
 
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
    (aberto em permanência; 1º item registado a 2026-07-19)
-2. Celestial Core · Fase 2b — Oráculo consciente do estado do Núcleo
-   (mexe na Edge Function; deploy é gate do Daniel)
-3. Universe Navigation — fases seguintes (navegação entre painéis do HUD);
-   Living Memory fases seguintes (roadmap M12, abrir como missões
-   próprias quando o Daniel decidir)
+2. Universe Navigation — fases seguintes (navegação entre painéis do HUD;
+   reestrutura a app inteira — exige decisões de design do Daniel)
+3. Memórias no radar/report do Oráculo (Living Memory · fase futura)
+4. Sons opt-in (contexto novo do roadmap — Oráculo/mundo; exige o gosto
+   do Daniel presente)
+5. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)
 4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 

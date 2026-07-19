@@ -663,7 +663,14 @@ Duas ideias da lista "recuperáveis" pagas de uma vez:
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
-   (aberto em permanência; 1º item registado a 2026-07-19)
+   (aberto em permanência; 1º item registado a 2026-07-19).
+   2º item (2026-07-19, auditoria própria ao dia de ~20 commits): releitura
+   integral do constellation.js apanhou um bug real — dblclick (ou chip
+   Universo) DURANTE um fly-in cancelava a viagem mas deixava pendingEnter
+   preso, matando wheel e cliques do painel até recarregar; resetCam passa
+   a limpá-lo, e o arrasto deixou de poder iniciar durante o fly-in.
+   Verificado headless: fly-in interrompido → painel continua vivo e o
+   clique seguinte volta a mergulhar.
 2. Universe Navigation — fases seguintes ("estação espacial total":
    eliminar o scroll, zonas por câmara — missão multi-sprint com plano
    próprio quando o Daniel quiser)

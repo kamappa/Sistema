@@ -301,9 +301,10 @@ void main(){
   gl_FragColor=vec4(uCol*a,a);
 }`;
 
-/* sem WebGL (4C) — o céu em DOM: a informação nunca se perde. Mantém os
-   chips, os três estados e a Estrela de Escolha; sem animação, mas os
-   nascimentos emitem na mesma no bus. */
+/* sem WebGL (4C→M16) — o céu em DOM: a informação nunca se perde. Mantém os
+   chips, as estrelas NASCIDAS (born-based, silêncio sobre o resto), o Núcleo
+   e a Estrela de Escolha; sem animação, mas nascimentos e core:up emitem na
+   mesma no bus. */
 function initDomFallback(){
   const labels=document.getElementById('const-labels');
   const chips=document.getElementById('const-chips');
@@ -455,7 +456,10 @@ export function initConstellation(){
     else if(camSpring)camSpring.snap(zt,oxT,oyT);
     else{cam.z=zt;cam.x=oxT;cam.y=oyT;syncCam();}
   }
-  function resetCam(){zt=1;oxT=0;oyT=0;setCam(false);}
+  function resetCam(){
+    pendingEnter=null; /* cancelar um fly-in a meio não pode deixar o painel preso */
+    zt=1;oxT=0;oyT=0;setCam(false);
+  }
   /* fly-in: a câmara do universo mergulha até ao encaixe do domínio; no
      limiar troca-se a cena e a câmara do domínio nasce no ponto equivalente */
   function flyIn(attr){
@@ -1014,7 +1018,7 @@ export function initConstellation(){
     if(ptrs.size===2){
       const[a,b]=[...ptrs.values()];
       pinch={d:Math.hypot(a.x-b.x,a.y-b.y)};drag=null;
-    }else if(zt>1.001){
+    }else if(zt>1.001&&!pendingEnter){ /* durante o fly-in a câmara é do sistema */
       drag={x:e.clientX,y:e.clientY,ox:oxT,oy:oyT,moved:false};
       try{cv.setPointerCapture(e.pointerId);}catch(err){}
     }

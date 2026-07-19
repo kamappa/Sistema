@@ -161,7 +161,7 @@ function render(){
 
   renderXpLine();
 
-  renderGreet();renderAchievements();renderDebuffs();renderWorld();renderNews();renderOracleRep();renderConselho();renderMapa();renderTitles();renderTraining();renderSleep();renderRecall();renderObjectives();renderShadows();renderCalendar();renderDeadlineBanner();checkNotif();
+  renderGreet();renderMemoria();renderAchievements();renderDebuffs();renderWorld();renderNews();renderOracleRep();renderConselho();renderMapa();renderTitles();renderTraining();renderSleep();renderRecall();renderObjectives();renderShadows();renderCalendar();renderDeadlineBanner();checkNotif();
 
   const log=document.getElementById('log');
   log.innerHTML=S.log.length?S.log.map(l=>`<div class="li"><span>${l.text}</span><span class="${l.gain<0?'b':'g'}">${l.gain<0?'':'+'}${l.gain} XP</span></div>`).join(''):'<div class="log-empty">Sem atividade ainda. Marca um obrigatório para começares.</div>';

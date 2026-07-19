@@ -495,13 +495,39 @@ navegação universal entre painéis do HUD fica para fases futuras.
 - Verificação headless (CDP): ciclo completo universo → fly-in (Ofício) →
   zoom no domínio → fly-out; consola limpa em todas as corridas.
 
+## Missão 15 — Living Memory · Fase 1 (CONCLUÍDA 2026-07-19)
+
+"Aqui o sistema começa a lembrar-se" (roadmap). 100% cliente, derivação
+pura de evidência datada que já vive no estado — nada é gravado, nada é
+inventado; sem memória digna do dia, silêncio (a regra do sussurro).
+
+- `js/memoria.js` — script clássico novo entre conselho e auth (ordem
+  documentada no index.html e no CLAUDE.md atualizada; são 14 scripts).
+- `memoriaDoDia()`: fontes = S.history[0] (a primeira centelha),
+  S.titleUnlocked (datas reais), objectives[].doneDate,
+  training.sessions[].d. Determinística por dia (hashStr).
+- Prioridades: aniversários anuais (títulos provados, nascimento do
+  Sistema) > marcos redondos de existência (30/50/100/…) > ecos dos
+  primeiros passos aos 100/180 dias (1ª missão, 1º título, 1º treino) >
+  "neste dia, há 30 dias" (missões concluídas nesse dia exato).
+- Render: linha 🕯 `.memoria` na saudação, debaixo do sussurro (vela, não
+  holofote); `renderMemoria()` no render() do engine.
+- Verificação headless (CDP): estado fresco = silêncio; com evidência
+  semeada a prioridade decide bem (aniversário de título vence o marco
+  dos 100 dias e o eco dos 30) e a linha entra no DOM; consola limpa.
+
+Fases futuras (abrir quando decidido): memórias no radar/report do
+Oráculo, eco visual no céu (a estrela da memória a pulsar no aniversário),
+streaks máximos históricos (exige passar a registá-los — hoje só existe o
+streak corrente).
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
    (aberto em permanência; 1º item registado a 2026-07-19)
 2. Universe Navigation — fases seguintes (navegação entre painéis do HUD);
-   Living Memory / Celestial Core (roadmap M12, abrir como missões
-   próprias quando o Daniel decidir)
+   Celestial Core; Living Memory fases seguintes (roadmap M12, abrir como
+   missões próprias quando o Daniel decidir)
 3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)
 4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 

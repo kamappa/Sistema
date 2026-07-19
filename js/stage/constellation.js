@@ -110,6 +110,30 @@ export function recordBirths(){
     if(dirty)bornSchedSave();
   }catch(e){}
 }
+/* ===== Celestial Core (Missão 17 · Fase 1) =====
+   O Núcleo nunca se edita — responde ao céu. Estado derivado da fração de
+   estrelas nascidas (evidência verdadeira AGORA), nunca à mão. Os limiares
+   usam o total internamente mas o total nunca é mostrado (silêncio). */
+const CORE_STATES=[
+  {id:0,n:'Dormente'},{id:1,n:'Desperto'},{id:2,n:'Ressonante'},
+  {id:3,n:'Ascendente'},{id:4,n:'Celeste'},{id:5,n:'Transcendente'}];
+export function coreState(){
+  let total=0,lit=0;
+  try{
+    for(const attr in CONSTELLATIONS){
+      CONSTELLATIONS[attr].stars.forEach(s=>{total++;if(evalReq(attr,s.req))lit++;});
+    }
+  }catch(e){}
+  const frac=total?lit/total:0;
+  let st=0;
+  if(lit>0)st=1;
+  if(frac>=.25)st=2;
+  if(frac>=.5)st=3;
+  if(frac>=.75)st=4;
+  if(frac>=1)st=5;
+  return{state:st,name:CORE_STATES[st].n,lit:lit,frac:frac};
+}
+
 function bornInfo(attr,id){
   try{
     const b=S.constellation&&S.constellation.born&&S.constellation.born[attr+':'+id];
@@ -288,6 +312,16 @@ function initDomFallback(){
       });
       prevLit[attr]=st.lit;
     }
+    try{ /* Núcleo (M17) — mesmo registo do céu WebGL, sem fx */
+      const cs=coreState();
+      S.constellation=S.constellation||{choices:{}};
+      const seen=S.constellation.coreSeen|0;
+      if(cs.state>seen){
+        S.constellation.coreSeen=cs.state;
+        if(baseline&&window.Bus)Bus.emit('core:up',{state:cs.state,name:cs.name});
+        bornSchedSave();
+      }
+    }catch(e){}
     baseline=true;
   }
   function buildChips(){
@@ -300,9 +334,11 @@ function initDomFallback(){
     const st=domainState(domain);if(!st)return;
     const dcol=(typeof AM!=='undefined'&&AM[domain])?AM[domain].color:'#a78bfa';
     /* silêncio total: só estrelas nascidas; nada é contado nem sugerido */
-    let html=st.c.stars.filter(s=>st.lit[s.id]).map(s=>
+    const cs=coreState();
+    let html=`<div class="cfb ${cs.lit?'on':'dim'}">◉ Núcleo: ${cs.name}</div>`;
+    html+=st.c.stars.filter(s=>st.lit[s.id]).map(s=>
       `<div class="cfb on" style="color:${dcol}">★ ${s.n}</div>`).join('');
-    if(!html)html=`<div class="cfb dim">O céu deste domínio ainda espera a primeira estrela.</div>`;
+    if(!st.c.stars.some(s=>st.lit[s.id]))html+=`<div class="cfb dim">O céu deste domínio ainda espera a primeira estrela.</div>`;
     if(st.choice&&st.choice.state==='chosen')
       html+=`<div class="cfb on" style="color:${dcol}">◈ Caminho: ${st.choice.chosen}</div>`;
     else if(st.choice&&st.choice.state==='pending')
@@ -378,7 +414,7 @@ export function initConstellation(){
      mergulha nela (fly-in); zoom-out no limite ou duplo-clique regressa
      ao universo (fly-out). A continuidade é matemática: a câmara do
      destino nasce onde a do modo anterior estava. */
-  let mode='universe',pendingEnter=null,uniRegions=[];
+  let mode='universe',pendingEnter=null,uniRegions=[],coreRegion=null;
   const UNI={s:.30,R:.34}; /* escala de cada domínio · raio do anel */
   function uniAnchor(i,n){
     const a=-Math.PI/2+i*2*Math.PI/n;
@@ -485,6 +521,20 @@ export function initConstellation(){
       });
       prevLit[attr]=st.lit;
     }
+    /* Núcleo (M17): subida de estado testemunhada nesta sessão celebra e
+       emite core:up; na 1ª avaliação regista em silêncio (não foi vivida) */
+    try{
+      const cs=coreState();
+      S.constellation=S.constellation||{choices:{}};
+      const seen=S.constellation.coreSeen|0;
+      if(cs.state>seen){
+        S.constellation.coreSeen=cs.state;bornSchedSave();
+        if(baseline){
+          if(window.Bus)Bus.emit('core:up',{state:cs.state,name:cs.name});
+          coreCelebrate();
+        }
+      }
+    }catch(e){}
     baseline=true;
   }
   function stateKey(st){
@@ -582,6 +632,16 @@ export function initConstellation(){
       else fadeRaf=0;
     };
     fadeRaf=requestAnimationFrame(step);
+  }
+  /* subida de estado do Núcleo — energia a partir do centro do universo */
+  function coreCelebrate(){
+    if(!vis)return;
+    if(rm.matches){miniLoop();return;}
+    if(mode==='universe'){
+      fxBirth(.5*W,.5*H,hxv('#a78bfa'));
+      if(camSpring){camSpring.v[0]+=.5;camSpring.set(zt,oxT,oyT);}
+    }
+    miniLoop();
   }
   /* nascimento visível: supernova + micro-push da câmara (a mola devolve) */
   function spawnFor(attr,s){
@@ -788,9 +848,13 @@ export function initConstellation(){
         labels.appendChild(d);
       }
     });
-    /* o Núcleo — nunca editável; o brilho É a fração de estrelas acesas */
-    const frac=total?litN/total:0;
-    mkPoints([{x:.5*W,y:.5*H,sz:26,md:1,fd:.3+.7*frac,sp:1,z:.5}],hxv('#a78bfa'),3);
+    /* o Núcleo — nunca editável; o corpo dele É o estado do céu (M17):
+       cresce, aviva e ganha difração à medida que os estados sobem */
+    const cs=coreState();
+    mkPoints([{x:.5*W,y:.5*H,sz:20+cs.state*3.2,md:1,
+      fd:.3+.7*cs.frac,sp:cs.state>=2?1:.4,z:.5,
+      pu:cs.state>=4?.35:0}],hxv('#a78bfa'),3);
+    coreRegion={cx:.5*W,cy:.5*H,r:26+cs.state*4};
     fxEnsure();
     renderer.render(scene,camera);
   }
@@ -808,6 +872,21 @@ export function initConstellation(){
   const start=()=>{if(!raf&&vis&&!rm.matches&&!document.hidden)raf=requestAnimationFrame(tick);};
   const stop=()=>{cancelAnimationFrame(raf);raf=0;};
   /* hover + clique — cartão de evidência */
+  function coreAt(mx,my){
+    if(mode!=='universe'||!coreRegion)return false;
+    const sx=coreRegion.cx*cam.z+cam.x+panX,sy=coreRegion.cy*cam.z+cam.y+panY;
+    return Math.hypot(mx-sx,my-sy)<coreRegion.r*cam.z;
+  }
+  function showCoreCard(){
+    hideCard();
+    const cs=coreState();
+    card=document.createElement('div');card.className='const-card';
+    card.innerHTML=`<span class="cx">✕</span>
+      <div class="ck" style="color:#a78bfa">Núcleo</div>
+      <b>${cs.name}</b>
+      <div class="now">${cs.lit===1?'1 estrela nascida sustenta o Núcleo.':cs.lit+' estrelas nascidas sustentam o Núcleo.'}<br>O Núcleo nunca se edita — responde ao céu.</div>`;
+    place({x:.5,y:.5});
+  }
   function domainAt(mx,my){
     for(const rg of uniRegions){
       const sx=rg.cx*cam.z+cam.x+panX,sy=rg.cy*cam.z+cam.y+panY;
@@ -956,7 +1035,8 @@ export function initConstellation(){
       return;
     }
     if(mode==='universe'){
-      cv.style.cursor=domainAt(e.clientX-r.left,e.clientY-r.top)?'pointer':'';
+      const mx=e.clientX-r.left,my=e.clientY-r.top;
+      cv.style.cursor=(coreAt(mx,my)||domainAt(mx,my))?'pointer':'';
     }else{
       const i=starAt(e.clientX-r.left,e.clientY-r.top);
       if(i!==hovIdx){
@@ -974,8 +1054,10 @@ export function initConstellation(){
     if(pendingEnter)return;
     const r=cv.getBoundingClientRect();
     if(mode==='universe'){
-      const d=domainAt(e.clientX-r.left,e.clientY-r.top);
-      if(d)flyIn(d);
+      const mx=e.clientX-r.left,my=e.clientY-r.top;
+      if(coreAt(mx,my)){showCoreCard();return;}
+      const d=domainAt(mx,my);
+      if(d){hideCard();flyIn(d);}else hideCard();
       return;
     }
     const i=starAt(e.clientX-r.left,e.clientY-r.top);

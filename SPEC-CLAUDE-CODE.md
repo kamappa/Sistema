@@ -564,13 +564,39 @@ de evidência + 6 de Escolha confirmadas sem enchimento.
   limpa em todas as corridas. 60fps reais: Daniel confirma com ?fps=1
   nos dois aparelhos.
 
+## Missão 17 — Celestial Core · Fase 1 (CONCLUÍDA 2026-07-19)
+
+O Núcleo ganha estados nomeados — derivados SÓ de evidência, nunca à mão
+("o utilizador nunca altera o Núcleo; ele apenas vive"). Fase 1 confinada
+ao céu; a influência no mundo inteiro (react/Oráculo) fica para a Fase 2.
+
+- coreState(): fração de estrelas de evidência verdadeiras AGORA →
+  Dormente (0) · Desperto (≥1) · Ressonante (≥25%) · Ascendente (≥50%) ·
+  Celeste (≥75%) · Transcendente (100%). Os limiares usam o total
+  internamente; o total nunca é mostrado (silêncio total do M16).
+- Visual na Vista de Universo: o corpo do Núcleo cresce, aviva e ganha
+  difração com os estados (tamanho 20→36, fade pela fração, pulso subtil
+  a partir de Celeste). Clicável: cartão "Núcleo · <Estado>" com o nº de
+  estrelas nascidas e a regra ("nunca se edita — responde ao céu").
+- Subida de estado testemunhada em sessão: energia a partir do centro
+  (pool da supernova) + micro-push + Bus.emit('core:up',{state,name});
+  S.constellation.coreSeen persiste o estado observado — a 1ª avaliação
+  de uma sessão regista em silêncio (transições não vividas não celebram).
+  Reduced-motion: sem fx, evento na mesma. Fallback DOM: linha
+  "◉ Núcleo: <Estado>" + mesmo registo/evento.
+- Verificado headless (CDP): cartão Dormente a 0, subida em sessão para
+  Ressonante com core:up emitido e coreSeen=2 persistido, cartão com 13
+  estrelas; consola limpa.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
    (aberto em permanência; 1º item registado a 2026-07-19)
-2. Universe Navigation — fases seguintes (navegação entre painéis do HUD);
-   Celestial Core; Living Memory fases seguintes (roadmap M12, abrir como
-   missões próprias quando o Daniel decidir)
+2. Celestial Core · Fase 2 — o Núcleo influencia o mundo (react.js ouve
+   core:up; voz do Oráculo consciente do estado; atmosfera por estado)
+3. Universe Navigation — fases seguintes (navegação entre painéis do HUD);
+   Living Memory fases seguintes (roadmap M12, abrir como missões
+   próprias quando o Daniel decidir)
 3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)
 4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 

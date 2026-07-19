@@ -10,6 +10,7 @@ export function createReact(world){
     Bus.on('rank:up',()=>{energy=1.6;});
     Bus.on('star:lit',()=>{energy=Math.max(energy,1.2);}); /* uma estrela nasceu (4B) */
     Bus.on('star:choice',()=>{energy=Math.max(energy,1);}); /* um caminho foi escolhido (4C) */
+    Bus.on('core:up',()=>{energy=1.6;}); /* o Núcleo subiu de estado (M17) — vaga de rank */
     /* presença do Oráculo (S5) — não é energia: é gravidade. O mundo abranda
        e escuta durante ~6s; decai devagar */
     Bus.on('oracle:spoke',()=>{presence=1;});
@@ -17,7 +18,10 @@ export function createReact(world){
   return{
     resize(){},
     update(t,dt,ctx){
-      energy*=Math.exp(-dt*1.8);
+      /* M17·F2: o Núcleo cria um chão de energia — quanto mais forte, mais
+         vivo o mundo está em repouso (0 a .25); Recovery amortece o chão */
+      const floor=(ctx.world.core||0)*(ctx.world.recovery?.02:.05);
+      energy=Math.max(energy*Math.exp(-dt*1.8),floor);
       if(energy<.001)energy=0;
       presence*=Math.exp(-dt*.5);
       if(presence<.001)presence=0;

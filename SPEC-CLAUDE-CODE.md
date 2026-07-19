@@ -564,7 +564,7 @@ de evidência + 6 de Escolha confirmadas sem enchimento.
   limpa em todas as corridas. 60fps reais: Daniel confirma com ?fps=1
   nos dois aparelhos.
 
-## Missão 17 — Celestial Core · Fase 1 (CONCLUÍDA 2026-07-19)
+## Missão 17 — Celestial Core · Fases 1+2 (CONCLUÍDAS 2026-07-19)
 
 O Núcleo ganha estados nomeados — derivados SÓ de evidência, nunca à mão
 ("o utilizador nunca altera o Núcleo; ele apenas vive"). Fase 1 confinada
@@ -587,13 +587,25 @@ ao céu; a influência no mundo inteiro (react/Oráculo) fica para a Fase 2.
 - Verificado headless (CDP): cartão Dormente a 0, subida em sessão para
   Ressonante com core:up emitido e coreSeen=2 persistido, cartão com 13
   estrelas; consola limpa.
+- Fase 2 — o Núcleo influencia o mundo (cliente): `world.core` (0-5) em
+  state.js, amostrado a cada 5s do coreState() das constelações (import
+  circular seguro — só uso em runtime); react.js ouve core:up (vaga 1.6,
+  como rank up) e o estado cria um CHÃO de energia permanente
+  (core×.05, 0→.25) — quanto mais forte o Núcleo, mais vivo o mundo em
+  repouso; Recovery amortece o chão (core×.02). Todas as camadas que já
+  liam world.energy herdam de graça. Stage.debug.world() expõe core.
+  Verificado headless: fresco 0.000/core 0; core:up → 1.185; repouso
+  Ressonante = 0.100 exato com world.core=2; consola limpa.
+- Fase 2b (por abrir — exige DEPLOY da Edge Function, gate do Daniel):
+  o Oráculo consciente do estado do Núcleo — coreSeen/estado no
+  resumoEstado + nota na VOZ; radar/report/sussurro intocados na lógica.
 
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
    (aberto em permanência; 1º item registado a 2026-07-19)
-2. Celestial Core · Fase 2 — o Núcleo influencia o mundo (react.js ouve
-   core:up; voz do Oráculo consciente do estado; atmosfera por estado)
+2. Celestial Core · Fase 2b — Oráculo consciente do estado do Núcleo
+   (mexe na Edge Function; deploy é gate do Daniel)
 3. Universe Navigation — fases seguintes (navegação entre painéis do HUD);
    Living Memory fases seguintes (roadmap M12, abrir como missões
    próprias quando o Daniel decidir)

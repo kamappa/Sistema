@@ -128,6 +128,33 @@ function enableNotif(){
       else toast('Bloqueado','Permite notificações no navegador para ativar','#fb923c');});
   }catch(e){toast('Indisponível','Abre o HUD numa aba própria para ativar','#fb923c');}
 }
+/* exportação .ics (ideia recuperada do backlog, 2026-07-19) — eventos do
+   calendário + prazos de missões pendentes, tudo dados reais; eventos
+   all-day, RFC 5545 (linhas CRLF), gerado no cliente, nada sai do browser */
+function exportICS(){
+  const esc=s=>String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+  const day=d=>d.replace(/-/g,'');
+  const nextDay=d=>{const x=new Date(d);x.setDate(x.getDate()+1);return fmt(x);};
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').slice(0,15)+'Z';
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Sistema//Operador//PT','CALSCALE:GREGORIAN'];
+  const ev=(uid,d,titulo)=>{L.push('BEGIN:VEVENT','UID:sistema-'+uid+'@kamappa.github.io',
+    'DTSTAMP:'+stamp,'DTSTART;VALUE=DATE:'+day(d),'DTEND;VALUE=DATE:'+day(nextDay(d)),
+    'SUMMARY:'+esc(titulo),'END:VEVENT');};
+  let n=0;
+  (S.events||[]).filter(e=>e&&e.date).forEach(e=>{ev(e.id,e.date,e.title);n++;});
+  (S.objectives||[]).filter(o=>o&&o.deadline&&o.status!=='done')
+    .forEach(o=>{ev('m-'+o.id,o.deadline,'⚔ '+o.title);n++;});
+  L.push('END:VCALENDAR');
+  if(!n){toast('Nada para exportar','Sem eventos nem prazos futuros no estado','#a78bfa');return null;}
+  const ics=L.join('\r\n')+'\r\n';
+  const blob=new Blob([ics],{type:'text/calendar'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download='sistema-'+today()+'.ics';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+  toast('Calendário exportado',n+' entrada(s) em .ics — importa no teu calendário','#a78bfa');
+  return ics;
+}
 function checkNotif(){
   if(!S.notifOn||!('Notification'in window)||Notification.permission!=='granted')return;
   const t=today();S.notified=S.notified||{};

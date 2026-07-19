@@ -513,8 +513,10 @@ Deno.serve(async (req) => {
   if (mode === "report-dry") return reportDryHandler(req);
   if (mode === "sussurro") return sussurroHandler(req);
   if (mode === "chat" || req.method === "OPTIONS") return chatHandler(req);
-  // Controlo de acesso: token por header ou query, com limpeza de espaços/quebras de linha.
-  const got = (req.headers.get("x-oracle-token") ?? url.searchParams.get("t") ?? "").trim();
+  // Controlo de acesso: token SÓ por header (limpeza da nota de produção da
+  // M6: a aceitação por query ?t= foi removida — tokens em URL podem ficar em
+  // logs de proxies/gateways). O pg_cron chama por header desde o início.
+  const got = (req.headers.get("x-oracle-token") ?? "").trim();
   if (!TOKEN || got !== TOKEN) {
     console.log("AUTH FAIL | recebido len:", got.length, "| secret len:", TOKEN.length,
       "| secret existe:", TOKEN.length > 0, "| anthropic key existe:", AK.length > 0);

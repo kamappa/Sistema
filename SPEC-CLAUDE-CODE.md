@@ -644,6 +644,22 @@ zonas por câmara) fica como missão futura própria.
   Nota: o rAF do headless corre em câmara-lenta (SwiftShader) — a
   velocidade real da viagem confirma-se em hardware.
 
+## Missão 20 — Limpezas recuperadas do backlog (CONCLUÍDA 2026-07-19)
+
+Duas ideias da lista "recuperáveis" pagas de uma vez:
+
+- Token `?t=` REMOVIDO do radar/report (nota de produção da M6): o acesso
+  passa a ser só por header `x-oracle-token` — tokens em URL podem ficar
+  em logs de proxies/gateways. Deploy + smoke: `?mode=radar&t=inválido` →
+  403; preflight do chat → 204. ⚠ Confirmar a 1ª corrida real do radar
+  (06:30 UTC de 2026-07-20): o pg_cron chama por header desde o início
+  (documentado no CLAUDE.md), mas a prova viva é a corrida.
+- Exportação .ics: botão "📅 Exportar .ics" no Calendário — eventos +
+  prazos de missões pendentes, all-day, RFC 5545 (CRLF, escaping de
+  ;/,/\n), gerado 100% no cliente (nada sai do browser); sem nada para
+  exportar avisa e não gera ficheiro. Verificado headless: estrutura,
+  contagem, escaping e datas exatas.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
@@ -657,9 +673,10 @@ zonas por câmara) fica como missão futura própria.
 3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)
 4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
 
-Ideias antigas retiradas da fila nesta revisão (recuperáveis se voltarem a
-ganhar prioridade): botões Aceitar/Recusar do relatório a escrever no estado;
+Ideias antigas retiradas da fila (recuperáveis se voltarem a ganhar
+prioridade): botões Aceitar/Recusar do relatório a escrever no estado;
 Evidence Locker (Storage nos Títulos Reais); PWA + notificações push;
-exportação .ics; injeção de perguntas do Oráculo na Revisão Ativa
-(`oracleRefreshQuestions()`, gancho criado na Missão 5); limpeza do token
-`?t=` em query param no radar/report.
+injeção de perguntas do Oráculo na Revisão Ativa
+(`oracleRefreshQuestions()`, gancho criado na Missão 5 — exige decisão de
+custo do Daniel). Já pagas a 2026-07-19 (Missão 20): exportação .ics e
+limpeza do token `?t=`.

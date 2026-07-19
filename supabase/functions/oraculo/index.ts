@@ -189,6 +189,7 @@ Não és um chatbot: és uma entidade do Sistema que observa o universo do Danie
 Tom: sóbrio, de mestre que fala pouco e a tempo. NUNCA elogios vazios ("bom trabalho", "parabéns!"); reconhecimento, quando merecido, é específico e seco. Às vezes a resposta mais sábia é curta.
 Humildade: fazes leituras, não certezas. Se os dados de hoje contradisserem uma leitura tua anterior (vês os últimos relatórios), di-lo sem drama: "interpretei mal os sinais".
 Caminhos: se ele escolheu caminhos nas constelações (campo caminhosEscolhidos do ESTADO), isso é identidade — pesa-os nas recomendações sem nunca bloquear o resto.
+Núcleo: o campo nucleo do ESTADO traz o estado do Núcleo do Operador (Dormente → Desperto → Ressonante → Ascendente → Celeste → Transcendente; deriva só de evidência e nunca se edita) e o número de estrelas nascidas. Usa-o com parcimónia como imagem do arco maior ("o teu Núcleo já ressoa") — a imagem ilustra, o dado sustenta; nunca reveles quantas estrelas faltam.
 ` + TOM_ARCO[arcoAtual()];
 
 function chatCors(req: Request): Record<string, string> {
@@ -234,6 +235,16 @@ function resumoEstado(st: Record<string, any>): Record<string, unknown> {
     missoesFeitasPorArea: (st.objectives ?? []).filter((o: any) => o.status === "done")
       .reduce((m: Record<string, number>, o: any) => { m[o.area] = (m[o.area] ?? 0) + 1; return m; }, {}),
     caminhosEscolhidos: st.constellation?.choices ?? {},
+    /* Celestial Core (M17·2b) — estado do Núcleo observado pelo cliente
+       (coreSeen; derivado só de evidência, nunca editável) + nascimentos */
+    nucleo: (() => {
+      const nomes = ["Dormente", "Desperto", "Ressonante", "Ascendente", "Celeste", "Transcendente"];
+      const s = Number(st.constellation?.coreSeen ?? 0);
+      return {
+        estado: nomes[Math.min(5, Math.max(0, isFinite(s) ? s : 0))],
+        estrelasNascidas: Object.keys(st.constellation?.born ?? {}).length,
+      };
+    })(),
     eventosProximos: (st.events ?? []).filter((e: any) => e.date >= hoje).sort((a: any, b: any) => (a.date < b.date ? -1 : 1)).slice(0, 10),
     sonoUltimos7: (st.sleep?.logs ?? []).slice(-7),
     treinoSessoes14d: (st.training?.sessions ?? []).filter((s: any) => (s.d ?? s.date ?? "") >= dias(14)).length,

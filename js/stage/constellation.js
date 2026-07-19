@@ -1,4 +1,6 @@
 import * as THREE from '../vendor/three.module.min.js';
+import {sampleSolar,weatherNow} from './solar.js';
+import {world} from './state.js';
 
 /* Constelações — o céu do Operador (M12·S4 → M14 → M16).
    Conceito M16 (Fase A): as estrelas NASCEM, não se acendem. O céu só
@@ -131,7 +133,7 @@ void main(){vUv=position.xy*.5+.5;gl_Position=vec4(position.xy,1.,1.);}`;
    quando o argumento passa a precisão do float32 (era a causa dos blocos
    quadrados no fundo); este é estável a qualquer magnitude */
 const BG_FRAG=`varying vec2 vUv;uniform vec3 uTint;uniform float uTime;uniform float uDetail;
-uniform vec2 uRes;uniform float uZoom;uniform vec2 uOff;
+uniform vec2 uRes;uniform float uZoom;uniform vec2 uOff;uniform vec3 uAmb;
 float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));
   q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
@@ -148,6 +150,9 @@ void main(){
   if(uDetail>1.5)n=n*.7+.3*noise(p*2.2+vec2(-uTime*.006,uTime*.009));
   col+=uTint*n*n*.20*breathe*(1.-vUv.y*.35);
   col+=vec3(.05,.045,.09)*n*.11; /* poeira neutra: tira o preto absoluto */
+  /* Solar Engine: a luz da hora real toca a poeira — quente ao entardecer,
+     fria de noite; o hue do domínio continua a dominar */
+  col+=uAmb*(n*.08+.015);
   /* grão fino de céu profundo — textura indistinta, nunca pontos legíveis */
   float g=noise(px*.22+vec2(7.3,2.9));
   col+=vec3(.5,.48,.62)*smoothstep(.82,1.,g)*.05;
@@ -177,7 +182,7 @@ void main(){
   vMode=aMode;vB=(aBirth<0.)?1.:clamp(mix(bb,age/1.2,uRM),0.,1.);
   vFade=aFade;vSpike=aSpike;vFlash=flash;
 }`;
-const ST_FRAG=`uniform vec3 uCol;varying float vMode;varying float vB;varying float vFade;varying float vSpike;varying float vFlash;
+const ST_FRAG=`uniform vec3 uCol;uniform vec3 uAmb;varying float vMode;varying float vB;varying float vFade;varying float vSpike;varying float vFlash;
 void main(){
   vec2 q=gl_PointCoord-.5;
   float d=length(q);
@@ -192,6 +197,8 @@ void main(){
   float a=mix((core*.5+halo*.2)*.6,core*.85+hot*.6+halo+sp,vMode)*vB*vFade;
   vec3 col=mix(vec3(.6,.56,.76),uCol,vMode);
   col=mix(col,vec3(1.),hot*.7);
+  /* Solar Engine só no halo (fora do núcleo) — a cor do domínio manda */
+  col=mix(col,uAmb,smoothstep(.12,.3,d)*.12);
   col=mix(col,vec3(1.),min(vFlash,1.)*.85); /* pico branco do nascimento */
   a*=1.+vFlash*1.2;
   gl_FragColor=vec4(col*a,a);
@@ -337,6 +344,22 @@ export function initConstellation(){
   const uTime={value:0},uPan={value:new THREE.Vector2(0,0)};
   const uRes={value:new THREE.Vector2(1,1)},uZoom={value:1},uOff={value:new THREE.Vector2(0,0)};
   const uRMu={value:rm.matches?1:0}; /* rm: nascimento = fade simples */
+  /* Solar Engine (M16 Fase E) — a mesma amostra horária do céu do palco
+     ilumina as constelações: glow do horizonte pesado pela sua amplitude
+     (entardecer quente, noite fria/magenta); o meteo já modula a montante.
+     Amostra a cada 5s, lerp por frame — imperceptível e contínuo. */
+  const uAmb={value:new THREE.Vector3(.30,.26,.48)};
+  const ambT=new THREE.Vector3(.30,.26,.48);let ambLast=0;
+  function ambientSample(){
+    const now=performance.now();
+    if(now-ambLast<5000)return;
+    ambLast=now;
+    try{
+      const s=sampleSolar(world.hour,weatherNow());
+      const f=.35+s.horAmp*3.5;
+      ambT.set(Math.min(1,s.horGl[0]/255*f),Math.min(1,s.horGl[1]/255*f),Math.min(1,s.horGl[2]/255*f));
+    }catch(e){}
+  }
   const prevLit={};let baseline=false; /* 1ª avaliação não emite nascimentos */
   const births={}; /* 'attr:id' → instante do nascimento */
 
@@ -474,7 +497,7 @@ export function initConstellation(){
     const bgm=new THREE.ShaderMaterial({vertexShader:BG_VERT,fragmentShader:BG_FRAG,
       depthTest:false,depthWrite:false,
       uniforms:{uTint:{value:new THREE.Vector3(...tint)},uTime:uTime,uDetail:{value:lite?1:2},
-        uRes:uRes,uZoom:uZoom,uOff:uOff}});
+        uRes:uRes,uZoom:uZoom,uOff:uOff,uAmb:uAmb}});
     const bgMesh=new THREE.Mesh(bg,bgm);bgMesh.frustumCulled=false;bgMesh.renderOrder=0;
     scene.add(bgMesh);
   }
@@ -497,7 +520,7 @@ export function initConstellation(){
     return new THREE.ShaderMaterial({vertexShader:ST_VERT,fragmentShader:ST_FRAG,
       transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
       uniforms:{uRes:uRes,uPix:{value:pix},
-        uCol:{value:new THREE.Vector3(...tint)},uTime:uTime,uPan:uPan,uZoom:uZoom,uOff:uOff,uRM:uRMu}});
+        uCol:{value:new THREE.Vector3(...tint)},uTime:uTime,uPan:uPan,uZoom:uZoom,uOff:uOff,uRM:uRMu,uAmb:uAmb}});
   }
   /* ===== supernova (M16 Fase C) — pools pré-alocados, zero alocações em
      runtime; os objetos sobrevivem ao clear() e são re-adicionados à cena
@@ -604,6 +627,8 @@ export function initConstellation(){
     return g;
   }
   function draw(force){
+    ambientSample();
+    if(!raf)uAmb.value.copy(ambT); /* frame estática nasce já com a luz certa */
     if(mode==='universe'){drawUniverse(force);return;}
     drawDomain(force);
   }
@@ -773,6 +798,8 @@ export function initConstellation(){
   function tick(){
     raf=requestAnimationFrame(tick);
     uTime.value=tNow();
+    ambientSample();
+    uAmb.value.lerp(ambT,.04); /* a luz do dia muda sem saltos */
     panX+=(panTX-panX)*.06;panY+=(panTY-panY)*.06;
     uPan.value.set(panX,panY);
     moveLabels();

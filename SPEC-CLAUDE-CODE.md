@@ -521,6 +521,49 @@ Oráculo, eco visual no céu (a estrela da memória a pulsar no aniversário),
 streaks máximos históricos (exige passar a registá-los — hoje só existe o
 streak corrente).
 
+## Missão 16 — O Céu Renasce (CONCLUÍDA 2026-07-19; 5 fases A–E)
+
+Salto de qualidade + mudança de conceito nas Constelações, com plano
+aprovado pelo Daniel antes de tocar no código. Decisões dele: fundo
+procedural SAI (pureza absoluta — só textura indistinta, nunca pontos
+legíveis); evidência regressiva RECOLHE a estrela (data fica no registo);
+SILÊNCIO TOTAL sobre o que falta (sem contadores nem pistas; o vazio vivo
+com poeira/nebulosa/respiração). Auditoria de honestidade: as 37 estrelas
+de evidência + 6 de Escolha confirmadas sem enchimento.
+
+- Fase A (conceito): as estrelas NASCEM — o céu só contém regras
+  verdadeiras AGORA; estados descoberta/oculta removidos da renderização.
+  Registo `S.constellation.born` com data do 1º nascimento (títulos usam
+  a data real de titleUnlocked; migração inicial marca o=1 "observada";
+  save adiado para fora do ciclo de render). Regressão recolhe; a data
+  histórica fica. Subtítulo do painel e fallback DOM alinhados.
+- Fase B (qualidade): núcleo nítido + coração branco + halo curto
+  exponencial (zero borrão); difração em cruz nas estrelas de maior
+  evidência; tamanho por peso (22/20/17); profundidade z determinística
+  por estrela (parallax real; as ligações herdam o z das pontas); linhas
+  com gradiente de energia + fluxo.
+- Fase C (supernova): clarão branco com pico de tamanho, anel de choque
+  (~0.85s), 12 partículas ease-out (lite 6), micro-push da câmara por
+  impulso de velocidade na mola. Pools pré-alocados (48+4) que sobrevivem
+  ao clear(). Reduced-motion = fade simples via uniform uRM + mini-loop
+  de 1.4s; corrigido defeito pré-existente (com rm o uTime não avançava e
+  a estrela nascida ficava invisível na frame estática).
+- Fase D (inspeção): clique → dolly-in a enquadrar + cartão da história
+  (domínio na cor, evidência por extenso, data de nascimento/observação,
+  ponte "Ver nos Títulos Reais" nas estrelas de título); cartão
+  posicionado pela câmara-ALVO. Abertura cinematográfica 1×/sessão na 1ª
+  intersecção: grande plano sobre a última estrela nascida → recuo em
+  mola até ao Universo (sem estrelas ou com rm, abre direto).
+- Fase E (Solar Engine): a mesma amostra horária do céu do palco
+  (sampleSolar + weatherNow, meteo incluído) alimenta uAmb — poeira do
+  fundo e halo das estrelas (nunca o núcleo); amostra 5s + lerp por
+  frame. Entardecer aquece, noite arrefece; domínio manda sempre.
+- Verificação headless por fase (CDP): migração/nascimento/regressão,
+  render de qualidade com 13 estrelas, supernova em movimento e rm,
+  cartão com data histórica real e ponte, sunset vs deep night; consola
+  limpa em todas as corridas. 60fps reais: Daniel confirma com ?fps=1
+  nos dois aparelhos.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

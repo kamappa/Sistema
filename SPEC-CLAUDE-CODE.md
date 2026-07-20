@@ -874,6 +874,29 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   volta um estado normalizado mas SEM day-close — inócuo (normalize é
   idempotente no v4 e o legacy fecha os dias em atraso ao voltar).
 
+- Fase 2 (CONCLUÍDA 2026-07-20): a ponte para o palco WebGL — o maior risco,
+  resolvido cedo. Contrato honrado: o palco (~2065 linhas) NÃO se reescreve.
+  Decisão: o palco é código VIVO, não referência — copiado (não movido) de
+  `legacy/js/stage/` + `legacy/js/vendor/three.module.min.js` para `src/stage/`
+  + `src/vendor/` (o legacy mantém a sua cópia para a referência standalone;
+  duplicação intencional e temporária até o legacy ser apagado no fim). Zero
+  edições ao palco: ele continua a ler o global `S` com guardas `typeof` —
+  `src/Stage.jsx` monta o `<canvas id="dust">`, espelha `useStore` para
+  `window.S` (o palco corre num rAF FORA do ciclo React; a ponte é um global,
+  não props) e expõe `window.today` (para o Recovery em state.js); Bus/
+  seasonArcNow degradam graciosamente até migrarem. O palco é `import()`
+  dinâmico (chunk próprio ~523KB com THREE, code-split). `#dust` fixo por trás
+  do conteúdo (z-index 0; `.app-content` z-index 1) — a auth e a prova aparecem
+  por cima do céu vivo, como no Vanilla. Verificação headless (Brave/CDP com
+  swiftshader): canvas com contexto WebGL, `Stage.tier=lite` (full em hardware),
+  engine a correr, façade `dustStart` viva, ponte `window.S` sincronizada,
+  Solar a escrever `--amb1` (cores de fim de tarde às 20h reais),
+  `debug.world()` com hora/pace/glow reais, `debug.pulse(1)` faz a energia
+  reagir (0→0.57 com decaimento), consola limpa; screenshot confirma o céu a
+  pintar por trás da prova. 60fps reais e tier full: Daniel confirma com
+  `?fps=1` em hardware. Falta ligar o Bus (xp:gain→pulso) quando as ações do
+  motor migrarem — aí o mundo volta a reagir ao comportamento real.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

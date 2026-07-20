@@ -9,6 +9,11 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   min-height: 100vh;
 }
+
+/* Fase 2 — o palco WebGL pinta o céu no #dust, fixo por trás de tudo (mesma
+   regra do Vanilla: css/hud.css). O conteúdo React fica por cima. */
+#dust { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.app-content { position: relative; z-index: 1; }
 .foundation {
   min-height: 100vh;
   display: flex;

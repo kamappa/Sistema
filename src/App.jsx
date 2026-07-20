@@ -1,18 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useStore } from './store/useStore.js';
 import { ATTRS, AM, rankOf, titleOf, overallLevel } from './state/config.js';
+import Stage from './Stage.jsx';
 
 // Missão 25 · Fase 1 — a casca viva. Ainda SEM painéis do HUD: só o que prova
 // que a fundação de estado está de pé — gate de auth mínimo e um ecrã de prova
 // que lê números REAIS do store (nada inventado; "o sistema nunca mente"). O
 // aspeto final do HUD entra quando os painéis migrarem nas fases seguintes.
+// Fase 2: o palco WebGL vive por trás de tudo (fundo sempre presente, como no
+// Vanilla — a auth e a prova aparecem por cima do céu vivo).
 export default function App() {
   const { booted, S, init } = useStore();
   useEffect(() => { init(); }, [init]);
 
-  if (!booted) return <Splash text="A resolver sessão…" />;
-  if (!S) return <AuthGate />;
-  return <Proof />;
+  return (
+    <>
+      <Stage />
+      <div className="app-content">
+        {!booted ? <Splash text="A resolver sessão…" /> : !S ? <AuthGate /> : <Proof />}
+      </div>
+    </>
+  );
 }
 
 function Splash({ text }) {

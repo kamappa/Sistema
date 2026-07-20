@@ -81,6 +81,27 @@ export const RECALL_THEMES = {
   ia: { label: 'IA geral', color: 'var(--pink)' },
 };
 
+// Treino · progressões de calistenia (data.js:131-150). 4 linhas de força (8
+// passos {n,t}) + Pavimento Pélvico (8 passos {n,cyc}).
+export const PROG = {
+  push: [{ n: 'Flexões inclinadas (mãos numa mesa)', t: 12 }, { n: 'Flexões de joelhos', t: 12 }, { n: 'Flexões completas', t: 10 }, { n: 'Flexões diamante', t: 10 }, { n: 'Flexões declinadas (pés elevados)', t: 10 }, { n: 'Flexões arqueiro', t: 8 }, { n: 'Pseudo-planche push-ups', t: 8 }, { n: 'Flexões a um braço (assistidas)', t: 5 }],
+  pull: [{ n: 'Dead hang (segundos)', t: 40 }, { n: 'Remada australiana', t: 12 }, { n: 'Remada australiana pés elevados', t: 10 }, { n: 'Negativas de pull-up (desce em 5s)', t: 6 }, { n: 'Pull-ups', t: 8 }, { n: 'Pull-ups peito à barra', t: 6 }, { n: 'Pull-ups arqueiro', t: 6 }, { n: 'Pull-up a um braço (assistida)', t: 3 }],
+  legs: [{ n: 'Agachamento assistido', t: 15 }, { n: 'Agachamento livre', t: 15 }, { n: 'Avanços alternados (lunges)', t: 12 }, { n: 'Agachamento búlgaro', t: 10 }, { n: 'Step-ups altos', t: 10 }, { n: 'Pistol squat assistido', t: 6 }, { n: 'Agachamento shrimp', t: 6 }, { n: 'Pistol squat', t: 5 }],
+  core: [{ n: 'Prancha (segundos)', t: 45 }, { n: 'Hollow hold (segundos)', t: 30 }, { n: 'Elevações de pernas no chão', t: 15 }, { n: 'Elevações de joelhos suspenso', t: 10 }, { n: 'Elevações de pernas suspenso', t: 10 }, { n: 'Windshield wipers deitado', t: 10 }, { n: 'Toes-to-bar', t: 8 }, { n: 'Dragon flag (negativas)', t: 5 }],
+  kegel: [
+    { n: 'Lentas 3s/3s ×8', cyc: 2 },
+    { n: 'Lentas 4s/4s ×8 + rápidas ×5', cyc: 2 },
+    { n: 'Lentas 5s/5s ×10 + rápidas ×8', cyc: 2 },
+    { n: 'Lentas 6s/6s ×10 + rápidas ×10', cyc: 2 },
+    { n: 'Lentas 7s/7s ×10 + rápidas ×12', cyc: 3 },
+    { n: 'Lentas 8s/8s ×12 + rápidas ×15', cyc: 3 },
+    { n: 'Lentas 9s/9s ×12 + rápidas ×18', cyc: 3 },
+    { n: 'Lentas 10s/10s ×12 + rápidas ×20', cyc: 3 },
+  ],
+};
+export const TLINES = [{ id: 'push', n: 'Empurrar', c: '#f472b6' }, { id: 'pull', n: 'Puxar', c: '#38bdf8' }, { id: 'legs', n: 'Pernas', c: '#34d399' }, { id: 'core', n: 'Core', c: '#fbbf24' }];
+export const KLINE = { id: 'kegel', n: 'Pavimento Pélvico', c: '#c084fc' };
+
 // Curva de XP por nível (engine.js:26) — quanto falta para o próximo nível.
 export const need = (l) => 40 + l * 20;
 

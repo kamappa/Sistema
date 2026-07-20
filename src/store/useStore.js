@@ -8,6 +8,8 @@ import { xpMult } from '../state/world.js';
 import { addXp, plog, unlog } from '../state/engine.js';
 import { triage } from '../state/objectives.js';
 import { loadRecallBank, getDailyRecallSet, reviewQuestion, findQuestion, bumpStudyStreak } from '../state/recall.js';
+import { TLINES, KLINE, PROG } from '../state/config.js';
+import { consecTrained } from '../state/training.js';
 
 // Store central do Sistema (Missão 25 · Fase 1 — a casca viva).
 // Espelha o app_state (o antigo global `S`) e a cola de persistência do antigo
@@ -221,6 +223,51 @@ export const useStore = create((set, get) => ({
     const S = get().S; if (!q || !q.trim() || !a || !a.trim()) return { error: 'incompleto' };
     S.customQ.push({ id: 'meu-' + Date.now(), tema, dif, q: q.trim(), a: a.trim(), ref: (ref && ref.trim()) || '—' });
     set({ S: { ...S } }); get().save(); return {};
+  },
+
+  // ===== TREINO (Fase 8) =====
+  // finishTraining — porto de treino.js:9-52. Lê o formulário (form em vez do
+  // DOM), avança passos (3×alvo limpo; kegel = 3 dias distintos), XP com teto
+  // diário (Fuga 2: 1ª sessão inteira, 2ª a metade, 3ª+ a zero — registo sempre
+  // guardado). Toasts/floatXP = fx (deferido); devolve o resumo p/ a UI.
+  finishTraining: (form) => {
+    const S = get().S;
+    const lines = {}, adv = []; let logged = 0;
+    TLINES.forEach((L) => {
+      const rv = parseInt(form.lines?.[L.id]?.reps) || 0;
+      const fv = form.lines?.[L.id]?.feel || 'ok';
+      if (rv > 0) {
+        logged++; const idx = S.training.prog[L.id]; const st = PROG[L.id][idx];
+        lines[L.id] = { step: idx, ex: st.n, reps: rv, feel: fv };
+        if (rv >= st.t && fv !== 'd' && idx < PROG[L.id].length - 1) { S.training.prog[L.id]++; adv.push(L.n + ' → ' + PROG[L.id][idx + 1].n); }
+      }
+    });
+    if (form.kegel?.done) {
+      logged++; const idx = S.training.prog.kegel; const st = PROG.kegel[idx]; const fv = form.kegel.feel || 'ok';
+      lines.kegel = { step: idx, ex: st.n, cyc: st.cyc, feel: fv };
+      if (fv !== 'd' && idx < PROG.kegel.length - 1) {
+        const days = new Set(S.training.sessions.filter((s) => s.lines && s.lines.kegel && s.lines.kegel.step === idx && s.lines.kegel.feel !== 'd').map((s) => s.d));
+        days.add(today());
+        if (days.size >= 3) { S.training.prog.kegel++; adv.push(KLINE.n + ' → ' + PROG.kegel[idx + 1].n); }
+      }
+    }
+    if (!logged) return { error: 'sem-registo' };
+    const extra = !!form.extra; const notes = (form.notes || '').trim();
+    const consec = consecTrained(S);
+    const nToday = S.training.sessions.filter((s) => s.d === today()).length;
+    const fator = nToday === 0 ? 1 : nToday === 1 ? 0.5 : 0;
+    let xp = Math.round((15 + logged * 6) * xpMult(S, 'corpo') * fator); let extraOk = false;
+    if (extra) {
+      if (consec >= 3) { /* teto: 4º dia seguido, extra sem bónus (toast deferido) */ }
+      else { extraOk = true; xp += Math.round(10 * fator); const dg = Math.round(5 * fator); if (dg) addXp(S, 'disciplina', dg); }
+    }
+    if (xp) addXp(S, 'corpo', xp);
+    const advXp = adv.length ? Math.round(30 * adv.length * xpMult(S, 'corpo') * fator) : 0;
+    if (adv.length) { if (advXp) addXp(S, 'corpo', advXp); }
+    S.training.sessions.push({ d: today(), lines, extra: extraOk, notes, adv: adv.length, xp: xp + advXp });
+    plog(S, '🏋️ Treino (' + logged + ' linhas' + (extraOk ? ' + extra' : '') + (nToday ? ' · ' + (nToday + 1) + 'ª sessão do dia' : '') + ')', xp + advXp);
+    set({ S: { ...S } }); get().save();
+    return { logged, adv, xp: xp + advXp, nToday, extraBlocked: extra && consec >= 3 };
   },
 }));
 

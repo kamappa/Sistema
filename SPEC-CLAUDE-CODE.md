@@ -984,6 +984,20 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   completo (5×12=60) → saber nível 2 + resumo + streak 1; addCustomQuestion
   válida cria 'meu-...', incompleta rejeitada; consola limpa.
 
+- Fase 8 (CONCLUÍDA 2026-07-21): Treino (calistenia). `PROG`/`TLINES`/`KLINE` em
+  config; `src/state/training.js` (consecTrained/weekSessions/kegelDaysAtStep/
+  trAdvice, S explícito). Ação `finishTraining(form)` — porto de treino.js:9-52:
+  avanço de passo (3×alvo limpo; kegel = 3 dias distintos), XP de Corpo com teto
+  diário (Fuga 2: 1ª sessão inteira, 2ª a metade, 3ª+ a zero; registo sempre
+  guardado), volume extra com trava aos 4 dias seguidos. `Training.jsx` — inputs
+  controlados (React) em vez do trKeep do Vanilla; os valores persistem
+  naturalmente entre re-renders (comportamento idêntico). FX (toasts de evolução/
+  teto, floatXP) deferido. Verificado headless (Brave/CDP): 5 linhas; 1ª sessão
+  (push 12 avança + kegel) = Corpo +57 (27 base + 30 avanço), push Passo 2/8,
+  registo; 2ª sessão no mesmo dia = teto a metade (inputs persistem como no
+  Vanilla → re-regista push+core+kegel, 2 avanços, 17+30=47); herói recalcula p/
+  nível 2, Corpo Nv2 44/80, total 104; consola limpa.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

@@ -19,8 +19,10 @@ export function createReact(world){
     resize(){},
     update(t,dt,ctx){
       /* M17·F2: o Núcleo cria um chão de energia — quanto mais forte, mais
-         vivo o mundo está em repouso (0 a .25); Recovery amortece o chão */
-      const floor=(ctx.world.core||0)*(ctx.world.recovery?.02:.05);
+         vivo o mundo está em repouso (0 a .25); Recovery amortece o chão.
+         M23: a negligência também o baixa — sem progresso, o mundo apaga. */
+      const floor=(ctx.world.core||0)*(ctx.world.recovery?.02:.05)
+        *(1-(ctx.world.neglect||0)*.6);
       energy=Math.max(energy*Math.exp(-dt*1.8),floor);
       if(energy<.001)energy=0;
       presence*=Math.exp(-dt*.5);

@@ -5,8 +5,23 @@
    world.core (M17·F2) = estado do Núcleo (0-5), amostrado a cada 5s do
    coreState() das constelações — derivado de evidência, nunca à mão. */
 import {coreState} from './constellation.js';
-export const world={hour:0,glow:1,rain:false,arc:null,recovery:false,energy:0,pace:1,presence:0,core:0};
+export const world={hour:0,glow:1,rain:false,arc:null,recovery:false,energy:0,pace:1,presence:0,core:0,neglect:0,sunday:false};
 let coreLast=0,coreVal=0;
+/* negligência (M23 · Camada II): dias sem progresso real, medidos ao registo
+   de XP (S.history agrega por dia; a última entrada é o último dia com
+   ação registada). 0 até 2 dias; cresce linearmente até 1 aos 14. Recovery
+   é descanso deliberado — nunca conta como negligência. Sistema sem
+   histórico não é julgado. */
+function neglectNow(){
+  try{
+    if(world.recovery)return 0;
+    const h=(typeof S!=='undefined')&&S&&S.history;
+    if(!h||!h.length)return 0;
+    const last=h[h.length-1].d;
+    const days=(Date.now()-new Date(last+'T12:00:00').getTime())/864e5;
+    return Math.max(0,Math.min(1,(days-2)/12));
+  }catch(e){return 0;}
+}
 let hourOverride=null;
 export function setHourOverride(h){hourOverride=h;} // Stage.debug — verificação da 1D
 export function updateWorld(){
@@ -24,6 +39,8 @@ export function updateWorld(){
     world.recovery=!!((typeof S!=='undefined')&&S&&S.recovery
       &&typeof today==='function'&&today()<=S.recovery.until);
   }catch(e){world.recovery=false;}
+  world.neglect=neglectNow();
+  world.sunday=d.getDay()===0; /* ao domingo o universo está mais calmo */
   const now=Date.now();
   if(now-coreLast>5000){
     coreLast=now;

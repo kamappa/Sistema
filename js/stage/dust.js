@@ -7,7 +7,7 @@ import * as THREE from '../vendor/three.module.min.js';
 const A_VERT=`
 attribute float aR;attribute float aVy;attribute float aVx;
 attribute float aPhase;attribute float aTint;
-uniform float uTime;uniform float uWarp;uniform vec2 uRes;uniform float uFall;uniform float uPix;uniform float uBreath;uniform vec2 uDrift;
+uniform float uTime;uniform float uWarp;uniform vec2 uRes;uniform float uFall;uniform float uPix;uniform float uBreath;uniform vec2 uDrift;uniform float uDim;
 varying float vA;varying float vTint;
 void main(){
   /* uWarp = tempo elástico (2B): acelera com a energia do mundo, abranda em
@@ -20,7 +20,9 @@ void main(){
   x+=uDrift.x*position.z;y+=uDrift.y*position.z;
   gl_Position=vec4(vec2(x/uRes.x*2.-1.,1.-y/uRes.y*2.)*uBreath,0.,1.);
   gl_PointSize=aR*uPix;
-  vA=(.12+.12*sin(uTime*3.9+aPhase))*(.5+.5*position.z);
+  /* uDim (M23): a negligência apaga primeiro as partículas mais ténues —
+     "algumas partículas desaparecem" sem nunca mexer na alocação */
+  vA=(.12+.12*sin(uTime*3.9+aPhase))*(.5+.5*position.z)*uDim;
   vTint=aTint;
 }`;
 const A_FRAG=`
@@ -71,7 +73,8 @@ export function createDust(tier){
   const am=new THREE.ShaderMaterial({vertexShader:A_VERT,fragmentShader:A_FRAG,
     transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
     uniforms:{uTime:{value:0},uWarp:{value:0},uRes:{value:new THREE.Vector2(1,1)},
-      uFall:{value:0},uPix:{value:1},uBreath:{value:1},uDrift:{value:new THREE.Vector2(0,0)}}});
+      uFall:{value:0},uPix:{value:1},uBreath:{value:1},uDrift:{value:new THREE.Vector2(0,0)},
+      uDim:{value:1}}});
   const apts=new THREE.Points(ag,am);apts.frustumCulled=false;apts.renderOrder=2;
   /* pool de bursts */
   const pg=new THREE.BufferGeometry();
@@ -125,6 +128,7 @@ export function createDust(tier){
       am.uniforms.uTime.value=t;pm.uniforms.uTime.value=t;
       am.uniforms.uBreath.value=ctx.breath||1;
       am.uniforms.uDrift.value.set(ctx.driftX||0,ctx.driftY||0);
+      am.uniforms.uDim.value+=((1-(ctx.world.neglect||0)*.45)-am.uniforms.uDim.value)*Math.min(1,dt);
       am.uniforms.uFall.value+=((ctx.world.rain?1:0)-am.uniforms.uFall.value)*Math.min(1,dt);
     },
     degrade(){ag.setDrawRange(0,Math.ceil(N/2));},

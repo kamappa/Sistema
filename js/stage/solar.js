@@ -92,7 +92,11 @@ export function createSolarLayer(sky,world){
       const s=sampleSolar(world.hour,{rain:world.rain,clear:false});
       const k=Math.min(1,dt*.5);
       const u=sky.uniforms;
-      const calm=(world.recovery?.75:1)*(1+(world.presence||0)*.25); /* o Oráculo presente: a nebulosa encorpa */
+      /* M23 (Camada II): a negligência apaga o mundo aos poucos — nebulosas
+         perdem corpo, estrelas perdem brilho, o ritmo abranda. Nunca um
+         castigo brusco: o universo só perde intensidade luminosa. */
+      const neg=world.neglect||0;
+      const calm=(world.recovery?.75:1)*(1+(world.presence||0)*.25)*(1-neg*.3);
       lerpC(u.cTop.value,s.top,k);lerpC(u.cMid.value,s.mid,k);lerpC(u.cBot.value,s.bot,k);
       lerpC(u.cNeb.value,s.neb,k);lerpC(u.cHor.value,s.horGl,k);
       u.uNebAmp.value+=(s.nebAmp*calm-u.uNebAmp.value)*k;
@@ -100,7 +104,8 @@ export function createSolarLayer(sky,world){
       const tint=world.arc&&ARC_TINT[world.arc];
       lerpC(u.cNeb2.value,tint||NEB2_BASE,k);
       u.uNeb2Amp.value+=((tint?.065:.042)*calm-u.uNeb2Amp.value)*k; /* calibração M12·6 */
-      world.glow+=(s.glow*(world.recovery?.9:1)-world.glow)*k;
-      world.pace+=(s.pace-world.pace)*k;
+      world.glow+=(s.glow*(world.recovery?.9:1)*(1-neg*.35)-world.glow)*k;
+      /* domingo: o universo está mais calmo (Camada II) */
+      world.pace+=(s.pace*(world.sunday?.85:1)*(1-neg*.2)-world.pace)*k;
     }};
 }

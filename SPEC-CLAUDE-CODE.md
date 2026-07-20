@@ -738,6 +738,30 @@ derivam SÓ do coreState()/evidência. Confinado ao céu das constelações.
 - Calibração de gosto pendente do Daniel em hardware real (intensidades
   das camadas e da onda são multiplicadores únicos).
 
+## Missão 23 — World Engine reativo ao comportamento
+(CONCLUÍDA 2026-07-20)
+
+Terceira aplicação da Camada II — as duas leis do World Engine que
+faltavam ("ao passar muitos dias sem progresso o universo perde
+intensidade luminosa e algumas partículas desaparecem"; "ao domingo o
+universo está mais calmo"). Tudo derivado de evidência datada real, nunca
+de um flag manual — "o sistema nunca mente".
+
+- `world.neglect` (0-1) em state.js: dias sem progresso REAL medidos à
+  última entrada de S.history (o registo de XP agrega por dia). 0 até 2
+  dias; rampa linear até 1 aos 14. Recovery é descanso deliberado e
+  ZERA a negligência (nunca é castigo do descanso); Sistema sem histórico
+  não é julgado (neglect 0). `world.sunday` = getDay()===0.
+- Efeito (só intensidade luminosa, nunca brusco): solar.js baixa
+  nebulosas (calm×(1-neg·.3)), brilho das estrelas (glow×(1-neg·.35)) e
+  ritmo (pace×(1-neg·.2)); domingo abranda o pace ×.85. dust.js ganhou
+  uDim — a negligência apaga primeiro as partículas mais ténues
+  (×(1-neg·.45)), sem tocar na alocação. react.js baixa o chão de energia
+  do Núcleo (×(1-neg·.6)) — sem progresso, o mundo apaga-se em repouso.
+- Stage.debug.world() expõe neglect e sunday.
+- Verificado headless (CDP): fresco=0, hoje=0, 19 dias=1 (glow 0.99→0.39),
+  5 dias=0.22 (rampa), Recovery anula (0); consola limpa.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

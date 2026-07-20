@@ -28,3 +28,42 @@ body {
 .foundation h1 { font-weight: 700; font-size: 28px; letter-spacing: .01em; }
 .foundation .muted { color: #8d86a8; font-size: 14px; max-width: 46ch; line-height: 1.55; }
 .foundation code { color: #a78bfa; font-family: ui-monospace, monospace; }
+
+/* Fase 1 — gate de auth + ecrã de prova (estilo provisório; não é o HUD final) */
+.authbox { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; margin-top: 8px; }
+.authbox input {
+  padding: 11px 13px; border-radius: 10px; border: 1px solid #2a2440;
+  background: #100a1e; color: #ece8f8; font-size: 14px; font-family: inherit;
+}
+.authbox input:focus { outline: none; border-color: #a78bfa; }
+.authrow { display: flex; gap: 8px; }
+.foundation button {
+  flex: 1; padding: 10px 14px; border-radius: 10px; border: 1px solid #2a2440;
+  background: #17102a; color: #ece8f8; font-size: 14px; font-family: inherit;
+  cursor: pointer; transition: border-color .15s, background .15s;
+}
+.foundation button:hover:not(:disabled) { border-color: #a78bfa; }
+.foundation button:disabled { opacity: .5; cursor: default; }
+.foundation button.primary { background: #6d47d9; border-color: #6d47d9; font-weight: 600; }
+.foundation button.ghost { background: transparent; font-size: 13px; color: #8d86a8; }
+.authmsg { font-size: 13px; color: #f87171; }
+.authmsg.ok { color: #34d399; }
+
+.proof {
+  width: 100%; max-width: 420px; margin: 4px 0;
+  display: flex; flex-direction: column; gap: 14px; text-align: left;
+  padding: 18px; border-radius: 14px; border: 1px solid #201a34; background: #0d0819;
+}
+.proof-hero { display: flex; align-items: center; gap: 14px; }
+.rankbadge {
+  display: grid; place-items: center; width: 46px; height: 46px; flex: none;
+  border: 2px solid; border-radius: 12px; font-weight: 800; font-size: 22px;
+  font-family: ui-monospace, monospace;
+}
+.proof-title { font-weight: 700; font-size: 17px; }
+.proof-attrs { display: flex; flex-direction: column; gap: 7px; }
+.proof-attr { display: flex; align-items: center; gap: 9px; font-size: 14px; }
+.proof-attr .muted { margin-left: auto; font-size: 13px; }
+.proof-attr .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.proof-meta { font-size: 12px; padding-top: 6px; border-top: 1px solid #201a34; }
+.sync { color: #a78bfa; }

@@ -845,6 +845,35 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   painéis migrados — próximo passo (Fase 1) é a casca viva: store a
   espelhar o app_state do Supabase (auth+load+save) antes de qualquer UI.
 
+- Fase 1 (CONCLUÍDA 2026-07-20): a casca viva — o store espelha o app_state
+  antes de qualquer painel. Camada de estado PURA em `src/state/`, portada
+  linha a linha do `legacy/` (contrato: lógica intocada): `dates.js`
+  (fmt/today/yday/diffDays), `config.js` (ATTRS/AM/RANKS/TITLES/OBLIG/EXTRAS
+  + diffTag + rankOf/titleOf/overallLevel — só o subconjunto que o modelo de
+  estado precisa; o resto entra com os painéis), `fresh.js` e `normalize.js`
+  (o bloco de saneamento do antigo bootState: defaults, migração
+  quests→objectives, quebra de streaks). `src/lib/supabase.js` troca o
+  `window.supabase` do CDN pelo pacote npm (mesma URL/anon key). O store
+  (Zustand) ganhou a cola de persistência do antigo auth.js: `init` (resolve
+  sessão), `boot` (carrega nuvem/local/fresh → normaliza → localSave →
+  cloudSave), `save` (local imediato + cloudSave debounce 900ms — réplica de
+  auth.js:76), `login/signup/offline/logout`. Ficam DELIBERADAMENTE de fora
+  (não são "casca" — entram com o motor/painéis): processDayClose (motor de
+  XP), loadQuestionBank/getDailyRecallSet, calInit/fetchWeather. A app tem um
+  gate de auth mínimo (login/criar conta/offline) e um ecrã de PROVA que lê
+  números reais do store (rank/nível/XP/atributos/sync) — nada fabricado.
+  Verificação: `vite build` OK; smoke test Node aos módulos de estado
+  (16/16 — fresh, defaults, migração com prioridades+diffTag, idempotência,
+  quebra de streak); headless Brave/CDP do arranque real (React monta → gate
+  → offline → prova com estado fresh: rank E, Novice Auditor, nível 1, 0 XP,
+  6 atributos, v4 normalizado, localStorage escrito, migratedQuests, ponte
+  window.__store viva; consola limpa). O caminho de NUVEM (cloudLoad/
+  cloudSave) é porto verbatim do auth.js já provado em produção; fica por
+  exercitar com a conta real do Daniel (o único ponto que toca dados reais —
+  a seu critério). Nota honesta: entrar na casca com a conta real grava de
+  volta um estado normalizado mas SEM day-close — inócuo (normalize é
+  idempotente no v4 e o legacy fecha os dias em atraso ao voltar).
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

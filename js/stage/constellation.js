@@ -200,7 +200,8 @@ const ST_VERT=`
 attribute float aSize;attribute float aMode;attribute float aHov;attribute float aBirth;attribute float aPulse;attribute float aFade;attribute float aSpike;attribute float aZ;
 uniform vec2 uRes;uniform float uPix;uniform float uTime;uniform vec2 uPan;
 uniform float uZoom;uniform vec2 uOff;uniform float uRM;
-varying float vMode;varying float vB;varying float vFade;varying float vSpike;varying float vFlash;
+uniform float uWave;uniform float uWaveA;
+varying float vMode;varying float vB;varying float vFade;varying float vSpike;varying float vFlash;varying float vWv;
 float back(float k){k=clamp(k,0.,1.);float s=1.70158;k-=1.;return k*k*((s+1.)*k+s)+1.;}
 void main(){
   /* dolly: px de mundo; profundidade real — as próximas (aZ→1) mexem mais */
@@ -217,11 +218,15 @@ void main(){
   gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
   float tw=.94+.06*sin(uTime*1.6+position.x*.05);
   float inv=1.+aPulse*.25*sin(uTime*2.6); /* escolha pendente convida ao clique */
-  gl_PointSize=aSize*uPix*uZoom*b*(1.+aHov*.4)*tw*inv*(.85+.3*aZ)*(1.+flash*2.6);
+  /* a onda do Núcleo (M22) passa e a estrela responde — cresce e aviva */
+  float wt=uTime-uWave;
+  float dc=length(position.xy-uRes*.5);
+  vWv=(wt>0.&&wt<2.4)?exp(-abs(dc-wt*300.)*.014)*(1.-wt/2.4)*uWaveA:0.;
+  gl_PointSize=aSize*uPix*uZoom*b*(1.+aHov*.4)*tw*inv*(.85+.3*aZ)*(1.+flash*2.6)*(1.+vWv*.3);
   vMode=aMode;vB=(aBirth<0.)?1.:clamp(mix(bb,age/1.2,uRM),0.,1.);
   vFade=aFade;vSpike=aSpike;vFlash=flash;
 }`;
-const ST_FRAG=`uniform vec3 uCol;uniform vec3 uAmb;varying float vMode;varying float vB;varying float vFade;varying float vSpike;varying float vFlash;
+const ST_FRAG=`uniform vec3 uCol;uniform vec3 uAmb;varying float vMode;varying float vB;varying float vFade;varying float vSpike;varying float vFlash;varying float vWv;
 void main(){
   vec2 q=gl_PointCoord-.5;
   float d=length(q);
@@ -233,13 +238,86 @@ void main(){
     sp=(pow(max(0.,1.-abs(q.x)*9.),7.)+pow(max(0.,1.-abs(q.y)*9.),7.))
        *smoothstep(.5,.06,d)*.4*vSpike;
   }
-  float a=mix((core*.5+halo*.2)*.6,core*.85+hot*.6+halo+sp,vMode)*vB*vFade;
+  float a=mix((core*.5+halo*.2)*.6,core*.85+hot*.6+halo+sp,vMode)*vB*vFade*(1.+vWv*.9);
   vec3 col=mix(vec3(.6,.56,.76),uCol,vMode);
   col=mix(col,vec3(1.),hot*.7);
+  col=mix(col,vec3(1.),min(vWv,1.)*.3); /* a passagem da onda aviva */
   /* Solar Engine só no halo (fora do núcleo) — a cor do domínio manda */
   col=mix(col,uAmb,smoothstep(.12,.3,d)*.12);
   col=mix(col,vec3(1.),min(vFlash,1.)*.85); /* pico branco do nascimento */
   a*=1.+vFlash*1.2;
+  gl_FragColor=vec4(col*a,a);
+}`;
+/* ===== o Núcleo como entidade (M22 · Camada II) — não é um círculo: é uma
+   esfera de energia multicamada num único point sprite. Interior turbulento,
+   coração branco, casca, aura que respira, anéis orbitais achatados em
+   sentidos opostos (Ressonante+), partículas a percorrer o anel (Ascendente+)
+   e campo cintilante (Celeste+). Cada camada aparece com o estado REAL do
+   coreState() — o Núcleo nunca mente. uCoreE = energia de evento (decai). */
+const CORE_VERT=`
+uniform vec2 uRes;uniform float uPix;uniform float uZoom;uniform vec2 uOff;uniform vec2 uPan;
+uniform float uTime;uniform float uSz;uniform float uCoreE;
+void main(){
+  vec2 p=position.xy*uZoom+uOff+uPan*1.03;
+  gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
+  /* o Núcleo pulsa (Motion Hierarchy) — nunca orbita */
+  float br=1.+.04*sin(uTime*.8)+.02*sin(uTime*.31)+uCoreE*.3;
+  gl_PointSize=uSz*uPix*uZoom*br;
+}`;
+const CORE_FRAG=`
+uniform float uTime;uniform float uState;uniform float uFrac;uniform vec3 uAmb;uniform float uCoreE;
+float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));
+  q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+  return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
+void main(){
+  vec2 q=gl_PointCoord-.5;
+  float d=length(q);
+  /* interior — plasma turbulento em rotação lenta */
+  float ca=uTime*.07;
+  vec2 rq=vec2(q.x*cos(ca)-q.y*sin(ca),q.x*sin(ca)+q.y*cos(ca));
+  float n=noise(rq*7.+vec2(uTime*.12,-uTime*.09));
+  float R=.13+.015*sin(uTime*.5);
+  float inner=smoothstep(R,R*.2,d)*(.7+.3*n);
+  float hot=smoothstep(R*.5,0.,d);
+  /* casca exterior fina — ganha presença com o estado */
+  float shell=smoothstep(.02,.004,abs(d-R*1.35))*(.10+uState*.05);
+  /* aura — respira; encorpa com o estado e com a energia de evento */
+  float aura=exp(-d*(8.-uState*.5))*(.16+uState*.04)*(1.+uCoreE*.9);
+  /* anéis orbitais achatados, sentidos opostos */
+  float rings=0.;float a1=uTime*.22;
+  if(uState>=2.){
+    vec2 r1=vec2(q.x*cos(a1)+q.y*sin(a1),(q.y*cos(a1)-q.x*sin(a1))*2.6);
+    rings+=smoothstep(.016,.004,abs(length(r1)-.33))*.35;
+  }
+  if(uState>=3.){
+    float a2=-uTime*.15+2.1;
+    vec2 r2=vec2(q.x*cos(a2)+q.y*sin(a2),(q.y*cos(a2)-q.x*sin(a2))*3.4);
+    rings+=smoothstep(.014,.004,abs(length(r2)-.42))*.28;
+  }
+  /* partículas a percorrer o 1º anel */
+  float parts=0.;
+  if(uState>=3.){
+    for(int i=0;i<3;i++){
+      float ph=uTime*(.5+float(i)*.13)+float(i)*2.09;
+      vec2 e=vec2(cos(ph),sin(ph)/2.6)*.33;
+      vec2 qp=vec2(e.x*cos(a1)-e.y*sin(a1),e.x*sin(a1)+e.y*cos(a1));
+      parts+=smoothstep(.035,.006,length(q-qp))*.5;
+    }
+  }
+  /* campo cintilante no perímetro */
+  float field=0.;
+  if(uState>=4.){
+    float ang=atan(q.y,q.x);
+    field=smoothstep(.5,.34,d)*smoothstep(.30,.44,d)*noise(vec2(ang*2.2,uTime*.35))*.22;
+  }
+  /* Dormente é ténue, nunca morto — a fração de céu nascido dá o corpo */
+  float vive=.35+.65*clamp(uFrac+uCoreE*.3,0.,1.);
+  float a=(inner*.9+hot*.8+shell+aura+rings+parts+field)*vive;
+  vec3 col=mix(vec3(.65,.55,.98),vec3(1.),hot*.75);
+  col=mix(col,vec3(.94,.67,.99),min(rings*.6+parts*.4,1.));
+  col=mix(col,uAmb,smoothstep(.2,.45,d)*.10);
+  col=mix(col,vec3(1.),min(uCoreE,1.)*.25);
   gl_FragColor=vec4(col*a,a);
 }`;
 /* anel de choque do nascimento — o ponto cresce, o anel vive no sprite */
@@ -286,7 +364,7 @@ const LN_VERT=`
 attribute float aT;attribute float aPx;attribute float aBirth;attribute float aZ;
 uniform vec2 uRes;uniform float uTime;uniform vec2 uPan;
 uniform float uZoom;uniform vec2 uOff;
-varying float vT;varying float vPx;varying float vB;
+varying float vT;varying float vPx;varying float vB;varying float vDc;
 void main(){
   /* cada ponta herda a profundidade da sua estrela — a linha fica presa */
   vec2 p=position.xy*uZoom+uOff+uPan*(.55+aZ*.95);
@@ -295,17 +373,23 @@ void main(){
   p+=vec2(cos(oa),sin(oa))*(.6+aZ*.9);
   gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
   vT=aT;vPx=aPx;
+  vDc=length(position.xy-uRes*.5); /* distância ao Núcleo — a onda viaja (M22) */
   vB=aBirth<0.?1.:clamp((uTime-aBirth)/1.4,0.,1.);
 }`;
 const LN_FRAG=`
 uniform vec3 uCol;uniform float uOp;uniform float uTime;uniform float uFlow;
-varying float vT;varying float vPx;varying float vB;
+uniform float uWave;uniform float uWaveA;
+varying float vT;varying float vPx;varying float vB;varying float vDc;
 void main(){
   float flow=mix(1.,.7+.3*sin(vPx*.11-uTime*2.1),uFlow); /* energia a correr */
   float grad=mix(.72,1.12,vT); /* leve gradiente de energia ao longo da linha */
   float drawn=step(vT,vB); /* nascimento: a ligação desenha-se de A para B */
-  float a=uOp*flow*grad*drawn;
-  gl_FragColor=vec4(uCol*a,a);
+  /* onda pela rede (M22): uma frente radial parte do Núcleo e percorre as
+     ligações como uma veia a acender — ação real, nunca decorativa */
+  float wt=uTime-uWave;
+  float wv=(wt>0.&&wt<2.4)?exp(-abs(vDc-wt*300.)*.014)*(1.-wt/2.4)*uWaveA:0.;
+  float a=uOp*flow*grad*drawn*(1.+wv*1.8);
+  gl_FragColor=vec4(mix(uCol,vec3(1.),wv*.5)*a,a);
 }`;
 
 /* sem WebGL (4C→M16) — o céu em DOM: a informação nunca se perde. Mantém os
@@ -399,6 +483,17 @@ export function initConstellation(){
   const uTime={value:0},uPan={value:new THREE.Vector2(0,0)};
   const uRes={value:new THREE.Vector2(1,1)},uZoom={value:1},uOff={value:new THREE.Vector2(0,0)};
   const uRMu={value:rm.matches?1:0}; /* rm: nascimento = fade simples */
+  /* onda pela rede + energia do Núcleo (M22) — uniforms partilhados por
+     todas as camadas; a energia decai analiticamente (vale em qualquer
+     frame, do loop normal ou do miniLoop) */
+  const uWave={value:-99},uWaveA={value:0},uCoreE={value:0};
+  let coreE0=0,coreET=-99;
+  const coreEnergy=tn=>{const e=coreE0*Math.exp(-(tn-coreET)*1.1);return e<.004?0:e;};
+  function waveFire(amp){
+    const tn=tNow();
+    uWave.value=tn;uWaveA.value=Math.max(uWaveA.value*.4,amp);
+    coreE0=Math.min(1,coreEnergy(tn)+amp*.7);coreET=tn;
+  }
   /* Solar Engine (M16 Fase E) — a mesma amostra horária do céu do palco
      ilumina as constelações: glow do horizonte pesado pela sua amplitude
      (entardecer quente, noite fria/magenta); o meteo já modula a montante.
@@ -584,7 +679,8 @@ export function initConstellation(){
     const m=new THREE.ShaderMaterial({vertexShader:LN_VERT,fragmentShader:LN_FRAG,
       transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
       uniforms:{uRes:uRes,uCol:{value:new THREE.Vector3(...tint)},
-        uOp:{value:op},uTime:uTime,uPan:uPan,uFlow:{value:flow},uZoom:uZoom,uOff:uOff}});
+        uOp:{value:op},uTime:uTime,uPan:uPan,uFlow:{value:flow},uZoom:uZoom,uOff:uOff,
+        uWave:uWave,uWaveA:uWaveA}});
     const l=new THREE.LineSegments(g,m);l.frustumCulled=false;l.renderOrder=1;
     scene.add(l);
   }
@@ -592,7 +688,8 @@ export function initConstellation(){
     return new THREE.ShaderMaterial({vertexShader:ST_VERT,fragmentShader:ST_FRAG,
       transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
       uniforms:{uRes:uRes,uPix:{value:pix},
-        uCol:{value:new THREE.Vector3(...tint)},uTime:uTime,uPan:uPan,uZoom:uZoom,uOff:uOff,uRM:uRMu,uAmb:uAmb}});
+        uCol:{value:new THREE.Vector3(...tint)},uTime:uTime,uPan:uPan,uZoom:uZoom,uOff:uOff,uRM:uRMu,uAmb:uAmb,
+        uWave:uWave,uWaveA:uWaveA}});
   }
   /* ===== supernova (M16 Fase C) — pools pré-alocados, zero alocações em
      runtime; os objetos sobrevivem ao clear() e são re-adicionados à cena
@@ -641,14 +738,16 @@ export function initConstellation(){
     R.aCol.array[ri*3]=col[0];R.aCol.array[ri*3+1]=col[1];R.aCol.array[ri*3+2]=col[2];
     for(const k in R)R[k].needsUpdate=true;
   }
-  /* rm/painel parado: um mini-loop de ~1.4s só para o fade do nascimento */
+  /* rm/painel parado: um mini-loop curto só para fades (nascimento, onda) */
   let fadeRaf=0,fadeEnd=0;
-  function miniLoop(){
+  function miniLoop(ms){
     if(raf)return; /* o loop normal já anima */
-    fadeEnd=performance.now()+1400;
+    fadeEnd=Math.max(fadeEnd,performance.now()+(ms||1400));
     if(fadeRaf)return;
     const step=()=>{
-      uTime.value=tNow();
+      const tn=tNow();
+      uTime.value=tn;
+      uCoreE.value=coreEnergy(tn);
       renderer.render(scene,camera);
       if(performance.now()<fadeEnd)fadeRaf=requestAnimationFrame(step);
       else fadeRaf=0;
@@ -707,6 +806,20 @@ export function initConstellation(){
     const pts=new THREE.Points(g,starMatG(tint));pts.frustumCulled=false;pts.renderOrder=order;
     scene.add(pts);
     return g;
+  }
+  /* o Núcleo como entidade (M22) — um sprite com shader próprio; tamanho e
+     camadas derivados SÓ do coreState() */
+  const coreSz=cs=>46+cs.state*14;
+  function mkCore(cs){
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.BufferAttribute(new Float32Array([.5*W,.5*H,0]),3));
+    const m=new THREE.ShaderMaterial({vertexShader:CORE_VERT,fragmentShader:CORE_FRAG,
+      transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
+      uniforms:{uRes:uRes,uPix:{value:pix},uTime:uTime,uPan:uPan,uZoom:uZoom,uOff:uOff,
+        uAmb:uAmb,uCoreE:uCoreE,uState:{value:cs.state},uFrac:{value:cs.frac},
+        uSz:{value:coreSz(cs)}}});
+    const pts=new THREE.Points(g,m);pts.frustumCulled=false;pts.renderOrder=3;
+    scene.add(pts);
   }
   function draw(force){
     ambientSample();
@@ -872,13 +985,11 @@ export function initConstellation(){
         labels.appendChild(d);
       }
     });
-    /* o Núcleo — nunca editável; o corpo dele É o estado do céu (M17):
-       cresce, aviva e ganha difração à medida que os estados sobem */
+    /* o Núcleo — nunca editável; o corpo dele É o estado do céu (M17, e
+       desde a M22 é uma entidade multicamada, não um ponto) */
     const cs=coreState();
-    mkPoints([{x:.5*W,y:.5*H,sz:20+cs.state*3.2,md:1,
-      fd:.3+.7*cs.frac,sp:cs.state>=2?1:.4,z:.5,
-      pu:cs.state>=4?.35:0}],hxv('#a78bfa'),3);
-    coreRegion={cx:.5*W,cy:.5*H,r:26+cs.state*4};
+    mkCore(cs);
+    coreRegion={cx:.5*W,cy:.5*H,r:coreSz(cs)*.24+12};
     fxEnsure();
     renderer.render(scene,camera);
   }
@@ -887,6 +998,7 @@ export function initConstellation(){
     raf=requestAnimationFrame(tick);
     const tn=tNow();
     uTime.value=tn;
+    uCoreE.value=coreEnergy(tn); /* energia do Núcleo (M22) — decai sozinha */
     ambientSample();
     uAmb.value.lerp(ambT,.04); /* a luz do dia muda sem saltos */
     /* drift idle da câmara (Camada II) — o céu nunca está fixo, mesmo sem
@@ -1113,6 +1225,18 @@ export function initConstellation(){
       camSpring.snap(Z0,W*.5-px*Z0,H*.45-py*Z0);
       zt=1;oxT=0;oyT=0;setCam(false);
     }catch(e){}
+  }
+  /* ação real → o Núcleo sente e a onda percorre a rede (M22 · Camada II:
+     "missão concluída → energia sobe → onda percorre a rede → estrelas
+     ligadas respondem"). Só com o painel visível e sem reduced-motion —
+     invisível não gasta nada; os eventos caem no vazio sem erro. */
+  if(window.Bus){
+    const onAct=amp=>{if(!vis||rm.matches)return;waveFire(amp);miniLoop(2600);};
+    Bus.on('xp:gain',d=>{if(d&&d.amt>0)onAct(.6);});
+    Bus.on('star:lit',()=>onAct(1));
+    Bus.on('star:choice',()=>onAct(.8));
+    Bus.on('core:up',()=>onAct(1));
+    Bus.on('rank:up',()=>onAct(1));
   }
   if('IntersectionObserver'in window){
     new IntersectionObserver(es=>{

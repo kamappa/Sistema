@@ -708,6 +708,36 @@ reduced-motion intocado (o palco nem nasce; o loop do céu não corre).
 - 60fps reais: Daniel confirma com ?fps=1 nos dois aparelhos (drift e
   órbitas são só matemática de vértice — impacto esperado nulo).
 
+## Missão 22 — Celestial Core · Fase 3: o Núcleo como entidade
+(CONCLUÍDA 2026-07-20)
+
+Segunda aplicação da Camada II ("o Core não deve ser um círculo — deve ser
+quase uma entidade"), sobre a fundação honesta da M17: todas as camadas
+derivam SÓ do coreState()/evidência. Confinado ao céu das constelações.
+
+- Núcleo multicamada (CORE_VERT/CORE_FRAG, um único point sprite — custo
+  marginal): interior de plasma turbulento em rotação lenta + coração
+  branco + casca fina + aura que respira; anéis orbitais achatados em
+  sentidos opostos (Ressonante+), 3 partículas a percorrer o 1º anel
+  (Ascendente+), campo cintilante no perímetro (Celeste+). Dormente é
+  ténue mas nunca morto. O Núcleo pulsa, nunca orbita (Motion Hierarchy).
+  Tamanho 46→116px com o estado; cartão/clique intocados.
+- Onda pela rede (a cadeia literal da Camada II: ação real → energia
+  sobe → onda percorre a rede → estrelas respondem): Bus no céu —
+  xp:gain (.6), star:lit/core:up/rank:up (1), star:choice (.8) →
+  waveFire: frente radial a 300px/s do centro que aviva ligações
+  (LN_FRAG, vDc=distância ao Núcleo) e estrelas (ST_VERT/FRAG, tamanho
+  +30% e cor a branco na passagem), ~2.4s; uCoreE faz o Núcleo flamejar
+  e decai analiticamente (vale no loop normal e no miniLoop, agora
+  parametrizável). Painel invisível ou reduced-motion = eventos caem no
+  vazio sem custo.
+- Verificação headless (CDP): coreSeen 0→4 com evidência semeada (28
+  estrelas), entidade com anéis visível no screenshot, onda capturada a
+  meio da viagem (ligações do Ofício avivadas), rm = tier off e evento
+  emitido sem erro; consola limpa em todas as corridas.
+- Calibração de gosto pendente do Daniel em hardware real (intensidades
+  das camadas e da onda são multiplicadores únicos).
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

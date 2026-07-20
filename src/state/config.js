@@ -44,6 +44,24 @@ export const EXTRAS = [
   { id: 'e_pele', name: 'Skincare + fio dentário',       attr: 'corpo',      xp: 6 },
 ];
 
+// Missões / triagem (data.js:151-166) — prioridades, estados e palavras-chave.
+export const PRI = { P1: { xp: 150, lvl: 10, c: '#ef4444' }, P2: { xp: 90, lvl: 6, c: '#fb923c' }, P3: { xp: 50, lvl: 3, c: '#34d399' }, BOSS: { xp: 400, lvl: 15, c: '#facc15' } };
+export const OST = ['pend', 'doing', 'done'];
+export const OSTL = { pend: '⭘', doing: '⚔️', done: '✅' };
+export const TIER_LABEL = { P3: 'Side', P2: 'Main', P1: 'Elite', BOSS: 'Boss' };
+export const TIER_KEY = { side: 'P3', main: 'P2', elite: 'P1', boss: 'BOSS' };
+export const KW_HI = ['exame', 'teste', 'entrega', 'trabalho', 'certifica', 'entrevista', 'audit', 'relat', 'apresenta', 'projeto', 'prova', 'estágio', 'estagio', 'urgente', 'defesa'];
+export const KW_LO = ['comer', 'comprar', 'lavar', 'arrumar', 'limpar', 'marcar', 'encomenda', 'café', 'cafe', 'passear'];
+export const KW_AREA = [
+  ['corpo', ['trein', 'ginásio', 'ginasio', 'correr', 'muscul', 'dormir', 'sono', 'dieta', 'proteína', 'proteina', 'alonga', 'caminh', 'skincare']],
+  ['saber', ['estud', 'exame', 'teste', 'curso', 'ler ', 'livro', 'apontament', 'revis', 'aula', 'frequência', 'frequencia', 'trabalho de']],
+  ['oficio', ['iso', 'rgpd', 'nis2', 'audit', 'cv', 'linkedin', 'entrevista', 'estágio', 'estagio', 'certifica', 'cyber', 'seguranç', 'seguranc', 'compliance', 'governance', 'ai act', 'portefólio', 'portfolio', 'dpo']],
+  ['vinculos', ['namorada', 'amig', 'família', 'familia', 'network', 'café com', 'cafe com', 'mensagem a', 'contacto', 'mentor', 'patrícia', 'patricia']],
+  ['mente', ['medit', 'planear', 'plano da', 'refle', 'diário', 'diario', 'journal', 'organizar a semana']],
+  ['disciplina', ['rotina', 'acordar cedo', 'hábito', 'habito', 'consistên', 'consisten']],
+];
+export const FUN_TAGS = ['🔥 Hot Quest', '🗡 Digna de Sombra', '☕ Café e Foco', '🧠 XP Mental', '👑 Material de Lenda', '🌫 Missão Sombria'];
+
 // diffTag — usado na migração quests→objectives (objetivos.js:22-28)
 export function diffTag(t) {
   const quick = ['marcar', 'enviar', 'comprar', 'ler ', 'email', 'mensagem', 'rever '];

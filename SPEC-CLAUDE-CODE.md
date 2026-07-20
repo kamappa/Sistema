@@ -952,6 +952,23 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   diário de XP do treino, a penalização (processDayClose) e o unlog de reversões
   de missão migram com os painéis/motor respetivos.
 
+- Fase 6 (CONCLUÍDA 2026-07-20): Missões (objetivos-mestra) + Shadow Army — o
+  maior painel de lógica. `src/state/objectives.js` (triage, porto de
+  objetivos.js:7-21: palavras-chave hi/lo, prazo aperta prioridade, área por
+  keyword, tags). Constantes em config (PRI/OST/OSTL/TIER_LABEL/TIER_KEY/KW_*/
+  FUN_TAGS); `daysUntil` em dates. Ações no store: `addObjective` (triagem AUTO
+  ou manual), `delObjective` (apagar missão FEITA reverte XP+Sombra+registo com
+  window.confirm — Fuga 1), `cycleObj` (pend→doing→done = A R I S E: XP da
+  prioridade, Sombra datada, registo; regredir reverte exato). Componentes
+  `Objectives.jsx` (filtros locais est/area/sort/dif, lista ordenada, chips
+  área/tier/arco/tags/prazo, add form) e `Shadows.jsx` (poder, raridade por
+  nível). FX (toast da triagem, floatXP, cineArise, onda) deferido; o confirm
+  de integridade fica. Verificado headless (Brave/CDP): triagem de "Estudar
+  para exame de RGPD" = P1/Elite, saber, 🔨 Média; A R I S E = saber 3/10/150
+  (exato) + Sombra Épica Nv10 + registo ARISE; reverter = 1/0/0, 0 sombras, log
+  vazio; filtro Feitos esconde pendente; apagar missão feita (confirm) reverte
+  XP; consola limpa.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

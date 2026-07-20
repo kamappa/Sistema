@@ -3,8 +3,10 @@ import { supabase } from '../lib/supabase.js';
 import { fresh } from '../state/fresh.js';
 import { normalize } from '../state/normalize.js';
 import { today, yday } from '../state/dates.js';
+import { AM, PRI, OST, TIER_KEY } from '../state/config.js';
 import { xpMult } from '../state/world.js';
 import { addXp, plog, unlog } from '../state/engine.js';
+import { triage } from '../state/objectives.js';
 
 // Store central do Sistema (Missão 25 · Fase 1 — a casca viva).
 // Espelha o app_state (o antigo global `S`) e a cola de persistência do antigo
@@ -143,6 +145,55 @@ export const useStore = create((set, get) => ({
 
   // delHabit — porto de engine.js:107. Só extras (id 'c...').
   delHabit: (id) => { const S = get().S; S.extras = S.extras.filter((h) => h.id !== id); set({ S: { ...S } }); get().save(); },
+
+  // ===== MISSÕES / OBJETIVOS-MESTRA (Fase 6) =====
+  // addObjective — porto de objetivos.js:29-40. Triagem automática (AUTO) ou
+  // manual de prioridade/área. O toast "Triagem do Sistema" é fx (deferido);
+  // devolve a triagem para a UI mostrar se quiser.
+  addObjective: ({ title, deadline, priSel, areaSel }) => {
+    const S = get().S; const t = (title || '').trim(); if (!t) return { error: 'vazio' };
+    const dl = deadline || null;
+    const tr = triage(t, dl);
+    let pri = TIER_KEY[priSel], auto = false, area = areaSel;
+    if (priSel === 'AUTO') { pri = tr.imp; auto = true; }
+    if (areaSel === 'AUTO') area = tr.area || 'oficio';
+    S.objectives.push({ id: 'o' + Date.now(), title: t, area, pri, auto, deadline: dl, status: 'pend', created: today(), tags: tr.tags });
+    set({ S: { ...S } }); get().save();
+    return { triaged: auto || areaSel === 'AUTO', pri, area, why: tr.why };
+  },
+
+  // delObjective — porto de objetivos.js:41-50. Apagar missão FEITA reverte o XP
+  // exato + Sombra + registo (Fuga 1), com confirmação (não é fx — é o gate de
+  // integridade "o sistema nunca mente").
+  delObjective: (id) => {
+    const S = get().S; const o = S.objectives.find((x) => x.id === id);
+    if (o && o.status === 'done') {
+      const p = PRI[o.pri];
+      if (!window.confirm('Esta missão está FEITA. Apagar reverte o XP ganho (−' + p.xp + ' ' + AM[o.area].name + '), remove a Sombra e a entrada do registo — como se nunca tivesse existido. Confirmar?')) return;
+      addXp(S, o.area, -p.xp); unlog(S, '🗡 ARISE: ' + o.title, o.doneDate);
+      S.shadows = S.shadows.filter((s) => s.ref !== id);
+    }
+    S.objectives = S.objectives.filter((x) => x.id !== id);
+    set({ S: { ...S } }); get().save();
+  },
+
+  // cycleObj — porto de objetivos.js:51-64. pend → doing → done. Concluir invoca
+  // A R I S E: XP da prioridade, Sombra datada, registo. Regredir de done reverte
+  // exato. Cinematográfico/toast/floatXP/onda = fx (deferido).
+  cycleObj: (id) => {
+    const S = get().S; const o = S.objectives.find((x) => x.id === id); if (!o) return;
+    const next = OST[(OST.indexOf(o.status) + 1) % OST.length];
+    if (next === 'done') {
+      const p = PRI[o.pri]; addXp(S, o.area, p.xp); o.doneDate = today();
+      S.shadows.push({ id: 's' + Date.now(), ref: o.id, name: o.title, lvl: p.lvl, d: today() });
+      plog(S, '🗡 ARISE: ' + o.title, p.xp);
+    }
+    if (o.status === 'done' && next !== 'done') {
+      const p = PRI[o.pri]; addXp(S, o.area, -p.xp); unlog(S, '🗡 ARISE: ' + o.title, o.doneDate);
+      S.shadows = S.shadows.filter((s) => s.ref !== o.id); delete o.doneDate;
+    }
+    o.status = next; set({ S: { ...S } }); get().save();
+  },
 }));
 
 // Ponte para o palco WebGL (Fase 2): o loop rAF do palco lê o estado FORA do

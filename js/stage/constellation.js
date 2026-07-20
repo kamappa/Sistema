@@ -205,6 +205,10 @@ float back(float k){k=clamp(k,0.,1.);float s=1.70158;k-=1.;return k*k*((s+1.)*k+
 void main(){
   /* dolly: px de mundo; profundidade real — as próximas (aZ→1) mexem mais */
   vec2 p=position.xy*uZoom+uOff+uPan*(.55+aZ*.95);
+  /* micro-órbita (Camada II) — determinística da posição de mundo: o
+     LN_VERT reproduz a fórmula e as ligações ficam presas às estrelas */
+  float oa=uTime*.12+position.x*.037+position.y*.023;
+  p+=vec2(cos(oa),sin(oa))*(.6+aZ*.9);
   float age=(aBirth<0.)?9.:max(uTime-aBirth,0.);
   float bb=back(clamp(age/1.2,0.,1.));
   /* rm: fade simples — alpha entra, tamanho não salta, sem clarão */
@@ -286,6 +290,9 @@ varying float vT;varying float vPx;varying float vB;
 void main(){
   /* cada ponta herda a profundidade da sua estrela — a linha fica presa */
   vec2 p=position.xy*uZoom+uOff+uPan*(.55+aZ*.95);
+  /* a mesma micro-órbita do ST_VERT — mesmos inputs, mesmo deslocamento */
+  float oa=uTime*.12+position.x*.037+position.y*.023;
+  p+=vec2(cos(oa),sin(oa))*(.6+aZ*.9);
   gl_Position=vec4(p.x/uRes.x*2.-1.,1.-p.y/uRes.y*2.,0.,1.);
   vT=aT;vPx=aPx;
   vB=aBirth<0.?1.:clamp((uTime-aBirth)/1.4,0.,1.);
@@ -387,7 +394,7 @@ export function initConstellation(){
   const t0=performance.now();
   const tNow=()=>(performance.now()-t0)/1000;
   let domain='oficio',W=1,H=1,vis=false,raf=0,lastKey='';
-  let panX=0,panY=0,panTX=0,panTY=0;
+  let panX=0,panY=0,panTX=0,panTY=0,dX=0,dY=0; /* dX/dY: drift idle da câmara */
   let starGeo=null,starPts=null,hovIdx=-1,shown=[],curState=null,card=null;
   const uTime={value:0},uPan={value:new THREE.Vector2(0,0)};
   const uRes={value:new THREE.Vector2(1,1)},uZoom={value:1},uOff={value:new THREE.Vector2(0,0)};
@@ -433,8 +440,8 @@ export function initConstellation(){
     return{x:.5+UNI.R*Math.cos(a)-UNI.s/2,y:.5+UNI.R*Math.sin(a)-UNI.s/2};
   }
   function moveLabels(){
-    if(labels)labels.style.transform='translate('+(cam.x+panX).toFixed(1)+'px,'
-      +(cam.y+panY).toFixed(1)+'px) scale('+cam.z.toFixed(3)+')';
+    if(labels)labels.style.transform='translate('+(cam.x+panX+dX).toFixed(1)+'px,'
+      +(cam.y+panY+dY).toFixed(1)+'px) scale('+cam.z.toFixed(3)+')';
   }
   function syncCam(){
     uZoom.value=cam.z;uOff.value.set(cam.x,cam.y);
@@ -878,11 +885,16 @@ export function initConstellation(){
   /* loop — só com o painel visível e sem reduced-motion */
   function tick(){
     raf=requestAnimationFrame(tick);
-    uTime.value=tNow();
+    const tn=tNow();
+    uTime.value=tn;
     ambientSample();
     uAmb.value.lerp(ambT,.04); /* a luz do dia muda sem saltos */
+    /* drift idle da câmara (Camada II) — o céu nunca está fixo, mesmo sem
+       rato; poucos px, períodos longos primos entre si */
+    dX=Math.sin(tn*.10)*3.2+Math.sin(tn*.027)*1.8;
+    dY=Math.cos(tn*.083)*2.6+Math.sin(tn*.037)*1.5;
     panX+=(panTX-panX)*.06;panY+=(panTY-panY)*.06;
-    uPan.value.set(panX,panY);
+    uPan.value.set(panX+dX,panY+dY);
     moveLabels();
     renderer.render(scene,camera);
   }
@@ -891,7 +903,7 @@ export function initConstellation(){
   /* hover + clique — cartão de evidência */
   function coreAt(mx,my){
     if(mode!=='universe'||!coreRegion)return false;
-    const sx=coreRegion.cx*cam.z+cam.x+panX,sy=coreRegion.cy*cam.z+cam.y+panY;
+    const sx=coreRegion.cx*cam.z+cam.x+panX+dX,sy=coreRegion.cy*cam.z+cam.y+panY+dY;
     return Math.hypot(mx-sx,my-sy)<coreRegion.r*cam.z;
   }
   function showCoreCard(){
@@ -906,7 +918,7 @@ export function initConstellation(){
   }
   function domainAt(mx,my){
     for(const rg of uniRegions){
-      const sx=rg.cx*cam.z+cam.x+panX,sy=rg.cy*cam.z+cam.y+panY;
+      const sx=rg.cx*cam.z+cam.x+panX+dX,sy=rg.cy*cam.z+cam.y+panY+dY;
       if(Math.abs(mx-sx)<rg.rx*cam.z&&Math.abs(my-sy)<rg.ry*cam.z)return rg.attr;
     }
     return null;
@@ -914,7 +926,7 @@ export function initConstellation(){
   function starAt(mx,my){
     let best=-1,bd=Math.max(14,18*cam.z);
     shown.forEach((s,i)=>{
-      const d=Math.hypot(s.x*W*cam.z+cam.x+panX-mx,s.y*H*cam.z+cam.y+panY-my);
+      const d=Math.hypot(s.x*W*cam.z+cam.x+panX+dX-mx,s.y*H*cam.z+cam.y+panY+dY-my);
       if(d<bd){bd=d;best=i;}
     });
     return best;

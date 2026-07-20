@@ -40,6 +40,11 @@ export function createEngine(canvas,tier,world,updateWorld){
     /* respiração da cena (2C) — ciclo ~22s, ±0.4%: quase impercetível,
        mas o palco nunca está parado */
     ctx.breath=1+.004*Math.sin(t*.286);
+    /* drift de câmara (Camada II) — deriva lissajous de poucos px com
+       períodos longos, primos entre si: a câmara nunca está fixa; cada
+       camada aplica-o com o seu peso de profundidade (parallax) */
+    ctx.driftX=Math.sin(t*.113)*6+Math.sin(t*.029)*3;
+    ctx.driftY=Math.cos(t*.087)*5+Math.sin(t*.041)*2.5;
     layers.forEach(l=>l.update(t,dt,ctx));
     renderer.render(scene,camera);
   }

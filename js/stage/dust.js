@@ -7,15 +7,17 @@ import * as THREE from '../vendor/three.module.min.js';
 const A_VERT=`
 attribute float aR;attribute float aVy;attribute float aVx;
 attribute float aPhase;attribute float aTint;
-uniform float uTime;uniform float uWarp;uniform vec2 uRes;uniform float uFall;uniform float uPix;uniform float uBreath;
+uniform float uTime;uniform float uWarp;uniform vec2 uRes;uniform float uFall;uniform float uPix;uniform float uBreath;uniform vec2 uDrift;
 varying float vA;varying float vTint;
 void main(){
   /* uWarp = tempo elástico (2B): acelera com a energia do mundo, abranda em
      Recovery e à noite — o movimento usa-o; a cintilação fica no uTime */
-  float wrap=uRes.y+8.;
+  float wrap=uRes.y+28.;
   float vy=mix(-aVy,aVy*.7,uFall); /* sobe por defeito; à chuva desce devagar */
-  float y=mod(position.y+vy*uWarp+4.,wrap)-4.;
-  float x=mod(position.x+aVx*uWarp+sin(uWarp*.42+aPhase)*3.6*position.z+4.,uRes.x+8.)-4.;
+  float y=mod(position.y+vy*uWarp+14.,wrap)-14.;
+  float x=mod(position.x+aVx*uWarp+sin(uWarp*.42+aPhase)*3.6*position.z+14.,uRes.x+28.)-14.;
+  /* drift de câmara (Camada II) — a poeira é a camada mais próxima: mexe mais */
+  x+=uDrift.x*position.z;y+=uDrift.y*position.z;
   gl_Position=vec4(vec2(x/uRes.x*2.-1.,1.-y/uRes.y*2.)*uBreath,0.,1.);
   gl_PointSize=aR*uPix;
   vA=(.12+.12*sin(uTime*3.9+aPhase))*(.5+.5*position.z);
@@ -69,7 +71,7 @@ export function createDust(tier){
   const am=new THREE.ShaderMaterial({vertexShader:A_VERT,fragmentShader:A_FRAG,
     transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending,
     uniforms:{uTime:{value:0},uWarp:{value:0},uRes:{value:new THREE.Vector2(1,1)},
-      uFall:{value:0},uPix:{value:1},uBreath:{value:1}}});
+      uFall:{value:0},uPix:{value:1},uBreath:{value:1},uDrift:{value:new THREE.Vector2(0,0)}}});
   const apts=new THREE.Points(ag,am);apts.frustumCulled=false;apts.renderOrder=2;
   /* pool de bursts */
   const pg=new THREE.BufferGeometry();
@@ -122,6 +124,7 @@ export function createDust(tier){
         *(1-(ctx.world.presence||0)*.3);
       am.uniforms.uTime.value=t;pm.uniforms.uTime.value=t;
       am.uniforms.uBreath.value=ctx.breath||1;
+      am.uniforms.uDrift.value.set(ctx.driftX||0,ctx.driftY||0);
       am.uniforms.uFall.value+=((ctx.world.rain?1:0)-am.uniforms.uFall.value)*Math.min(1,dt);
     },
     degrade(){ag.setDrawRange(0,Math.ceil(N/2));},

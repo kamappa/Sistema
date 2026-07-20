@@ -678,6 +678,36 @@ Duas ideias da lista "recuperáveis" pagas de uma vez:
   exportar avisa e não gera ficheiro. Verificado headless: estrutura,
   contagem, escaping e datas exatas.
 
+## Missão 21 — Camada II · Fase 1: a câmara respira (CONCLUÍDA 2026-07-20)
+
+Primeira aplicação das leis da Camada II (ver Missão 12): Camera Motion +
+Idle Motion + Motion Hierarchy no palco e no céu das constelações. Tudo
+em uniforms/vertex shader — zero alocações, custo de GPU marginal;
+reduced-motion intocado (o palco nem nasce; o loop do céu não corre).
+
+- Palco (engine.js): drift de câmara — deriva lissajous de poucos px
+  (máx ~9px) com períodos longos primos entre si em ctx.driftX/Y; cada
+  camada aplica-o com peso de profundidade (hierarquia): céu/nebulosa a
+  meia-velocidade, estrelas .25+.75z, poeira z (a mais próxima mexe mais).
+- Estrelas de fundo (stars.js): micro-órbita própria — cada estrela anda
+  em círculo lento (raio ~1-2px, períodos 40-70s derivados da frequência
+  de cintilação já existente; zero atributos novos). Margens de wrap
+  alargadas 8→28px nas estrelas e na poeira para o drift nunca deixar
+  pontos a saltar dentro do ecrã.
+- Céu das constelações: drift idle da câmara no tick (dX/dY somados ao
+  pan do rato, labels e hit-tests incluídos — o céu nunca está fixo,
+  mesmo sem rato) + micro-órbita determinística da posição de mundo no
+  ST_VERT, com o LN_VERT a reproduzir a fórmula exata — as ligações
+  ficam matematicamente presas às estrelas em órbita.
+- Verificação headless (CDP, arnês PowerShell puro reconstruído:
+  HttpListener + ClientWebSocket + host-resolver-rules a bloquear a rede
+  → modo offline): tier full com loop a correr e shaders a compilar,
+  drift vivo sem rato (transform dos labels muda sozinho), evidência
+  semeada → 28 estrelas nascidas e ligações presas no fly-in ao Ofício,
+  reduced-motion = tier off; consola limpa em todas as corridas.
+- 60fps reais: Daniel confirma com ?fps=1 nos dois aparelhos (drift e
+  órbitas são só matemática de vértice — impacto esperado nulo).
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

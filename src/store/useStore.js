@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabase.js';
 import { fresh } from '../state/fresh.js';
 import { normalize } from '../state/normalize.js';
+import { today, yday } from '../state/dates.js';
+import { xpMult } from '../state/world.js';
+import { addXp, plog, unlog } from '../state/engine.js';
 
 // Store central do Sistema (Missão 25 · Fase 1 — a casca viva).
 // Espelha o app_state (o antigo global `S`) e a cola de persistência do antigo
@@ -103,6 +106,43 @@ export const useStore = create((set, get) => ({
 
   // doLogout() do auth.js:61 — na Fase 1 sem a animação sys-sleep (é de UI/HUD).
   logout: async () => { if (supabase) await supabase.auth.signOut(); location.reload(); },
+
+  // ===== AÇÕES DO MOTOR (Fase 5) =====
+  // toggleHabit — porto de engine.js:64-85. Marca/desmarca um hábito: streak
+  // com memória undo, pico histórico datado, XP com bónus de streak × xpMult;
+  // desmarcar devolve o valor EXATO gravado (lastGain). FX (floatXP/toast/
+  // cardWave) deferido. set({S:{...S}}) força o re-render do React sobre a
+  // mutação em-lugar do motor; save() persiste + o palco reage pelo Bus.
+  toggleHabit: (list, id) => {
+    const S = get().S;
+    const h = S[list].find((x) => x.id === id); if (!h) return;
+    const done = h.lastDone === today();
+    if (!done) {
+      h.undo = { streak: h.streak, lastDone: h.lastDone, peak: S.streakPeak || null };
+      h.streak = (h.lastDone === yday()) ? h.streak + 1 : 1; h.lastDone = today();
+      if (!S.streakPeak || h.streak > S.streakPeak.v) S.streakPeak = { v: h.streak, d: today(), h: h.name };
+      const bonus = Math.min(h.streak, 10); const g = Math.round((h.xp + bonus) * xpMult(S, h.attr)); h.lastGain = g;
+      addXp(S, h.attr, g); plog(S, h.name, g);
+    } else {
+      const back = (h.lastGain !== undefined && h.lastGain !== null) ? h.lastGain : h.xp;
+      addXp(S, h.attr, -back); unlog(S, h.name, today());
+      if (h.undo) { h.streak = h.undo.streak; h.lastDone = h.undo.lastDone; if (h.undo.peak !== undefined) S.streakPeak = h.undo.peak; delete h.undo; }
+      else { h.lastDone = null; h.streak = Math.max(0, h.streak - 1); }
+    }
+    set({ S: { ...S } }); get().save();
+  },
+
+  // addHabit — porto de engine.js:101-106. Extra personalizado (id 'c...', 8 XP).
+  // Trava do Sistema aos 14 extras (devolve erro; o toast é do fx, deferido).
+  addHabit: (text, attr) => {
+    const S = get().S; const t = (text || '').trim(); if (!t) return { error: 'vazio' };
+    if (S.extras.length >= 14) return { error: 'limite' };
+    S.extras.push({ id: 'c' + Date.now(), name: t, attr, xp: 8, streak: 0, lastDone: null, lastGain: 0 });
+    set({ S: { ...S } }); get().save(); return {};
+  },
+
+  // delHabit — porto de engine.js:107. Só extras (id 'c...').
+  delHabit: (id) => { const S = get().S; S.extras = S.extras.filter((h) => h.id !== id); set({ S: { ...S } }); get().save(); },
 }));
 
 // Ponte para o palco WebGL (Fase 2): o loop rAF do palco lê o estado FORA do

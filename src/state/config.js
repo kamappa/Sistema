@@ -56,6 +56,19 @@ export function diffTag(t) {
 // Curva de XP por nível (engine.js:26) — quanto falta para o próximo nível.
 export const need = (l) => 40 + l * 20;
 
+// Arcos sazonais (data.js:68-77) — o xpMult usa id/months/bonus; o painel do
+// World Engine (migra depois) usa o resto.
+export const SEASON_ARCS = [
+  { id: 'summer', name: '☀️ Summer Arc', months: [6, 7, 8, 9], desc: 'Estágio · cursos · eventos · networking · IA', boss: '"Quem sou eu comparado com junho?"', bonus: { oficio: 1.2, vinculos: 1.2 },
+    quests: [{ t: 'Conseguir uma entrevista ou contacto direto para estágio', area: 'oficio', pri: 'P1' }, { t: 'Participar num evento ou webinar de cibersegurança durante o arco', area: 'vinculos', pri: 'P2' }, { t: 'Concluir um curso (CNCS ou Mastermind) até ao fim do arco', area: 'saber', pri: 'P2' }, { t: 'Um dia de praia sem culpa — recarregar é estratégia', area: 'corpo', pri: 'P3' }] },
+  { id: 'harvest', name: '🍂 Harvest Arc', months: [10, 11], desc: 'Consolidar · organizar · rever conhecimento', boss: '"O que ficou realmente meu?"', bonus: { saber: 1.25, mente: 1.2 },
+    quests: [{ t: 'Consolidar os apontamentos do semestre num resumo-mestre', area: 'saber', pri: 'P2' }, { t: 'Rever e atualizar o portefólio com o que aprendeste', area: 'oficio', pri: 'P2' }, { t: 'Fazer a retrospetiva do Summer Arc por escrito', area: 'mente', pri: 'P3' }] },
+  { id: 'winter', name: '❄️ Winter Forge', months: [12, 1, 2], desc: 'Construção profunda · muito estudo · pouca exposição', boss: '"O que forjei no silêncio?"', bonus: { saber: 1.4, mente: 1.25 },
+    quests: [{ t: 'Dominar um domínio técnico a fundo (ISO 27001 ou AI Act)', area: 'oficio', pri: 'P1' }, { t: 'Ler um livro técnico completo com notas', area: 'saber', pri: 'P2' }, { t: 'Construir um projeto prático em silêncio (Shadow Work)', area: 'disciplina', pri: 'P2' }] },
+  { id: 'bloom', name: '🌸 Bloom Arc', months: [3, 4, 5], desc: 'Experimentar · conhecer pessoas · abrir portas', boss: '"Que porta nova abri?"', bonus: { vinculos: 1.3, corpo: 1.15 },
+    quests: [{ t: 'Fazer 10 ligações novas no LinkedIn com mensagem pessoal', area: 'vinculos', pri: 'P2' }, { t: 'Tomar um café com alguém da indústria', area: 'vinculos', pri: 'P2' }, { t: 'Mostrar publicamente algo que construíste (post, demo)', area: 'oficio', pri: 'P1' }] },
+];
+
 // Derivações puras (engine.js:5,7,40) — usadas pela prova de boot e, mais tarde,
 // pelos painéis. Lógica intocada.
 export function rankOf(level) { for (const r of RANKS) { if (level >= r.min && level <= r.max) return r; } return RANKS[RANKS.length - 1]; }

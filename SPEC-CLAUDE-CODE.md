@@ -932,6 +932,26 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   herói recalcula p/ nível 16 rank B Lead Auditor Candidate; consola limpa,
   screenshot fiel ao Vanilla.
 
+- Fase 5 (CONCLUÍDA 2026-07-20): o motor de XP + o Bus + o Diário (o 1º painel
+  INTERATIVO). Aqui migra o núcleo auditado ("o sistema nunca mente"):
+  `src/state/engine.js` (addXp/plog/unlog, porto de engine.js:27-44 — S passado
+  explícito, matemática de XP/níveis/totalXP/histórico idêntica; FX de subida de
+  nível deferido), `src/state/world.js` (xpMult + deps: seasonArcNow, isoWeekKey,
+  doubleXPActive, rainyActive — world.js:6-27) e `SEASON_ARCS` em config. O
+  `src/lib/bus.js` (porto verbatim) é importado no main.jsx ANTES do palco montar
+  → o react.js do palco liga-se e o mundo volta a reagir ao XP REAL (dívida da
+  Fase 2 paga). Ações no store: `toggleHabit` (engine.js:64-85 — streak com undo,
+  pico datado, XP com bónus×xpMult, reversão pelo lastGain EXATO), `addHabit`,
+  `delHabit`; cada uma muta S em-lugar e faz set({S:{...S}})+save. FX deferido
+  (floatXP/toast/cardWave/onda). `src/components/Diario.jsx` (habHTML de
+  engine.js:90-99). Verificado headless (Brave/CDP): marcar 1º obrigatório =
+  +19 XP (round((18+1)×1)) com coerência total (attr=total=registo=lastGain),
+  streak 1, e a energia do palco subiu para 0.47 (Bus ligado); desmarcar reverte
+  tudo a 0 exatamente; add via input React (setter nativo) cria extra 'c...' de 8
+  XP com ✕, marcá-lo dá +9 XP de mente, ✕ apaga; consola limpa. NOTA: o teto
+  diário de XP do treino, a penalização (processDayClose) e o unlog de reversões
+  de missão migram com os painéis/motor respetivos.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

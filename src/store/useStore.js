@@ -11,6 +11,8 @@ import { loadRecallBank, getDailyRecallSet, reviewQuestion, findQuestion, bumpSt
 import { TLINES, KLINE, PROG } from '../state/config.js';
 import { consecTrained } from '../state/training.js';
 import { calcHours } from '../state/sleep.js';
+import { DEBUFFS, TITLES_REAL } from '../state/config.js';
+import { titleProg } from '../state/titles.js';
 
 // Store central do Sistema (Missão 25 · Fase 1 — a casca viva).
 // Espelha o app_state (o antigo global `S`) e a cola de persistência do antigo
@@ -302,6 +304,32 @@ export const useStore = create((set, get) => ({
 
   // setSleepT — porto de sono.js:5. Hora-alvo de recolher.
   setSleepT: (k, v) => { const S = get().S; S.sleep[k] = v; set({ S: { ...S } }); get().save(); },
+
+  // ===== ESTADOS / TÍTULOS (Fase 10) =====
+  // toggleDebuff — porto de hud.js:15.
+  toggleDebuff: (id) => { const S = get().S; S.debuffs[id] = !S.debuffs[id]; set({ S: { ...S } }); get().save(); },
+
+  // applyAntidote — porto de hud.js:16-22. 1× por estado por dia (Fuga 4):
+  // repetir não dá efeito nem XP. Desliga o estado, +10 Disciplina, registo.
+  applyAntidote: (id) => {
+    const S = get().S; S.antidote = S.antidote || {};
+    if (S.antidote[id] === today()) return { error: 'ja-usado' };
+    S.antidote[id] = today();
+    S.debuffs[id] = false; addXp(S, 'disciplina', 10);
+    plog(S, 'Antídoto: ' + DEBUFFS.find((d) => d.id === id).name, 10);
+    set({ S: { ...S } }); get().save(); return { ok: true };
+  },
+
+  // toggleReq — porto de hud.js:38-47. Marca/desmarca evidência de um requisito;
+  // 100% desbloqueia o Título Real (datado + registo); regredir re-tranca.
+  // floatXP/toast = fx (deferido). Requisitos automáticos não são clicáveis.
+  toggleReq: (tid, rid) => {
+    const S = get().S; const t = TITLES_REAL.find((x) => x.id === tid); const r = t.reqs.find((x) => x.id === rid); if (r.auto) return;
+    S.titleEv[tid] = S.titleEv[tid] || {}; S.titleEv[tid][rid] = !S.titleEv[tid][rid];
+    if (titleProg(S, t).pct === 100 && !S.titleUnlocked[tid]) { S.titleUnlocked[tid] = today(); plog(S, '👑 Título real: ' + t.name, 0); }
+    if (titleProg(S, t).pct < 100 && S.titleUnlocked[tid]) delete S.titleUnlocked[tid];
+    set({ S: { ...S } }); get().save();
+  },
 }));
 
 // Ponte para o palco WebGL (Fase 2): o loop rAF do palco lê o estado FORA do

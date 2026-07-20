@@ -1009,6 +1009,20 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   re-registo do mesmo dia não duplica (rw), futuro rejeitado, retroativo 3d a 0
   XP (plog retroativo); consola limpa.
 
+- Fase 10 (CONCLUÍDA 2026-07-21): painéis do hud.js (parte 1) — Saudação,
+  Faixa de prazos, Conquistas, Estados/Debuffs, Títulos Reais. Constantes ACH/
+  DEBUFFS/QUOTES/EVT em config; `src/state/titles.js` (reqMet/titleProg/
+  isTitleUnlocked, S explícito). Ações: `toggleDebuff`, `applyAntidote` (Fuga 4:
+  1×/dia, +10 Disciplina), `toggleReq` (evidência → 100% desbloqueia o Título
+  Real datado; regredir re-tranca). Componentes `Greet` (saudação+citação
+  determinística), `DeadlineBanner`, `Achievements` (read-only, cond avaliada de
+  S — a cerimónia/seenAch fica com o fx), `Debuffs`, `Titles` (open local).
+  Verificado headless (Brave/CDP): 11 conquistas (1ª desbloqueia com XP), 4
+  estados (toggle + antídoto +10 Disciplina + dedup 1×/dia), 5 títulos — marcar
+  os 3 requisitos do CNCS desbloqueia-o (👑) e o HERÓI passa a mostrar "👑 Cyber
+  Foundations (CNCS)" (reatividade entre painéis pelo mesmo store); consola
+  limpa. FX deferido; notificações browser (enableNotif/checkNotif) por migrar.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

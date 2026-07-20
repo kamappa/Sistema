@@ -44,6 +44,35 @@ export const EXTRAS = [
   { id: 'e_pele', name: 'Skincare + fio dentário',       attr: 'corpo',      xp: 6 },
 ];
 
+// Conquistas (data.js:48-60) — condições avaliadas de S; desbloqueiam sozinhas.
+export const ACH = [
+  { id: 'first', ico: '👣', name: 'Primeiro passo', msg: 'Começaste. É sempre a parte mais difícil.', cond: (s) => s.totalXP > 0 },
+  { id: 'streak7', ico: '🔥', name: 'Uma semana de fogo', msg: '7 dias seguidos. A constância está a nascer.', cond: (s) => Math.max(0, ...[...s.oblig, ...s.extras].map((h) => h.streak)) >= 7 },
+  { id: 'streak30', ico: '🌋', name: 'Imparável', msg: '30 dias seguidos. Já não é motivação, é identidade.', cond: (s) => Math.max(0, ...[...s.oblig, ...s.extras].map((h) => h.streak)) >= 30 },
+  { id: 'rankD', ico: '⬆️', name: 'Rank D', msg: 'Um atributo chegou ao nível 5. A ganhar forma.', cond: (s) => Math.max(...ATTRS.map((a) => s.attrs[a.id].level)) >= 5 },
+  { id: 'oficio10', ico: '🛡️', name: 'Especialista em ascensão', msg: 'Ofício nível 10. A carreira a solidificar.', cond: (s) => s.attrs.oficio.level >= 10 },
+  { id: 'xp1k', ico: '💠', name: '1000 XP', msg: 'Mil pontos de esforço real acumulado.', cond: (s) => s.totalXP >= 1000 },
+  { id: 'xp5k', ico: '🌟', name: '5000 XP', msg: 'Cinco mil. Poucos chegam aqui. Tu chegaste.', cond: (s) => s.totalXP >= 5000 },
+  { id: 'q5', ico: '📜', name: 'Cumpridor', msg: '5 missões concluídas. Objetivos viram resultados.', cond: (s) => s.objectives.filter((o) => o.status === 'done').length >= 5 },
+  { id: 'boss', ico: '👹', name: 'Boss derrotado', msg: 'Derrotaste um Boss. Os grandes desafios já não te travam.', cond: (s) => s.objectives.some((o) => o.pri === 'BOSS' && o.status === 'done') },
+  { id: 'balance', ico: '⬡', name: 'Equilíbrio', msg: 'Os 6 atributos no nível 3+. Uma vida inteira, não só uma parte.', cond: (s) => ATTRS.every((a) => s.attrs[a.id].level >= 3) },
+  { id: 'disc5', ico: '⚙️', name: 'Disciplina forjada', msg: 'Disciplina nível 5. A base de tudo o resto.', cond: (s) => s.attrs.disciplina.level >= 5 },
+];
+
+// Estados / debuffs (data.js:61-66) — inimigos internos + antídoto.
+export const DEBUFFS = [
+  { id: 'impuls', name: 'Impulsividade', ef: 'Decides depressa demais e arrependes-te.', an: 'Escreve antes de agir. Em decisões grandes, espera 24h.' },
+  { id: 'burnout', name: 'Burnout', ef: 'Energia e produtividade em queda.', an: 'Dorme bem, reduz projetos ativos, descansa sem culpa.' },
+  { id: 'sobre', name: 'Sobreanálise', ef: 'Pensas e repensas, mas não ages.', an: 'Define a próxima ação mínima e fá-la agora.' },
+  { id: 'procr', name: 'Procrastinação', ef: 'Adias o que mais importa.', an: 'Regra dos 5 minutos: começa só 5 minutos.' },
+];
+
+// Citações do dia (data.js:167) — para a saudação.
+export const QUOTES = [['A felicidade da tua vida depende da qualidade dos teus pensamentos.', 'Marco Aurélio'], ['Não é porque as coisas são difíceis que não ousamos; é porque não ousamos que elas são difíceis.', 'Séneca'], ['Não expliques a tua filosofia. Encarna-a.', 'Epicteto'], ['Uma vida não examinada não merece ser vivida.', 'Sócrates'], ['Somos o que fazemos repetidamente. A excelência não é um ato, é um hábito.', 'Aristóteles'], ['Tens poder sobre a tua mente — não sobre os acontecimentos. Percebe isto e encontrarás força.', 'Marco Aurélio'], ['Quem tem um porquê enfrenta quase qualquer como.', 'Nietzsche'], ['Conhece-te a ti mesmo.', 'Oráculo de Delfos'], ['Ninguém se banha duas vezes no mesmo rio.', 'Heraclito'], ['A maior vitória é a vitória sobre ti próprio.', 'Platão'], ['Escolhe um trabalho que ames e não terás de trabalhar um único dia.', 'Confúcio'], ['Uma viagem de mil léguas começa com um único passo.', 'Lao Tsé'], ['Conhece o inimigo e conhece-te a ti mesmo; não temerás o resultado de cem batalhas.', 'Sun Tzu'], ['Penso, logo existo.', 'Descartes'], ['Não estragues o que tens desejando o que não tens.', 'Epicuro'], ['A sorte favorece a mente preparada.', 'Pasteur']];
+
+// Tipos de evento do calendário (data.js:130).
+export const EVT = { prazo: { l: 'Prazo', c: '#ef4444' }, exame: { l: 'Exame', c: '#fb923c' }, evento: { l: 'Evento', c: '#38bdf8' }, treino: { l: 'Treino', c: '#34d399' }, outro: { l: 'Outro', c: '#a78bfa' } };
+
 // Missões / triagem (data.js:151-166) — prioridades, estados e palavras-chave.
 export const PRI = { P1: { xp: 150, lvl: 10, c: '#ef4444' }, P2: { xp: 90, lvl: 6, c: '#fb923c' }, P3: { xp: 50, lvl: 3, c: '#34d399' }, BOSS: { xp: 400, lvl: 15, c: '#facc15' } };
 export const OST = ['pend', 'doing', 'done'];

@@ -10,6 +10,11 @@ import Shadows from './components/Shadows.jsx';
 import Recall from './components/Recall.jsx';
 import Training from './components/Training.jsx';
 import Sleep from './components/Sleep.jsx';
+import Greet from './components/Greet.jsx';
+import DeadlineBanner from './components/DeadlineBanner.jsx';
+import Achievements from './components/Achievements.jsx';
+import Debuffs from './components/Debuffs.jsx';
+import Titles from './components/Titles.jsx';
 
 // Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
 // app_state. Fase 2: o palco vive por trás de tudo. Fase 3: o primeiro painel
@@ -85,6 +90,9 @@ function Hud() {
     <div className="wrap">
       <div className="syslabel"><span>Sistema · Estado do Operador</span></div>
 
+      <Greet />
+      <DeadlineBanner S={S} />
+
       <Hero S={S} />
 
       <div className="cols">
@@ -99,6 +107,11 @@ function Hud() {
       <Training S={S} />
 
       <div className="cols"><Sleep S={S} /><Shadows S={S} /></div>
+
+      <Achievements S={S} />
+      <Debuffs S={S} />
+      <Titles S={S} />
+
       <Objectives S={S} />
 
       <div className="foot">

@@ -998,6 +998,17 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   Vanilla → re-regista push+core+kegel, 2 avanços, 17+30=47); herói recalcula p/
   nível 2, Corpo Nv2 44/80, total 104; consola limpa.
 
+- Fase 9 (CONCLUÍDA 2026-07-21): Sono (regulador). `src/state/sleep.js`
+  (calcHours, sleepStreak). Ações `logSleep(form)` (porto de sono.js:7-26:
+  noite no alvo 7,5–9,5h + recente + não premiada → +12 Corpo +5 Disciplina e
+  marca o pilar o_sono com undo/lastGain=0 — o prémio vive no registo, anti-farm
+  para retroativo/futuro) e `setSleepT`. `Sleep.jsx` (barras 14 dias, stats,
+  form controlado, hora-alvo de recolher). FX (toasts) deferido. Verificado
+  headless (Brave/CDP): noite 23:00/07:00=8h → Corpo 12 + Disciplina 5 (total
+  17), pilar o_sono marcado (done, streak 1, lastGain 0), streak no alvo 1;
+  re-registo do mesmo dia não duplica (rw), futuro rejeitado, retroativo 3d a 0
+  XP (plog retroativo); consola limpa.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

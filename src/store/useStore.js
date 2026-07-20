@@ -10,6 +10,7 @@ import { triage } from '../state/objectives.js';
 import { loadRecallBank, getDailyRecallSet, reviewQuestion, findQuestion, bumpStudyStreak } from '../state/recall.js';
 import { TLINES, KLINE, PROG } from '../state/config.js';
 import { consecTrained } from '../state/training.js';
+import { calcHours } from '../state/sleep.js';
 
 // Store central do Sistema (Missão 25 · Fase 1 — a casca viva).
 // Espelha o app_state (o antigo global `S`) e a cola de persistência do antigo
@@ -269,6 +270,38 @@ export const useStore = create((set, get) => ({
     set({ S: { ...S } }); get().save();
     return { logged, adv, xp: xp + advXp, nToday, extraBlocked: extra && consec >= 3 };
   },
+
+  // ===== SONO (Fase 9) =====
+  // logSleep — porto de sono.js:7-26. Regista a noite; se no alvo (7,5–9,5h),
+  // recente e ainda não premiada (rw), dá +12 Corpo +5 Disciplina e marca o
+  // pilar do sono (lastGain=0 — o prémio vive no registo, não é revertível pelo
+  // toggle). Retroativo/curto: registo a 0 (anti-farm). Toasts = fx (devolve
+  // estado p/ a UI).
+  logSleep: ({ bed, wake, q, date }) => {
+    const S = get().S;
+    const dt = date || today();
+    if (!bed || !wake) return { error: 'falta-info' };
+    if (dt > today()) return { error: 'futuro' };
+    const h = calcHours(bed, wake);
+    let L = S.sleep.logs.find((l) => l.d === dt);
+    if (L) Object.assign(L, { bed, wake, h, q });
+    else { L = { d: dt, bed, wake, h, q, rw: false }; S.sleep.logs.push(L); S.sleep.logs.sort((a, b) => (a.d < b.d ? -1 : 1)); }
+    const recent = (dt === today() || dt === yday());
+    const res = { h };
+    if (h >= 7.5 && h <= 9.5 && !L.rw && recent) {
+      L.rw = true; addXp(S, 'corpo', 12); addXp(S, 'disciplina', 5);
+      plog(S, '😴 Noite no alvo (' + h + 'h)', 17);
+      const so = S.oblig.find((x) => x.id === 'o_sono');
+      if (dt === today() && so && so.lastDone !== today()) { so.undo = { streak: so.streak, lastDone: so.lastDone }; so.streak = (so.lastDone === yday()) ? so.streak + 1 : 1; so.lastDone = today(); so.lastGain = 0; }
+      res.reward = 17;
+    } else if (!recent) { plog(S, '😴 Registo retroativo ' + dt + ' (' + h + 'h)', 0); res.retro = true; }
+    else if (h < 7.5) { plog(S, '😴 Noite curta (' + h + 'h)', 0); res.short = true; }
+    set({ S: { ...S } }); get().save();
+    return res;
+  },
+
+  // setSleepT — porto de sono.js:5. Hora-alvo de recolher.
+  setSleepT: (k, v) => { const S = get().S; S.sleep[k] = v; set({ S: { ...S } }); get().save(); },
 }));
 
 // Ponte para o palco WebGL (Fase 2): o loop rAF do palco lê o estado FORA do

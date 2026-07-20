@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useStore } from './store/useStore.js';
-import { ATTRS, AM, rankOf, titleOf, overallLevel } from './state/config.js';
 import Stage from './Stage.jsx';
+import Hero from './components/Hero.jsx';
 
-// Missão 25 · Fase 1 — a casca viva. Ainda SEM painéis do HUD: só o que prova
-// que a fundação de estado está de pé — gate de auth mínimo e um ecrã de prova
-// que lê números REAIS do store (nada inventado; "o sistema nunca mente"). O
-// aspeto final do HUD entra quando os painéis migrarem nas fases seguintes.
-// Fase 2: o palco WebGL vive por trás de tudo (fundo sempre presente, como no
-// Vanilla — a auth e a prova aparecem por cima do céu vivo).
+// Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
+// app_state. Fase 2: o palco vive por trás de tudo. Fase 3: o primeiro painel
+// do HUD real (o herói) migra com o css/hud.css intacto e valores idênticos ao
+// Vanilla ("divergência = bug"). Os restantes painéis entram um a um.
 export default function App() {
   const { booted, S, init } = useStore();
   useEffect(() => { init(); }, [init]);
@@ -17,7 +15,7 @@ export default function App() {
     <>
       <Stage />
       <div className="app-content">
-        {!booted ? <Splash text="A resolver sessão…" /> : !S ? <AuthGate /> : <Proof />}
+        {!booted ? <Splash text="A resolver sessão…" /> : !S ? <AuthGate /> : <Hud />}
       </div>
     </>
   );
@@ -66,50 +64,27 @@ function AuthGate() {
   );
 }
 
-function Proof() {
-  const { S, user, sync, save, logout } = useStore();
-  const lvl = overallLevel(S);
-  const rank = rankOf(lvl);
-  const syncLabel = { ok: '☁️ Sincronizado', saving: '⏳ A sincronizar…', err: '⚠️ Sem ligação — guardado localmente', local: '💾 Só neste dispositivo (sem conta)' }[sync];
+// HUD — o quadro real (por agora, só o herói migrado). O css/hud.css intacto dá
+// o aspeto; os restantes painéis do Vanilla entram nas fases seguintes.
+function Hud() {
+  const { S, user, sync, logout } = useStore();
+  const syncLabel = sync === 'ok' ? '☁️ Sincronizado' + (user ? ' · ' + user.email : '')
+    : sync === 'saving' ? '⏳ A sincronizar…'
+    : sync === 'err' ? '⚠️ Sem ligação à nuvem — guardado localmente'
+    : '💾 Só neste dispositivo (sem conta)';
 
   return (
-    <div className="foundation">
-      <div className="foundation-badge">SISTEMA · FASE 1 · CASCA VIVA</div>
-      <h1>Estado carregado</h1>
-      <p className="muted">
-        {user ? user.email : 'sessão offline'} · <span className="sync">{syncLabel}</span>
-      </p>
+    <div className="wrap">
+      <div className="syslabel"><span>Sistema · Estado do Operador</span></div>
 
-      <div className="proof">
-        <div className="proof-hero">
-          <span className="rankbadge" style={{ color: rank.color, borderColor: rank.color }}>{rank.l}</span>
-          <div>
-            <div className="proof-title">{titleOf(lvl)}</div>
-            <div className="muted">Nível geral {lvl} · {S.totalXP} XP total</div>
-          </div>
-        </div>
-        <div className="proof-attrs">
-          {ATTRS.map((a) => (
-            <div className="proof-attr" key={a.id}>
-              <span className="dot" style={{ background: AM[a.id].color }} />
-              <span>{a.name}</span>
-              <span className="muted">Nv {S.attrs[a.id].level} · {S.attrs[a.id].xp} XP</span>
-            </div>
-          ))}
-        </div>
-        <div className="proof-meta muted">
-          {S.objectives.length} objetivos · {S.history.length} dias no histórico · v{S.v}
+      <Hero S={S} />
+
+      <div className="foot">
+        <small id="sync-st">{syncLabel}</small>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {user && <button className="rst" onClick={() => logout()}>Sair</button>}
         </div>
       </div>
-
-      <div className="authrow">
-        <button type="button" onClick={() => save()}>Forçar guardar</button>
-        <button type="button" className="ghost" onClick={() => logout()}>Sair</button>
-      </div>
-      <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-        Prova da Fase 1: estes números são lidos do store (nuvem/local), não fabricados.
-        Os painéis do HUD entram nas fases seguintes.
-      </p>
     </div>
   );
 }

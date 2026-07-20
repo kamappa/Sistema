@@ -897,6 +897,29 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   `?fps=1` em hardware. Falta ligar o Bus (xp:gain→pulso) quando as ações do
   motor migrarem — aí o mundo volta a reagir ao comportamento real.
 
+- Fase 3 (CONCLUÍDA 2026-07-20): o primeiro painel do HUD real — o herói.
+  Estabelece o padrão de migração que os painéis seguintes reutilizam: o
+  `css/hud.css` (791 linhas) entra INTACTO (copiado para `src/styles/hud.css`,
+  importado no main.jsx; fontes Google iguais às do Vanilla no index.html) e o
+  markup renderiza-se com as CLASSES REAIS. `src/components/Hero.jsx` porta o
+  markup de legacy/index.html:59-88 e os cálculos de engine.js:108-133 (lvl,
+  rank, título 👑/nível, XP total pt-PT, missões, melhor streak, anel de
+  progresso, barra de rank) — a lógica dos números fica idêntica; só a cola
+  (JSX + store) muda. Avatar extraído verbatim para `src/assets/avatar.js`;
+  `config.js` ganhou `need` e `TITLES_REAL`. `Stage.jsx` ganhou a camada de
+  fundo do Vanilla (aurora/horizonte/grelha, estilados pelo hud.css, a ler as
+  variáveis --amb do Solar). O ecrã de prova da Fase 1 deu lugar ao HUD (.wrap
+  com syslabel + herói + rodapé de sync/logout). DEFERIDO (entra com motion.js):
+  a camada de ANIMAÇÃO — setNum count-up, Motion.fillBar, cerimónia de rank-up;
+  os valores renderizam-se diretos (repouso idêntico; o anel usa a mesma
+  transition CSS do Vanilla). Também deferidos: topbar glass (precisa do scroll
+  handler), botões exportar/reiniciar do rodapé. Verificação headless (Brave/CDP):
+  fresh = rank E, Novice Auditor, nível 1, "Rank E → D"; estado semeado (attrs
+  nv5+20xp, totalXP 12345, título cncs, 2 missões, streak 13) = nível 25, rank
+  S, 👑 Cyber Foundations, "12 345", barra 2.381% (cálculo exato conferido à
+  mão), fonte Rajdhani ativa, avatar carregado, consola limpa; screenshot
+  confirma o herói fiel ao Vanilla sobre o céu+aurora+grelha.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

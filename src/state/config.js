@@ -53,8 +53,46 @@ export function diffTag(t) {
   return '🔨 Média';
 }
 
+// Curva de XP por nível (engine.js:26) — quanto falta para o próximo nível.
+export const need = (l) => 40 + l * 20;
+
 // Derivações puras (engine.js:5,7,40) — usadas pela prova de boot e, mais tarde,
 // pelos painéis. Lógica intocada.
 export function rankOf(level) { for (const r of RANKS) { if (level >= r.min && level <= r.max) return r; } return RANKS[RANKS.length - 1]; }
 export function titleOf(l) { let t = TITLES[0][1]; for (const [m, n] of TITLES) if (l >= m) t = n; return t; }
 export const overallLevel = (S) => ATTRS.reduce((s, a) => s + S.attrs[a.id].level, 0) - (ATTRS.length - 1);
+
+// Títulos Reais (data.js:98-129) — o cofre de evidência. O herói usa o último
+// desbloqueado (👑) em vez do título por nível; o painel próprio migra depois.
+export const TITLES_REAL = [
+  { id: 'cncs', name: 'Cyber Foundations (CNCS)', reqs: [
+    { id: 'a', t: 'Cursos do CNCS concluídos (evidência: certificados)' },
+    { id: 'b', t: 'Resumo/portefólio das aprendizagens no teu Codex ou OneNote' },
+    { id: 'c', t: '1 exercício ou desafio prático resolvido e documentado' },
+  ] },
+  { id: 'rgpd_appr', name: 'Privacy Apprentice (RGPD)', reqs: [
+    { id: 'a', t: 'Princípios (art. 5º) e bases legais (art. 6º) dominados — testado, não só lido' },
+    { id: 'b', t: '1 caso prático escrito (ex.: análise de um tratamento de dados real)' },
+    { id: 'c', t: '1 registo de atividades de tratamento (RAT) de exemplo feito por ti' },
+  ] },
+  { id: 'aigov_novice', name: 'AI Governance Novice', reqs: [
+    { id: 'a', t: 'EU AI Act — visão geral sólida (abordagem por risco, obrigações principais)' },
+    { id: 'b', t: 'Fundamentos ISO/IEC 42001 estudados' },
+    { id: 'c', t: '2 cursos de AI Governance concluídos (evidência: certificados)' },
+    { id: 'd', t: '2 casos práticos escritos (ex.: classificar risco de um sistema de IA real)' },
+  ] },
+  { id: 'aigov_pract', name: 'AI Governance Practitioner', reqs: [
+    { id: 'x', t: 'Título AI Governance Novice desbloqueado', auto: 'aigov_novice' },
+    { id: 'a', t: '+3 projetos/casos práticos (total 5)' },
+    { id: 'b', t: '1 risk assessment completo de um sistema de IA' },
+    { id: 'c', t: '1 artigo publicado ou apresentação feita sobre AI Governance' },
+    { id: 'd', t: 'NIST AI RMF mapeado contra ISO/IEC 42001 (documento teu)' },
+  ] },
+  { id: 'lead27001', name: 'ISO 27001 Lead Auditor', reqs: [
+    { id: 'a', t: 'Fundamentos ISO 27001 (cláusulas 4–10 + Anexo A) dominados' },
+    { id: 'b', t: 'Curso Lead Auditor acreditado (PECB, IRCA ou equivalente)' },
+    { id: 'c', t: 'Exame oficial aprovado — certificado emitido (evidência: PDF/Credly)' },
+    { id: 'd', t: 'ISO 19011 (diretrizes de auditoria) estudada' },
+    { id: 'e', t: '≥1 auditoria (simulada ou real) com relatório escrito por ti' },
+  ] },
+];

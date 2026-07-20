@@ -24,5 +24,15 @@ export default function Stage() {
     return () => { unsub(); };
   }, []);
 
-  return <canvas id="dust" aria-hidden="true" />;
+  // Camada de fundo, na ordem do Vanilla (legacy/index.html:26-29): o palco
+  // WebGL pinta o céu no #dust; a aurora (nebulosas CSS) brilha por cima, lendo
+  // as variáveis --amb do Solar Engine; horizonte e grelha completam o ambiente.
+  return (
+    <>
+      <canvas id="dust" aria-hidden="true" />
+      <div className="aurora" aria-hidden="true"><i /><i /><i /></div>
+      <div className="horizon" aria-hidden="true" />
+      <div className="grid" aria-hidden="true" />
+    </>
+  );
 }

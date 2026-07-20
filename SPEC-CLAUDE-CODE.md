@@ -785,13 +785,31 @@ sem scroll foi recusada (risco de layout/mobile); o mapa dedicado também.
   Parallax do palco WebGL acompanha (lê scrollY). Verificado headless
   (CDP): voo 0→4126 (alvo 4130), scale aplicado a meio e limpo no fim,
   cancelamento seguro, rm salta direto, consola limpa.
-- Fases seguintes (planeadas, ainda por abrir): gestos globais (wheel/
-  drag/pinch para saltar entre planetas, snap ao mais próximo) + entrada
-  em mobile (o Dock não nasce <900px — a estação precisa de gatilho
-  próprio no toque); profundidade/foco (as zonas fora do destino recuam
-  durante o voo); polimento + calibração do dolly em hardware real.
-- CHECKPOINT: a direção e a intensidade do dolly (AMP=.085) precisam do
-  olho do Daniel em hardware antes das fases de gestos/mobile (risco).
+- Fase B (CONCLUÍDA): o Mapa da Estação — overlay navegável (a linguagem
+  da Vista de Universo aplicada a todo o HUD). Um gatilho flutuante ✦
+  (`.station-fab`, nasce em desktop E mobile — resolve a entrada em toque,
+  onde o Dock não existe) abre um overlay com os 7 planetas/zonas em anel
+  à volta do Núcleo, cada um na cor da sua zona; a zona atual (a mais
+  próxima do quarto superior do ecrã) destaca-se. Tocar num planeta fecha
+  o mapa e voa lá (flyTo da Fase A). Esc/tocar-fora/✕ fecham. AMP do dolly
+  subiu .085→.11 (mais percetível). Verificado headless (CDP): FAB pronto,
+  overlay com 7 planetas, zona ativa destacada, clique→voo até ao destino
+  (scrollY exato, transform limpo), funciona em viewport mobile; consola
+  limpa.
+- Overflow horizontal em mobile — investigado a fundo (o Daniel pediu a
+  causa raiz, não um remendo). Conclusão honesta: NÃO há overflow de
+  conteúdo real — o elemento mais largo em fluxo é o próprio .wrap a 378px
+  (cabe nos 390). O descentramento do overlay que aparecia no screenshot
+  era ARTEFACTO da emulação `mobile=true`+dsf=2 do CDP (infla o layout
+  viewport por interação com decoração fixed grande — os `<i>` da aurora a
+  74vmax≈625px em retrato). Em emulação de ecrã estreito realista o overlay
+  mede 375×844 left:0 (centrado). Correções defensivas aplicadas (boas
+  práticas, ficam): `html{overflow-x:hidden}` (raiz, mata qualquer scroll-x
+  parasita) e `.ptitle{flex-wrap:wrap}` (o título+2 botões do Calendário
+  já não cortam em ecrã estreito).
+- Fases seguintes (planeadas): gestos globais (wheel/drag/pinch para saltar
+  entre planetas, snap); profundidade/foco (zonas fora do destino recuam no
+  voo); calibração do dolly em hardware real.
 
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 

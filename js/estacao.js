@@ -6,21 +6,42 @@
    desloca-se dentro do organismo" — sem eliminar o scroll (repouso = scroll
    normal, transform nenhum), por isso é aditivo, reversível e vale em mobile.
 
-   O dolly vive só durante a viagem: o transform-origin é ancorado ao centro
-   do que está no ecrã (scrollY+innerH/2), logo o afastamento é centrado no
-   olhar e o scroll real por baixo nunca briga com um transform permanente.
-   O parallax do palco WebGL lê scrollY — acompanha o voo de graça.
+   Fase A: o voo com dolly (Estacao.flyTo) — o Dock Celeste delega-lhe a
+   viagem. Fase B: o Mapa da Estação — um overlay navegável (planetas em
+   anel à volta do Núcleo, a linguagem do hexágono/Vista de Universo) que
+   funciona igual em desktop e toque; é a entrada de navegação em mobile,
+   onde o Dock não nasce. Tocar num planeta fecha o mapa e voa lá.
 
    reduced-motion ou sem Motion: salto direto (scrollTo), sem câmara.
-   Expõe window.Estacao.flyTo — o Dock Celeste (nav.js) delega-lhe a viagem;
-   qualquer wheel/touch/tecla do Operador cancela o voo na hora (a mão manda).
    Script clássico, como o resto da UI. */
 window.Estacao=(function(){
   const rm=matchMedia('(prefers-reduced-motion: reduce)');
   const wrap=document.querySelector('.wrap');
-  const AMP=.085; /* profundidade do dolly — afasta ~8.5% a meio da viagem */
-  let flying=false,getY=null,y0=0,reT=0;
+  const AMP=.11; /* profundidade do dolly — afasta ~11% a meio da viagem */
 
+  /* zonas do HUD = planetas da estação (mesmo conjunto do Dock Celeste;
+     âncora real no DOM, cor própria). A ordem no anel é a de página. */
+  const Z=[
+    {id:'greet-h',   l:'Núcleo',  c:'#e9d5ff',center:true},
+    {id:'oblig',     l:'Diário',  c:'#f59e0b'},
+    {id:'objs',      l:'Missões', c:'#a78bfa'},
+    {id:'constel-cv',l:'Céu',     c:'#8b5cf6'},
+    {id:'training',  l:'Treino',  c:'#f472b6'},
+    {id:'recall',    l:'Revisão', c:'#34d399'},
+    {id:'oc-log',    l:'Conselho',c:'#d946ef'},
+  ];
+  function anchor(id){
+    const a=document.getElementById(id);if(!a)return null;
+    return a.closest('.panel')||a.closest('.greet')||a;
+  }
+  function alvoDe(id){
+    const el=anchor(id);if(!el)return null;
+    const max=Math.max(0,document.documentElement.scrollHeight-innerHeight);
+    return Math.min(max,Math.max(0,el.getBoundingClientRect().top+scrollY-64));
+  }
+
+  /* ===== Fase A — voo com dolly ===== */
+  let flying=false,getY=null,y0=0,reT=0;
   function clean(){
     flying=false;clearTimeout(reT);
     if(wrap){wrap.style.transform='';wrap.style.transformOrigin='';wrap.style.willChange='';}
@@ -40,9 +61,6 @@ window.Estacao=(function(){
         if(p>=.999)clean(); /* assenta: scroll real no destino, transform limpo */
       })
     :null;
-
-  /* voa até targetFn() (função para reapontar se a página crescer durante o
-     voo); com rm/sem mola, salto direto */
   function flyTo(targetFn){
     const y=(typeof targetFn==='function')?targetFn():targetFn;
     if(y==null)return;
@@ -51,12 +69,9 @@ window.Estacao=(function(){
     y0=scrollY;flying=true;
     if(wrap)wrap.style.willChange='transform';
     sp.snap(0);sp.set(1);
-    /* a página pode materializar conteúdo durante o voo — reaponta a meio */
     clearTimeout(reT);
     reT=setTimeout(()=>{if(flying)sp.set(1);},650);
   }
-  /* a mão do Operador manda sempre: qualquer gesto dele corta o voo e assenta
-     no scroll onde estiver (sem deixar o wrap encolhido — evita painel morto) */
   function cancel(){if(flying)clean();}
   addEventListener('wheel',cancel,{passive:true});
   addEventListener('touchstart',cancel,{passive:true});
@@ -65,5 +80,69 @@ window.Estacao=(function(){
   },{passive:true});
   rm.addEventListener('change',()=>{if(rm.matches)cancel();});
 
-  return{flyTo,cancel,get flying(){return flying;}};
+  /* ===== Fase B — o Mapa da Estação (overlay navegável) ===== */
+  let fab=null,map=null,mapOpen=false;
+  function zonaAtiva(){
+    /* a zona mais próxima da linha do quarto superior do ecrã (robusto no fim
+       da página) — o mesmo critério do Dock, para os dois concordarem */
+    const y=scrollY+innerHeight*.25;let cur=Z[0].id,best=1e9;
+    for(const z of Z){const el=anchor(z.id);if(!el)continue;
+      const d=Math.abs(el.getBoundingClientRect().top+scrollY-y);
+      if(d<best){best=d;cur=z.id;}}
+    return cur;
+  }
+  function buildMap(){
+    map=document.createElement('div');
+    map.className='station-map';map.setAttribute('role','dialog');
+    map.setAttribute('aria-label','Mapa da Estação');map.setAttribute('aria-modal','true');
+    const stage=document.createElement('div');stage.className='station-stage';
+    map.innerHTML='<button class="station-x" aria-label="Fechar mapa">✕</button>'
+      +'<div class="station-hint">Estação · escolhe um destino</div>';
+    Z.forEach((z,i)=>{
+      const b=document.createElement('button');
+      b.type='button';b.className='station-planet'+(z.center?' big':'');
+      b.dataset.z=z.id;
+      let x=50,y=50;
+      if(!z.center){const a=-Math.PI/2+(i-1)*Math.PI/3;x=50+42*Math.cos(a);y=50+42*Math.sin(a);}
+      b.style.left=x+'%';b.style.top=y+'%';
+      b.innerHTML='<span class="pdot" style="background:'+z.c+';box-shadow:0 0 12px '+z.c+'"></span>'
+        +'<span class="plabel">'+z.l+'</span>';
+      b.onclick=()=>{closeMap();flyTo(()=>alvoDe(z.id));};
+      stage.appendChild(b);
+    });
+    map.appendChild(stage);
+    map.querySelector('.station-x').onclick=closeMap;
+    map.onclick=e=>{if(e.target===map)closeMap();}; /* tocar fora fecha */
+    document.body.appendChild(map);
+  }
+  function openMap(){
+    if(!map)buildMap();
+    const cur=zonaAtiva();
+    [...map.querySelectorAll('.station-planet')].forEach(b=>
+      b.classList.toggle('on',b.dataset.z===cur));
+    mapOpen=true;map.classList.add('on');
+    if(fab)fab.classList.add('open');
+  }
+  function closeMap(){
+    mapOpen=false;if(map)map.classList.remove('on');
+    if(fab)fab.classList.remove('open');
+  }
+  function toggleMap(){mapOpen?closeMap():openMap();}
+  addEventListener('keydown',e=>{if(e.key==='Escape'&&mapOpen)closeMap();});
+
+  /* o gatilho da estação — nasce em desktop E mobile (resolve a entrada em
+     toque, onde o Dock não existe); aparece depois do boot acalmar */
+  function initFab(){
+    fab=document.createElement('button');
+    fab.type='button';fab.className='station-fab';
+    fab.setAttribute('aria-label','Abrir Mapa da Estação');fab.title='Mapa da Estação';
+    fab.textContent='✦';
+    fab.onclick=toggleMap;
+    document.body.appendChild(fab);
+    setTimeout(()=>fab.classList.add('ready'),1200);
+  }
+  if(document.body)initFab();
+  else addEventListener('DOMContentLoaded',initFab);
+
+  return{flyTo,cancel,openMap,closeMap,toggleMap,get flying(){return flying;},get mapOpen(){return mapOpen;}};
 })();

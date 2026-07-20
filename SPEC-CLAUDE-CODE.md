@@ -811,6 +811,40 @@ sem scroll foi recusada (risco de layout/mobile); o mapa dedicado também.
   entre planetas, snap); profundidade/foco (zonas fora do destino recuam no
   voo); calibração do dolly em hardware real.
 
+## Missão 25 — Foundation: migração para React + Vite (EM CURSO)
+Branch `react-migration` (o `main` Vanilla fica intacto como ponto de
+retorno; merge só no fim, com aceitação toda verde). Fase 1 de um plano de
+dois tempos; a Renaissance visual é a Missão 26, prompt separado, só depois
+desta base estar estável em produção.
+
+Contrato (aprovado pelo Daniel): a LÓGICA DE CÁLCULO preserva-se linha a
+linha (motor de XP com reversões/clamps/bónus — auditado, intocado; SM-2;
+coreState; Solar; etc.). A COLA de estado/render muda necessariamente (o
+padrão `S global + render() por innerHTML + save()` é incompatível com
+React e desaparece). O que tem de ficar IDÊNTICO é tudo o que o Daniel
+observa: aspeto, fluxos, números, estados. Divergência = bug. BARREIRA:
+nenhum redesign visual nesta missão.
+
+Decisões: Zustand para o store (o palco WebGL lê o estado fora do ciclo
+React num rAF via `window.__store.getState()` — Zustand serve isso,
+Context não); JS+JSX (sem TypeScript); o palco WebGL (`js/stage/`, ~2065
+linhas afinadas) NÃO se reescreve — a app React monta o canvas e uma ponte
+alimenta-o (Fase 2, o maior risco, resolvido cedo). Deploy passa a ter
+build (GitHub Actions); a troca da source do Pages para Actions é no merge.
+
+- Fase 0 (CONCLUÍDA 2026-07-20): ambiente. Branch criada; o Vanilla inteiro
+  (index.html, js/, css/, perguntas/, manifest, ícones) movido para
+  `legacy/` com `git mv` (histórico preservado; serve standalone como
+  referência visual das comparações antes/depois). Scaffold na raiz:
+  package.json, vite.config.js (`base:'/Sistema/'`), index.html (entry),
+  src/main.jsx, src/App.jsx (ecrã de fundação placeholder), src/store/
+  useStore.js (Zustand + ponte `window.__store`), src/styles/base.css.
+  Verificado: `npm install` (76 pacotes), `vite build` OK (Vite 6.4.3), o
+  preview serve em /Sistema/ (200), o React monta o ecrã de fundação, a
+  ponte existe, rede/consola limpa (favicon inline resolveu o 404). Zero
+  painéis migrados — próximo passo (Fase 1) é a casca viva: store a
+  espelhar o app_state do Supabase (auth+load+save) antes de qualquer UI.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

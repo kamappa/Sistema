@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useStore } from './store/useStore.js';
 import Stage from './Stage.jsx';
 import Hero from './components/Hero.jsx';
+import Attributes from './components/Attributes.jsx';
+import Radar from './components/Radar.jsx';
 
 // Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
 // app_state. Fase 2: o palco vive por trás de tudo. Fase 3: o primeiro painel
@@ -78,6 +80,11 @@ function Hud() {
       <div className="syslabel"><span>Sistema · Estado do Operador</span></div>
 
       <Hero S={S} />
+
+      <div className="cols">
+        <Attributes S={S} />
+        <Radar S={S} />
+      </div>
 
       <div className="foot">
         <small id="sync-st">{syncLabel}</small>

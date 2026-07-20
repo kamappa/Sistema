@@ -920,6 +920,18 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   mão), fonte Rajdhani ativa, avatar carregado, consola limpa; screenshot
   confirma o herói fiel ao Vanilla sobre o céu+aurora+grelha.
 
+- Fase 4 (CONCLUÍDA 2026-07-20): Atributos + Núcleo (radar) — o par natural a
+  seguir ao herói (partilham S.attrs). `src/components/Attributes.jsx` porta o
+  render de engine.js:143-156 (6 linhas dom-<id> com pontos de cor, rank badge,
+  barra e XP; a mola Motion.fillBar deferida — largura direta). `Radar.jsx`
+  porta renderRadar (engine.js:173-190) gerando o SVG idêntico via
+  dangerouslySetInnerHTML (escala axisMax sobe com o rank). Entram numa `.cols`
+  a seguir ao herói. Verificado headless (Brave/CDP): fresh = 6 atributos nv1/E,
+  0/60 XP, radar com 5 polígonos + 6 labels + rank central E; semeado (oficio
+  nv5+20xp, saber nv12) = oficio Nv5 rank D barra 14% (20/140), saber rank C,
+  herói recalcula p/ nível 16 rank B Lead Auditor Candidate; consola limpa,
+  screenshot fiel ao Vanilla.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

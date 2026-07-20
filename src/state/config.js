@@ -71,6 +71,16 @@ export function diffTag(t) {
   return '🔨 Média';
 }
 
+// Temas da Revisão Ativa (data.js:40-47).
+export const RECALL_THEMES = {
+  rgpd: { label: 'RGPD', color: 'var(--sky)' },
+  iso27001: { label: 'ISO 27001', color: 'var(--em)' },
+  nis2: { label: 'NIS2', color: 'var(--orange)' },
+  iso19011: { label: 'ISO 19011', color: 'var(--cyan)' },
+  aigov: { label: 'AI Governance', color: 'var(--gold)' },
+  ia: { label: 'IA geral', color: 'var(--pink)' },
+};
+
 // Curva de XP por nível (engine.js:26) — quanto falta para o próximo nível.
 export const need = (l) => 40 + l * 20;
 

@@ -969,6 +969,21 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   vazio; filtro Feitos esconde pendente; apagar missão feita (confirm) reverte
   XP; consola limpa.
 
+- Fase 7 (CONCLUÍDA 2026-07-21): Revisão Ativa (Active Recall) + SM-2. Banco de
+  perguntas copiado para `public/perguntas/` (100 perguntas, 6 lotes) e carregado
+  por fetch com `import.meta.env.BASE_URL`. `src/state/recall.js` porta
+  loadQuestionBank, addDays/failCount/shuffle/questionPool/findQuestion,
+  reviewQuestion (SM-2), pickDiverse/selectRecallQuestions/getDailyRecallSet,
+  bumpStudyStreak (S explícito; QBANK em módulo). `RECALL_THEMES` em config. O
+  `boot` do store carrega o banco e constrói o set do dia antes do 1º render.
+  Ações: `answerRecall` (SM-2 + XP de Saber ×xpMult + registo; fecha o lote →
+  streak de estudo) e `addCustomQuestion` (id 'meu-...'). `Recall.jsx` (revelar/
+  notas/resumo + formulário de pergunta própria; `revealed` é estado local). FX
+  deferido. Verificado headless (Brave/CDP): banco carregado (5 perguntas
+  diversas), revelar mostra resposta+3 notas, acertar dá +12 XP de Saber, lote
+  completo (5×12=60) → saber nível 2 + resumo + streak 1; addCustomQuestion
+  válida cria 'meu-...', incompleta rejeitada; consola limpa.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

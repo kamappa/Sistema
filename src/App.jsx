@@ -7,6 +7,7 @@ import Radar from './components/Radar.jsx';
 import Diario from './components/Diario.jsx';
 import Objectives from './components/Objectives.jsx';
 import Shadows from './components/Shadows.jsx';
+import Recall from './components/Recall.jsx';
 
 // Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
 // app_state. Fase 2: o palco vive por trás de tudo. Fase 3: o primeiro painel
@@ -90,6 +91,8 @@ function Hud() {
       </div>
 
       <Diario S={S} />
+
+      <Recall S={S} />
 
       <div className="cols"><Shadows S={S} /></div>
       <Objectives S={S} />

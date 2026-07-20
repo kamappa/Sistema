@@ -3,10 +3,11 @@ import { supabase } from '../lib/supabase.js';
 import { fresh } from '../state/fresh.js';
 import { normalize } from '../state/normalize.js';
 import { today, yday } from '../state/dates.js';
-import { AM, PRI, OST, TIER_KEY } from '../state/config.js';
+import { AM, PRI, OST, TIER_KEY, RECALL_THEMES } from '../state/config.js';
 import { xpMult } from '../state/world.js';
 import { addXp, plog, unlog } from '../state/engine.js';
 import { triage } from '../state/objectives.js';
+import { loadRecallBank, getDailyRecallSet, reviewQuestion, findQuestion, bumpStudyStreak } from '../state/recall.js';
 
 // Store central do Sistema (Missão 25 · Fase 1 — a casca viva).
 // Espelha o app_state (o antigo global `S`) e a cola de persistência do antigo
@@ -65,6 +66,10 @@ export const useStore = create((set, get) => ({
     if (cloud) { S = cloud; }
     else { const raw = localLoad(); if (raw) { try { S = JSON.parse(raw); } catch (e) { S = fresh(); } } else S = fresh(); }
     S = normalize(S);
+    // Revisão Ativa (Fase 7): carrega o banco e constrói o set do dia antes do
+    // 1º render (o que o antigo bootState fazia com loadQuestionBank +
+    // getDailyRecallSet). Falha de fetch degrada para set vazio, sem derrubar.
+    try { await loadRecallBank(); getDailyRecallSet(S); } catch (e) {}
     set({ S, booted: true });
     localSave(S);
     if (user) { const ok = await cloudSave(user, S); set({ sync: ok ? 'ok' : 'err' }); }
@@ -193,6 +198,29 @@ export const useStore = create((set, get) => ({
       S.shadows = S.shadows.filter((s) => s.ref !== o.id); delete o.doneDate;
     }
     o.status = next; set({ S: { ...S } }); get().save();
+  },
+
+  // ===== REVISÃO ATIVA (Fase 7) =====
+  // answerRecall — porto de recall.js:151-165. SM-2 + XP de Saber (×xpMult) +
+  // registo; fecha o lote → streak de estudo. FX (floatXP/toast) deferido.
+  answerRecall: (id, grade) => {
+    const S = get().S; const q = findQuestion(S, id); if (!q) return;
+    reviewQuestion(S, id, grade);
+    S.recallToday.results[id] = grade;
+    const gain = Math.round((8 + (grade === 'ok' ? 4 : 0)) * xpMult(S, 'saber'));
+    addXp(S, 'saber', gain);
+    const th = RECALL_THEMES[q.tema] || { label: q.tema };
+    plog(S, '📖 Revisão · ' + th.label, gain);
+    if (S.recallToday.ids.every((qid) => qid in S.recallToday.results)) bumpStudyStreak(S);
+    set({ S: { ...S } }); get().save();
+  },
+
+  // addCustomQuestion — porto de recall.js:36-49 (id 'meu-...'). Entra na mesma
+  // rotação/SM-2 via questionPool. Toast de "incompleta" é fx (devolve erro).
+  addCustomQuestion: ({ tema, dif, ref, q, a }) => {
+    const S = get().S; if (!q || !q.trim() || !a || !a.trim()) return { error: 'incompleto' };
+    S.customQ.push({ id: 'meu-' + Date.now(), tema, dif, q: q.trim(), a: a.trim(), ref: (ref && ref.trim()) || '—' });
+    set({ S: { ...S } }); get().save(); return {};
   },
 }));
 

@@ -444,6 +444,19 @@ Fases futuras do roadmap (SYSTEM-EVOLUTION-ROADMAP.md) ainda por abrir
 como missões próprias: Universe Navigation, Living Memory, World Events
 completos, Celestial Core, sons opt-in.
 
+Camada II (2026-07-20): a visão-mãe ganhou a secção final "Camada II —
+Organismo, Núcleo e Navegação por Câmara" no SYSTEM-EVOLUTION-ROADMAP.md
+(anexada tal e qual, sem edição). NÃO é missão nova — é aprofundamento da
+visão da M12 que as fases já em fila (Dock Celeste/estação espacial,
+Celestial Core, Universe Navigation) devem seguir. Consolida como leis:
+Idle Motion (nenhum frame parado), Motion Hierarchy (cada camada à sua
+velocidade), Camera Motion (a câmara respira sempre), Núcleo como
+entidade multicamada (não círculo; "o Núcleo nunca mente" mantém-se),
+ligações como energia viva (veias de luz), World Engine reativo ao tempo
+e ao comportamento, Galactic Civilization (zoom universo → galáxia →
+constelação → estrela → nó → evidência; nunca acaba), e a lei final:
+nenhuma animação é decorativa — cada movimento comunica um estado.
+
 Sprints seguintes (roadmap): 2 World Engine · 3 Motion · 4 Constellation
 System · 5 Oráculo vivo · 6 Polimento.
 
@@ -619,6 +632,11 @@ ao céu; a influência no mundo inteiro (react/Oráculo) fica para a Fase 2.
   intocados na lógica; ~+40 tokens input/chamada. Deploy CLI
   --no-verify-jwt; smoke test: preflight 204 com CORS correto.
 
+Fases futuras do Núcleo seguem a Camada II do roadmap (ver Missão 12):
+o Núcleo deixa de ser um círculo e torna-se entidade multicamada
+(interior, exterior, aura, partículas, anéis, campo) que reage a cada
+ação real com onda pela rede; a regra "o Núcleo nunca mente" mantém-se.
+
 ## Missão 19 — Universe Navigation · Fase 1: Dock Celeste
 (CONCLUÍDA 2026-07-19; forma escolhida pelo Daniel entre 3 opções)
 
@@ -673,7 +691,10 @@ Duas ideias da lista "recuperáveis" pagas de uma vez:
    clique seguinte volta a mergulhar.
 2. Universe Navigation — fases seguintes ("estação espacial total":
    eliminar o scroll, zonas por câmara — missão multi-sprint com plano
-   próprio quando o Daniel quiser)
+   próprio quando o Daniel quiser). Rege-se pela Camada II do roadmap
+   (ver Missão 12): o Sistema é um único organismo sem páginas, a câmara
+   desloca-se dentro dele e respira sempre; Motion Hierarchy e Idle
+   Motion aplicam-se a todas as zonas
 3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo; exige o gosto
    do Daniel presente)
 4. Camada adaptativa do recall — gated: exige histórico de uso suficiente

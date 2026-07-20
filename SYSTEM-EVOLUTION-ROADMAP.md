@@ -1666,3 +1666,240 @@ Se eu pudesse deixar apenas uma frase no topo do teu SPEC, seria esta:
 Há uma diferença enorme.
 Representar é mostrar dados.
 Manifestar é transformar esses dados numa experiência.
+
+---
+
+## Camada II — Organismo, Núcleo e Navegação por Câmara
+
+Pontos que esta camada consolida como leis (para as missões futuras seguirem):
+
+Idle Motion: nenhum frame totalmente parado; mesmo em inatividade há respiração, cintilação, poeira, nébulas lentas, drift de câmara.
+Motion Hierarchy: cada camada move-se a velocidade própria (galáxia de fundo quase imóvel → constelações em órbita lenta → estrelas com brilho → Núcleo pulsa → UI quase imóvel → botões só quando necessário).
+Camera Motion: a câmara respira sempre — drift, parallax e micro-zoom impercetíveis.
+Núcleo como entidade (não círculo): esfera de energia multicamada — interior, exterior, aura, partículas, anéis, campo — que reage a cada ação real (missão concluída → energia sobe → onda percorre a rede → estrelas ligadas respondem). Regra "o Núcleo nunca mente" mantém-se: só reage a evidência real.
+Ligações como energia viva: luz a circular lentamente nas ligações, como veias.
+World Engine reativo ao tempo e ao comportamento (já parcialmente construído): iluminação por hora real, calma ao domingo, perda de intensidade com inatividade prolongada.
+Galactic Civilization: cada domínio é uma galáxia navegável por zoom (universo → galáxia → constelação → estrela → nó → evidência). Nunca acaba.
+Lei final: nenhuma animação é decorativa — cada movimento comunica um estado (progresso, tempo, foco, energia). O objetivo é que após centenas de horas o Sistema continue vivo e coerente. O conceito principal
+O Sistema não tem páginas.
+O Sistema é um único organismo.
+O utilizador não muda de página.
+A câmara desloca-se dentro desse organismo.
+Cada módulo é um planeta.
+Cada planeta está vivo.
+Existe gravidade.
+Existe profundidade.
+Existe atmosfera.
+Existe movimento constante.
+Existe silêncio.
+Existe escala.
+Tudo parece existir mesmo quando não estamos a olhar.
+Quero que ele pense como isto
+Não quero um dashboard.
+Não quero um website.
+Não quero um UI kit.
+Quero um Operating System vivo.
+Cada elemento deve transmitir que existe independentemente da interação do utilizador.
+Nunca deve existir um frame completamente parado.
+Mesmo quando o utilizador não faz nada durante vários minutos, o Sistema continua subtilmente vivo.
+A inspiração não deve ser websites modernos.
+A inspiração deve ser:
+
+* Destiny Director
+* No Man's Sky
+* Final Fantasy XVI Skill Tree
+* Death Stranding UI
+* Raycast
+* Framer
+* Stripe
+* Igloo.inc
+
+Depois dava-lhe princípios muito concretos
+1. Idle Motion
+Nada fica completamente imóvel.
+Mesmo parado existem:
+
+* respiração
+* oscilações
+* partículas
+* pequenas rotações
+* luz pulsante
+* estrelas que cintilam
+* poeira espacial
+* nébulas lentas
+* pequenas ondas
+
+O utilizador nunca vê um "print".
+Vê um organismo.
+2. Motion Hierarchy
+Nem tudo pode mexer igual.
+Tudo deve obedecer a uma hierarquia.
+Exemplo:
+Background Galaxy
+↓
+movimento quase imperceptível
+Constelações
+↓
+órbitas lentas
+Estrelas
+↓
+pequeno brilho
+Core
+↓
+pulsa
+UI
+↓
+quase imóvel
+Botões
+↓
+movem apenas quando necessário
+3. Camera Motion
+A própria câmara respira.
+Nunca está completamente fixa.
+Pequeno drift.
+Pequeno parallax.
+Pequeno zoom.
+Quase imperceptível.
+Como se estivesses dentro de uma estação espacial.
+
+para além disso, eu quero que a tela em si se mexa levemente, como se estivesse relamente viva, e que as orbitas/estrelas tambem se mexam um pouco, um leve movimento, eles a andarem em circulos ou algo do genero
+
+Background
+Não é preto.
+É espaço.
+Existe:
+nebula
+estrelas
+poeira
+parallax
+galáxias muito desfocadas
+light fog
+volumetric glow
+As estrelas
+Nunca estão estáticas.
+Cada estrela:
+respira
+pisca lentamente
+tem bloom
+tem partículas
+tem uma pequena órbita própria
+As ligações
+Em vez de linhas...
+São energia.
+
+com energia a circular.
+Como se fossem veias.
+A luz percorre a ligação lentamente.
+---
+## O Núcleo
+Aqui está o teu maior erro atualmente.
+O Core não deve ser um círculo.
+Deve ser um objeto.
+Quase uma entidade.
+Inspirado em TBATE.
+Uma esfera de energia.
+Várias camadas.
+Interior.
+Exterior.
+Aura.
+Partículas.
+Anéis.
+Fragmentos.
+Campo magnético.
+Cada ação tua alimenta-o.
+---
+Quando completas uma missão...
+não aparece apenas:
++18 XP
+O Core reage.
+Por exemplo:
+missão concluída
+↓
+energia sobe
+↓
+anel acelera
+↓
+cor muda ligeiramente
+↓
+uma onda percorre toda a constelação
+↓
+as estrelas ligadas respondem
+↓
+uma nova ligação nasce
+↓
+partículas atravessam a rede
+↓
+o universo inteiro "sentiu" aquilo.
+Isto é MUITO mais poderoso do que uma simples animação.
+---
+# World Engine
+Isto eu acrescentaria ao prompt.
+O Sistema deve possuir um "World Engine".
+O mundo nunca espera pelo utilizador.
+O mundo continua vivo.
+Exemplos:
+À meia-noite muda a iluminação.
+Às 07h nasce luz no horizonte.
+Às 18h aparecem tons dourados.
+Às 22h surgem nebulosas.
+Ao domingo o universo está mais calmo.
+Ao concluir um objetivo importante surgem fenómenos especiais.
+Ao atingir um novo Rank ocorre um evento astronómico único.
+Ao passar muitos dias sem progresso o universo perde intensidade luminosa e algumas partículas desaparecem.
+O mundo reage ao comportamento do Operador.
+---
+# A melhor ideia que acrescentaria
+Não faria uma Skill Tree.
+Faria uma...
+## Galactic Civilization.
+Ou seja.
+Tu não desbloqueias skills.
+Tu constróis um universo.
+Cada domínio:
+Ofício
+Saber
+Corpo
+Mente
+Disciplina
+Vínculos
+é uma galáxia.
+Dentro dela existem:
+constelações
+dentro delas:
+estrelas
+dentro delas:
+nós
+dentro deles:
+evidência real
+No zoom máximo:
+vês uma tarefa.
+No zoom intermédio:
+vês uma constelação.
+No zoom afastado:
+vês todo o teu crescimento.
+No zoom muito afastado...
+vês literalmente o teu universo.
+Nunca acaba.
+---
+# E finalmente acrescentava isto ao Claude
+Esta é provavelmente a parte mais importante.
+> Não cries animações porque ficam bonitas.
+>
+> Cria animações porque comunicam significado.
+>
+> Cada movimento deve representar um estado do sistema.
+>
+> Cada partícula deve existir por um motivo.
+>
+> Cada alteração de luz deve comunicar progresso, tempo, foco ou energia.
+>
+> O utilizador nunca deve sentir que está perante um dashboard.
+>
+> Deve sentir que entrou num universo pessoal que cresce consigo há anos.
+>
+> O objetivo não é impressionar durante cinco minutos.
+>
+> O objetivo é que, após centenas de horas de utilização, o Sistema continue a parecer vivo, coerente e inevitavelmente ligado ao crescimento do Operador.
+Se o Claude 5 conseguir seguir esta direção (e fores iterando sobre ela em vez de tentar fazer tudo de uma vez), acredito que consegues aproximar-te bastante da sensação de produtos como a Igloo.inc — não porque copies o estilo visual, mas porque vais adotar o mesmo princípio fundamental: **a interface deixa de ser um conjunto de componentes e passa a comportar-se como um mundo consistente, onde tudo reage, tudo tem contexto e nada parece colocado ao acaso.**
+
+adiciona isto tudo ao prompt, sem objeções.

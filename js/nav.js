@@ -53,6 +53,9 @@
   }
   function travel(id){
     const y=alvoDe(id);if(y==null)return;
+    /* Modo Estação (M24): a viagem ganha dolly de câmara. O Estacao gere o
+       seu próprio cancelamento/reaim — delegamos-lhe o voo inteiro. */
+    if(window.Estacao){Estacao.flyTo(()=>alvoDe(id));return;}
     if(rm.matches||!sp){window.scrollTo(0,y);return;}
     traveling=true;
     sp.snap(scrollY);sp.set(y);

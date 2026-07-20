@@ -254,7 +254,7 @@
 
 <!-- Ordem de carregamento (scripts clássicos, globals partilhados — não converter
      em ES modules sem migrar os onclick inline): data → bus → fx → motion → engine → world → hud
-     → recall → treino → sono → objetivos → radar → conselho → memoria → nav → auth (contém init(), é o último).
+     → recall → treino → sono → objetivos → radar → conselho → memoria → estacao → nav → auth (contém init(), é o último).
      O palco WebGL (js/stage/, Missão 12) é uma ilha de ES modules à parte: corre depois
      dos clássicos e só EXPORTA globals (dustStart/dustBurst/dustSpark/Stage) — nunca importa deles à carga. -->
 <script src="js/data.js"></script>
@@ -271,6 +271,7 @@
 <script src="js/radar.js"></script>
 <script src="js/conselho.js"></script>
 <script src="js/memoria.js"></script>
+<script src="js/estacao.js"></script>
 <script src="js/nav.js"></script>
 <script src="js/auth.js"></script>
 <script type="module" src="js/stage/main.js"></script>

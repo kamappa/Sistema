@@ -762,6 +762,37 @@ de um flag manual — "o sistema nunca mente".
 - Verificado headless (CDP): fresco=0, hoje=0, 19 dias=1 (glow 0.99→0.39),
   5 dias=0.22 (rampa), Recovery anula (0); consola limpa.
 
+## Missão 24 — Universe Navigation · Estação Espacial (Modo Estação)
+(EM CURSO — Fase A concluída 2026-07-20)
+
+Item "estação espacial total" do backlog, aberto com plano aprovado pelo
+Daniel (3 opções apresentadas): decisões dele — abordagem "Modo Estação
+ADITIVO" (câmara por cima do HUD, scroll clássico intacto por baixo,
+reversível, sem reescrever painéis) e "TAMBÉM mobile". A estação total
+sem scroll foi recusada (risco de layout/mobile); o mapa dedicado também.
+
+- Fase A (CONCLUÍDA): mecanismo de voo com dolly. `js/estacao.js` (16º
+  script clássico, entre memoria e nav — ordem documentada no index.html
+  e CLAUDE.md). `window.Estacao.flyTo(alvoFn)`: a viagem entre zonas
+  ganha câmara — o .wrap AFASTA-SE (scale em sino, 1 nas pontas → ~.915
+  a meio; transform-origin ancorado ao centro do olhar = scrollY+innerH/2),
+  DESLIZA (scroll real por baixo, mola gentle do Motion) e APROXIMA-SE,
+  assentando com transform LIMPO. O dolly vive só durante a viagem — o
+  repouso é scroll puro (mobile incluído), sem conflito com transform
+  permanente. O Dock Celeste (nav.js) delega-lhe a viagem quando existe.
+  Cancelamento por wheel/touch/tecla limpa o wrap (nunca fica encolhido —
+  lição do defeito da M12·6b). reduced-motion = salto direto sem câmara.
+  Parallax do palco WebGL acompanha (lê scrollY). Verificado headless
+  (CDP): voo 0→4126 (alvo 4130), scale aplicado a meio e limpo no fim,
+  cancelamento seguro, rm salta direto, consola limpa.
+- Fases seguintes (planeadas, ainda por abrir): gestos globais (wheel/
+  drag/pinch para saltar entre planetas, snap ao mais próximo) + entrada
+  em mobile (o Dock não nasce <900px — a estação precisa de gatilho
+  próprio no toque); profundidade/foco (as zonas fora do destino recuam
+  durante o voo); polimento + calibração do dolly em hardware real.
+- CHECKPOINT: a direção e a intensidade do dolly (AMP=.085) precisam do
+  olho do Daniel em hardware antes das fases de gestos/mobile (risco).
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

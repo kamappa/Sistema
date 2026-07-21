@@ -1037,6 +1037,19 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   existe e clica sem erro; apagar evento → 0; resetAll (confirm) zera o total
   (19→0); consola limpa.
 
+- Fase 12 (CONCLUÍDA 2026-07-21): Living Memory + Mapa de Conhecimento (painéis
+  self-contained, derivação 100% cliente). `CONSTELLATIONS` portado para config
+  (usado pelo Memória e pela futura fase das Constelações). `src/state/memory.js`
+  (memoriaDoDia, porto de memoria.js:10-80: aniversários anuais > marcos redondos
+  > ecos dos primeiros passos > "há 30 dias"; determinístico por dia; silêncio
+  sem evidência). `Greet` ganha a linha 🕯 debaixo da citação. `KnowledgeMap.jsx`
+  (porto de renderMapa/conselho.js:128-154: agrega S.recall por tema, taxa de
+  acerto, 2 piores ease; tema só ≥5 vistas). Verificado headless (Brave/CDP):
+  fresh = Memória em silêncio + Mapa "sem dados"; com nascimento há 100 dias →
+  "🕯 O Sistema existe há 100 dias. A primeira centelha: 12/04/2026"; 5 perguntas
+  rgpd semeadas → Mapa mostra rgpd 60% (3/5) + volume + 2 pontos fracos; consola
+  limpa.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

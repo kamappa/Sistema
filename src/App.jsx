@@ -16,6 +16,7 @@ import Achievements from './components/Achievements.jsx';
 import Debuffs from './components/Debuffs.jsx';
 import Titles from './components/Titles.jsx';
 import Calendar from './components/Calendar.jsx';
+import KnowledgeMap from './components/KnowledgeMap.jsx';
 import { exportStateFile } from './lib/exports.js';
 
 // Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
@@ -92,7 +93,7 @@ function Hud() {
     <div className="wrap">
       <div className="syslabel"><span>Sistema · Estado do Operador</span></div>
 
-      <Greet />
+      <Greet S={S} />
       <DeadlineBanner S={S} />
 
       <Hero S={S} />
@@ -105,6 +106,8 @@ function Hud() {
       <Diario S={S} />
 
       <Recall S={S} />
+
+      <div className="cols"><KnowledgeMap S={S} /></div>
 
       <Training S={S} />
 

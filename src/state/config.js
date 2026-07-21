@@ -44,6 +44,67 @@ export const EXTRAS = [
   { id: 'e_pele', name: 'Skincare + fio dentário',       attr: 'corpo',      xp: 6 },
 ];
 
+// Constelações (data.js:176-232) — cada estrela tem uma regra de evidência
+// declarativa avaliada de S ({lvl}/{title}/{streak}/{done}). Usado pelo Memória
+// (aniversários de estrelas nascidas) e pelo painel das Constelações (a migrar).
+export const CONSTELLATIONS = {
+  oficio: { stars: [
+    { id: 'rgpd', n: 'RGPD', x: .18, y: .60, req: { lvl: 2 } },
+    { id: 'nis2', n: 'NIS2', x: .32, y: .42, req: { lvl: 4 } },
+    { id: 'iso', n: 'ISO 27001', x: .50, y: .30, req: { lvl: 6 } },
+    { id: 'lead', n: 'Lead Auditor', x: .68, y: .40, req: { lvl: 8 } },
+    { id: 'grc', n: 'GRC', x: .84, y: .56, req: { lvl: 10 } },
+    { id: 'cncs', n: 'Cyber Foundations', x: .26, y: .78, req: { title: 'cncs' } },
+    { id: 'privacy', n: 'Privacy Apprentice', x: .09, y: .36, req: { title: 'rgpd_appr' } },
+    { id: 'aignov', n: 'AI Gov Novice', x: .58, y: .66, req: { title: 'aigov_novice' } },
+    { id: 'aigpra', n: 'AI Gov Practitioner', x: .74, y: .80, req: { title: 'aigov_pract' } },
+    { id: 'camp', n: 'Campanha de Ofício', x: .92, y: .30, req: { done: 5 } },
+  ], links: [['privacy', 'rgpd'], ['rgpd', 'nis2'], ['nis2', 'iso'], ['iso', 'lead'], ['lead', 'grc'], ['rgpd', 'cncs'], ['cncs', 'aignov'], ['aignov', 'aigpra'], ['grc', 'camp']],
+    choice: { id: 'ch', x: .42, y: .16, link: 'iso', unlock: { lvl: 6 }, options: ['Auditoria', 'Engenharia', 'Governação'] } },
+  saber: { stars: [
+    { id: 'leit', n: 'Leitura', x: .15, y: .54, req: { lvl: 2 } },
+    { id: 'not', n: 'Notas', x: .33, y: .38, req: { lvl: 4 } },
+    { id: 'sint', n: 'Síntese', x: .52, y: .30, req: { lvl: 6 } },
+    { id: 'ens', n: 'Ensinar', x: .70, y: .40, req: { lvl: 8 } },
+    { id: 'esp', n: 'Especialista', x: .86, y: .56, req: { lvl: 12 } },
+    { id: 'cons', n: 'Estudo constante', x: .42, y: .66, req: { streak: 7 } },
+    { id: 'camp', n: 'Campanha de Saber', x: .64, y: .76, req: { done: 5 } },
+  ], links: [['leit', 'not'], ['not', 'sint'], ['sint', 'ens'], ['ens', 'esp'], ['not', 'cons'], ['cons', 'camp']],
+    choice: { id: 'ch', x: .30, y: .14, link: 'sint', unlock: { lvl: 6 }, options: ['Pesquisa', 'Ensino', 'Escrita'] } },
+  corpo: { stars: [
+    { id: 'sono', n: 'Sono', x: .16, y: .50, req: { lvl: 2 } },
+    { id: 'trei', n: 'Treino', x: .36, y: .34, req: { lvl: 4 } },
+    { id: 'nut', n: 'Nutrição', x: .56, y: .30, req: { lvl: 6 } },
+    { id: 'fis', n: 'Físico', x: .76, y: .42, req: { lvl: 8 } },
+    { id: 'temp', n: 'Templo', x: .46, y: .64, req: { streak: 14 } },
+    { id: 'camp', n: 'Campanha do Corpo', x: .70, y: .74, req: { done: 3 } },
+  ], links: [['sono', 'trei'], ['trei', 'nut'], ['nut', 'fis'], ['trei', 'temp'], ['temp', 'camp']],
+    choice: { id: 'ch', x: .90, y: .26, link: 'fis', unlock: { lvl: 6 }, options: ['Força', 'Resistência', 'Mobilidade'] } },
+  mente: { stars: [
+    { id: 'rot', n: 'Rotina', x: .18, y: .56, req: { lvl: 2 } },
+    { id: 'plan', n: 'Planeamento', x: .38, y: .40, req: { lvl: 4 } },
+    { id: 'rev', n: 'Revisão', x: .58, y: .32, req: { lvl: 6 } },
+    { id: 'est', n: 'Estabilidade', x: .78, y: .44, req: { lvl: 8 } },
+    { id: 'camp', n: 'Campanha da Mente', x: .52, y: .68, req: { done: 3 } },
+  ], links: [['rot', 'plan'], ['plan', 'rev'], ['rev', 'est'], ['plan', 'camp']],
+    choice: { id: 'ch', x: .66, y: .14, link: 'rev', unlock: { lvl: 6 }, options: ['Estratégia', 'Serenidade'] } },
+  vinculos: { stars: [
+    { id: 'com', n: 'Comunicação', x: .20, y: .54, req: { lvl: 2 } },
+    { id: 'net', n: 'Networking', x: .46, y: .36, req: { lvl: 4 } },
+    { id: 'lid', n: 'Liderança', x: .72, y: .48, req: { lvl: 6 } },
+    { id: 'camp', n: 'Campanha de Vínculos', x: .52, y: .70, req: { done: 3 } },
+  ], links: [['com', 'net'], ['net', 'lid'], ['net', 'camp']],
+    choice: { id: 'ch', x: .86, y: .28, link: 'lid', unlock: { lvl: 4 }, options: ['Comunidade', 'Mentoria'] } },
+  disciplina: { stars: [
+    { id: 'cons', n: 'Constância', x: .16, y: .52, req: { lvl: 2 } },
+    { id: 'foco', n: 'Foco', x: .36, y: .36, req: { lvl: 4 } },
+    { id: 'sist', n: 'Sistemas', x: .58, y: .30, req: { lvl: 6 } },
+    { id: 'mest', n: 'Mestria', x: .80, y: .40, req: { lvl: 8 } },
+    { id: 'forja', n: 'Forja', x: .50, y: .66, req: { streak: 21 } },
+  ], links: [['cons', 'foco'], ['foco', 'sist'], ['sist', 'mest'], ['foco', 'forja']],
+    choice: { id: 'ch', x: .72, y: .14, link: 'sist', unlock: { lvl: 6 }, options: ['Ritual', 'Sprint'] } },
+};
+
 // Conquistas (data.js:48-60) — condições avaliadas de S; desbloqueiam sozinhas.
 export const ACH = [
   { id: 'first', ico: '👣', name: 'Primeiro passo', msg: 'Começaste. É sempre a parte mais difícil.', cond: (s) => s.totalXP > 0 },

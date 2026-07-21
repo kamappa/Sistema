@@ -18,10 +18,13 @@ export default function Greet({ S }) {
   const q = QUOTES[hashStr('q' + today()) % QUOTES.length];
   // Living Memory (M15): 🕯 uma vela debaixo da citação, não um holofote.
   const mem = S ? memoriaDoDia(S) : null;
+  // Sussurro do Conselheiro (M6·F5): 🔮 uma linha do dia, se houver.
+  const suss = (S && S.sussurro && S.sussurro.d === today() && S.sussurro.line) ? S.sussurro.line : null;
   return (
     <div className="greet reveal">
       <div className="greet-h" id="greet-h">{h}</div>
       <div className="greet-q" id="greet-q">“{q[0]}” — <b>{q[1]}</b></div>
+      {suss && <div className="sussurro" id="sussurro-line">🔮 {suss}</div>}
       {mem && <div className="memoria" id="memoria-line">🕯 {mem}</div>}
     </div>
   );

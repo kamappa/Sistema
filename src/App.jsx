@@ -17,6 +17,7 @@ import Debuffs from './components/Debuffs.jsx';
 import Titles from './components/Titles.jsx';
 import Calendar from './components/Calendar.jsx';
 import KnowledgeMap from './components/KnowledgeMap.jsx';
+import Conselho from './components/Conselho.jsx';
 import World from './components/World.jsx';
 import RadarNews from './components/RadarNews.jsx';
 import OracleReport from './components/OracleReport.jsx';
@@ -117,7 +118,7 @@ function Hud() {
 
       <Recall S={S} />
 
-      <div className="cols"><KnowledgeMap S={S} /></div>
+      <div className="cols" id="conselho-row"><Conselho /><KnowledgeMap S={S} /></div>
 
       <Training S={S} />
 

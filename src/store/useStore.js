@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '../lib/supabase.js';
+import { supabase, SUPABASE_URL, SUPABASE_ANON } from '../lib/supabase.js';
 import { fresh } from '../state/fresh.js';
 import { normalize } from '../state/normalize.js';
 import { today, yday, fmt } from '../state/dates.js';
@@ -7,7 +7,7 @@ import { AM, PRI, OST, TIER_KEY, RECALL_THEMES } from '../state/config.js';
 import { xpMult, seasonArcNow, seasonBounds, whisperToday } from '../state/world.js';
 import { addXp, plog, unlog } from '../state/engine.js';
 import { triage } from '../state/objectives.js';
-import { loadRecallBank, getDailyRecallSet, reviewQuestion, findQuestion, bumpStudyStreak } from '../state/recall.js';
+import { loadRecallBank, getDailyRecallSet, reviewQuestion, findQuestion, bumpStudyStreak, addDays } from '../state/recall.js';
 import { TLINES, KLINE, PROG } from '../state/config.js';
 import { consecTrained } from '../state/training.js';
 import { calcHours } from '../state/sleep.js';
@@ -47,6 +47,8 @@ export const useStore = create((set, get) => ({
   initStarted: false, // guarda contra o duplo-invoke do StrictMode
   radar: [],          // radar_items (Oráculo · Fase 14)
   report: null,       // último oracle_report
+  ocMsgs: [],         // Conselho: log de exibição (não persiste) — Fase 15
+  ocBusy: false,
 
   setS: (S) => set({ S }),
 
@@ -80,7 +82,7 @@ export const useStore = create((set, get) => ({
     try { await loadRecallBank(); getDailyRecallSet(S); } catch (e) {}
     set({ S, booted: true });
     get().fetchWeather(); // meteo real, fire-and-forget (World Engine · Fase 13)
-    if (user) get().loadOracleData(); // Radar + relatório do Oráculo (Fase 14)
+    if (user) { get().loadOracleData(); get().fetchSussurro(); } // Oráculo (Fases 14/15)
     localSave(S);
     if (user) { const ok = await cloudSave(user, S); set({ sync: ok ? 'ok' : 'err' }); }
     else set({ sync: 'local' });
@@ -430,6 +432,79 @@ export const useStore = create((set, get) => ({
     const m = r.missoes_propostas[i]; const tr = triage(m.t || 'Missão do Oráculo', m.deadline || null);
     S.objectives.push({ id: 'o' + Date.now(), title: m.t || 'Missão do Oráculo', area: (m.area && AM[m.area]) ? m.area : (tr.area || 'oficio'), pri: (m.pri && PRI[m.pri]) ? m.pri : tr.imp, auto: true, deadline: m.deadline || null, status: 'pend', created: today(), tags: ['🔮 Do Oráculo', ...(tr.tags || [])], oracle: true });
     set({ S: { ...S } }); get().save();
+  },
+
+  // ===== ORÁCULO · CONSELHO (Fase 15) =====
+  // ocQuotaLeft — mensagens restantes hoje (12/dia; conselho.js:10-14).
+  ocQuotaLeft: () => { const S = get().S; const t = today(); if (!S || !S.oracleChat || S.oracleChat.d !== t) return 12; return Math.max(0, 12 - (S.oracleChat.count || 0)); },
+
+  // sendConselho — porto de sendConselho (conselho.js:156-200). Chat com a Edge
+  // Function ?mode=chat (JWT). Contador incrementa ANTES (servidor revalida);
+  // falha NÃO consome quota nem envenena o histórico da API ("o sistema nunca
+  // mente"). Teatro/typewriter = fx (deferido). ocMsgs guarda o log de exibição;
+  // a história da API deriva das mensagens com role definido.
+  sendConselho: async (text) => {
+    if (get().ocBusy) return;
+    const qtxt = (text || '').trim(); if (!qtxt) return;
+    const user = get().user; if (!user || !supabase) return { error: 'sem-sessao' };
+    if (get().ocQuotaLeft() <= 0) return { error: 'limite-local' };
+    const S = get().S; const t = today();
+    if (!S.oracleChat || S.oracleChat.d !== t) S.oracleChat = { d: t, count: 0 };
+    S.oracleChat.count++;
+    const userMsg = { cls: 'oc-user', content: qtxt, role: 'user' };
+    set({ ocMsgs: [...get().ocMsgs, userMsg], ocBusy: true, S: { ...S } }); get().save();
+    const apiHist = get().ocMsgs.filter((m) => m.role).map((m) => ({ role: m.role, content: m.content })).slice(-8);
+    let ok = false;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const r = await fetch(SUPABASE_URL + '/functions/v1/oraculo?mode=chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', apikey: SUPABASE_ANON, authorization: 'Bearer ' + session.access_token },
+        body: JSON.stringify({ messages: apiHist }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok && j.reply) { ok = true; set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: j.reply, role: 'assistant' }] }); if (window.Bus) window.Bus.emit('oracle:spoke'); }
+      else if (j.error === 'limite') { ok = true; set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: 'O Oráculo confirma: as 12 mensagens de hoje esgotaram. Guarda a pergunta — amanhã o Conselho volta a reunir.', role: null }] }); }
+      else { set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: 'O Oráculo não respondeu (' + (j.error || ('HTTP ' + r.status)) + '). A mensagem não contou para o limite — tenta outra vez.', role: null }] }); }
+    } catch (e) {
+      set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: 'Sem ligação ao Oráculo — verifica a rede. A mensagem não contou para o limite.', role: null }] });
+    }
+    // o sistema nunca mente: chamada falhada devolve a quota e tira a pergunta do histórico da API
+    if (!ok) {
+      const S2 = get().S; if (S2.oracleChat && S2.oracleChat.d === t) S2.oracleChat.count = Math.max(0, S2.oracleChat.count - 1);
+      const msgs = get().ocMsgs.slice(); const uidx = msgs.map((m) => m.role).lastIndexOf('user'); if (uidx > -1) msgs[uidx] = { ...msgs[uidx], role: null };
+      set({ ocMsgs: msgs, S: { ...S2 } }); get().save();
+    }
+    set({ ocBusy: false });
+    return {};
+  },
+
+  // acceptConselhoMission — porto de acceptConselhoMission (conselho.js:116-123).
+  // Prazo 48h, tag 🔮 Do Oráculo.
+  acceptConselhoMission: (t) => {
+    const S = get().S; if (!t) return; const dl = addDays(today(), 2); const tr = triage(t, dl);
+    S.objectives.push({ id: 'o' + Date.now(), title: t, area: tr.area || 'oficio', pri: tr.imp, auto: true, deadline: dl, status: 'pend', created: today(), tags: ['🔮 Do Oráculo', ...(tr.tags || [])], oracle: true });
+    set({ S: { ...S } }); get().save();
+  },
+
+  // fetchSussurro — porto de fetchSussurro (conselho.js:76-91). 1 linha/dia do
+  // ?mode=sussurro, cache em S.sussurro; erro = silêncio (nunca inventar).
+  fetchSussurro: async () => {
+    const user = get().user; if (!user || !supabase) return;
+    const S = get().S; const t = today();
+    if (S.sussurro && S.sussurro.d === t) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const r = await fetch(SUPABASE_URL + '/functions/v1/oraculo?mode=sussurro', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', apikey: SUPABASE_ANON, authorization: 'Bearer ' + session.access_token },
+        body: '{}',
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return;
+      const S2 = get().S; S2.sussurro = { d: t, line: j.linha || null };
+      set({ S: { ...S2 } }); get().save();
+    } catch (e) {}
   },
 }));
 

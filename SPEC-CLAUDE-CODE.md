@@ -1082,6 +1082,22 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   Oráculo" pri P1; consola limpa. Falta migrar: Conselho (chat Edge Function) e
   Constelações WebGL; camada fx/motion.
 
+- Fase 15 (CONCLUÍDA 2026-07-21): Oráculo · Conselho (chat) + Sussurro. Store
+  ganhou `ocMsgs`/`ocBusy` + `ocQuotaLeft` (12/dia), `sendConselho` (porto de
+  conselho.js:156-200: contador incrementa ANTES, servidor revalida; falha
+  devolve a quota e tira a pergunta do histórico da API — "o sistema nunca
+  mente"; `oracle:spoke` no Bus), `acceptConselhoMission` (parse "⚔ Ação (48h):"
+  → objetivo 🔮 prazo 48h) e `fetchSussurro` (?mode=sussurro, 1/dia, cache em
+  S.sussurro; erro = silêncio). `Conselho.jsx` (log, quota, enviar, aceitar-
+  missão por resposta) e `Greet` ganha a linha 🔮 do sussurro. `supabase.js`
+  exporta URL/ANON. Teatro/typewriter = fx (deferido). Verificado headless
+  (Brave/CDP; o sucesso em REDE fica para o Daniel com a Edge Function): offline
+  = convite + enviar desativado; seed user → prompt + quota 12/12; enviar sem
+  sessão → bolha de erro "Sem ligação" + quota DEVOLVIDA (12/12); resposta com
+  "⚔ Acao (48h)" → botão "Aceitar como missão" → objetivo 🔮 Do Oráculo prazo
+  48h + botão "✓ Missão aceite"; sussurro 🔮 na saudação; consola limpa. Falta:
+  Constelações WebGL + Vista de Universo; camada fx/motion (animações).
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

@@ -15,6 +15,8 @@ import DeadlineBanner from './components/DeadlineBanner.jsx';
 import Achievements from './components/Achievements.jsx';
 import Debuffs from './components/Debuffs.jsx';
 import Titles from './components/Titles.jsx';
+import Calendar from './components/Calendar.jsx';
+import { exportStateFile } from './lib/exports.js';
 
 // Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
 // app_state. Fase 2: o palco vive por trás de tudo. Fase 3: o primeiro painel
@@ -80,7 +82,7 @@ function AuthGate() {
 // HUD — o quadro real (por agora, só o herói migrado). O css/hud.css intacto dá
 // o aspeto; os restantes painéis do Vanilla entram nas fases seguintes.
 function Hud() {
-  const { S, user, sync, logout } = useStore();
+  const { S, user, sync, logout, resetAll } = useStore();
   const syncLabel = sync === 'ok' ? '☁️ Sincronizado' + (user ? ' · ' + user.email : '')
     : sync === 'saving' ? '⏳ A sincronizar…'
     : sync === 'err' ? '⚠️ Sem ligação à nuvem — guardado localmente'
@@ -111,13 +113,16 @@ function Hud() {
       <Achievements S={S} />
       <Debuffs S={S} />
       <Titles S={S} />
+      <Calendar S={S} />
 
       <Objectives S={S} />
 
       <div className="foot">
         <small id="sync-st">{syncLabel}</small>
         <div style={{ display: 'flex', gap: 8 }}>
+          <button className="rst" onClick={() => exportStateFile(S)} title="Descarrega o teu estado em JSON">📊 Exportar p/ Advisor</button>
           {user && <button className="rst" onClick={() => logout()}>Sair</button>}
+          <button className="rst" onClick={() => resetAll()}>Reiniciar sistema</button>
         </div>
       </div>
     </div>

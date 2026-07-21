@@ -13,6 +13,7 @@ import { consecTrained } from '../state/training.js';
 import { calcHours } from '../state/sleep.js';
 import { DEBUFFS, TITLES_REAL } from '../state/config.js';
 import { titleProg } from '../state/titles.js';
+import { guessEvType } from '../state/calendar.js';
 
 // Store central do Sistema (Missão 25 · Fase 1 — a casca viva).
 // Espelha o app_state (o antigo global `S`) e a cola de persistência do antigo
@@ -328,6 +329,25 @@ export const useStore = create((set, get) => ({
     S.titleEv[tid] = S.titleEv[tid] || {}; S.titleEv[tid][rid] = !S.titleEv[tid][rid];
     if (titleProg(S, t).pct === 100 && !S.titleUnlocked[tid]) { S.titleUnlocked[tid] = today(); plog(S, '👑 Título real: ' + t.name, 0); }
     if (titleProg(S, t).pct < 100 && S.titleUnlocked[tid]) delete S.titleUnlocked[tid];
+    set({ S: { ...S } }); get().save();
+  },
+
+  // ===== CALENDÁRIO (Fase 11) =====
+  // addEvent — porto de hud.js:79 (tipo AUTO via guessEvType).
+  addEvent: ({ date, title, type }) => {
+    const S = get().S; const t = (title || '').trim(); if (!date || !t) return { error: 'incompleto' };
+    let ty = type; if (ty === 'AUTO') ty = guessEvType(t);
+    S.events.push({ id: 'e' + Date.now(), date, title: t, type: ty });
+    set({ S: { ...S } }); get().save(); return {};
+  },
+  // delEvent — porto de hud.js:81.
+  delEvent: (id) => { const S = get().S; S.events = S.events.filter((e) => e.id !== id); set({ S: { ...S } }); get().save(); },
+
+  // resetAll — porto de engine.js:86. Recomeço total (com confirmação). Reconstrói
+  // o estado normalizado + o set de recall do dia, como um boot fresco.
+  resetAll: () => {
+    if (!window.confirm('Reiniciar todo o progresso? Não há volta atrás.')) return;
+    const S = normalize(fresh()); try { getDailyRecallSet(S); } catch (e) {}
     set({ S: { ...S } }); get().save();
   },
 }));

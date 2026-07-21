@@ -1023,6 +1023,20 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   Foundations (CNCS)" (reatividade entre painéis pelo mesmo store); consola
   limpa. FX deferido; notificações browser (enableNotif/checkNotif) por migrar.
 
+- Fase 11 (CONCLUÍDA 2026-07-21): Calendário + eventos + exportações (parte 2 do
+  hud.js). `src/state/calendar.js` (guessEvType, MONTHS); `src/lib/exports.js`
+  (exportStateFile JSON + exportICS — porto verbatim do M20, RFC 5545). Ações:
+  `addEvent` (tipo AUTO via guessEvType), `delEvent`, `resetAll` (recomeço com
+  confirmação → normalize(fresh)+set do dia). `Calendar.jsx` — grelha do mês
+  navegável (calY/calM local), selo em dias passados com XP, pontos/eventos,
+  próximos prazos, add/remover, botão Exportar .ics. Rodapé completo (Exportar
+  p/ Advisor JSON + Reiniciar sistema). Notificações browser adiadas para uma
+  fase de PWA. Verificado headless (Brave/CDP): calendário "Julho 2026" com
+  célula de hoje; adicionar "Exame de RGPD" → tipo exame, ponto no dia, em
+  próximos prazos, faixa de prazos visível; navegar → "Agosto 2026"; botão .ics
+  existe e clica sem erro; apagar evento → 0; resetAll (confirm) zera o total
+  (19→0); consola limpa.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

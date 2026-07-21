@@ -18,6 +18,8 @@ import Titles from './components/Titles.jsx';
 import Calendar from './components/Calendar.jsx';
 import KnowledgeMap from './components/KnowledgeMap.jsx';
 import World from './components/World.jsx';
+import RadarNews from './components/RadarNews.jsx';
+import OracleReport from './components/OracleReport.jsx';
 import { exportStateFile } from './lib/exports.js';
 
 // Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
@@ -100,6 +102,11 @@ function Hud() {
       <Hero S={S} />
 
       <World S={S} />
+
+      <div className="cols">
+        <RadarNews S={S} />
+        <OracleReport />
+      </div>
 
       <div className="cols">
         <Attributes S={S} />

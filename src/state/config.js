@@ -134,6 +134,9 @@ export const QUOTES = [['A felicidade da tua vida depende da qualidade dos teus 
 // Tipos de evento do calendário (data.js:130).
 export const EVT = { prazo: { l: 'Prazo', c: '#ef4444' }, exame: { l: 'Exame', c: '#fb923c' }, evento: { l: 'Evento', c: '#38bdf8' }, treino: { l: 'Treino', c: '#34d399' }, outro: { l: 'Outro', c: '#a78bfa' } };
 
+// Áreas do Radar Diário (data.js:168).
+export const RAREA = { cyber: { l: 'Cyber', c: '#ef4444' }, nis2: { l: 'NIS2', c: '#a78bfa' }, rgpd: { l: 'RGPD', c: '#34d399' }, iso27001: { l: 'ISO 27001', c: '#38bdf8' }, aigov: { l: 'AI Gov', c: '#f472b6' }, ai: { l: 'IA', c: '#c084fc' }, evento: { l: '📅 Evento', c: '#fbbf24' }, vaga: { l: '🎯 Vigia · Vaga', c: '#34d399' } };
+
 // Missões / triagem (data.js:151-166) — prioridades, estados e palavras-chave.
 export const PRI = { P1: { xp: 150, lvl: 10, c: '#ef4444' }, P2: { xp: 90, lvl: 6, c: '#fb923c' }, P3: { xp: 50, lvl: 3, c: '#34d399' }, BOSS: { xp: 400, lvl: 15, c: '#facc15' } };
 export const OST = ['pend', 'doing', 'done'];

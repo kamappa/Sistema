@@ -45,6 +45,8 @@ export const useStore = create((set, get) => ({
   sync: 'local',      // 'ok' | 'saving' | 'err' | 'local' (espelha setSync do auth.js)
   booted: false,      // já resolveu sessão + (tentou) carregar estado
   initStarted: false, // guarda contra o duplo-invoke do StrictMode
+  radar: [],          // radar_items (Oráculo · Fase 14)
+  report: null,       // último oracle_report
 
   setS: (S) => set({ S }),
 
@@ -78,6 +80,7 @@ export const useStore = create((set, get) => ({
     try { await loadRecallBank(); getDailyRecallSet(S); } catch (e) {}
     set({ S, booted: true });
     get().fetchWeather(); // meteo real, fire-and-forget (World Engine · Fase 13)
+    if (user) get().loadOracleData(); // Radar + relatório do Oráculo (Fase 14)
     localSave(S);
     if (user) { const ok = await cloudSave(user, S); set({ sync: ok ? 'ok' : 'err' }); }
     else set({ sync: 'local' });
@@ -396,6 +399,38 @@ export const useStore = create((set, get) => ({
   },
   arcLater: () => { const S = get().S; S.worldArc = { id: seasonArcNow().id, status: 'later', snooze: today() }; set({ S: { ...S } }); get().save(); },
   arcIgnore: () => { const S = get().S; S.worldArc = { id: seasonArcNow().id, status: 'dismissed' }; set({ S: { ...S } }); get().save(); },
+
+  // ===== RADAR + ORÁCULO (Fase 14) =====
+  // loadOracleData — porto de radar.js:7-17. Lê radar_items (7d) + o último
+  // oracle_report do Supabase. Só com sessão; falha degrada em silêncio.
+  loadOracleData: async () => {
+    const user = get().user; if (!user || !supabase) return;
+    try {
+      const since = new Date(); since.setDate(since.getDate() - 7);
+      const { data: r } = await supabase.from('radar_items').select('*').gte('d', fmt(since)).order('created_at', { ascending: false }).limit(48);
+      const { data: rep } = await supabase.from('oracle_reports').select('report,created_at').order('created_at', { ascending: false }).limit(1);
+      set({ radar: r || [], report: (rep && rep[0]) || null });
+    } catch (e) {}
+  },
+
+  // acceptRadarMission — porto de radar.js:81-88. Cria missão via triage (tag
+  // 📡 Do Radar) e marca radarAccepted. Toast/floatXP = fx.
+  acceptRadarMission: (id) => {
+    const S = get().S; const it = get().radar.find((x) => x.id === id); if (!it || !it.missao || !it.missao.t) return;
+    if (S.radarAccepted[id]) return { error: 'ja-aceite' };
+    const m = it.missao; const tr = triage(m.t, m.deadline || null);
+    S.objectives.push({ id: 'o' + Date.now(), title: m.t, area: (m.area && AM[m.area]) ? m.area : (tr.area || 'oficio'), pri: (m.pri && PRI[m.pri]) ? m.pri : tr.imp, auto: true, deadline: m.deadline || null, status: 'pend', created: today(), tags: ['📡 Do Radar', ...(tr.tags || [])], oracle: true });
+    S.radarAccepted[id] = true;
+    set({ S: { ...S } }); get().save(); return {};
+  },
+
+  // acceptOracleMission — porto de radar.js:74-80 (tag 🔮 Do Oráculo).
+  acceptOracleMission: (i) => {
+    const S = get().S; const r = get().report && get().report.report; if (!r || !r.missoes_propostas || !r.missoes_propostas[i]) return;
+    const m = r.missoes_propostas[i]; const tr = triage(m.t || 'Missão do Oráculo', m.deadline || null);
+    S.objectives.push({ id: 'o' + Date.now(), title: m.t || 'Missão do Oráculo', area: (m.area && AM[m.area]) ? m.area : (tr.area || 'oficio'), pri: (m.pri && PRI[m.pri]) ? m.pri : tr.imp, auto: true, deadline: m.deadline || null, status: 'pend', created: today(), tags: ['🔮 Do Oráculo', ...(tr.tags || [])], oracle: true });
+    set({ S: { ...S } }); get().save();
+  },
 }));
 
 // Ponte para o palco WebGL (Fase 2): o loop rAF do palco lê o estado FORA do

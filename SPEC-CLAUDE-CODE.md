@@ -1066,6 +1066,22 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   Conselho (chat Edge Function) e o painel das Constelações (WebGL) + Vista de
   Universo. Mais a camada fx/motion (animações deferidas).
 
+- Fase 14 (CONCLUÍDA 2026-07-21): Radar Diário + Oráculo (relatório). `RAREA` em
+  config. Store ganhou `radar`/`report` + `loadOracleData` (porto de radar.js:
+  7-17; lê radar_items 7d + último oracle_report do Supabase; corre no boot com
+  sessão), `acceptRadarMission` (tag 📡 Do Radar) e `acceptOracleMission` (tag
+  🔮 Do Oráculo), ambos via triage. `RadarNews.jsx` (notícias por dia, alto
+  impacto, favicon, chip de área, aceitar) e `OracleReport.jsx` (resumo/treino/
+  sono/estudo/alerta/propostas/missões/recursos/efeméride/profecia/recompensa/
+  título/legado). FX (scanline/typewriter) deferido. Verificado headless (Brave/
+  CDP, dados semeados via setState — a validação com dados REAIS do Supabase fica
+  para o Daniel com a conta dele): offline = convite a entrar; com user+radar+
+  report semeados → item de alto impacto com chip NIS2 e botão; aceitar Radar →
+  objetivo "📡 Do Radar" + radarAccepted + botão "✓ Missão aceite"; relatório com
+  resumo/título "Forjador"/profecia; aceitar missão do Oráculo → objetivo "🔮 Do
+  Oráculo" pri P1; consola limpa. Falta migrar: Conselho (chat Edge Function) e
+  Constelações WebGL; camada fx/motion.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

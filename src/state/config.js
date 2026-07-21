@@ -192,6 +192,28 @@ export const PROG = {
 export const TLINES = [{ id: 'push', n: 'Empurrar', c: '#f472b6' }, { id: 'pull', n: 'Puxar', c: '#38bdf8' }, { id: 'legs', n: 'Pernas', c: '#34d399' }, { id: 'core', n: 'Core', c: '#fbbf24' }];
 export const KLINE = { id: 'kegel', n: 'Pavimento Pélvico', c: '#c084fc' };
 
+// Sussurros do mundo (data.js:78-97) — micro-ações diárias (Fate Engine).
+export const WHISPERS = [
+  { t: 'Envia uma mensagem a um contacto (LinkedIn ou colega)', attr: 'vinculos', xp: 10 },
+  { t: 'Escreve 5 linhas no Codex/OneNote sobre algo que aprendeste', attr: 'saber', xp: 10 },
+  { t: '10 min de leitura de uma norma (ISO / RGPD / NIS2)', attr: 'oficio', xp: 10 },
+  { t: 'Caminhada de 15 minutos sem telemóvel', attr: 'corpo', xp: 10 },
+  { t: 'Planeia amanhã em 3 linhas antes de dormir', attr: 'mente', xp: 10 },
+  { t: 'Arruma o espaço de trabalho (5 min)', attr: 'disciplina', xp: 8 },
+  { t: 'Diz à tua namorada uma coisa que aprecias nela', attr: 'vinculos', xp: 10 },
+  { t: 'Revê as notas de ontem em 10 min', attr: 'saber', xp: 10 },
+  { t: 'Lê 1 artigo sobre AI Governance / AI Act', attr: 'oficio', xp: 10 },
+  { t: 'Alonga 10 minutos', attr: 'corpo', xp: 8 },
+  { t: 'Escreve 3 linhas: o que correu bem hoje?', attr: 'mente', xp: 8 },
+  { t: 'Prepara já o que precisas para amanhã (roupa, mochila, treino)', attr: 'disciplina', xp: 8 },
+];
+export const WH_SEASON = {
+  summer: [{ t: 'Protetor solar antes de sair — pele também é Corpo', attr: 'corpo', xp: 6 }, { t: 'Treina de manhã cedo, antes do calor', attr: 'disciplina', xp: 10 }, { t: '+1 garrafa de água hoje — o calor cobra', attr: 'corpo', xp: 6 }, { t: '20 min de sol com juízo — vitamina D grátis', attr: 'corpo', xp: 8 }, { t: 'Fruta da época em vez de snack processado', attr: 'corpo', xp: 6 }, { t: 'Estuda na hora mais quente, treina na fresca', attr: 'mente', xp: 8 }],
+  harvest: [{ t: 'Caminhada de outono — ar fresco, cabeça limpa', attr: 'corpo', xp: 8 }, { t: 'Chá quente + 20 páginas', attr: 'saber', xp: 8 }, { t: 'Organiza a semana ao domingo à noite', attr: 'mente', xp: 8 }],
+  winter: [{ t: 'Apanha luz natural de manhã (10 min)', attr: 'corpo', xp: 8 }, { t: 'Deita-te 30 min mais cedo — o inverno é para forjar', attr: 'disciplina', xp: 8 }, { t: 'Sopa ou refeição quente a sério hoje', attr: 'corpo', xp: 6 }, { t: 'Treino indoor, sem desculpas de frio', attr: 'corpo', xp: 10 }],
+  bloom: [{ t: 'Treina ao ar livre hoje', attr: 'corpo', xp: 10 }, { t: 'Caminhada na natureza sem telemóvel', attr: 'mente', xp: 8 }, { t: 'Convida alguém para um café esta semana', attr: 'vinculos', xp: 10 }],
+};
+
 // Curva de XP por nível (engine.js:26) — quanto falta para o próximo nível.
 export const need = (l) => 40 + l * 20;
 

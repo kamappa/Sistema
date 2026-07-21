@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabase.js';
 import { fresh } from '../state/fresh.js';
 import { normalize } from '../state/normalize.js';
-import { today, yday } from '../state/dates.js';
+import { today, yday, fmt } from '../state/dates.js';
 import { AM, PRI, OST, TIER_KEY, RECALL_THEMES } from '../state/config.js';
-import { xpMult } from '../state/world.js';
+import { xpMult, seasonArcNow, seasonBounds, whisperToday } from '../state/world.js';
 import { addXp, plog, unlog } from '../state/engine.js';
 import { triage } from '../state/objectives.js';
 import { loadRecallBank, getDailyRecallSet, reviewQuestion, findQuestion, bumpStudyStreak } from '../state/recall.js';
@@ -77,6 +77,7 @@ export const useStore = create((set, get) => ({
     // getDailyRecallSet). Falha de fetch degrada para set vazio, sem derrubar.
     try { await loadRecallBank(); getDailyRecallSet(S); } catch (e) {}
     set({ S, booted: true });
+    get().fetchWeather(); // meteo real, fire-and-forget (World Engine · Fase 13)
     localSave(S);
     if (user) { const ok = await cloudSave(user, S); set({ sync: ok ? 'ok' : 'err' }); }
     else set({ sync: 'local' });
@@ -350,6 +351,51 @@ export const useStore = create((set, get) => ({
     const S = normalize(fresh()); try { getDailyRecallSet(S); } catch (e) {}
     set({ S: { ...S } }); get().save();
   },
+
+  // ===== WORLD ENGINE (Fase 13) =====
+  // fetchWeather — porto de world.js:29-37. Meteo real (Open-Meteo, V.N.Famalicão)
+  // alimenta o Solar/rainy/heat. Fire-and-forget no boot; falha degrada.
+  fetchWeather: async () => {
+    const S = get().S; if (S.weather && S.weather.d === today()) return;
+    try {
+      const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=41.41&longitude=-8.52&daily=temperature_2m_max,precipitation_sum&forecast_days=1&timezone=auto');
+      const j = await r.json();
+      S.weather = { d: today(), tmax: j.daily.temperature_2m_max[0], rain: j.daily.precipitation_sum[0] };
+      set({ S: { ...S } }); get().save();
+      if (window.ambientApply) window.ambientApply();
+    } catch (e) {}
+  },
+
+  // claimWhisper — porto de world.js:41-45. 1 sussurro/dia; XP ×xpMult + registo.
+  claimWhisper: () => {
+    const S = get().S; if (S.whisper[today()]) return; const w = whisperToday(S);
+    S.whisper[today()] = true; const g = Math.round(w.xp * xpMult(S, w.attr));
+    addXp(S, w.attr, g); plog(S, '🌬 ' + w.t, g);
+    set({ S: { ...S } }); get().save();
+  },
+
+  // startRecovery — porto de world.js:61-66. 2 dias sem penalizações.
+  startRecovery: () => {
+    const S = get().S; const d = new Date(); d.setDate(d.getDate() + 2);
+    S.recovery = { until: fmt(d) }; plog(S, '🌙 Recovery ativado (2 dias)', 0);
+    set({ S: { ...S } }); get().save();
+  },
+
+  // arcAccept/Later/Ignore — porto de world.js:69-81. Aceitar traz as missões do
+  // arco (via triage, prazo no fim do arco) + 15 Mente.
+  arcAccept: () => {
+    const S = get().S; const a = seasonArcNow(), b = seasonBounds(a);
+    S.worldArc = { id: a.id, status: 'active', start: b.start, end: b.end }; let n = 0;
+    (a.quests || []).forEach((q, i) => {
+      if (S.objectives.some((o) => o.title === q.t)) return;
+      const tr = triage(q.t, b.end);
+      S.objectives.push({ id: 'o' + Date.now() + '_' + i, title: q.t, area: q.area || tr.area || 'oficio', pri: q.pri || tr.imp, auto: true, deadline: b.end, status: 'pend', created: today(), tags: [a.name.split(' ')[0] + ' Arco', ...(tr.tags || [])], arc: a.id }); n++;
+    });
+    addXp(S, 'mente', 15); plog(S, 'Arco aceite: ' + a.name, 15);
+    set({ S: { ...S } }); get().save(); return { n };
+  },
+  arcLater: () => { const S = get().S; S.worldArc = { id: seasonArcNow().id, status: 'later', snooze: today() }; set({ S: { ...S } }); get().save(); },
+  arcIgnore: () => { const S = get().S; S.worldArc = { id: seasonArcNow().id, status: 'dismissed' }; set({ S: { ...S } }); get().save(); },
 }));
 
 // Ponte para o palco WebGL (Fase 2): o loop rAF do palco lê o estado FORA do

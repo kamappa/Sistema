@@ -1050,6 +1050,22 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   rgpd semeadas → Mapa mostra rgpd 60% (3/5) + volume + 2 pontos fracos; consola
   limpa.
 
+- Fase 13 (CONCLUÍDA 2026-07-21): World Engine. Constantes WHISPERS/WH_SEASON em
+  config; `world.js` ganha seasonBounds, heatActive, whisperToday, vitals (porto
+  de world.js:10-60). Ações: `fetchWeather` (Open-Meteo, fire-and-forget no
+  boot), `claimWhisper` (1/dia, XP×xpMult), `startRecovery` (2 dias sem
+  penalização), `arcAccept`/`arcLater`/`arcIgnore` (aceitar traz as missões do
+  arco via triage + 15 Mente). `World.jsx` — arco (propor/ativo com contagem de
+  dias e bónus), eventos do dia (Double XP/Rainy/Heat/Recovery/recolher), sussurro
+  do dia, sinais vitais (momentum/burnout/recuperação) e sugestão de Recovery aos
+  70% de burnout. FX (toasts) deferido. Verificado headless (Brave/CDP): Summer
+  Arc a propor (3 botões), 3 vitais (burnout 40%), sussurro reclamável (+10 XP,
+  ✓), aceitar arco → ativo + 4 missões sazonais + 15 Mente + 2 chips de bónus,
+  Recovery ativa o chip; consola limpa.
+  Falta migrar (server/WebGL): Radar Diário + Oráculo (radar.js, lê Supabase),
+  Conselho (chat Edge Function) e o painel das Constelações (WebGL) + Vista de
+  Universo. Mais a camada fx/motion (animações deferidas).
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

@@ -1220,6 +1220,21 @@ manuais acima) — o gate que troca o site em produção do Vanilla para o React
 Antes disso, ele deve testar a branch com a conta real (Oráculo chat/sussurro/
 report + sync Supabase — o único que o headless não cobre).
 
+## Oráculo Evoluído (Jarvis) — PLANO, não execução
+
+Visão-mãe do agente em `ORACULO-ROADMAP.md` (raiz, 2026-07-22). NÃO é missão
+aberta — é o mapa que o Sistema segue quando o Daniel decidir arrancar. Do
+conselheiro invocado para Guardião do Núcleo proativo, com ferramentas (MCP),
+memória verdadeira (`oracle_memory`) e workflows autónomos (n8n OU Managed
+Agents). Fases O1–O5 (O1 = memória, a mais barata/reversível, recomendada como
+1º passo). É um programa multi-missão: envolve custo de API contínuo, infra e
+postura de segurança — GATE do Daniel em cada fase. Diferencial: construir o
+próprio agente GOVERNADO (EU AI Act / ISO 42001 / NIST AI RMF / RGPD) é
+dogfooding da carreira dele; entregável barato = `GOVERNANCE.md` do Oráculo
+ANTES de qualquer autonomia. Decisões pendentes do Daniel antes de construir:
+orçamento mensal, espinha (n8n self-host vs. CMA vs. Edge Function DIY +
+MCP/memória), matriz auto-vs-gated. Até lá, nada de autonomia — só o plano.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

@@ -1098,6 +1098,31 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   48h + botão "✓ Missão aceite"; sussurro 🔮 na saudação; consola limpa. Falta:
   Constelações WebGL + Vista de Universo; camada fx/motion (animações).
 
+- Fase 16 (CONCLUÍDA 2026-07-22): Constelações WebGL + Vista de Universo — o
+  último painel funcional. O motor `src/stage/constellation.js` (1255 linhas)
+  já estava portado das M16/17 mas nunca montado: faltava a casca React que
+  fornece o DOM que ele procura (`#constel-cv`, `#const-labels`, `#const-chips`)
+  e as pontes dos globais do Vanilla. `src/components/Constellations.jsx` replica
+  a marca do painel do legacy (o `css/hud.css` intacto dá o aspeto) e chama
+  `initConstellation()` 1× no mount (guard de módulo — o renderer WebGL prende-se
+  ao canvas; StrictMode re-corre o efeito no mesmo nó). `Stage.jsx` pontou os
+  globais em falta (`CONSTELLATIONS`/`ATTRS`/`AM`/`TITLES_REAL`/`save`) e passou
+  a chamar `window.renderConstellation()` no subscribe do store — o equivalente
+  ao `renderConstellation()` no fim de cada `render()` do Vanilla (deteta
+  nascimentos de estrelas por evidência nova). Bónus: pontar `CONSTELLATIONS`
+  corrigiu um bug pré-existente — `state.js` (palco) chama `coreState()` a cada
+  `updateWorld()`, mas sem o global o `world.core` esteve sempre em 0; agora o
+  Núcleo do mundo responde à evidência. Verificado headless (Brave/CDP): fresh =
+  0 estrelas + `world.core` 0; evidência semeada (saber lvl12 + título cncs) → 6
+  estrelas nascem, `saber:esp` (lvl12), `oficio:cncs` com a DATA REAL do título
+  (2026-05-10, não hoje), `oficio:iso` NÃO nasce (sem evidência) — "o sistema
+  nunca mente"; `world.core` sobe a 1; Universo → clicar Saber mergulha (chip
+  ativo) → volta ao Universo; regressão (saber lvl1) preserva a data histórica
+  de nascimento (conceito M16); consola limpa. NOTA fx/motion deferido: sem
+  `window.Motion`, a câmara (fly-in/zoom/dolly) assenta sem mola — funcional mas
+  sem o cinematográfico. Falta migrar: a camada fx/motion (animações deferidas
+  em TODAS as fases) — é a próxima e última fase da migração.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

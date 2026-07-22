@@ -21,6 +21,7 @@ import Conselho from './components/Conselho.jsx';
 import World from './components/World.jsx';
 import RadarNews from './components/RadarNews.jsx';
 import OracleReport from './components/OracleReport.jsx';
+import Constellations from './components/Constellations.jsx';
 import { exportStateFile } from './lib/exports.js';
 
 // Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
@@ -126,6 +127,7 @@ function Hud() {
 
       <Achievements S={S} />
       <Debuffs S={S} />
+      <Constellations />
       <Titles S={S} />
       <Calendar S={S} />
 

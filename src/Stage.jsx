@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useStore } from './store/useStore.js';
 import { today } from './state/dates.js';
+import { CONSTELLATIONS, ATTRS, AM, TITLES_REAL } from './state/config.js';
 
 // Missão 25 · Fase 2 — a ponte para o palco WebGL (o maior risco, resolvido
 // cedo). O palco (src/stage/, ~2065 linhas) NÃO é reescrito: continua a ler o
@@ -14,8 +15,29 @@ let stageImported = false;
 export default function Stage() {
   useEffect(() => {
     window.today = today;                       // state.js: recovery <= S.recovery.until
+    // Constelações (Fase 16): o constellation.js clássico lê estes como globais
+    // do Vanilla (typeof CONSTELLATIONS/ATTRS/AM/TITLES_REAL). São constantes
+    // estáticas — pontam uma vez. Isto também dá vida ao world.core do palco:
+    // state.js chama coreState() (lê CONSTELLATIONS) a cada updateWorld() — sem
+    // esta ponte o Núcleo do mundo esteve sempre em 0.
+    window.CONSTELLATIONS = CONSTELLATIONS;
+    window.ATTRS = ATTRS;
+    window.AM = AM;
+    window.TITLES_REAL = TITLES_REAL;
+    // save() global: o constellation.js persiste S.constellation.born/choices
+    // (evidência datada) fora do ciclo React. Muta window.S em-lugar (mesmo
+    // objeto do store) e chama save() — encaminhamos para o store real.
+    window.save = () => useStore.getState().save();
+
     window.S = useStore.getState().S;           // ponte inicial
-    const unsub = useStore.subscribe((st) => { window.S = st.S; }); // mantém fresco
+    // mantém window.S fresco e re-avalia o céu a cada mudança de estado — é o
+    // equivalente ao renderConstellation() no fim de cada render() do Vanilla
+    // (deteta nascimentos de estrelas por evidência nova). Guardado: só existe
+    // depois de o painel montar e correr initConstellation().
+    const unsub = useStore.subscribe((st) => {
+      window.S = st.S;
+      if (window.renderConstellation) window.renderConstellation();
+    });
 
     if (!stageImported) {
       stageImported = true; // ES module é singleton, mas o StrictMode chama o efeito 2x

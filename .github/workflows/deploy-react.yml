@@ -1,0 +1,73 @@
+# Deploy da app React (Vite) para GitHub Pages — Missão 25 (migração React).
+#
+# ESTADO: preparado mas NÃO ativo. Só dispara em `push` para `main` (ou manual
+# via workflow_dispatch). Enquanto o trabalho vive na branch `react-migration`,
+# este workflow NUNCA corre — a produção continua a servir o monólito Vanilla.
+#
+# ANTES DE ATIVAR (passos manuais do Daniel, que o CI não pode fazer):
+#   1. Repo → Settings → Pages → "Build and deployment" → Source: "GitHub Actions"
+#      (hoje está em "Deploy from a branch / root" a servir o index.html Vanilla).
+#      Sem isto, mesmo com o merge para main o Pages continua a servir o Vanilla.
+#   2. Supabase → Authentication → URL Configuration: garantir que
+#      https://kamappa.github.io/Sistema/ está no Site URL / Redirect URLs
+#      (só relevante para os emails de confirmação do signUp; o login por
+#      password não redireciona). O login/sync do dia-a-dia usa a mesma anon key.
+#   3. Fazer o merge de `react-migration` → `main` (o gate: troca o site em uso).
+#      Rollback: reverter o merge → o Pages volta ao Vanilla (cache ~5 min).
+#
+# NOTA (o sistema nunca mente): a app NÃO usa variáveis de ambiente. A URL e a
+# anon key do Supabase estão hardcoded em src/lib/supabase.js (a anon key é
+# pública por desenho — o RLS protege os dados). Por isso o build corre sem
+# quaisquer secrets. O Three.js (src/vendor/) é import de source, empacotado
+# pelo Vite no bundle — não precisa de nada em public/.
+
+name: Deploy React to Pages
+
+on:
+  push:
+    branches: [main]        # só em main — a branch de trabalho não dispara
+  workflow_dispatch:        # e manualmente, quando quiseres
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# uma corrida de cada vez; não cancela um deploy a meio
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build (Vite)
+        run: npm run build   # base '/Sistema/' vem do vite.config.js
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1188,10 +1188,26 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
     consola limpa. NOTA: o toggle de scroll da topbar é flaky no headless (o
     `scrollTo` nem sempre regista) mas o código é o porto exato do Vanilla.
 
+- Fase 18 — Deploy (PREPARADO, NÃO ATIVO — 2026-07-22): `.github/workflows/
+  deploy-react.yml` criado na branch. Build Vite → `upload-pages-artifact` →
+  `deploy-pages`. Só dispara em `push` para `main` (+ `workflow_dispatch`) — na
+  branch `react-migration` NUNCA corre, a produção continua no Vanilla. SEM
+  secrets: a app não usa env — a URL e a anon key do Supabase estão hardcoded em
+  `src/lib/supabase.js` (anon pública por desenho, RLS protege); o Three.js é
+  import de source empacotado pelo Vite (não precisa de `public/`). Simulado o CI
+  localmente: `npm ci` (76 pacotes) + `npm run build` → `dist/index.html`
+  referencia `/Sistema/assets/...` (base correto). PASSOS MANUAIS do Daniel antes
+  de ativar (o CI não os faz), documentados no cabeçalho do workflow: (1) Repo →
+  Settings → Pages → Source: "GitHub Actions"; (2) Supabase → Auth URL config
+  incluir `kamappa.github.io/Sistema/` (só p/ emails de confirmação do signUp);
+  (3) merge `react-migration` → `main` (o gate; rollback = reverter o merge).
+
 Missão 25 — estado: toda a FUNCIONALIDADE e a camada fx/motion (incl. 17b) estão
-migradas e verificadas na branch `react-migration`. Por fechar: só o deploy por
-build (workflow GitHub Actions) — concern de infraestrutura, GATE do Daniel
-porque troca o site em produção do Vanilla para o React (irreversível/dados reais).
+migradas e verificadas na branch `react-migration`, e o workflow de deploy está
+PREPARADO mas inativo. Falta só a decisão do Daniel de ativar (os 3 passos
+manuais acima) — o gate que troca o site em produção do Vanilla para o React.
+Antes disso, ele deve testar a branch com a conta real (Oráculo chat/sussurro/
+report + sync Supabase — o único que o headless não cobre).
 
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 

@@ -10,6 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <title>SISTEMA — Daniel</title>
+  <!-- bootstrap do boot sequence (Fase 17b): tem de correr antes do 1º paint,
+       por isso é inline no head. Marca html.boot 1×/sessão; o fx.js corre a
+       sequência (fundo → partículas → saudação escrita → painéis em stagger). -->
+  <script>try{if(!sessionStorage.getItem('sysboot')&&!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('boot')}catch(e){}</script>
 </head>
 <body>
   <div id="root"></div>

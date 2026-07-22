@@ -152,32 +152,43 @@ function sysType(el, ms) {
   })();
 }
 
-/* reveal ao entrar no viewport — painéis abaixo da dobra erguem-se ao scroll.
-   No Vanilla corria 1× no load; aqui é um instalador que o App chama após o
-   HUD montar (idempotente: só apanha .reveal que ainda não subiram). */
-function installReveal() {
-  if (!('IntersectionObserver' in window) || rm()) return;
-  const els = [...document.querySelectorAll('.reveal:not(.io):not(.in)')]
-    .filter(el => el.getBoundingClientRect().top > innerHeight);
-  if (!els.length) return;
-  const io = new IntersectionObserver(es => es.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
-  }), { rootMargin: '0px 0px -40px 0px' });
-  els.forEach(el => { el.classList.add('io'); io.observe(el); });
-}
+/* NOTA React (Fase 17b): o reveal-ao-scroll (IntersectionObserver a pôr .io/.in)
+   e o handler `animationend` que removia `.reveal` eram do modelo innerHTML do
+   Vanilla — mutam a className, que o React possui e reescreve a cada render,
+   entrando em conflito (painel preso a opacity:0). Ficam DE FORA: o CSS
+   `.reveal{animation:rise … forwards}` já mantém o painel visível no fim, e no
+   React todos os painéis animam uma vez no mount (o comportamento das fases
+   1-16). O boot continua a reger o reveal inicial via `html.boot .reveal`. */
 
-// liberta o transform após o rise (mesmo handler global do Vanilla)
-document.addEventListener('animationend', e => {
-  if (e.animationName === 'rise' && e.target.classList.contains('reveal'))
-    e.target.classList.remove('reveal', 'io', 'in');
-});
+/* boot sequence (Fase 17b) — fundo (400ms) → partículas → saudação escrita →
+   painéis em stagger. ~1.1s, saltável com clique, 1×/sessão (o head marcou
+   html.boot). Corre no import do fx.js (antes do React montar, como o script
+   clássico do Vanilla). typeGreet re-tenta até o #greet-h existir (o HUD React
+   monta depois da resolução da sessão); a janela fecha aos 1150ms. */
+(function () {
+  const R = document.documentElement;
+  if (!R.classList.contains('boot')) return;
+  try { sessionStorage.setItem('sysboot', '1'); } catch (e) {}
+  const timers = []; let live = true;
+  const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+  function typeGreet() { const el = document.getElementById('greet-h');
+    if (!el || !el.textContent) { if (live) at(120, typeGreet); return; } sysType(el, 20); }
+  function finish() { if (!live) return; live = false; timers.forEach(clearTimeout);
+    R.classList.add('boot-on', 'boot-greet'); R.classList.remove('boot');
+    sysTypeFlush(); if (window.dustStart) window.dustStart(); }
+  document.addEventListener('click', finish, { once: true });
+  at(60, () => R.classList.add('boot-on'));
+  at(420, () => { if (window.dustStart) window.dustStart(); });
+  at(620, () => { R.classList.add('boot-greet'); typeGreet(); });
+  at(1150, () => { live = false; R.classList.remove('boot'); });
+})();
 
 // expõe as primitivas como globais — o motor/store/componentes chamam-nas
 // guardadas por `if(window.x)`, exatamente como no Vanilla ("divergência = bug")
 Object.assign(window, {
   toast, hideToast, pauseToast, resumeToast, floatXP, cinePulse, celebrate,
   cineMoment, cineArise, rankCeremony, setNum, cardWave, panelScan, barBurst,
-  sysType, sysTypeFlush, installReveal,
+  sysType, sysTypeFlush,
 });
 
-export { toast, floatXP, cineArise, cardWave, panelScan, setNum, rankCeremony, celebrate, installReveal, pauseToast, resumeToast };
+export { toast, floatXP, cineArise, cardWave, panelScan, setNum, rankCeremony, celebrate, pauseToast, resumeToast };

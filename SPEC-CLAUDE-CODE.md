@@ -1159,16 +1159,39 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
     é um-de-cada-vez, os outros caem para toast, como no Vanilla); setNum apanhado
     a meio da mola (#txp 138 rumo a 150 — a animação corre); Constelações com
     Motion mergulham em mola; reduced-motion = 0 overlays sem erro; consola limpa.
-  - DELIBERADAMENTE de fora (não são o essencial e/ou colidem com o React):
-    o typewriter do relatório longo do Oráculo (`sysTypeHTML` reescreve nós de
-    texto que o React possui), a boot sequence (`html.boot`) e a topbar-glass
-    (`#topbar`) — polimento aditivo, candidatos a uma fase 17b se o Daniel os
-    quiser. Falta para fechar a Missão 25: o deploy (workflow GitHub Actions com
-    build step) — concern separado, não de migração de funcionalidade.
+  - DELIBERADAMENTE de fora: só o typewriter do relatório longo do Oráculo
+    (`sysTypeHTML` reescreve nós de texto que o React possui — colidiria com
+    re-renders). A boot sequence e a topbar-glass entraram na 17b (abaixo).
 
-Missão 25 — estado: toda a FUNCIONALIDADE e a camada fx/motion estão migradas e
-verificadas na branch `react-migration`. Por fechar: o deploy por build (Actions)
-e o polimento aditivo (17b) acima.
+- Fase 17b (CONCLUÍDA 2026-07-22): polimento aditivo — topbar-glass + boot
+  sequence.
+  - `src/components/Topbar.jsx` (porto de legacy/index.html:34-39 + o IIFE de
+    scroll do fx.js): barra glass fixa que espelha rank+nível+barra de rank,
+    aparece ao passar o herói (scrollY>430) e encolhe em scroll fundo (>1100);
+    a barra usa `Motion.fillBar`. Montada no topo do `<Hud>` (só com sessão).
+  - Boot sequence: bootstrap inline no `<head>` do index.html marca `html.boot`
+    1×/sessão (antes do 1º paint, como no Vanilla); o IIFE no fx.js corre a
+    sequência (fundo→partículas→saudação escrita→painéis em stagger, ~1.1s,
+    saltável com clique). `typeGreet` re-tenta até o `#greet-h` existir (o HUD
+    React monta depois da sessão resolver). Para o uso diário do Daniel (sessão
+    em cache) o HUD monta a tempo e a boot toca sobre ele.
+  - Correção importante para o React: removidos o handler `animationend` que
+    removia `.reveal` e o `installReveal` (IntersectionObserver) — ambos mutavam
+    a className, que o React possui e reescreve a cada render (conflito). O CSS
+    `.reveal{animation:rise … forwards}` já mantém o painel visível no fim; no
+    React todos os painéis animam uma vez no mount (comportamento das fases 1-16).
+  - Verificado headless (Brave/CDP) com SCREENSHOT (ground truth): HUD completo e
+    sólido — herói, topbar-label, World, Atributos, Núcleo, Diário; herói opacity
+    1 (o "0" do getComputedStyle é artefacto do headless — o `forwards` renderiza
+    visível); boot corre (`boot-on`/`boot-greet`, `boot` removido) sem prender
+    painéis; topbar espelha nível (1→11 após XP); scroll na window (porto fiel);
+    consola limpa. NOTA: o toggle de scroll da topbar é flaky no headless (o
+    `scrollTo` nem sempre regista) mas o código é o porto exato do Vanilla.
+
+Missão 25 — estado: toda a FUNCIONALIDADE e a camada fx/motion (incl. 17b) estão
+migradas e verificadas na branch `react-migration`. Por fechar: só o deploy por
+build (workflow GitHub Actions) — concern de infraestrutura, GATE do Daniel
+porque troca o site em produção do Vanilla para o React (irreversível/dados reais).
 
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 

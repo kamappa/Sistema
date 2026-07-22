@@ -1,10 +1,17 @@
+import { useLayoutEffect } from 'react';
 import { ATTRS, need, rankOf } from '../state/config.js';
 
-// Atributos — Missão 25 · Fase 4. Markup de legacy/index.html:124-127 + o render
-// de engine.js:143-156 (a mesma linha-por-linha; classe dom-<id> traz a
-// assinatura de domínio do hud.css). A mola das barras (Motion.fillBar) fica
-// para quando o motion.js migrar — aqui a largura-alvo vai direta no style.
+// Atributos — Missão 25 · Fase 4 (+ mola das barras na Fase 17). Markup de
+// legacy/index.html:124-127 + o render de engine.js:143-156. A largura-alvo vai
+// no style (1º render/reduced-motion corretos); após o commit, Motion.fillbar
+// (registo por atributo, sobrevive a re-renders) persegue-a — engine.js:154-156.
 export default function Attributes({ S }) {
+  useLayoutEffect(() => {
+    if (!window.Motion || !window.Motion.fillBar) return;
+    document.querySelectorAll('#attrs .afill').forEach((f) => {
+      window.Motion.fillBar('attr:' + f.dataset.a, f, parseFloat(f.style.width) || 0);
+    });
+  });
   return (
     <div className="panel reveal" style={{ animationDelay: '.1s' }}>
       <div className="ptitle"><b>Atributos</b> · 6 domínios</div>

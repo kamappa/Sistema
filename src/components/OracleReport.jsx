@@ -1,10 +1,21 @@
+import { useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore.js';
 
-// Oráculo · relatório semanal — Missão 25 · Fase 14. Porta renderOracleRep
-// (radar.js:45-73). Lê window.report do store (oracle_reports). Sem sessão →
-// convite. Aceitar missão proposta via triage. O typewriter (sysTypeHTML) = fx.
+// Oráculo · relatório semanal — Missão 25 · Fase 14 (+ scanline na Fase 17).
+// Porta renderOracleRep (radar.js:45-73). Lê window.report do store. O
+// typewriter do relatório (sysTypeHTML) fica DELIBERADAMENTE de fora: reescreve
+// nós de texto que o React possui (colidiria com re-renders); a scanline, sendo
+// overlay puro, entra sem conflito — 1× por relatório.
 export default function OracleReport() {
   const { user, report, acceptOracleMission } = useStore();
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!report) return;
+    try {
+      const k = 'orcSeen:' + (report.created_at || '');
+      if (window.panelScan && !sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); window.panelScan(ref.current); }
+    } catch (e) {}
+  }, [report]);
 
   let body;
   if (!user) body = <div className="up-empty">Entra com a tua conta para veres os relatórios.</div>;
@@ -41,7 +52,7 @@ export default function OracleReport() {
   }
 
   return (
-    <div className="panel reveal" style={{ animationDelay: '.09s' }}>
+    <div className="panel reveal" style={{ animationDelay: '.09s' }} ref={ref}>
       <div className="ptitle"><b>Oráculo</b> · relatório semanal</div>
       <div id="oracle-rep">{body}</div>
     </div>

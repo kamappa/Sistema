@@ -1,5 +1,11 @@
+import { useLayoutEffect } from 'react';
 import { ATTRS, RANKS, need, rankOf, titleOf, overallLevel, TITLES_REAL } from '../state/config.js';
 import { AVATAR } from '../assets/avatar.js';
+
+// cerimónia de rank-up detetada no render() do Vanilla (engine.js:110) — o
+// último rank visto vive fora do componente (sobrevive a re-renders); só uma
+// SUBIDA celebra (nunca despromoção). null no arranque = 1ª avaliação silenciosa.
+let lastRankL = null;
 
 // Herói — Missão 25 · Fase 3. Markup portado de legacy/index.html:59-88, valores
 // do render() de engine.js:108-133. A LÓGICA dos números fica idêntica; o que
@@ -19,7 +25,8 @@ export default function Hero({ S }) {
   const lastReal = realUn.length ? TITLES_REAL.find((t) => t.id === realUn[realUn.length - 1][0]) : null;
   const title = lastReal ? '👑 ' + lastReal.name : titleOf(lvl);
 
-  const txp = Math.round(S.totalXP).toLocaleString('pt-PT');
+  const txpRaw = Math.round(S.totalXP);
+  const txp = txpRaw.toLocaleString('pt-PT');
   const qd = S.objectives.filter((o) => o.status === 'done').length;
   const bstk = Math.max(0, ...[...S.oblig, ...S.extras].map((h) => h.streak));
 
@@ -28,6 +35,28 @@ export default function Hero({ S }) {
   const into = lvl - r.min;
   const rankFrac = Math.min(1, (into + frac) / span);
   const progLbl = 'Rank ' + r.l + (r.l !== 'S' ? ' → ' + RANKS[ri + 1].l : '');
+
+  // FX (Fase 17) — espelha o render() do Vanilla (engine.js:110-131): cerimónia
+  // de rank-up + contadores em mola + barra de rank com física. Corre após o
+  // commit (useLayoutEffect: sem flash entre o valor de React e o da mola). O
+  // JSX mantém os valores diretos → 1º render e reduced-motion ficam corretos;
+  // a partir daí a mola de setNum/fillBar (registo por id/chave) assume.
+  useLayoutEffect(() => {
+    if (lastRankL && r.l !== lastRankL &&
+        RANKS.findIndex((x) => x.l === r.l) > RANKS.findIndex((x) => x.l === lastRankL)) {
+      if (window.rankCeremony) window.rankCeremony(r);
+    }
+    lastRankL = r.l;
+    if (window.setNum) {
+      window.setNum('lvl', lvl);
+      window.setNum('txp', txpRaw, (v) => Math.round(v).toLocaleString('pt-PT'));
+      window.setNum('qd', qd);
+      window.setNum('bstk', bstk);
+    }
+    if (window.Motion && window.Motion.fillBar) {
+      window.Motion.fillBar('oxp', document.getElementById('oxp-fill'), rankFrac * 100);
+    }
+  });
 
   return (
     <div className="panel reveal">

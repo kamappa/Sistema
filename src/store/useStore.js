@@ -3,7 +3,7 @@ import { supabase, SUPABASE_URL, SUPABASE_ANON } from '../lib/supabase.js';
 import { fresh } from '../state/fresh.js';
 import { normalize } from '../state/normalize.js';
 import { today, yday, fmt } from '../state/dates.js';
-import { AM, PRI, OST, TIER_KEY, RECALL_THEMES } from '../state/config.js';
+import { AM, PRI, OST, TIER_KEY, TIER_LABEL, RECALL_THEMES } from '../state/config.js';
 import { xpMult, seasonArcNow, seasonBounds, whisperToday } from '../state/world.js';
 import { addXp, plog, unlog } from '../state/engine.js';
 import { triage } from '../state/objectives.js';
@@ -25,6 +25,15 @@ import { guessEvType } from '../state/calendar.js';
 
 const KEY = 'sistema_daniel_v1'; // auth.js:10
 let syncTimer = null;
+
+// FX (Fase 17) — as primitivas visuais vivem em window.* (lib/fx.js), chamadas
+// guardadas como no Vanilla ("divergência = bug"). As ações do store correm fora
+// do evento de DOM, por isso o floatXP assenta ao centro (o fallback que o
+// próprio floatXP já tem); o cardWave/scan precisa do elemento DEPOIS do render
+// do React, por isso corre num requestAnimationFrame.
+const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
+const fx = (name, ...args) => { if (typeof window !== 'undefined' && window[name]) window[name](...args); };
+const afterPaint = (fn) => { if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(() => requestAnimationFrame(fn)); };
 
 function localLoad() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
 function localSave(S) { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
@@ -142,22 +151,27 @@ export const useStore = create((set, get) => ({
       if (!S.streakPeak || h.streak > S.streakPeak.v) S.streakPeak = { v: h.streak, d: today(), h: h.name };
       const bonus = Math.min(h.streak, 10); const g = Math.round((h.xp + bonus) * xpMult(S, h.attr)); h.lastGain = g;
       addXp(S, h.attr, g); plog(S, h.name, g);
+      fx('floatXP', '+' + g + ' XP', AM[h.attr].color);                    // engine.js:74
+      if (list === 'oblig') fx('toast', 'Pilar confirmado', h.name + ' · +' + g + ' XP', AM[h.attr].color);
     } else {
       const back = (h.lastGain !== undefined && h.lastGain !== null) ? h.lastGain : h.xp;
       addXp(S, h.attr, -back); unlog(S, h.name, today());
+      fx('floatXP', '−' + back + ' XP', '#ef4444');
       if (h.undo) { h.streak = h.undo.streak; h.lastDone = h.undo.lastDone; if (h.undo.peak !== undefined) S.streakPeak = h.undo.peak; delete h.undo; }
       else { h.lastDone = null; h.streak = Math.max(0, h.streak - 1); }
     }
     set({ S: { ...S } }); get().save();
+    // onda de conclusão (M12·3B) — depois do render do React, no elemento novo
+    if (!done) afterPaint(() => fx('cardWave', document.querySelector('.hab[data-hid="' + id + '"]'), hexA(AM[h.attr].color, .5)));
   },
 
   // addHabit — porto de engine.js:101-106. Extra personalizado (id 'c...', 8 XP).
   // Trava do Sistema aos 14 extras (devolve erro; o toast é do fx, deferido).
   addHabit: (text, attr) => {
     const S = get().S; const t = (text || '').trim(); if (!t) return { error: 'vazio' };
-    if (S.extras.length >= 14) return { error: 'limite' };
+    if (S.extras.length >= 14) { fx('toast', 'Trava do Sistema', 'Hábitos a mais = nenhum feito. Conclui ou apaga antes de adicionar.', '#fb923c'); return { error: 'limite' }; }
     S.extras.push({ id: 'c' + Date.now(), name: t, attr, xp: 8, streak: 0, lastDone: null, lastGain: 0 });
-    set({ S: { ...S } }); get().save(); return {};
+    set({ S: { ...S } }); get().save(); fx('floatXP', '+ hábito', '#a78bfa'); return {};
   },
 
   // delHabit — porto de engine.js:107. Só extras (id 'c...').
@@ -176,6 +190,8 @@ export const useStore = create((set, get) => ({
     if (areaSel === 'AUTO') area = tr.area || 'oficio';
     S.objectives.push({ id: 'o' + Date.now(), title: t, area, pri, auto, deadline: dl, status: 'pend', created: today(), tags: tr.tags });
     set({ S: { ...S } }); get().save();
+    if (auto || priSel === 'AUTO' || areaSel === 'AUTO') fx('toast', 'Triagem do Sistema', TIER_LABEL[pri] + ' · ' + AM[area].name + ' · ' + tr.why, PRI[pri].c);
+    fx('floatXP', '+ objetivo', '#a78bfa');
     return { triaged: auto || areaSel === 'AUTO', pri, area, why: tr.why };
   },
 
@@ -204,12 +220,16 @@ export const useStore = create((set, get) => ({
       const p = PRI[o.pri]; addXp(S, o.area, p.xp); o.doneDate = today();
       S.shadows.push({ id: 's' + Date.now(), ref: o.id, name: o.title, lvl: p.lvl, d: today() });
       plog(S, '🗡 ARISE: ' + o.title, p.xp);
+      fx('floatXP', '+' + p.xp + ' XP', AM[o.area].color);                           // objetivos.js:56
+      fx('toast', 'A R I S E', '🗡 ' + o.title + ' ergueu-se — Sombra Nv ' + p.lvl, '#a78bfa');
+      fx('cineArise');                                                                // A R I S E cinematográfico
     }
     if (o.status === 'done' && next !== 'done') {
       const p = PRI[o.pri]; addXp(S, o.area, -p.xp); unlog(S, '🗡 ARISE: ' + o.title, o.doneDate);
       S.shadows = S.shadows.filter((s) => s.ref !== o.id); delete o.doneDate;
     }
     o.status = next; set({ S: { ...S } }); get().save();
+    if (next === 'done') afterPaint(() => fx('cardWave', document.querySelector('.obj-row[data-oid="' + id + '"]'), 'rgba(167,139,250,.5)'));
   },
 
   // ===== REVISÃO ATIVA (Fase 7) =====
@@ -225,14 +245,16 @@ export const useStore = create((set, get) => ({
     plog(S, '📖 Revisão · ' + th.label, gain);
     if (S.recallToday.ids.every((qid) => qid in S.recallToday.results)) bumpStudyStreak(S);
     set({ S: { ...S } }); get().save();
+    fx('floatXP', '+' + gain + ' XP', AM.saber.color);                                // recall.js:160
+    if (grade === 'ok') fx('toast', 'Conhecimento assimilado', '📖 ' + th.label + ' · +' + gain + ' XP', '#34d399');
   },
 
   // addCustomQuestion — porto de recall.js:36-49 (id 'meu-...'). Entra na mesma
   // rotação/SM-2 via questionPool. Toast de "incompleta" é fx (devolve erro).
   addCustomQuestion: ({ tema, dif, ref, q, a }) => {
-    const S = get().S; if (!q || !q.trim() || !a || !a.trim()) return { error: 'incompleto' };
+    const S = get().S; if (!q || !q.trim() || !a || !a.trim()) { fx('toast', 'Pergunta incompleta', 'Preenche pelo menos a pergunta e a resposta.', '#fb923c'); return { error: 'incompleto' }; }
     S.customQ.push({ id: 'meu-' + Date.now(), tema, dif, q: q.trim(), a: a.trim(), ref: (ref && ref.trim()) || '—' });
-    set({ S: { ...S } }); get().save(); return {};
+    set({ S: { ...S } }); get().save(); fx('floatXP', '+ pergunta', '#a78bfa'); return {};
   },
 
   // ===== TREINO (Fase 8) =====
@@ -261,14 +283,14 @@ export const useStore = create((set, get) => ({
         if (days.size >= 3) { S.training.prog.kegel++; adv.push(KLINE.n + ' → ' + PROG.kegel[idx + 1].n); }
       }
     }
-    if (!logged) return { error: 'sem-registo' };
+    if (!logged) { fx('toast', 'Sem registo', 'Regista pelo menos uma linha com repetições.', '#fb923c'); return { error: 'sem-registo' }; }
     const extra = !!form.extra; const notes = (form.notes || '').trim();
     const consec = consecTrained(S);
     const nToday = S.training.sessions.filter((s) => s.d === today()).length;
     const fator = nToday === 0 ? 1 : nToday === 1 ? 0.5 : 0;
     let xp = Math.round((15 + logged * 6) * xpMult(S, 'corpo') * fator); let extraOk = false;
     if (extra) {
-      if (consec >= 3) { /* teto: 4º dia seguido, extra sem bónus (toast deferido) */ }
+      if (consec >= 3) { fx('toast', 'Trava do Sistema', '4º dia seguido — o músculo cresce no descanso. Extra sem bónus hoje.', '#fb923c'); }
       else { extraOk = true; xp += Math.round(10 * fator); const dg = Math.round(5 * fator); if (dg) addXp(S, 'disciplina', dg); }
     }
     if (xp) addXp(S, 'corpo', xp);
@@ -277,6 +299,10 @@ export const useStore = create((set, get) => ({
     S.training.sessions.push({ d: today(), lines, extra: extraOk, notes, adv: adv.length, xp: xp + advXp });
     plog(S, '🏋️ Treino (' + logged + ' linhas' + (extraOk ? ' + extra' : '') + (nToday ? ' · ' + (nToday + 1) + 'ª sessão do dia' : '') + ')', xp + advXp);
     set({ S: { ...S } }); get().save();
+    if (adv.length) fx('toast', 'EVOLUÇÃO DE PROGRESSÃO', '↑ ' + adv.join(' · '), '#34d399');   // treino.js:46
+    if (nToday === 1) fx('toast', 'Sessão registada', '2.ª sessão de hoje — XP a metade. O músculo cresce no descanso.', '#fb923c');
+    else if (nToday >= 2) fx('toast', 'Sessão registada', '3.ª+ sessão de hoje — registada sem XP. Dados honestos, corpo protegido.', '#fb923c');
+    fx('floatXP', (xp + advXp) > 0 ? '+' + (xp + advXp) + ' XP' : 'registado', '#f472b6');
     return { logged, adv, xp: xp + advXp, nToday, extraBlocked: extra && consec >= 3 };
   },
 
@@ -289,8 +315,8 @@ export const useStore = create((set, get) => ({
   logSleep: ({ bed, wake, q, date }) => {
     const S = get().S;
     const dt = date || today();
-    if (!bed || !wake) return { error: 'falta-info' };
-    if (dt > today()) return { error: 'futuro' };
+    if (!bed || !wake) { fx('toast', 'Falta info', 'Preenche hora de deitar e de acordar.', '#fb923c'); return { error: 'falta-info' }; }
+    if (dt > today()) { fx('toast', 'Data inválida', 'O Sistema não regista o futuro.', '#fb923c'); return { error: 'futuro' }; }
     const h = calcHours(bed, wake);
     let L = S.sleep.logs.find((l) => l.d === dt);
     if (L) Object.assign(L, { bed, wake, h, q });
@@ -302,9 +328,9 @@ export const useStore = create((set, get) => ({
       plog(S, '😴 Noite no alvo (' + h + 'h)', 17);
       const so = S.oblig.find((x) => x.id === 'o_sono');
       if (dt === today() && so && so.lastDone !== today()) { so.undo = { streak: so.streak, lastDone: so.lastDone }; so.streak = (so.lastDone === yday()) ? so.streak + 1 : 1; so.lastDone = today(); so.lastGain = 0; }
-      res.reward = 17;
-    } else if (!recent) { plog(S, '😴 Registo retroativo ' + dt + ' (' + h + 'h)', 0); res.retro = true; }
-    else if (h < 7.5) { plog(S, '😴 Noite curta (' + h + 'h)', 0); res.short = true; }
+      res.reward = 17; fx('floatXP', '+17 XP', '#34d399');                            // sono.js:18
+    } else if (!recent) { plog(S, '😴 Registo retroativo ' + dt + ' (' + h + 'h)', 0); res.retro = true; fx('toast', 'Registo retroativo', 'Guardado para análise. XP só em registos do próprio dia — anti-farm.', '#a78bfa'); }
+    else if (h < 7.5) { plog(S, '😴 Noite curta (' + h + 'h)', 0); res.short = true; fx('toast', 'Registado', 'Noite curta (' + h + 'h). Sem drama — o alvo de hoje é recuperar.', '#fb923c'); }
     set({ S: { ...S } }); get().save();
     return res;
   },
@@ -320,11 +346,11 @@ export const useStore = create((set, get) => ({
   // repetir não dá efeito nem XP. Desliga o estado, +10 Disciplina, registo.
   applyAntidote: (id) => {
     const S = get().S; S.antidote = S.antidote || {};
-    if (S.antidote[id] === today()) return { error: 'ja-usado' };
+    if (S.antidote[id] === today()) { fx('toast', 'Antídoto já usado hoje', '1× por estado e por dia. Se o estado voltou, desliga-o no cartão — sem XP repetido.', '#fb923c'); return { error: 'ja-usado' }; }
     S.antidote[id] = today();
     S.debuffs[id] = false; addXp(S, 'disciplina', 10);
     plog(S, 'Antídoto: ' + DEBUFFS.find((d) => d.id === id).name, 10);
-    set({ S: { ...S } }); get().save(); return { ok: true };
+    set({ S: { ...S } }); get().save(); fx('toast', 'Antídoto aplicado', '+10 Disciplina · bem gerido', '#34d399'); return { ok: true };
   },
 
   // toggleReq — porto de hud.js:38-47. Marca/desmarca evidência de um requisito;
@@ -333,7 +359,8 @@ export const useStore = create((set, get) => ({
   toggleReq: (tid, rid) => {
     const S = get().S; const t = TITLES_REAL.find((x) => x.id === tid); const r = t.reqs.find((x) => x.id === rid); if (r.auto) return;
     S.titleEv[tid] = S.titleEv[tid] || {}; S.titleEv[tid][rid] = !S.titleEv[tid][rid];
-    if (titleProg(S, t).pct === 100 && !S.titleUnlocked[tid]) { S.titleUnlocked[tid] = today(); plog(S, '👑 Título real: ' + t.name, 0); }
+    if (S.titleEv[tid][rid]) fx('floatXP', '✓ evidência', '#fbbf24');                 // hud.js:41
+    if (titleProg(S, t).pct === 100 && !S.titleUnlocked[tid]) { S.titleUnlocked[tid] = today(); plog(S, '👑 Título real: ' + t.name, 0); fx('toast', 'TÍTULO REAL DESBLOQUEADO', '👑 ' + t.name + ' — com evidência. Isto é teu.', '#fbbf24', false, true); }
     if (titleProg(S, t).pct < 100 && S.titleUnlocked[tid]) delete S.titleUnlocked[tid];
     set({ S: { ...S } }); get().save();
   },
@@ -376,7 +403,7 @@ export const useStore = create((set, get) => ({
     const S = get().S; if (S.whisper[today()]) return; const w = whisperToday(S);
     S.whisper[today()] = true; const g = Math.round(w.xp * xpMult(S, w.attr));
     addXp(S, w.attr, g); plog(S, '🌬 ' + w.t, g);
-    set({ S: { ...S } }); get().save();
+    set({ S: { ...S } }); get().save(); fx('floatXP', '+' + g + ' XP', AM[w.attr].color); // world.js:44
   },
 
   // startRecovery — porto de world.js:61-66. 2 dias sem penalizações.
@@ -384,6 +411,7 @@ export const useStore = create((set, get) => ({
     const S = get().S; const d = new Date(); d.setDate(d.getDate() + 2);
     S.recovery = { until: fmt(d) }; plog(S, '🌙 Recovery ativado (2 dias)', 0);
     set({ S: { ...S } }); get().save();
+    fx('toast', 'Recovery ativado', '2 dias sem penalizações. Dorme. Recupera. O rank não foge.', '#34d399'); // world.js:64
   },
 
   // arcAccept/Later/Ignore — porto de world.js:69-81. Aceitar traz as missões do
@@ -397,7 +425,9 @@ export const useStore = create((set, get) => ({
       S.objectives.push({ id: 'o' + Date.now() + '_' + i, title: q.t, area: q.area || tr.area || 'oficio', pri: q.pri || tr.imp, auto: true, deadline: b.end, status: 'pend', created: today(), tags: [a.name.split(' ')[0] + ' Arco', ...(tr.tags || [])], arc: a.id }); n++;
     });
     addXp(S, 'mente', 15); plog(S, 'Arco aceite: ' + a.name, 15);
-    set({ S: { ...S } }); get().save(); return { n };
+    set({ S: { ...S } }); get().save();
+    if (n) setTimeout(() => fx('toast', 'O ARCO TROUXE MISSÕES', '⚔️ ' + n + ' missões especiais entraram na lista-mestra, com prazo no fim do arco', '#fb923c'), 900); // world.js:78
+    return { n };
   },
   arcLater: () => { const S = get().S; S.worldArc = { id: seasonArcNow().id, status: 'later', snooze: today() }; set({ S: { ...S } }); get().save(); },
   arcIgnore: () => { const S = get().S; S.worldArc = { id: seasonArcNow().id, status: 'dismissed' }; set({ S: { ...S } }); get().save(); },
@@ -419,11 +449,13 @@ export const useStore = create((set, get) => ({
   // 📡 Do Radar) e marca radarAccepted. Toast/floatXP = fx.
   acceptRadarMission: (id) => {
     const S = get().S; const it = get().radar.find((x) => x.id === id); if (!it || !it.missao || !it.missao.t) return;
-    if (S.radarAccepted[id]) return { error: 'ja-aceite' };
+    if (S.radarAccepted[id]) { fx('toast', 'Já aceite', 'Esta missão já está na tua lista.', '#fb923c'); return { error: 'ja-aceite' }; }
     const m = it.missao; const tr = triage(m.t, m.deadline || null);
     S.objectives.push({ id: 'o' + Date.now(), title: m.t, area: (m.area && AM[m.area]) ? m.area : (tr.area || 'oficio'), pri: (m.pri && PRI[m.pri]) ? m.pri : tr.imp, auto: true, deadline: m.deadline || null, status: 'pend', created: today(), tags: ['📡 Do Radar', ...(tr.tags || [])], oracle: true });
     S.radarAccepted[id] = true;
-    set({ S: { ...S } }); get().save(); return {};
+    set({ S: { ...S } }); get().save();
+    fx('toast', 'Missão aceite', '⚔️ ' + m.t + ' — Sistema sincronizado', '#fbbf24'); fx('floatXP', '+ missão', '#fbbf24'); // radar.js:87
+    return {};
   },
 
   // acceptOracleMission — porto de radar.js:74-80 (tag 🔮 Do Oráculo).
@@ -432,6 +464,7 @@ export const useStore = create((set, get) => ({
     const m = r.missoes_propostas[i]; const tr = triage(m.t || 'Missão do Oráculo', m.deadline || null);
     S.objectives.push({ id: 'o' + Date.now(), title: m.t || 'Missão do Oráculo', area: (m.area && AM[m.area]) ? m.area : (tr.area || 'oficio'), pri: (m.pri && PRI[m.pri]) ? m.pri : tr.imp, auto: true, deadline: m.deadline || null, status: 'pend', created: today(), tags: ['🔮 Do Oráculo', ...(tr.tags || [])], oracle: true });
     set({ S: { ...S } }); get().save();
+    fx('toast', 'Missão aceite', '⚔️ Sistema sincronizado', '#a78bfa'); fx('floatXP', '+ missão', '#a78bfa'); // radar.js:79
   },
 
   // ===== ORÁCULO · CONSELHO (Fase 15) =====
@@ -446,8 +479,8 @@ export const useStore = create((set, get) => ({
   sendConselho: async (text) => {
     if (get().ocBusy) return;
     const qtxt = (text || '').trim(); if (!qtxt) return;
-    const user = get().user; if (!user || !supabase) return { error: 'sem-sessao' };
-    if (get().ocQuotaLeft() <= 0) return { error: 'limite-local' };
+    const user = get().user; if (!user || !supabase) { fx('toast', 'Sem sessão', 'Entra com a tua conta para falares com o Oráculo.', '#fb923c'); return { error: 'sem-sessao' }; }
+    if (get().ocQuotaLeft() <= 0) { fx('toast', 'Limite diário', '12 mensagens/dia — guarda a pergunta para amanhã.', '#fb923c'); return { error: 'limite-local' }; }
     const S = get().S; const t = today();
     if (!S.oracleChat || S.oracleChat.d !== t) S.oracleChat = { d: t, count: 0 };
     S.oracleChat.count++;
@@ -485,6 +518,7 @@ export const useStore = create((set, get) => ({
     const S = get().S; if (!t) return; const dl = addDays(today(), 2); const tr = triage(t, dl);
     S.objectives.push({ id: 'o' + Date.now(), title: t, area: tr.area || 'oficio', pri: tr.imp, auto: true, deadline: dl, status: 'pend', created: today(), tags: ['🔮 Do Oráculo', ...(tr.tags || [])], oracle: true });
     set({ S: { ...S } }); get().save();
+    fx('toast', 'Missão aceite', '⚔️ ' + t + ' — Sistema sincronizado', '#a78bfa'); fx('floatXP', '+ missão', '#a78bfa'); // conselho.js:122
   },
 
   // fetchSussurro — porto de fetchSussurro (conselho.js:76-91). 1 linha/dia do

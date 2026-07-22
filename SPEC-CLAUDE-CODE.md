@@ -1123,6 +1123,53 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
   sem o cinematográfico. Falta migrar: a camada fx/motion (animações deferidas
   em TODAS as fases) — é a próxima e última fase da migração.
 
+- Fase 17 (CONCLUÍDA 2026-07-22): camada fx/motion — a última grande peça, que
+  fora DEFERIDA em todas as 16 fases. Porto fiel do fx do Vanilla ("divergência
+  = bug"), com as skills emilkowalski/impeccable (ver [[skills-design-animacao]])
+  como grelha de qualidade — as regras do Emil (só transform/opacity, easings
+  fortes, <300ms em UI, springs interrompíveis, reduced-motion) já eram as leis
+  do projeto, por isso portar É segui-las.
+  - `src/lib/motion.js` (porto verbatim de legacy/js/motion.js): motor de molas
+    `Motion.Spring` + tokens + `fillBar` + presença (tilt 3D, botões magnéticos,
+    aurora e glow que seguem o cursor). Uma diferença de forma: `.aurora` é
+    procurada LAZY (o palco React monta depois do load). Expõe `window.Motion` —
+    o que **desbloqueia de imediato o cinematográfico da câmara das Constelações
+    (fly-in/zoom em mola) da Fase 16**, que assentava sem mola.
+  - `src/lib/fx.js` (porto das primitivas): toast (duração por texto, pausa em
+    hover), floatXP, celebrate/cinePulse, cineMoment/cineArise (A R I S E),
+    rankCeremony, setNum (contadores em mola), cardWave, panelScan, barBurst,
+    sysType, reveal-ao-scroll. Continuam em `window.*`, chamadas guardadas como
+    no Vanilla. `src/components/Toast.jsx` monta o `#toast` + listeners de pausa.
+  - Ligação sem tocar na lógica: `addXp` (state/engine.js) restaura o fx de
+    subida de nível (toast + celebrate + barBurst) — seam ÚNICO que cobre TODOS
+    os level-ups. As ações do store restauram os floatXP/toasts/cineArise
+    específicos nos mesmos pontos do Vanilla (floatXP assenta ao centro fora do
+    evento de DOM — o fallback que ele já tinha; cardWave/scan pós-render via
+    `requestAnimationFrame`). `Hero.jsx`/`Attributes.jsx` ganham um
+    `useLayoutEffect` que espelha o `render()` (cerimónia de rank-up + setNum +
+    fillBar) sem mudar o JSX (1º render e reduced-motion ficam corretos; a partir
+    daí a mola por id/chave assume). `Achievements.jsx` ganha a cerimónia de
+    conquista com 1ª avaliação silenciosa (baseline, sem rajada ao carregar).
+    `Conselho.jsx` ganha o teatro (moldura respira + linha rotativa com `ocBusy`)
+    e o typewriter da resposta. Radar/Oráculo ganham a scanline (1×/sessão).
+  - Verificado headless (Brave/CDP): `Motion`+9 primitivas no window + `#toast`
+    montado; marcar pilar → toast "Pilar confirmado" + floatXP; missão completa →
+    status done + overlay cinemático + cardWave na obj-row + toast "A R I S E" (e
+    a cerimónia de conquista "👣 Primeiro passo" a disparar no 1º XP — o cinemático
+    é um-de-cada-vez, os outros caem para toast, como no Vanilla); setNum apanhado
+    a meio da mola (#txp 138 rumo a 150 — a animação corre); Constelações com
+    Motion mergulham em mola; reduced-motion = 0 overlays sem erro; consola limpa.
+  - DELIBERADAMENTE de fora (não são o essencial e/ou colidem com o React):
+    o typewriter do relatório longo do Oráculo (`sysTypeHTML` reescreve nós de
+    texto que o React possui), a boot sequence (`html.boot`) e a topbar-glass
+    (`#topbar`) — polimento aditivo, candidatos a uma fase 17b se o Daniel os
+    quiser. Falta para fechar a Missão 25: o deploy (workflow GitHub Actions com
+    build step) — concern separado, não de migração de funcionalidade.
+
+Missão 25 — estado: toda a FUNCIONALIDADE e a camada fx/motion estão migradas e
+verificadas na branch `react-migration`. Por fechar: o deploy por build (Actions)
+e o polimento aditivo (17b) acima.
+
 ## Backlog — fila atual (ordenada; atualizada 2026-07-19)
 
 1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel

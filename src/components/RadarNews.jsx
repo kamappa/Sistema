@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore.js';
 import { RAREA } from '../state/config.js';
 import { today, yday } from '../state/dates.js';
@@ -9,6 +10,16 @@ const favicon = (u) => { try { return 'https://www.google.com/s2/favicons?sz=64&
 
 export default function RadarNews({ S }) {
   const { user, radar, acceptRadarMission } = useStore();
+  const ref = useRef(null);
+  // scanline 1×/sessão quando o Radar traz itens novos (<12h) — radar.js:40-43
+  useEffect(() => {
+    try {
+      if (window.panelScan && !sessionStorage.getItem('scanRadar') &&
+          radar.some((i) => i.created_at && Date.now() - new Date(i.created_at).getTime() < 12 * 3600000)) {
+        sessionStorage.setItem('scanRadar', '1'); window.panelScan(ref.current);
+      }
+    } catch (e) {}
+  }, [radar]);
 
   let body;
   if (!user) body = <div className="up-empty">Entra com a tua conta para o Radar sincronizar.</div>;
@@ -45,7 +56,7 @@ export default function RadarNews({ S }) {
   }
 
   return (
-    <div className="panel reveal" style={{ animationDelay: '.07s' }}>
+    <div className="panel reveal" style={{ animationDelay: '.07s' }} ref={ref}>
       <div className="ptitle"><b>Radar Diário</b> · o mundo, filtrado para ti</div>
       <div id="radar-news">{body}</div>
     </div>

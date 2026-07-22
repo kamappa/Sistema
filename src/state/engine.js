@@ -1,4 +1,4 @@
-import { need } from './config.js';
+import { need, AM } from './config.js';
 import { today } from './dates.js';
 
 // Motor de XP — o núcleo auditado ("o sistema nunca mente"), portado linha a
@@ -17,7 +17,16 @@ export function addXp(S, attr, amt, silent) {
   // história (agrega por dia)
   const t = today(); const last = S.history[S.history.length - 1];
   if (last && last.d === t) last.v += amt; else S.history.push({ d: t, v: amt });
-  // DEFERIDO (fx.js): toasts de subida de nível + celebrate + barBurst.
+  // FX (Fase 17) — restaura legacy/js/engine.js:36-37: subida de nível toasta e
+  // celebra; XP positivo dá mini-burst na ponta da barra. Seam único: cobre
+  // TODOS os level-ups (hábitos, missões, treino, sono, recall, sussurro…),
+  // exatamente como o Vanilla. Guardado por window.* (o palco/fx podem não
+  // existir com reduced-motion ou fora do browser).
+  if (!silent && ups.length && window.toast) {
+    ups.forEach((u) => window.toast('Nível aumentado', AM[u].name + ' subiu para nível ' + S.attrs[u].level, AM[u].color));
+    if (window.celebrate) window.celebrate(AM[ups[0]].color);
+  }
+  if (amt > 0 && !silent && window.barBurst) window.barBurst(attr);
   return ups;
 }
 

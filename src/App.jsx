@@ -22,6 +22,8 @@ import World from './components/World.jsx';
 import RadarNews from './components/RadarNews.jsx';
 import OracleReport from './components/OracleReport.jsx';
 import Constellations from './components/Constellations.jsx';
+import Toast from './components/Toast.jsx';
+import { installReveal } from './lib/fx.js';
 import { exportStateFile } from './lib/exports.js';
 
 // Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
@@ -38,6 +40,7 @@ export default function App() {
       <div className="app-content">
         {!booted ? <Splash text="A resolver sessão…" /> : !S ? <AuthGate /> : <Hud />}
       </div>
+      <Toast />
     </>
   );
 }
@@ -89,6 +92,8 @@ function AuthGate() {
 // o aspeto; os restantes painéis do Vanilla entram nas fases seguintes.
 function Hud() {
   const { S, user, sync, logout, resetAll } = useStore();
+  // reveal ao scroll dos painéis abaixo da dobra (Fase 17) — 1× após montar
+  useEffect(() => { installReveal(); }, []);
   const syncLabel = sync === 'ok' ? '☁️ Sincronizado' + (user ? ' · ' + user.email : '')
     : sync === 'saving' ? '⏳ A sincronizar…'
     : sync === 'err' ? '⚠️ Sem ligação à nuvem — guardado localmente'

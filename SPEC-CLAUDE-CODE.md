@@ -1159,9 +1159,8 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
     é um-de-cada-vez, os outros caem para toast, como no Vanilla); setNum apanhado
     a meio da mola (#txp 138 rumo a 150 — a animação corre); Constelações com
     Motion mergulham em mola; reduced-motion = 0 overlays sem erro; consola limpa.
-  - DELIBERADAMENTE de fora: só o typewriter do relatório longo do Oráculo
-    (`sysTypeHTML` reescreve nós de texto que o React possui — colidiria com
-    re-renders). A boot sequence e a topbar-glass entraram na 17b (abaixo).
+  - (O typewriter do relatório do Oráculo entrou na Fase 18, abaixo — a camada
+    fx/motion ficou 100% migrada.)
 
 - Fase 17b (CONCLUÍDA 2026-07-22): polimento aditivo — topbar-glass + boot
   sequence.
@@ -1187,6 +1186,18 @@ build (GitHub Actions); a troca da source do Pages para Actions é no merge.
     painéis; topbar espelha nível (1→11 após XP); scroll na window (porto fiel);
     consola limpa. NOTA: o toggle de scroll da topbar é flaky no headless (o
     `scrollTo` nem sempre regista) mas o código é o porto exato do Vanilla.
+
+- Fase 18a — Typewriter do relatório do Oráculo (CONCLUÍDA 2026-07-22): o último
+  fx deferido, agora portado (fecha a camada fx/motion a 100%). `sysTypeHTML`
+  portado para `lib/fx.js`; `OracleReport.jsx` chama-o 1×/relatório (guarda de
+  sessionStorage) sobre as secções `.orc-sec`/`.orc-leg`, junto com a scanline.
+  React-safe por DEGRADAÇÃO (não por evitar o conflito): o relatório só
+  re-renderiza quando muda (raro) e o typing corre em idle; se um re-render o
+  apanhar a meio, o React recria o texto completo dos nós (o closure continua a
+  escrever em nós já destacados — inofensivo), nunca um estado partido.
+  Verificado headless (Brave/CDP): relatório semeado → `sysTypeHTML` chamado
+  (orcSeen no sessionStorage), 7 secções, escrita parcial a meio (77 chars),
+  resumo escrito por extenso, consola limpa.
 
 - Fase 18 — Deploy (PREPARADO, NÃO ATIVO — 2026-07-22): `.github/workflows/
   deploy-react.yml` criado na branch. Build Vite → `upload-pages-artifact` →

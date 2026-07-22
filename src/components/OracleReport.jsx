@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore.js';
 
-// Oráculo · relatório semanal — Missão 25 · Fase 14 (+ scanline na Fase 17).
-// Porta renderOracleRep (radar.js:45-73). Lê window.report do store. O
-// typewriter do relatório (sysTypeHTML) fica DELIBERADAMENTE de fora: reescreve
-// nós de texto que o React possui (colidiria com re-renders); a scanline, sendo
-// overlay puro, entra sem conflito — 1× por relatório.
+// Oráculo · relatório semanal — Missão 25 · Fase 14 (+ scanline/typewriter na
+// Fase 18). Porta renderOracleRep (radar.js:45-73). Lê window.report do store.
+// O Oráculo "escreve" o relatório 1×/relatório (sysTypeHTML sobre .orc-sec/
+// .orc-leg) + scanline. React-safe por degradação: o relatório só re-renderiza
+// quando muda (raro) e o typing corre em idle — um re-render a meio recria o
+// texto completo, nunca um estado partido. Guarda de sessionStorage por
+// relatório; saltável com clique.
 export default function OracleReport() {
   const { user, report, acceptOracleMission } = useStore();
   const ref = useRef(null);
@@ -13,7 +15,11 @@ export default function OracleReport() {
     if (!report) return;
     try {
       const k = 'orcSeen:' + (report.created_at || '');
-      if (window.panelScan && !sessionStorage.getItem(k)) { sessionStorage.setItem(k, '1'); window.panelScan(ref.current); }
+      if (!sessionStorage.getItem(k)) {
+        sessionStorage.setItem(k, '1');
+        if (window.sysTypeHTML && ref.current) window.sysTypeHTML([...ref.current.querySelectorAll('.orc-sec,.orc-leg')], 2500);
+        if (window.panelScan) window.panelScan(ref.current);
+      }
     } catch (e) {}
   }, [report]);
 

@@ -152,6 +152,28 @@ function sysType(el, ms) {
   })();
 }
 
+/* máquina de escrever preservando as tags (o Oráculo a escrever o relatório) —
+   porto de legacy/js/fx.js. React-safe por degradação: se o React re-renderizar
+   a meio, recria o texto completo dos nós (o closure continua a escrever em nós
+   já destacados, inofensivo) — nunca fica um estado partido. Corre 1×/relatório
+   (guarda de sessionStorage no chamador); saltável com clique. */
+function sysTypeHTML(els, budget) {
+  if (rm()) return;
+  const nodes = []; els.forEach(el => (function walk(n) { [...n.childNodes].forEach(c => {
+    if (c.nodeType === 3 && c.nodeValue.trim()) { nodes.push([c, c.nodeValue]); c.nodeValue = ''; }
+    else if (c.nodeType === 1) walk(c); }); })(el));
+  const total = nodes.reduce((s, x) => s + x[1].length, 0); if (!total) return;
+  const ms = Math.max(5, Math.min(20, (budget || 2500) / total));
+  let ni = 0, ci = 0, fast = false; typers.push(() => fast = true);
+  document.addEventListener('click', sysTypeFlush, { once: true });
+  (function step() {
+    if (fast) { for (let j = ni; j < nodes.length; j++) nodes[j][0].nodeValue = nodes[j][1]; return; }
+    const nt = nodes[ni]; nt[0].nodeValue = nt[1].slice(0, ++ci);
+    if (ci >= nt[1].length) { ni++; ci = 0; }
+    if (ni < nodes.length) setTimeout(step, ms);
+  })();
+}
+
 /* NOTA React (Fase 17b): o reveal-ao-scroll (IntersectionObserver a pôr .io/.in)
    e o handler `animationend` que removia `.reveal` eram do modelo innerHTML do
    Vanilla — mutam a className, que o React possui e reescreve a cada render,
@@ -188,7 +210,7 @@ function sysType(el, ms) {
 Object.assign(window, {
   toast, hideToast, pauseToast, resumeToast, floatXP, cinePulse, celebrate,
   cineMoment, cineArise, rankCeremony, setNum, cardWave, panelScan, barBurst,
-  sysType, sysTypeFlush,
+  sysType, sysTypeHTML, sysTypeFlush,
 });
 
 export { toast, floatXP, cineArise, cardWave, panelScan, setNum, rankCeremony, celebrate, pauseToast, resumeToast };

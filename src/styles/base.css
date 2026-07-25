@@ -22,7 +22,8 @@ button.tr-advice {
    formulário estão sempre abertos e estes botões não fazem sentido. O
    instrumental.css volta a mostrá-los abaixo de 900px. */
 .obj-filters-toggle,
-.obj-add-toggle { display: none; }
+.obj-add-toggle,
+.sys-collapse-toggle { display: none; }
 body {
   background: #07040f;
   color: #ece8f8;

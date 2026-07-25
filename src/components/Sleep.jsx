@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore.js';
+import Collapse from '../design-system/Collapse.tsx';
 import { fmt, today, diffDays } from '../state/dates.js';
 import { sleepStreak } from '../state/sleep.js';
 
@@ -39,18 +40,24 @@ export default function Sleep({ S }) {
           <span className="wchip green">Streak no alvo: {sleepStreak(S)}</span>
         </div>
         <div className="sl-bars">{bars}</div>
-        <div className="addq" style={{ alignItems: 'center' }}>
-          <label className="tr-x">Noite de <input type="date" id="sl-date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
-          <label className="tr-x">Deitar <input type="time" id="sl-bed" value={bed} onChange={(e) => setBed(e.target.value)} /></label>
-          <label className="tr-x">Acordar <input type="time" id="sl-wake" value={wake} onChange={(e) => setWake(e.target.value)} /></label>
-          <select id="sl-q" value={q} onChange={(e) => setQ(e.target.value)}>
-            <option value="boa">Boa</option>
-            <option value="media">Média</option>
-            <option value="ma">Má</option>
-          </select>
-          <button className="btn" onClick={reg}>Registar noite</button>
-        </div>
-        <div className="vit-note">Alvo: 7,5–9h e consistência de horário (o cérebro premeia regularidade mais do que maratonas de fim de semana). Hora-alvo de recolher <input type="time" style={{ width: 'auto', padding: '3px 6px' }} value={S.sleep.bedT} onChange={(e) => setSleepT('bedT', e.target.value)} /> — o mundo lembra-te à noite. Noite no alvo marca o pilar do sono sozinha.</div>
+        {/* Fase 4: o formulário eram 172px dos 487 do painel. Fica aberto
+            sozinho enquanto houver hora escrita — o que se começou não se
+            esconde. A nota (87px) recolhe junto: é orientação, não leitura
+            diária. */}
+        <Collapse label="Registar noite" forceOpen={bed !== '' || wake !== ''}>
+          <div className="addq" style={{ alignItems: 'center' }}>
+            <label className="tr-x">Noite de <input type="date" id="sl-date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
+            <label className="tr-x">Deitar <input type="time" id="sl-bed" value={bed} onChange={(e) => setBed(e.target.value)} /></label>
+            <label className="tr-x">Acordar <input type="time" id="sl-wake" value={wake} onChange={(e) => setWake(e.target.value)} /></label>
+            <select id="sl-q" value={q} onChange={(e) => setQ(e.target.value)}>
+              <option value="boa">Boa</option>
+              <option value="media">Média</option>
+              <option value="ma">Má</option>
+            </select>
+            <button className="btn" onClick={reg}>Registar noite</button>
+          </div>
+          <div className="vit-note">Alvo: 7,5–9h e consistência de horário (o cérebro premeia regularidade mais do que maratonas de fim de semana). Hora-alvo de recolher <input type="time" style={{ width: 'auto', padding: '3px 6px' }} value={S.sleep.bedT} onChange={(e) => setSleepT('bedT', e.target.value)} /> — o mundo lembra-te à noite. Noite no alvo marca o pilar do sono sozinha.</div>
+        </Collapse>
       </div>
     </div>
   );

@@ -380,8 +380,13 @@
     display: none;
   }
 
+  /* Collapse partilhado (src/design-system/Collapse.tsx). Fora deste contexto
+   * o base.css esconde o botão e o conteúdo fica sempre visível. */
+  .sys-instrumental .sys-collapse[data-open='false'] { display: none; }
+
   .sys-instrumental .obj-filters-toggle,
-  .sys-instrumental .obj-add-toggle {
+  .sys-instrumental .obj-add-toggle,
+  .sys-instrumental .sys-collapse-toggle {
     display: block; /* o base.css esconde-os fora deste contexto */
     appearance: none;
     background: none;
@@ -399,7 +404,8 @@
   }
 
   .sys-instrumental .obj-filters-toggle[data-open='true'],
-  .sys-instrumental .obj-add-toggle[data-open='true'] {
+  .sys-instrumental .obj-add-toggle[data-open='true'],
+  .sys-instrumental .sys-collapse-toggle[data-open='true'] {
     color: var(--sys-ink-mut);
   }
 

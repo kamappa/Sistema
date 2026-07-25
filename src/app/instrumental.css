@@ -175,6 +175,40 @@
   height: clamp(320px, calc(100vh - 452px), 600px);
 }
 
+/* A zona chama-se Universo — não pode ser uma página COM uma imagem do
+ * universo. O painel trazia do HUD a moldura de caixa (fundo próprio, padding,
+ * sombra) e, com o céu do palco finalmente visível por trás, passavam a ver-se
+ * DOIS céus com uma fronteira reta a separá-los.
+ *
+ * Aqui a moldura dissolve-se: o texto fica (é ele que explica a lei "nada nasce
+ * à mão"), a caixa sai, e o céu do painel encosta às margens da zona. Só nesta
+ * zona — nas outras a caixa é o que separa instrumentos.
+ *
+ * A lei da luz não é quebrada, é lida bem: o Universo TEM portador — é o céu.
+ * Uma caixa acesa por cima dele seria uma segunda fonte a competir com a
+ * primeira. Por isso este seletor iguala em peso o da luz de foco (que passa
+ * pelo `.sys-zone-body`) e vem depois dele no ficheiro.
+ *
+ * O `:has(.const-wrap)` é precisão, não correção: os restantes painéis da zona
+ * já eram transparentes pela lei da luz (um portador por zona), por isso
+ * apanhá-los não mudava nada no ecrã. Fica assim porque a regra deve dizer o
+ * que quer dizer — é o painel do CÉU que se dissolve, e é essa a razão. */
+.sys-instrumental .sys-zone[data-zone='universe'] .sys-zone-body .sys-group .sys-slot .panel:has(.const-wrap) {
+  background: transparent;
+  box-shadow: none;
+  padding-inline: 0;
+}
+
+/* Sem a caixa, ficaram três margens esquerdas à vista: o título da zona a 32, o
+ * texto do painel a 64 e o céu a outro sítio. Com moldura ninguém reparava —
+ * a borda justificava o degrau. Sem ela, lê-se como desalinhamento.
+ *
+ * A zona passa a ter UMA margem: o padding do scroll sai e tudo — título,
+ * ajuda, chips e céu — encosta ao mesmo eixo do nome da zona. */
+.sys-instrumental .sys-zone[data-zone='universe'] .sys-zone-scroll {
+  padding-inline: 0;
+}
+
 /* ── Mobile ────────────────────────────────────────────────────────────
  * As SEIS zonas têm de estar imediatamente visíveis. A órbita da B2 mostrava
  * 3 de 6 e exigia um gesto horizontal não anunciado — perda de contexto.

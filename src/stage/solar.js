@@ -35,7 +35,12 @@ export function sampleSolar(hour,wx){
   let i=0;while(i<K.length-2&&K[i+1][0]<=h)i++;
   const k=Math.min(1,Math.max(0,(h-K[i][0])/(K[i+1][0]-K[i][0]))),A=K[i],B=K[i+1];
   let top=mixV(A[1],B[1],k),mid=mixV(A[2],B[2],k),bot=mixV(A[3],B[3],k),
-    neb=mixV(A[4],B[4],k),nebAmp=mixN(A[5],B[5],k)*1.2, /* calibração M12·6: +20% de presença */
+    /* M26: 1.2 → 2.6. As nebulosas fbm existiam desde a M12 mas com amplitude
+       quase invisível — o que se via de fundo eram as manchas CSS da aurora,
+       lisas e sem textura. Subir aqui traz à superfície o ruído fractal que já
+       estava a ser calculado, e mantém intacta toda a reatividade: chuva ainda
+       dessatura (×.6), Recovery ainda acalma, negligência ainda apaga. */
+    neb=mixV(A[4],B[4],k),nebAmp=mixN(A[5],B[5],k)*2.6,
     horGl=mixV(A[6],B[6],k),horAmp=mixN(A[7],B[7],k),glow=mixN(A[8],B[8],k),
     pace=mixN(A[12],B[12],k);
   let a1=mixV(A[9],B[9],k),a2=mixV(A[10],B[10],k),hc=mixV(A[11],B[11],k);
@@ -83,7 +88,12 @@ export function createSolarCss(world,updateWorld){
    (a fonte já se move ao longo de minutos — transições impercetíveis).
    2B: o arco sazonal ativo tinge a 2ª nebulosa; Recovery acalma o mundo. */
 const ARC_TINT={summer:[251,146,60],harvest:[245,158,11],winter:[96,165,250],bloom:[244,114,182]};
-const NEB2_BASE=[240,171,252];
+/* M26: a 2ª camada era rosa (#f0abfc) e a 1ª roxa — as duas na mesma família,
+   e o céu saía monocromático. Passa a azul-ciano frio: é o contraste de
+   temperatura entre camadas que dá a um campo de nebulosa a leitura de
+   profundidade, com o roxo à frente e o azul atrás. Só vale quando não há arco
+   sazonal ativo — com arco, a tinta do arco continua a mandar. */
+const NEB2_BASE=[56,152,248];
 export function createSolarLayer(sky,world){
   const lerpC=(c,v,k)=>{c.r+=(v[0]/255-c.r)*k;c.g+=(v[1]/255-c.g)*k;c.b+=(v[2]/255-c.b)*k;};
   return{

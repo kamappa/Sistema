@@ -6,6 +6,80 @@
  * nunca ficar sobre um preto morto.
  */
 
+/* ── As nebulosas ──────────────────────────────────────────────────────
+ * O `.aurora i` do hud.css desenhava cada nebulosa com DOIS radial-gradients
+ * sobrepostos, cada um com um PATAMAR duro — cor sólida de 0% a 20%, depois
+ * queda linear até transparente. Numa área de 74vmax isso produz duas coisas
+ * que se veem: um anel nítido onde o patamar acaba, e faixas de banding na
+ * queda, porque o browser interpola em 8 bits ao longo de centenas de pixéis.
+ * O resultado lê-se como uma mancha de PNG mal feita, não como atmosfera.
+ *
+ * Correção, sem tocar no hud.css (que continua a servir o HUD antigo): um só
+ * gradiente por nebulosa, sem patamar, com uma queda de seis paragens que
+ * aproxima uma gaussiana — e um grão fino por cima que dá o dither que os
+ * 8 bits não dão. Só se aplica com a shell montada.
+ */
+/* E o mais importante: com WebGL vivo, a aurora RECUA. O céu procedural tem
+ * ruído fractal, deriva e reage à hora — a aurora é lisa por construção e
+ * estava a lavá-lo. Passa a ser o que devia sempre ter sido: a rede de
+ * segurança de quem não tem WebGL, onde assume a opacidade toda. */
+:root[data-sys-shell='on'][data-sys-quality='full'] .aurora,
+:root[data-sys-shell='on'][data-sys-quality='lite'] .aurora {
+  opacity: 0.28;
+}
+
+:root[data-sys-shell='on'] .aurora i {
+  background: none;
+}
+
+:root[data-sys-shell='on'] .aurora i:nth-child(1) {
+  background: radial-gradient(circle at center,
+    color-mix(in oklab, var(--amb1) 78%, transparent) 0%,
+    color-mix(in oklab, var(--amb1) 52%, transparent) 18%,
+    color-mix(in oklab, var(--amb1) 30%, transparent) 34%,
+    color-mix(in oklab, var(--amb1) 14%, transparent) 50%,
+    color-mix(in oklab, var(--amb1) 5%, transparent) 66%,
+    transparent 82%);
+}
+
+:root[data-sys-shell='on'] .aurora i:nth-child(2) {
+  background: radial-gradient(circle at center,
+    color-mix(in oklab, var(--amb2) 70%, transparent) 0%,
+    color-mix(in oklab, var(--amb2) 46%, transparent) 18%,
+    color-mix(in oklab, var(--amb2) 26%, transparent) 34%,
+    color-mix(in oklab, var(--amb2) 12%, transparent) 50%,
+    color-mix(in oklab, var(--amb2) 4%, transparent) 66%,
+    transparent 82%);
+}
+
+:root[data-sys-shell='on'] .aurora i:nth-child(3) {
+  background: radial-gradient(circle at center,
+    color-mix(in oklab, var(--amb3) 62%, transparent) 0%,
+    color-mix(in oklab, var(--amb3) 40%, transparent) 18%,
+    color-mix(in oklab, var(--amb3) 22%, transparent) 34%,
+    color-mix(in oklab, var(--amb3) 10%, transparent) 50%,
+    color-mix(in oklab, var(--amb3) 3%, transparent) 66%,
+    transparent 82%);
+}
+
+/* Grão. É o que separa "atmosfera" de "mancha": quebra as faixas do gradiente
+ * dando-lhe ruído abaixo do limiar de perceção. SVG inline — sem asset
+ * externo, sem pedido de rede. */
+:root[data-sys-shell='on'] .aurora::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* Em tier baixo o grão sai: é o primeiro a cair, como o blur. */
+:root[data-sys-quality='off'] .aurora::after,
+:root[data-sys-quality='lite'] .aurora::after { display: none; }
+
 .sys-atmosphere {
   position: absolute;
   inset: 0;

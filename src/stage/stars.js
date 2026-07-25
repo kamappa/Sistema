@@ -35,7 +35,11 @@ void main(){
   gl_FragColor=vec4(col*a,a);
 }`;
 export function createStars(tier){
-  const N=tier==='full'?120:50;
+  /* Missão 26: 120 → 420 no tier alto. O campo antigo lia-se como pó disperso;
+     um céu real tem centenas de pontos com brilhos muito diferentes, e é a
+     densidade que faz a diferença entre "fundo escuro" e "espaço". O tier
+     `lite` (mobile, GPU fraca) fica onde estava — é lá que custa. */
+  const N=tier==='full'?420:50;
   const geo=new THREE.BufferGeometry();
   const pos=new Float32Array(N*3),size=new Float32Array(N),freq=new Float32Array(N),
     phase=new Float32Array(N),drift=new Float32Array(N),amp=new Float32Array(N),
@@ -57,11 +61,20 @@ export function createStars(tier){
     resize(W,H,pix){
       mat.uniforms.uRes.value.set(W,H);mat.uniforms.uPix.value=pix;
       for(let i=0;i<N;i++){
-        const z=.15+Math.random()*.85,big=Math.random()<.08;
+        /* Hierarquia de brilho (M26): num céu real a esmagadora maioria das
+           estrelas é ténue e um punhado domina. `big` sobe de 8% para 11% e
+           ganha mais corpo; as restantes descem, para a densidade nova não
+           virar uma parede de pontos iguais. */
+        const z=.15+Math.random()*.85,big=Math.random()<.11;
         pos[i*3]=Math.random()*W;pos[i*3+1]=Math.random()*(H+8);pos[i*3+2]=z;
-        size[i]=(.8+z*2.1)*(big?1.5:1);
+        size[i]=(.55+z*1.6)*(big?2.4:1);
         drift[i]=.18+z*.72;
-        amp[i]=(.10+Math.random()*.30)*(big?1.5:1); /* calibração M12·6 */
+        /* Magnitude (M26). Era .10–.40 para todas, o que dava um pó cinzento
+           uniforme: nenhuma estrela dominava e nenhuma desaparecia. Passa a
+           duas populações, como num céu real — um punhado de pontos francos e
+           uma maioria no limiar da perceção. É o contraste entre elas que faz
+           o olho ler "estrelas" em vez de "ruído". */
+        amp[i]=big?(.55+Math.random()*.45):(.06+Math.random()*.22);
         freq[i]=6.283/(2.6+Math.random()*5.4);
         phase[i]=Math.random()*6.283;
         tint[i]=Math.random()<.12?1:0;

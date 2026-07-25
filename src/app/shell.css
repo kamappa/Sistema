@@ -9,7 +9,15 @@
   position: fixed;
   inset: 0;
   display: grid;
-  background: var(--sys-void);
+  /* NÃO opaco. A shell pintava `--sys-void` sólido a z-index 10, por cima do
+   * céu WebGL que vive a z-index 0 — e escondia-o por completo desde a Fase 2.
+   * Todo o céu procedural (nebulosas fbm, campo de estrelas, Solar Engine)
+   * estava a ser calculado e nunca chegava ao ecrã.
+   *
+   * Passa a véu: escurece o suficiente para o texto se ler por cima, deixa
+   * passar o que está por baixo. Quando não há WebGL, o campo do
+   * `Atmosphere` pinta por trás e o véu funciona na mesma. */
+  background: rgb(4 3 10 / 0.45);
   color: var(--sys-ink);
   font-family: var(--sys-type-body);
   font-size: var(--sys-step-0);

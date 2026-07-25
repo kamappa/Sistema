@@ -52,6 +52,10 @@ export default function Atmosphere() {
       document.documentElement.setAttribute('data-sys-quality', q);
     }
     apply();
+    // Marca a raiz enquanto a shell está montada. A aurora e o horizonte são
+    // pintados pelo <Stage/>, que vive FORA de `.sys-shell` — sem esta marca
+    // não havia como corrigi-los sem editar o hud.css, que serve o HUD antigo.
+    document.documentElement.setAttribute('data-sys-shell', 'on');
 
     const mqMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const mqWidth = window.matchMedia('(max-width: 900px)');
@@ -61,6 +65,7 @@ export default function Atmosphere() {
       mqMotion.removeEventListener('change', apply);
       mqWidth.removeEventListener('change', apply);
       document.documentElement.removeAttribute('data-sys-quality');
+      document.documentElement.removeAttribute('data-sys-shell');
     };
   }, []);
 

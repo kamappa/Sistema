@@ -3,6 +3,19 @@
    (Missão 25, fases seguintes). Nada aqui é o design final. */
 :root { color-scheme: dark; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Missão 26 · Fase 4: o conselho do Treino passou de <div> a <button> para ser
+   expansível por teclado e toque. Isto devolve-lhe o aspeto que tinha como div
+   — o hud.css continua a dar-lhe borda, cor e espaçamento, e o painel fica
+   idêntico onde não há colapso (desktop e HUD sem ?shell=). */
+button.tr-advice {
+  appearance: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
 body {
   background: #07040f;
   color: #ece8f8;

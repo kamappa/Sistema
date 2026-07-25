@@ -16,9 +16,16 @@ export default function Training({ S }) {
   const [kegel, setKegel] = useState({ done: false, feel: 'ok' });
   const [extra, setExtra] = useState(false);
   const [notes, setNotes] = useState('');
+  // Missão 26 · Fase 4. Qual linha está aberta para registo. SÓ tem efeito em
+  // ecrã estreito: o CSS ignora este estado acima de 900px, onde o painel fica
+  // exatamente como estava. O problema medido é do mobile (o Treino ocupava
+  // 1271px, 28% da zona Operações), não do desktop, que já cabe em 3,81 ecrãs.
+  const [aberta, setAberta] = useState(null);
+  const [verConselho, setVerConselho] = useState(false);
 
   const setLine = (id, k, v) => setLines((s) => ({ ...s, [id]: { ...s[id], [k]: v } }));
   function finish() { finishTraining({ lines, kegel, extra, notes }); }
+  const toggle = (id) => setAberta((a) => (a === id ? null : id));
 
   const consec = consecTrained(S);
   const hist = S.training.sessions.slice(-4).reverse();
@@ -33,13 +40,23 @@ export default function Training({ S }) {
           <span className="wchip">Esta semana: {weekSessions(S)}/3</span>
           <span className={`wchip ${consec >= 4 ? '' : 'green'}`}>{consec} dia(s) seguido(s)</span>
         </div>
-        <div className="tr-advice">{trAdvice(S)}</div>
+        <button type="button" className="tr-advice" data-open={verConselho} onClick={() => setVerConselho((v) => !v)}>
+          {trAdvice(S)}
+        </button>
         <div className="tr-grid">
           {TLINES.map((L) => {
             const idx = S.training.prog[L.id], st = PROG[L.id][idx];
+            // Uma linha conta como "por registar" enquanto não tiver reps. Ao
+            // ter, fica aberta — o que já foi escrito nunca se esconde.
+            const preenchida = String(lines[L.id].reps).trim() !== '';
+            const open = aberta === L.id || preenchida;
             return (
-              <div className="trl" style={{ borderLeft: `2px solid ${L.c}` }} key={L.id}>
-                <div className="trl-h"><span style={{ color: L.c }}>{L.n}</span><span className="trl-step">Passo {idx + 1}/{PROG[L.id].length}</span></div>
+              <div className="trl" data-open={open} style={{ borderLeft: `2px solid ${L.c}` }} key={L.id}>
+                <div className="trl-h" onClick={() => toggle(L.id)} role="button" tabIndex={0}
+                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(L.id); } }}>
+                  <span style={{ color: L.c }}>{L.n}</span>
+                  <span className="trl-step">Passo {idx + 1}/{PROG[L.id].length}</span>
+                </div>
                 <div className="trl-ex">{st.n}</div><div className="trl-t">Alvo para evoluir: 3×{st.t}</div>
                 <div className="trl-in">
                   <input type="number" id={`tr-${L.id}-reps`} placeholder="melhor série" min="0" max="500" value={lines[L.id].reps} onChange={(e) => setLine(L.id, 'reps', e.target.value)} />
@@ -50,8 +67,11 @@ export default function Training({ S }) {
               </div>
             );
           })}
-          <div className="trl" style={{ borderLeft: `2px solid ${KLINE.c}` }}>
-            <div className="trl-h"><span style={{ color: KLINE.c }}>{KLINE.n}</span><span className="trl-step">Passo {ki + 1}/{PROG.kegel.length}</span></div>
+          <div className="trl" data-open={aberta === 'kegel' || kegel.done} style={{ borderLeft: `2px solid ${KLINE.c}` }}>
+            <div className="trl-h" onClick={() => toggle('kegel')} role="button" tabIndex={0}
+                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle('kegel'); } }}>
+              <span style={{ color: KLINE.c }}>{KLINE.n}</span><span className="trl-step">Passo {ki + 1}/{PROG.kegel.length}</span>
+            </div>
             <div className="trl-ex">{ks.n} · {ks.cyc} ciclos</div>
             <div className="trl-t">10–15 min · rápidas = 1s/1s · Evolui com 3 dias no alvo ({Math.min(kegelDaysAtStep(S, ki), 3)}/3)</div>
             <div className="trl-in" style={{ alignItems: 'center' }}>

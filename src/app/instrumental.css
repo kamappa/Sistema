@@ -277,4 +277,68 @@
     font-size: 0.625rem;
     letter-spacing: 0.1em;
   }
+
+  /* Títulos de painel: a 284px de largura, `Treino · Calistenia — novato →
+   * expert` quebrava em TRÊS linhas (105px). Medido: os títulos custavam 526px
+   * dos 4855px da zona — 12%, mais do que qualquer outra despesa de cabeçalho.
+   * Corpo menor e entrelinha apertada trazem-nos a duas linhas sem esconder
+   * uma palavra. */
+  .sys-instrumental .ptitle {
+    font-size: var(--sys-step-1);
+    line-height: 1.25;
+  }
+
+  /* ── Treino: colapso por linha ──────────────────────────────────────
+   * 1271px, 28% da zona Operações — o painel mais pesado, medido. São 5 linhas
+   * de exercício com os campos todos abertos ao mesmo tempo, a forma que pior
+   * sobrevive a 284px de largura.
+   *
+   * Aqui só fica visível o que orienta — nome, passo e exercício. O alvo e os
+   * campos abrem na linha que se está a registar. Nada se perde: uma linha com
+   * valor escrito fica sempre aberta, e o alvo é o que se lê ao registar, que
+   * é quando serve.
+   *
+   * Estas regras vivem numa media query e dentro de `.sys-instrumental`: em
+   * desktop, e no HUD sem ?shell=, o painel fica exatamente como estava.
+   */
+  .sys-instrumental .trl-h {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    min-height: var(--sys-touch-min);
+  }
+
+  .sys-instrumental .trl-h::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    margin-left: var(--sys-space-2);
+    border-right: 1.5px solid var(--sys-ink-far);
+    border-bottom: 1.5px solid var(--sys-ink-far);
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+  }
+
+  .sys-instrumental .trl[data-open='true'] .trl-h::after {
+    transform: rotate(-135deg) translateY(-2px);
+  }
+
+  .sys-instrumental .trl[data-open='false'] .trl-t,
+  .sys-instrumental .trl[data-open='false'] .trl-in {
+    display: none;
+  }
+
+  /* O conselho: uma linha até ser tocado. */
+  .sys-instrumental .tr-advice {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: var(--sys-touch-min);
+  }
+
+  .sys-instrumental .tr-advice[data-open='true'] {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
 }

@@ -7,3 +7,8 @@ dist/
 # Tooling local (skills instaladas via npx skills — reproduzíveis do skills-lock.json)
 .agents/
 .claude/
+
+# Artefactos das provas de ferramentas (Playwright MCP). Entradas específicas de
+# propósito: o projeto tem PNG reais versionados (ícones), por isso nada de *.png.
+.playwright-mcp/
+/playwright-prova.png

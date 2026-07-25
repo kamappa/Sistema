@@ -5,24 +5,103 @@
 > diff), uma fase de cada vez, tudo o que gera dados fica estruturado e datado
 > (pronto para o Oráculo), e "o sistema nunca mente".
 
-## Estado atual (v1.0 — julho 2026)
+## Protocolo de recuperação de sessão
 
-- Frontend: `index.html` único (~128KB) em GitHub Pages (kamappa/Sistema)
-- Backend: Supabase — auth, `app_state` (JSONB, RLS), `radar_items`, `oracle_reports`
-- Oráculo: Edge Function `oraculo` (modos radar diário / report semanal),
-  agendada por pg_cron; chaves em Secrets (ANTHROPIC_API_KEY, ORACLE_TOKEN)
-- Sistemas no HUD: atributos+ranks E-S, hexágono, hábitos (3 obrigatórios com
-  penalização + extras personalizáveis), missões (quadro antigo), objetivos-mestra
-  (triagem automática de prioridade/área/tags, prazos, faixa URGENTE, Sombras),
-  treino calistenia (4 linhas de força + pavimento pélvico, 8 passos,
-  adaptação, teto diário de XP), regulador de sono (backfill, anti-farm),
-  calendário, conquistas, debuffs, skill trees,
-  Títulos Reais (evidência), World Engine (arcos sazonais, meteo, sussurros,
-  Double XP), Radar Diário (notícias + alto impacto + missões deriváveis),
-  relatório do Oráculo (com missões propostas, recompensa, título da semana),
-  Revisão Ativa (banco de perguntas, seleção diária + repetição espaçada SM-2,
-  painel "Revisão do Dia", streak de estudo, perguntas próprias, gancho para
-  o Oráculo injetar perguntas)
+Trigger: **"vamos começar o verdadeiro sistema"**.
+
+Este protocolo existe para recuperar uma conversa perdida sem destruir o
+método de trabalho já estabelecido:
+
+1. Não alterar código na primeira resposta.
+2. Confirmar `git status`, branch, últimos commits e diferenças não commitadas.
+3. Ler `CLAUDE.md`, este SPEC e o ROADMAP.
+4. Comparar o estado documentado com o código; o branch real pode estar à
+   frente da documentação.
+5. Confirmar capacidades: Claude in Chrome, Context7, Tavily, Playwright,
+   Chrome DevTools e skills/plugins.
+6. Abrir o Sistema em localhost e descrever o que é realmente visível; recolher
+   screenshot, consola e network quando possível.
+7. Identificar a missão ativa. A Missão 24 está PAUSADA desde 2026-07-25; a
+   missão corrente é a Missão 26.
+8. Propor uma única fase, com objetivo, ficheiros, riscos, testes e rollback.
+9. Esperar autorização antes de aplicar alterações.
+
+O ficheiro gigante de recuperação não deve ser executado como um prompt único.
+
+## Reconciliação documental de 2026-07-25
+
+A 2026-07-24 foi carregado para `origin/main`, por upload web, um pacote
+documental novo: `CLAUDE.md` reescrito, `SPEC-CLAUDE-CODEv2.md`,
+`SYSTEM-EVOLUTION-ROADMAPv2.md`, `SYSTEM-ORACLE-CONSTITUTION.md`,
+`docs/frontend-migration/` (11 ficheiros) e `docs/oracle-governance/` (35).
+
+Esses documentos foram escritos como se a migração React nunca tivesse
+acontecido: declaravam a Missão 24 ativa, tratavam a branch React como
+"experiência separada" e planeavam React + Vite + TypeScript como uma Missão
+30 futura e condicionada. O código dizia outra coisa — a Missão 25 estava
+concluída e verificada em 18 fases na branch `react-migration`.
+
+A reconciliação foi feita a 2026-07-25, na branch
+`mission-26/renaissance-visual`, com estas decisões do Daniel:
+
+- a realidade verificada no código e no histórico tem prioridade sobre a
+  numeração criada posteriormente na documentação;
+- a migração React + Vite mantém-se oficialmente como **Missão 25**,
+  concluída em 18 fases;
+- a **Missão 26** é a Renaissance Visual, sobre a base React;
+- a **Missão 30** da documentação fica SUPERADA / ABSORVIDA PELA MISSÃO 25 e
+  o número fica reservado, sem reutilização;
+- a **Missão 24** fica formalmente PAUSADA, com o escopo visual restante
+  absorvido pela Missão 26;
+- as missões órfãs da renumeração foram absorvidas: o "Ambiente Autónomo do
+  Claude Code" tornou-se a Fase 0 da Missão 26, e o "Shell sem aspeto de AI
+  Dashboard" tornou-se o corpo da Missão 26.
+
+Factos apurados na comparação, para não se repetir o trabalho:
+
+- o ROADMAP v2 era um superset puro do da branch (+505 linhas, zero remoções);
+- as Missões 1–24 eram byte-idênticas nos dois SPECs (788 linhas);
+- `docs/oracle-governance/CLAUDE-ORACLE-BLOCK.md`, `SPEC-ORACLE-BLOCK.md` e
+  `ROADMAP-ORACLE-BLOCK.md` são blocos de inserção nos três documentos
+  canónicos, e já referenciavam os nomes sem sufixo `v2`.
+
+Os nomes canónicos são `CLAUDE.md`, `SPEC-CLAUDE-CODE.md` e
+`SYSTEM-EVOLUTION-ROADMAP.md`. Os ficheiros `v2` serviram de fonte e não
+entram no repositório com esse nome.
+
+## Estado atual (2026-07-25)
+
+**Produção** — GitHub Pages a servir `main`: continua a aplicação estática
+Vanilla, sem build step. Scripts clássicos globais, `css/hud.css`, ilha WebGL
+de ES modules em `js/stage/` com Three.js r170 vendorizado. `js/estacao.js`
+entre memória e navegação (Missão 24). Esta é a verdade em produção e não se
+altera sem gate explícito.
+
+**`react-migration`** — a frontend React + Vite completa e verificada (Missão
+25, 18 fases). React 18, Vite 6, JSX sem TypeScript, Zustand com a ponte
+`window.__store`, `@supabase/supabase-js` por npm, palco WebGL portado sem
+reescrita, camada fx/motion completa. O Vanilla inteiro preservado em
+`legacy/`. Workflow de deploy preparado e inativo.
+
+**`mission-26/renaissance-visual`** — branch de trabalho corrente, derivada de
+`react-migration`, com a documentação de autoridade (`docs/frontend-migration/`,
+`docs/oracle-governance/`, `SYSTEM-ORACLE-CONSTITUTION.md`) trazida por
+checkout limitado por caminho.
+
+**Backend, comum às duas** — Supabase: auth de utilizador único, `app_state`
+JSONB com RLS, `radar_items`, `oracle_reports` e Edge Function `oraculo`.
+Oráculo: Radar, relatório semanal, Conselho, Sussurro, contexto do Vault,
+profecias e voz de Guardião do Núcleo. Vault: Obsidian Git → repo privado
+`vault-sistema`, apenas conteúdo whitelisted.
+
+**Sistemas funcionais** — missões, hábitos, treino, sono, revisão ativa,
+títulos, memória, Radar, Oráculo, calendário, navegação, constelações de
+evidência, Celestial Core, World/Solar Engine e Modo Estação (este último só
+no Vanilla; não foi migrado para React).
+
+**Gate por levantar** — a troca da source do GitHub Pages de `main` (Vanilla)
+para o build React exige três passos manuais do Daniel e a sua decisão
+explícita. Enquanto não acontecer, o React não está em produção.
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)
 
@@ -763,7 +842,16 @@ de um flag manual — "o sistema nunca mente".
   5 dias=0.22 (rampa), Recovery anula (0); consola limpa.
 
 ## Missão 24 — Universe Navigation · Estação Espacial (Modo Estação)
-(EM CURSO — Fase A concluída 2026-07-20)
+(PAUSADA 2026-07-25 — Fases A e B concluídas)
+
+ESTADO: pausada formalmente, não concluída. As Fases A e B foram entregues e
+ficam registadas abaixo com o seu histórico intacto. O escopo restante —
+gestos globais entre planetas com snap, profundidade/foco no voo e calibração
+do dolly em hardware real — foi ABSORVIDO PELA MISSÃO 26 (Renaissance Visual
+sobre React), porque incidia sobre o HUD Vanilla que a Missão 26 vai
+substituir. Não retomar desenvolvimento Vanilla nesta fase. Nada deste
+trabalho se apaga: o Modo Estação continua vivo em produção (`main`) e em
+`legacy/`, e serve de referência de conceito para a navegação da Missão 26.
 
 Item "estação espacial total" do backlog, aberto com plano aprovado pelo
 Daniel (3 opções apresentadas): decisões dele — abordagem "Modo Estação
@@ -811,11 +899,17 @@ sem scroll foi recusada (risco de layout/mobile); o mapa dedicado também.
   entre planetas, snap); profundidade/foco (zonas fora do destino recuam no
   voo); calibração do dolly em hardware real.
 
-## Missão 25 — Foundation: migração para React + Vite (EM CURSO)
+## Missão 25 — Foundation: migração para React + Vite (CONCLUÍDA 2026-07-22)
 Branch `react-migration` (o `main` Vanilla fica intacto como ponto de
 retorno; merge só no fim, com aceitação toda verde). Fase 1 de um plano de
 dois tempos; a Renaissance visual é a Missão 26, prompt separado, só depois
 desta base estar estável em produção.
+
+ESTADO FINAL: 18 fases concluídas e verificadas. Toda a funcionalidade e a
+camada fx/motion estão migradas; o workflow de deploy está preparado e
+inativo. O que falta não é trabalho de migração — é o GATE DE PRODUÇÃO, que
+só o Daniel levanta. Esta missão ABSORVE e SUPERA a "Missão 30 — Migração
+Frontend Next Generation" da documentação de `docs/frontend-migration/`.
 
 Contrato (aprovado pelo Daniel): a LÓGICA DE CÁLCULO preserva-se linha a
 linha (motor de XP com reversões/clamps/bónus — auditado, intocado; SM-2;
@@ -1220,48 +1314,717 @@ manuais acima) — o gate que troca o site em produção do Vanilla para o React
 Antes disso, ele deve testar a branch com a conta real (Oráculo chat/sussurro/
 report + sync Supabase — o único que o headless não cobre).
 
+## Missão 26 — Renaissance Visual sobre React (ATIVA)
+(branch `mission-26/renaissance-visual`, derivada de `react-migration`)
+
+Objetivo: dar ao Sistema uma linguagem visual própria sobre a base React já
+construída. Não é uma modernização tecnológica — essa foi a Missão 25. É a
+segunda passagem de direção artística, aquela em que o HUD deixa de parecer
+uma grelha de cartões gerada por AI e passa a pertencer ao mesmo universo que
+as Constelações, o Núcleo e o World Engine já habitam.
+
+Pergunta que governa cada entrega desta missão:
+
+> Isto parece um produto único chamado Sistema, ou parece uma interface
+> gerada por AI?
+
+### Missões absorvidas
+
+Esta missão absorve três escopos que a reconciliação de 2026-07-25 deixou sem
+número próprio:
+
+- o "Ambiente Autónomo do Claude Code e Inteligência Visual" (ferramentas,
+  provas, segurança de segredos) — passa a ser a **Fase 0**;
+- o "Verdadeiro Sistema · Shell sem aspeto de AI Dashboard" (auditoria visual,
+  design system, herói e shell, Radar e Oráculo, motion) — passa a ser o
+  **corpo** das Fases 1 a 5, agora sobre React em vez de Vanilla;
+- o escopo visual restante da **Missão 24** (gestos globais, profundidade/foco,
+  calibração do dolly).
+
+### Modo Estação
+
+ESTADO: CONCEITO PRESERVADO — DECISÃO VISUAL PENDENTE
+
+O Modo Estação (Missão 24) existe apenas no Vanilla: não foi migrado na Missão
+25 e continua vivo em produção (`main`) e em `legacy/`. Não se apaga nem se
+migra automaticamente. O conceito será avaliado durante as três direções
+visuais da Fase 2, com três possibilidades:
+
+- **A.** renascer como modo imersivo de navegação da nova shell React;
+- **B.** ser absorvido pelo World Engine e pelos modos operacionais;
+- **C.** ser retirado da interface principal, preservando apenas as ideias
+  visuais e de movimento que acrescentem valor.
+
+Nenhuma destas se implementa antes de a direção visual estar escolhida.
+
+O Modo Estação NÃO bloqueia a baseline, a direção artística, o Preview
+Deployment, a nova shell nem o design system. Se a decisão ainda não existir
+quando essas peças avançarem, avançam sem ele.
+
+### Fonte de autoridade
+
+`docs/frontend-migration/` na íntegra, com destaque para
+`03_VISUAL_QUALITY_SYSTEM.md` (pipeline visual obrigatório e critério de
+força) e `09_ACCEPTANCE_GATES.md` (os seis gates). Para tudo o que toque na
+presença do Oráculo: `SYSTEM-ORACLE-CONSTITUTION.md` e
+`docs/oracle-governance/14_UI_UX_AND_PRESENCE.md`.
+
+### Barreiras
+
+- A lógica de cálculo não se toca. O motor de XP, SM-2, coreState, Solar,
+  anti-farm, reversões e streaks foram auditados na Missão 25 e permanecem
+  intocados. Divergência de número = bug.
+- Nenhuma alteração a schemas do Supabase.
+- Produção continua no Vanilla. Esta missão não ativa deploy.
+- O palco WebGL não se reescreve por dogma. Só muda onde houver ganho medido.
+
+### Fase 0 — ambiente e baseline (EM CURSO)
+
+- Ferramentas obrigatórias verificadas com prova prática, não presumidas.
+  Estado a 2026-07-25: Superpowers, Context7, 21st.dev Magic, ui-ux-pro-max,
+  frontend-design, skill-creator, claude-code-setup, Tavily, Playwright MCP,
+  Chrome DevTools MCP e Claude in Chrome operacionais; TypeScript LSP
+  pendente da decisão de arquitetura desta missão.
+- Google Chrome como browser oficial de observação, baseline, consola,
+  network e performance. Brave/CDP como fallback.
+- Reconciliação documental (feita — ver secção própria acima).
+- Baseline visual oficial por levantar: desktop e mobile, estado vazio e
+  estado com dados, navegação, Oráculo, Radar, universo, animações, loading,
+  erros, contraste e performance aparente.
+
+### Fase 1 — auditoria visual real
+
+- Inventário dos componentes React que controlam topbar, saudação, Operator
+  Identity, World Shift, missões, Radar, Oráculo, calendário, treino e
+  revisão.
+- Matriz manter / refinar / fundir / retirar.
+- Medir densidade, hierarquia, contraste, largura de texto, repetição de
+  borders e custo de motion.
+- Identificar o maior problema visual único, e não uma lista de vinte.
+
+### Fase 2 — direção visual
+
+- Três direções realmente distintas, cada uma com conceito, composição,
+  centro visual, tipografia, superfícies, iluminação, profundidade, motion,
+  navegação, integração do Oráculo, integração do universo, comportamento
+  mobile, riscos e custo técnico.
+- Comparação em desktop e mobile no browser real.
+- Escolha de uma direção pelo Daniel. As restantes ficam registadas.
+
+### Fase 3 — design system
+
+- Tokens de luz, superfície, profundidade, tipografia, spacing, estados e
+  motion, em CSS moderno sobre o Vite já existente.
+- Uppercase espaçado apenas em micro-labels.
+- Painéis com borda seletiva, materiais e profundidade; nunca glassmorphism
+  uniforme em tudo.
+- Documentação dos componentes.
+
+### Fase 4 — shell, Radar e Oráculo
+
+- Hierarquia do topo reescrita: identidade do Sistema, estado do Operador,
+  fase temporal/climática e prioridade atual.
+- Operator Identity deixa de ser um card RPG genérico.
+- World Shift torna-se acontecimento do mundo, não banner.
+- Radar como feed técnico compacto, temporal e operacional.
+- Oráculo como presença nobre, silenciosa e contextual — não um card
+  equivalente aos restantes. Estados reais (idle, thinking, speaking,
+  silent), conforme `14_UI_UX_AND_PRESENCE.md`.
+- Background, painéis e topbar partilham a iluminação do Solar/World Engine.
+
+### Fase 5 — motion, universo e validação
+
+- Motion comunica estado; sem hover gratuito nem pulso em todos os painéis.
+- Motion hierarchy: fundo quase imóvel, nebulosas lentas, estrelas a
+  cintilar, Núcleo a respirar, UI estável, feedback rápido, eventos raros.
+- Escopo herdado da Missão 24: gestos globais entre zonas, profundidade/foco
+  no voo, calibração do dolly em hardware real.
+- Validação em desktop, mobile e `prefers-reduced-motion`; consola limpa;
+  comparação antes/depois no browser real.
+
+### Matriz de lacunas técnicas — a decidir nesta missão
+
+Nenhuma destas entra por estar mencionada na documentação. Cada uma exige
+benefício real, custo, risco, impacto no código atual, estratégia incremental,
+ficheiros afetados e critérios de aceitação, apresentados antes de instalar.
+
+| Tecnologia | Existe | Regra de entrada |
+| --- | --- | --- |
+| TypeScript | não | migração incremental com `allowJs`, nunca conversão total imediata; começa pelos tipos de domínio e adaptadores |
+| Motion / Framer Motion | não | só se melhorar consistência e controlo da UI face ao `src/lib/motion.js` já portado |
+| React Three Fiber | não | não substituir Three.js funcional por dogma |
+| Drei | não | só quando reduzir complexidade real |
+| `@react-three/postprocessing` | não | seletivo; preservar legibilidade e performance; nunca bloom sobre texto |
+| Vercel | não | começa como Preview Deployment, nunca como produção |
+
+### Gates
+
+Os seis de `docs/frontend-migration/09_ACCEPTANCE_GATES.md`: fundação,
+visual, motion, performance, dados e produção. O gate de produção é o último e
+é do Daniel.
+
+### Critério de conclusão
+
+Um screenshot novo já não parece um dashboard AI; a shell integra-se no mundo
+existente sem quebrar lógica, touch nem performance; os números continuam
+idênticos aos da Missão 25; e o mobile parece produto, não versão encolhida.
+
+## Missão 27 — World Engine II · Estações, Calendário e Eventos de Prova
+(PLANEADA; extensão das M12, M23 — não reconstrução)
+
+Objetivo: transformar hora, clima, estação, calendário e contexto pessoal num
+motor composto, configurável e narrativo. O Solar Engine, Open-Meteo e os
+modificadores de comportamento já existentes são fundações; esta missão não os
+duplica.
+
+### Arquitetura
+
+Criar um registo central e modular:
+
+`Time → Weather → Season → Calendar → Behaviour → Special Event → Visual Map`
+
+Cada evento define: id, trigger, prova, prioridade, duração, cooldown,
+modificadores visuais, copy, ações sugeridas, dados persistidos, mobile e
+reduced-motion. Eventos compostos resultam de regras, não de `if` espalhados.
+
+### Arcos sazonais
+
+- **Bloom Arc / Primavera** — renascimento, limpeza e novas fundações;
+  sementes de luz, crescimento orgânico, vault cleanup, início de cursos,
+  mapas mentais e hábitos.
+- **Solar Arc / Verão** — energia, corpo, exposição e execução; luz mais
+  aberta, heat shimmer subtil, hidratação/protetor configuráveis, treino cedo,
+  deep work antes do calor, networking, estágio, labs, case studies e
+  consolidação prática de NIS2/RGPD/ISO 27001/AI.
+- **Harvest Arc / Outono** — recolha, análise e maturação; dados que se
+  agregam, arquivo, revisão trimestral, gap analysis, relatórios, portfólio e
+  auditorias simuladas.
+- **Winter Forge / Inverno** — disciplina, aulas e construção silenciosa;
+  azul frio, névoa, partículas de gelo abstratas, treino, sono, perfume de
+  inverno como protocolo pessoal opcional, estudo profundo, ISO 19011,
+  ISO 27001, NIS2, RGPD e AI Governance.
+
+As recomendações pessoais são editáveis; o motor não apresenta conselhos de
+saúde como diagnóstico.
+
+### Calendário simbólico
+
+New Cycle, Shadow Audit, Easter Light, Exam Siege/Career Gate, Summer Arc,
+Return Protocol, Eclipse Month, Deep Work Descent e Winter Archive. Datas
+móveis, como Páscoa, são calculadas/fornecidas por configuração; nunca
+hardcodar uma data eterna.
+
+### Eventos especiais e mistos
+
+Starbirth, Supernova Rare, Boss Gate, Rain Sanctuary, Solar Push, Midnight
+Archive, Mentor Signal, Oracle Prophecy e Eclipse Protocol.
+
+Compostos prioritários:
+
+- Winter Rain Sanctuary;
+- Summer Solar Push;
+- Autumn Vault Resonance;
+- Spring Skill Bloom;
+- Exam Siege + Rain Sanctuary;
+- Mentor Signal + Boss Gate;
+- Summer AI Lab;
+- Winter Governance Forge;
+- Rainy Prompt Forge;
+- Governance Eclipse.
+
+Critério de honestidade: um evento só se apresenta como facto quando possui
+prova. Um arco sazonal pode sugerir ações; um marco pessoal só celebra com data
+e evidência reais.
+
+## Missão 28 — Vault Resonance e Core View em Tempo Real
+(PLANEADA; extensão das M8, M17 e M22)
+
+Visão: enquanto o Daniel toma notas no Obsidian, fragmentos reais de
+conhecimento atravessam o Sistema e convergem para o Núcleo. Não é uma
+notificação; é a manifestação visual de alterações comprovadas no Vault.
+
+### Restrições reais
+
+GitHub Pages não consegue observar diretamente o filesystem local. Um watcher
+Node (`chokidar`) não corre dentro do browser publicado. A arquitetura deve
+separar:
+
+- prova oficial via Obsidian Git/GitHub;
+- eventos persistidos via Supabase/Edge Function;
+- bridge local opcional para latência de segundos;
+- visualização cliente no bus/WebGL.
+
+### Fases
+
+1. **Contrato de evento + mock** — `vault:changed` com ficheiros, domínio,
+   dimensão e timestamp; botão/debug dispara fragmentos pré-alocados até ao
+   Núcleo.
+2. **Prova Git** — webhook/compare API identifica ficheiros realmente
+   alterados pelo push do Vault; ignora `.git`, `.obsidian` e conteúdo fora da
+   whitelist.
+3. **Fila e Realtime** — evento datado em Supabase; cliente consome uma vez,
+   confirma processamento e não duplica animação.
+4. **Knowledge mapping** — título, tags, pasta, linhas/bytes alterados e
+   domínio determinam cor, massa e trajetória; conteúdo sensível não precisa
+   de ser enviado para a animação.
+5. **Core View** — modo dedicado fullscreen (`core.html`, query mode ou rota a
+   decidir após auditoria) com Núcleo, clima/hora, eventos e fluxo do Vault;
+   ideal para segundo monitor ou wallpaper futuro.
+6. **Bridge local opcional** — watcher local assinado envia evento imediato
+   para endpoint autenticado; o push Git continua a ser prova/histórico.
+
+O Núcleo pulsa proporcionalmente, a rede responde e o Oráculo pode comentar
+mais tarde; sem alterações reais, não existe espetáculo falso.
+
+## Missão 29 — AI Lab e AI Governance como Domínios Vivos
+(PLANEADA; integra Radar, Vault, Oráculo, missões e eventos)
+
+Objetivo: AI geral e AI Governance tornam-se áreas operacionais do Sistema,
+não feeds de notícias nem compliance seco.
+
+### Eventos normais de AI
+
+- AI Radar;
+- Model Watch;
+- Tool Discovery;
+- Prompt Forge;
+- Agent Lab Session.
+
+### Eventos especiais de AI
+
+- Model Epoch;
+- Agent Breakthrough;
+- Automation Chain Complete;
+- Tool Mastery.
+
+### Eventos normais de AI Governance
+
+- Governance Radar;
+- AI Risk Review;
+- Model Inventory Update;
+- Human-in-the-Loop Check.
+
+### Eventos especiais de AI Governance
+
+- Governance Signal;
+- AI Council;
+- Red Flag Event;
+- Trust Seal;
+- AI Governance Breakthrough.
+
+Cada evento inclui trigger, frequência, prova, output, risco, fonte, ação,
+impacto no Núcleo/Oráculo, dados guardados, cooldown e fallback. Exemplos de
+prova: release oficial, teste documentado, workflow versionado, inventário,
+risk review, logs ativos, approval gate ou framework interno publicado.
+
+Research: fontes oficiais e atuais através de Context7/Tavily; links usados são
+registados. Ações externas permanecem human-in-the-loop. O Oráculo interpreta
+impacto no percurso de Daniel e pode converter descoberta em missão, estudo,
+experimento ou artefacto de portfólio.
+
+## Missão 30 — Migração Frontend Next Generation
+(SUPERADA / ABSORVIDA PELA MISSÃO 25 — 2026-07-25)
+
+Esta missão foi definida em `docs/frontend-migration/` e no SPEC carregado a
+2026-07-24 como trabalho futuro e condicionado. À data em que foi escrita, o
+trabalho já estava feito: React 18, Vite 6, Zustand, `@supabase/supabase-js`
+por npm, o palco WebGL portado e a camada fx/motion completa existiam e
+estavam verificados na branch `react-migration` desde 2026-07-22.
+
+Não reabrir. Não reexecutar. O número 30 fica RESERVADO e não deve ser
+reutilizado para outra missão, para que qualquer leitura futura do histórico
+encontre aqui a explicação em vez de uma lacuna.
+
+O que da documentação dessa missão permanece por decidir — TypeScript, Motion,
+React Three Fiber, Drei, pós-processamento e Vercel Preview — vive na matriz
+de lacunas técnicas da Missão 26.
+
 ## Oráculo Evoluído (Jarvis) — PLANO, não execução
 
-Visão-mãe do agente em `ORACULO-ROADMAP.md` (raiz, 2026-07-22). NÃO é missão
-aberta — é o mapa que o Sistema segue quando o Daniel decidir arrancar. Do
-conselheiro invocado para Guardião do Núcleo proativo, com ferramentas (MCP),
-memória verdadeira (`oracle_memory`) e workflows autónomos (n8n OU Managed
-Agents). Fases O1–O5 (O1 = memória, a mais barata/reversível, recomendada como
-1º passo). É um programa multi-missão: envolve custo de API contínuo, infra e
-postura de segurança — GATE do Daniel em cada fase. Diferencial: construir o
-próprio agente GOVERNADO (EU AI Act / ISO 42001 / NIST AI RMF / RGPD) é
-dogfooding da carreira dele; entregável barato = `GOVERNANCE.md` do Oráculo
-ANTES de qualquer autonomia. Decisões pendentes do Daniel antes de construir:
-orçamento mensal, espinha (n8n self-host vs. CMA vs. Edge Function DIY +
-MCP/memória), matriz auto-vs-gated. Até lá, nada de autonomia — só o plano.
+Documento histórico: `ORACULO-ROADMAP.md` (raiz, 2026-07-22). NÃO é missão
+aberta — é o esboço original do agente evoluído. Do conselheiro invocado para
+Guardião do Núcleo proativo, com ferramentas (MCP), memória verdadeira
+(`oracle_memory`) e workflows autónomos (n8n OU Managed Agents). Fases O1–O5
+(O1 = memória, a mais barata/reversível, recomendada como 1º passo). É um
+programa multi-missão: envolve custo de API contínuo, infra e postura de
+segurança — GATE do Daniel em cada fase. Diferencial: construir o próprio
+agente GOVERNADO (EU AI Act / ISO 42001 / NIST AI RMF / RGPD) é dogfooding da
+carreira dele. Decisões pendentes do Daniel antes de construir: orçamento
+mensal, espinha (n8n self-host vs. CMA vs. Edge Function DIY + MCP/memória),
+matriz auto-vs-gated. Até lá, nada de autonomia — só o plano.
 
-## Backlog — fila atual (ordenada; atualizada 2026-07-19)
+SUCEDIDO POR: `SYSTEM-ORACLE-CONSTITUTION.md` e `docs/oracle-governance/`
+(2026-07-24), que desenvolvem a mesma visão com muito mais rigor — leis,
+autoridade, autonomia por níveis, memória, voz, agentes, moderação e gates. O
+`ORACULO-ROADMAP.md` preserva-se pelo valor histórico e pela leitura direta
+que faz do estado real do Oráculo em julho de 2026; em caso de conflito,
+prevalece a Constituição. O programa técnico está abaixo.
 
-1. Sprint 6b da M12 — polimento fino com a fricção de uso real do Daniel
-   (aberto em permanência; 1º item registado a 2026-07-19).
-   2º item (2026-07-19, auditoria própria ao dia de ~20 commits): releitura
-   integral do constellation.js apanhou um bug real — dblclick (ou chip
-   Universo) DURANTE um fly-in cancelava a viagem mas deixava pendingEnter
-   preso, matando wheel e cliques do painel até recarregar; resetCam passa
-   a limpá-lo, e o arrasto deixou de poder iniciar durante o fly-in.
-   Verificado headless: fly-in interrompido → painel continua vivo e o
-   clique seguinte volta a mergulhar.
-2. Universe Navigation — fases seguintes ("estação espacial total":
-   eliminar o scroll, zonas por câmara — missão multi-sprint com plano
-   próprio quando o Daniel quiser). Rege-se pela Camada II do roadmap
-   (ver Missão 12): o Sistema é um único organismo sem páginas, a câmara
-   desloca-se dentro dele e respira sempre; Motion Hierarchy e Idle
-   Motion aplicam-se a todas as zonas
-3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo; exige o gosto
-   do Daniel presente)
-4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
-3. Sons opt-in (contexto novo do roadmap — Oráculo/mundo)
-4. Camada adaptativa do recall — gated: exige histórico de uso suficiente
+## Programa Oracle Intelligence & Governance
 
-Ideias antigas retiradas da fila (recuperáveis se voltarem a ganhar
-prioridade): botões Aceitar/Recusar do relatório a escrever no estado;
-Evidence Locker (Storage nos Títulos Reais); PWA + notificações push;
-injeção de perguntas do Oráculo na Revisão Ativa
-(`oracleRefreshQuestions()`, gancho criado na Missão 5 — exige decisão de
-custo do Daniel). Já pagas a 2026-07-19 (Missão 20): exportação .ics e
-limpeza do token `?t=`.
+### Estatuto
+
+Programa estratégico de longo prazo.
+
+Não é uma única missão e não deve ser executado num big-bang rewrite.
+
+Fonte de autoridade:
+
+- `SYSTEM-ORACLE-CONSTITUTION.md`
+- `docs/oracle-governance/00_READ_ME_FIRST.md`
+
+### Visão
+
+Transformar o Oráculo numa camada de inteligência e governação capaz de:
+
+- compreender o estado global do Sistema;
+- conversar por texto e voz;
+- funcionar como assistente pessoal;
+- coordenar Hermes, OpenClaw e n8n;
+- gerir a Money Printing Machine;
+- moderar automações;
+- proteger atenção;
+- pedir aprovação;
+- explicar decisões;
+- aprender com resultados;
+- aumentar autonomia de forma gradual.
+
+### Arquitetura conceptual
+
+```text
+Daniel
+↓
+Oracle Interface
+↓
+Oracle Intelligence Layer
+↓
+Governance Layer
+↓
+Execution Layer
+↓
+Truth and Audit Layer
+```
+
+### Sistemas obrigatórios
+
+#### Oracle Gateway
+
+Entrada unificada para:
+
+- texto;
+- voz;
+- eventos;
+- agentes;
+- workflows.
+
+#### Context Engine
+
+Constrói contexto mínimo e relevante.
+
+#### Memory Engine
+
+Gere memória factual, episódica, semântica, operacional e de política.
+
+#### Intent Engine
+
+Distingue pergunta, comando, reflexão, aprovação, rejeição, delegação e alerta.
+
+#### Priority Engine
+
+Avalia impacto, urgência, risco, energia, dependências e alinhamento.
+
+#### Planning Engine
+
+Decompõe objetivos em passos.
+
+#### Policy Engine
+
+Decide permitido, proibido ou sujeito a aprovação.
+
+#### Approval Engine
+
+Cria pedidos de aprovação informados.
+
+#### Agent Registry
+
+Mantém papéis, permissões, custos, métricas e kill switches.
+
+#### Delegation Engine
+
+Escolhe agente com base em competência, custo, risco e privacidade.
+
+#### Attention Engine
+
+Decide quando, como e se o Oráculo deve interromper.
+
+#### Audit Engine
+
+Guarda Decision Records e Action Ledger.
+
+#### Voice Engine
+
+Gere STT, TTS, push-to-talk, barge-in, confiança e sessões.
+
+### Fases
+
+#### Missão O-00 — Constituição e baseline
+
+- consolidar documentos;
+- mapear capacidade atual;
+- identificar dados e endpoints;
+- definir riscos;
+- não adicionar autonomia.
+
+#### Missão O-01 — Oracle Core
+
+- gateway textual;
+- contexto;
+- intent;
+- respostas estruturadas;
+- explicabilidade;
+- estados reais.
+
+#### Missão O-02 — Memory Foundation
+
+- modelos;
+- origem;
+- confiança;
+- correção;
+- remoção;
+- retenção;
+- memória proposta antes de persistência sensível.
+
+#### Missão O-03 — Voice v1
+
+- push-to-talk;
+- transcrição;
+- TTS;
+- comandos internos;
+- confirmação;
+- fallback textual;
+- logs.
+
+#### Missão O-04 — Personal Assistant
+
+- briefing;
+- debrief;
+- brain dump;
+- diário;
+- tarefas;
+- agenda;
+- foco;
+- lembretes;
+- acompanhamento.
+
+#### Missão O-05 — Governance Core
+
+- policy engine;
+- approval engine;
+- permission model;
+- risk engine;
+- kill switch;
+- action ledger.
+
+#### Missão O-06 — Agent Registry
+
+- Hermes;
+- OpenClaw;
+- n8n;
+- task contracts;
+- reputação;
+- custos;
+- timeout;
+- rollback.
+
+#### Missão O-07 — Proactive Oracle
+
+- attention engine;
+- padrões;
+- notificações;
+- escalada;
+- Silent Mode;
+- Recovery Mode.
+
+#### Missão O-08 — Money Machine v1
+
+- Opportunity Radar;
+- Lead Engine;
+- Research Engine;
+- scoring;
+- drafts;
+- aprovação humana.
+
+#### Missão O-09 — Money Machine v2
+
+- CRM;
+- follow-ups;
+- Offer Engine;
+- Delivery Engine;
+- métricas;
+- aprendizagem.
+
+#### Missão O-10 — Ambient Oracle
+
+- wake word;
+- sessões contínuas;
+- dispositivos;
+- presença ambiente;
+- políticas adicionais.
+
+#### Missão O-11 — Advanced Autonomy
+
+- autonomia por domínio;
+- orçamentos;
+- simulação;
+- auto-recovery;
+- reputação;
+- supervisão.
+
+### Modelos obrigatórios
+
+Toda a ação deve ter:
+
+- ID;
+- intenção;
+- utilizador;
+- agente;
+- política;
+- risco;
+- aprovação;
+- estado;
+- custo;
+- timestamps;
+- output;
+- erro;
+- rollback.
+
+Estados:
+
+```text
+draft
+pending_approval
+approved
+queued
+running
+waiting
+verifying
+completed
+failed
+cancelled
+rolled_back
+```
+
+### Critérios de aceitação
+
+#### Verdade
+
+- não inventa;
+- distingue confiança;
+- confirma persistência;
+- explica origem.
+
+#### Voz
+
+- escuta visível;
+- cancelamento;
+- transcrição;
+- confirmação;
+- privacidade.
+
+#### Memória
+
+- auditável;
+- corrigível;
+- removível;
+- finalidade clara.
+
+#### Autonomia
+
+- política;
+- aprovação;
+- limites;
+- kill switch;
+- rollback.
+
+#### Agentes
+
+- registry;
+- contrato;
+- retorno estruturado;
+- métricas;
+- sem autoelevação.
+
+#### Money Machine
+
+- legítima;
+- sem spam;
+- entrega possível;
+- custos visíveis;
+- aprovação.
+
+#### UI
+
+- não parece chatbot genérico;
+- mostra estados reais;
+- permite interromper;
+- integra-se no Sistema.
+
+### Não objetivos iniciais
+
+- autonomia total;
+- wake word always-on;
+- envio automático em massa;
+- pagamentos automáticos;
+- alteração automática de objetivos;
+- memória ilimitada;
+- substituição humana em decisões críticas.
+
+### Gate de produção
+
+Nenhuma fase entra em produção sem:
+
+- testes;
+- logs;
+- policy check;
+- rollback;
+- permissões mínimas;
+- observabilidade;
+- aprovação do Daniel.
+
+## Backlog — fila canónica (reconciliada 2026-07-25)
+
+Fusão das duas filas que existiam em paralelo: a da branch (atualizada
+2026-07-19) e a do pacote documental de 2026-07-24.
+
+1. **Missão 26 — Renaissance Visual** (ATIVA). Fase 0 em curso.
+2. **Gate de produção da Missão 25** — os três passos manuais do Daniel
+   (Pages → GitHub Actions; Supabase Auth URL; merge para `main`) mais o
+   teste da branch com a conta real. Não depende da Missão 26 e pode ser
+   levantado antes, se o Daniel quiser o React em produção já.
+3. **Missão 27 — World Engine II** — estações, calendário simbólico, eventos
+   de prova e estados compostos.
+4. **Missão 28 — Vault Resonance + Core View** — fluxo real do conhecimento
+   para o Núcleo.
+5. **Missão 29 — AI Lab + AI Governance** — eventos normais/especiais,
+   inventário, risco, experiências e provas.
+6. **Programa Oracle Intelligence & Governance** — ver a secção acima e
+   `docs/oracle-governance/17_PHASED_ROADMAP.md`. Gate de custo e segurança
+   do Daniel em cada etapa.
+7. **Sprint 6b permanente** — fricção real de uso, bugs e polimento fino.
+   Aberto desde 2026-07-19. Nota: o 2º item registado (bug do `pendingEnter`
+   preso no fly-in das Constelações) foi corrigido e verificado.
+8. **Modo Estação** — CONCEITO PRESERVADO, decisão visual pendente. Não é um
+   item de implementação: a decisão (A renascer / B absorver / C retirar)
+   toma-se durante as três direções visuais da Missão 26. Ver a secção "Modo
+   Estação" dessa missão.
+9. **Sons opt-in** — só com o gosto do Daniel presente e budget próprio.
+10. **Recall adaptativo** — gated por histórico de uso suficiente.
+
+Ideias recuperáveis, fora da fila principal: Evidence Locker com Storage nos
+Títulos Reais; PWA e notificações push (o `enableNotif`/`checkNotif` do
+Vanilla não foi migrado); injeção automática de perguntas pelo Oráculo na
+Revisão Ativa (gancho `oracleRefreshQuestions()` criado na Missão 5 — exige
+decisão de custo); transformação da Core View em app/wallpaper. Abrem missão
+apenas quando existir valor e gate claro.
+
+Já pagas a 2026-07-19 (Missão 20): exportação .ics e limpeza do token `?t=`.

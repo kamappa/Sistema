@@ -1,3 +1,14 @@
+# SYSTEM EVOLUTION ROADMAP — Sistema
+
+> Visão-mãe de longo prazo. Este documento define leis, linguagem e destino;
+> não substitui o estado de execução do `SPEC-CLAUDE-CODE.md`. As implementações
+> existentes não são reabertas só porque uma ideia aparece novamente aqui.
+> Sempre distinguir: **já construído**, **extensão planeada** e **visão futura**.
+>
+> Baseline técnica atual: JavaScript clássico + ilha WebGL Three.js vanilla,
+> GitHub Pages e Supabase. React/R3F e outras stacks são referências ou opções
+> de missão futura, nunca uma migração implícita.
+
 MISSÃO
 Atua como um Principal Frontend Architect, Creative Director e Motion Design Engineer especializado em interfaces premium, sistemas operativos digitais, WebGL, Three.js, React Three Fiber, shaders, motion systems e experiências altamente imersivas.
 Não és apenas um programador.
@@ -1903,3 +1914,820 @@ Esta é provavelmente a parte mais importante.
 Se o Claude 5 conseguir seguir esta direção (e fores iterando sobre ela em vez de tentar fazer tudo de uma vez), acredito que consegues aproximar-te bastante da sensação de produtos como a Igloo.inc — não porque copies o estilo visual, mas porque vais adotar o mesmo princípio fundamental: **a interface deixa de ser um conjunto de componentes e passa a comportar-se como um mundo consistente, onde tudo reage, tudo tem contexto e nada parece colocado ao acaso.**
 
 adiciona isto tudo ao prompt, sem objeções.
+
+
+---
+
+## Camada III — Contexto, Provas, Arcos e Presença Autónoma
+
+Esta camada recupera e organiza as ideias do chat perdido sem reabrir o que já
+foi concluído nas Missões 12, 16, 17, 21, 22 e 23.
+
+### Lei central
+
+> O Sistema não mostra sinais. Mostra provas.
+
+Um ícone de sol não é Summer Arc. Uma etiqueta de chuva não é Rain Sanctuary.
+Um toast de nota adicionada não é Vault Resonance. O estado só existe quando
+há uma causa real, e deve alterar de forma coerente o ambiente, a narrativa,
+as recomendações e a resposta do Núcleo.
+
+### Motores independentes, mundo único
+
+- **Progress Engine** — verdade: evidência, hábitos, missões, títulos,
+  certificações, projetos, Vault e histórico.
+- **World Engine** — atmosfera: hora, clima, estação, calendário e ritmo.
+- **Event Engine** — episódios: eventos normais, especiais, raros e compostos.
+- **Visual Engine** — manifestação: luz, partículas, materiais, motion,
+  câmara, Núcleo e Oráculo.
+- **Oracle Engine** — interpretação: transforma dados e contexto em conselho,
+  memória, missão ou silêncio.
+
+Nenhum motor deve guardar cópias concorrentes da mesma verdade. O Event Engine
+lê factos e emite consequências; não inventa progresso.
+
+## Context stack
+
+O estado visual final resulta de camadas com prioridade explícita:
+
+1. hora e posição solar;
+2. clima real;
+3. estação do ano;
+4. evento de calendário;
+5. estado do Operador (recovery, burnout, momentum, neglect);
+6. evento de progresso;
+7. evento crítico/especial;
+8. quality tier e reduced motion.
+
+Exemplo: inverno + noite + chuva + exame próximo não produz quatro banners.
+Produz um único estado composto: **Winter Exam Sanctuary**, com linguagem,
+luz, motion e ação coerentes.
+
+## Arcos sazonais meticulosamente distintos
+
+### Bloom Arc — Primavera
+
+**Significado:** renascimento, limpeza, fundações, curiosidade e crescimento
+orgânico.
+
+**Prova temporal:** estação calculada pela data/localidade. Eventos pessoais,
+como novo curso ou hábito, exigem criação registada.
+
+**Direção 2D/3D:**
+
+- roxo mais suave e magenta luminoso;
+- partículas-semente com deriva ascendente;
+- filamentos procedurais que crescem apenas em ações de começo;
+- nebulosa mais aberta e respiração ligeiramente expansiva;
+- materiais menos densos e maior sensação de ar.
+
+**Comportamentos:** limpar o Vault, recomeçar rotinas, rever objetivos, abrir
+curso, organizar espaço, construir fundamentos e mapas mentais.
+
+**Estudo recomendado:** bases de ISO 27001/NIS2/RGPD/AI, glossários,
+framework maps, notas atómicas, perguntas de active recall e pequenos labs.
+
+**Eventos:** Spring Bloom, Seed of Discipline, Skill Germination, First Light,
+Vault Spring Cleaning.
+
+**Prova visual:** criar um hábito ou curso faz nascer uma semente de luz que
+viaja para o Núcleo; sem criação real, não há nascimento.
+
+### Solar Arc — Verão
+
+**Significado:** energia, execução, corpo, exposição ao mundo, networking e
+experiência prática.
+
+**Direção 2D/3D:**
+
+- exposição ligeiramente mais aberta, sem transformar a UI em tema claro;
+- heat shimmer muito subtil e performante;
+- partículas mais rápidas, horizonte mais largo e Núcleo mais ativo;
+- água/luz representadas por refração e pequenas gotas, não emojis;
+- UV/calor entram como dados funcionais, não decoração.
+
+**Protocolos pessoais configuráveis:** hidratação, protetor solar, treino de
+manhã, tarefas externas e descanso em calor elevado. O Sistema lembra; não
+substitui aconselhamento de saúde.
+
+**Aproveitamento do verão:** manhã para estudo pesado e treino, tarde para
+projetos/labs, fim de tarde para networking, eventos, portfólio, estágio,
+visitas e experiências.
+
+**Estudo/projeto:**
+
+- NIS2: requisito → medida → evidência → cenário de implementação;
+- RGPD: casos, DPIA, bases legais, resposta a incidentes e contratos;
+- ISO 27001/19011: SoA, risco, plano de auditoria, entrevistas e evidência;
+- AI: agentes, MCP, n8n, modelos, demos e documentação;
+- AI Governance: AI inventory, risk review, ISO 42001 e NIST AI RMF.
+
+**Eventos:** Hydration Pulse, Morning Forge, Solar Study Window, Networking
+Season, Sun Shield Protocol, Summer AI Lab e Expansion Protocol.
+
+**Prova visual:** temperatura/UV/clima modificam ambiente e missões; completar
+um lab gera energia real, não um efeito sazonal arbitrário.
+
+### Harvest Arc — Outono
+
+**Significado:** recolher, comparar, consolidar, escrever, arquivar e aprender
+com o ciclo.
+
+**Direção 2D/3D:**
+
+- roxo profundo, magenta maduro e poeira descendente;
+- fragmentos de dados agrupam-se em artefactos/relatórios;
+- motion mais reflexivo, Oráculo mais analítico;
+- folhas são abstrações luminosas de informação, nunca clip-art sazonal.
+
+**Comportamentos:** revisão trimestral, portfólio, CV, gap analysis, limpeza de
+backlog, lições aprendidas, relatório e preparação do inverno.
+
+**Estudo:** auditorias simuladas, escrita técnica, evidence catalog, case
+studies, comparação NIS2/ISO/RGPD/AI Governance e transformação de notas em
+frameworks reutilizáveis.
+
+**Eventos:** Harvest Review, Archive Season, Lessons Collected, Autumn Ledger,
+Pattern Recognition e Autumn Vault Resonance.
+
+**Prova visual:** tarefas e notas concluídas agregam-se num objeto/relatório
+com fontes reais e viajam para o Vault/Núcleo.
+
+### Winter Forge — Inverno
+
+**Significado:** disciplina, aulas, treino, silêncio, profundidade e forja
+interior.
+
+**Direção 2D/3D:**
+
+- azul frio, roxo escuro, névoa e brilho contido;
+- partículas de gelo/neve abstratas e pouco densas;
+- materiais de vidro frio, obsidiana e metal;
+- Núcleo mais contrastado e motion mais lento.
+
+**Protocolos pessoais:** aulas, sono, treino, estudo profundo, recuperação e
+rotinas de apresentação pessoal; perfume de inverno pode ser uma preferência
+configurável, nunca uma regra universal.
+
+**Estudo:** matéria formal, ISO 27001, ISO 19011, NIS2, RGPD, AI Governance,
+checklists, Excel, relatórios e simulações de entrevista/auditoria.
+
+**Eventos:** Winter Forge, Cold Discipline, Silent Core, Exam Siege, Recovery
+Protocol e Winter Governance Forge.
+
+**Prova visual:** uma sessão registada de estudo/training alimenta a forja;
+sem registo, o frio permanece contemplativo e não celebra.
+
+## Calendário simbólico
+
+- **Janeiro — New Cycle:** objetivos, identidade, projetos e reset de
+  prioridades; reboot visual proporcional, sem apagar histórico.
+- **Fevereiro — Shadow Audit:** anti-padrões, distrações e dívida; glitches
+  frios apenas quando há dados para rever.
+- **Março/Abril — Easter Light / Spring Bloom:** renascimento, saúde, estudo e
+  novo projeto; Páscoa calculada/configurada anualmente.
+- **Maio/Junho — Exam Siege / Career Gate:** exames, chamadas, candidaturas,
+  entrevistas e portfólio.
+- **Julho/Agosto — Summer Arc:** estágio, projetos, networking, viagens e
+  experimentação.
+- **Setembro — Return Protocol:** semestre, Vault, agenda e estrutura.
+- **Outubro — Eclipse Month:** transformação e boss pessoal; sem estética de
+  Halloween genérica.
+- **Novembro — Deep Work Descent:** projetos longos e construção silenciosa.
+- **Dezembro — Winter Archive / Year Closing:** relatório anual, memória,
+  gratidão, Natal subtil e preparação do ciclo seguinte.
+
+Datas e tradições devem ser configuráveis por local/cultura; o mundo não deve
+presumir que todos celebram o mesmo.
+
+## Eventos especiais de prova
+
+### Starbirth
+
+Trigger: missão, projeto, hábito ou evidência importante. Uma estrela nasce,
+a rede conduz energia e o Núcleo responde. A estrela fica ligada à origem e à
+data.
+
+### Supernova Rare
+
+Trigger: certificação, estágio, lançamento, cliente, marco de streak ou outro
+feito classificado como raro. O efeito é curto, cinematográfico e irrepetível
+sem nova prova.
+
+### Boss Gate
+
+Trigger: evento real no calendário com criticidade: exame, entrevista,
+apresentação, chamada ou deadline. O mundo reduz distrações e oferece plano,
+materiais e checklist.
+
+### Oracle Prophecy
+
+Trigger: padrão com dados suficientes. A profecia inclui condição e horizonte
+verificáveis; pode falhar. Se falhar, o Oráculo admite que interpretou mal os
+sinais.
+
+### Rain Sanctuary / Solar Push / Midnight Archive
+
+Triggers de clima/hora com ações coerentes. São contextos úteis, não prémios.
+
+### Mentor Signal
+
+Trigger: mensagem, reunião ou follow-up real com professor/mentor. O Radar
+assinala, o Oráculo prepara briefing e próximos passos; não inventa relação.
+
+### Eclipse Protocol
+
+Trigger: sono baixo, burnout, neglect ou carga crítica comprovados. Protege o
+Núcleo, reduz estímulo e propõe recuperação.
+
+## Eventos compostos
+
+O motor escolhe uma narrativa dominante e combina modificadores com limites:
+
+- Winter Rain Sanctuary;
+- Summer Solar Push;
+- Spring Skill Bloom;
+- Autumn Vault Resonance;
+- Exam Siege + Rain Sanctuary;
+- Mentor Signal + Boss Gate;
+- Summer AI Lab;
+- Winter Governance Forge;
+- Rainy Prompt Forge;
+- Governance Eclipse;
+- Christmas Winter Archive;
+- New Cycle + Oracle Council.
+
+Eventos críticos vencem sazonais; eventos sazonais alteram a linguagem de
+fundo; quality tier limita o espetáculo, nunca a verdade.
+
+## Vault Resonance
+
+Vault Resonance é a prova visual de que o conhecimento entrou no Sistema.
+
+### Experiência
+
+Enquanto o Obsidian guarda notas:
+
+1. alterações reais são detetadas;
+2. cada ficheiro relevante torna-se fragmento de energia;
+3. cor representa domínio, tamanho representa peso da alteração e trajetória
+   representa origem;
+4. os fragmentos atravessam a Core View;
+5. o Núcleo abre a aura, absorve e pulsa;
+6. a rede responde;
+7. o Oráculo pode sintetizar depois, não interromper imediatamente.
+
+O número de fragmentos corresponde a alterações reais; não usar partículas
+aleatórias para simular conhecimento.
+
+### Arquitetura coerente com o projeto
+
+`Obsidian → Obsidian Git → GitHub push/compare → Edge Function/Event Bridge →
+Supabase event queue/Realtime → Bus → WebGL Core`
+
+Uma bridge local com chokidar pode reduzir latência, mas é opcional e não
+substitui a prova Git. O browser em GitHub Pages não tem acesso direto ao
+filesystem.
+
+### Core View
+
+Modo dedicado, limpo e fullscreen para segundo monitor: Núcleo, mundo,
+weather/time e eventos. Primeiro como modo web; depois pode evoluir para Tauri,
+Electron ou Wallpaper Engine mediante missão própria.
+
+## AI Lab — eventos vivos
+
+### Normais
+
+- **AI Radar:** resumo diário/semanal de modelos, ferramentas, MCPs, agentes,
+  automações e oportunidades.
+- **Model Watch:** release oficial relevante e comparação com stack atual.
+- **Tool Discovery:** ferramenta entra como não avaliada até teste real.
+- **Prompt Forge:** prompt versionado, comparado e convertido em template.
+- **Agent Lab Session:** experiência com inputs, tools, output, custo, logs e
+  aprendizagem.
+
+### Especiais
+
+- **Model Epoch:** mudança tecnológica material, não cada release.
+- **Agent Breakthrough:** primeiro fluxo ponta-a-ponta com logs e aprovação.
+- **Automation Chain Complete:** workflow estável e reutilizável.
+- **Tool Mastery:** domínio demonstrado por projeto/artefacto, não por XP.
+
+## AI Governance — eventos vivos
+
+AI Governance não é uma secção de compliance: é a forma como o Sistema decide
+se uma IA merece confiança e como Daniel transforma isso em competência e
+produto.
+
+### Normais
+
+- Governance Radar;
+- AI Risk Review;
+- Model Inventory Update;
+- Human-in-the-Loop Check.
+
+### Especiais
+
+- Governance Signal;
+- AI Council;
+- Red Flag Event;
+- Trust Seal;
+- AI Governance Breakthrough.
+
+Cada um deve produzir prova: inventário, risk assessment, decisão,
+configuração de logs, approval gate, política, mapping ISO 42001/NIST AI RMF/EU
+AI Act ou case study. Um Trust Seal sem estes artefactos viola a lei do
+Núcleo.
+
+## Referências e investigação visual
+
+O Claude deve pesquisar e observar referências reais quando necessário:
+
+- shell: Linear, Raycast, Stripe, VisionOS, Framer, Resend;
+- WebGL/experiência: Lusion, Active Theory, Shadertoy, Three.js examples,
+  Codrops, Maxime Heckel, Theatre.js;
+- motion 2D: Rive, Lottie;
+- assets: Poly Haven, ambientCG, Kenney, NASA/JWST; Sketchfab só com licença
+  validada.
+
+Cada referência recebe uma função explícita. Nunca pedir “faz como X” sem dizer
+que princípio deve ser extraído. As URLs e licenças usadas são registadas na
+missão; pesquisa atual via Tavily/Context7 substitui links antigos quando
+necessário.
+
+## Mapa de execução
+
+- Missão 25: ferramentas, pesquisa, visão e skills.
+- Missão 26: shell anti-dashboard.
+- Missão 27: Season/Event Engine composto.
+- Missão 28: Vault Resonance e Core View.
+- Missão 29: AI Lab e AI Governance.
+
+A execução continua faseada. Esta camada é uma constituição; o SPEC decide qual
+peça pode ser construída agora.
+
+---
+
+# Camada IV — Frontend Next Generation
+
+Esta camada define a evolução técnica e visual necessária para o Sistema deixar
+de depender indefinidamente da shell atual sem destruir o que já funciona.
+
+## Estado desta camada (2026-07-25)
+
+Esta camada foi **executada** na Missão 25, entre 2026-07-20 e 2026-07-22, na
+branch `react-migration`. Não é trabalho futuro. O que existe e está
+verificado: React 18, Vite 6, Zustand, `@supabase/supabase-js` por npm, o
+palco WebGL portado sem reescrita e a camada fx/motion completa. O Vanilla
+inteiro foi preservado em `legacy/` e continua a servir a produção em `main`.
+
+O que desta camada permanece por decidir, e que vive na matriz de lacunas da
+Missão 26: TypeScript, Motion/Framer Motion, React Three Fiber, Drei,
+pós-processamento seletivo e Vercel como Preview Deployment. Nenhuma destas
+entra por estar listada aqui — cada uma exige benefício, custo, risco e
+aprovação.
+
+O trabalho ATUAL desta camada é a **Missão 26 — Renaissance Visual**: a
+linguagem visual própria, o design system, a shell, a presença do Oráculo e o
+motion, sobre a base React já construída. Ler `SPEC-CLAUDE-CODE.md` para o
+estado corrente.
+
+A lista de tecnologias abaixo mantém-se como alvo arquitetural de referência;
+os pontos já cumpridos estão assinalados no parágrafo anterior.
+
+## Decisão de arquitetura
+
+Alvo arquitetural da frontend de próxima geração, com o estado real de cada
+peça a 2026-07-25:
+
+- React — **existe** (Missão 25);
+- Vite — **existe** (Missão 25);
+- Supabase preservado — **existe** (Missão 25);
+- Three.js — **existe**, palco portado sem reescrita (Missão 25);
+- CSS moderno e design tokens próprios — parcial; o design system é a Fase 3
+  da Missão 26;
+- TypeScript — por decidir (matriz de lacunas da Missão 26);
+- Motion para UI e interações — por decidir; existe já uma camada própria em
+  `src/lib/motion.js`, portada na Missão 25;
+- React Three Fiber seletivo — por decidir;
+- Drei — por decidir;
+- pós-processamento seletivo — por decidir;
+- Vercel para previews — por decidir.
+
+A migração existiu para permitir resultados visuais e estruturais mais fortes,
+não para seguir tendências. Essa continua a ser a única justificação aceitável
+para as peças que ainda faltam.
+
+## Leis da migração
+
+Estas leis governaram a Missão 25 e continuam a governar qualquer adição de
+stack na Missão 26.
+
+1. A versão estável continua viva até a nova provar paridade.
+2. A migração ocorre numa branch paralela.
+3. A nova frontend começa read-only.
+4. O backend e a verdade dos dados permanecem no Supabase.
+5. WebGL serve atmosfera, universo e cosmologia; DOM serve operação e texto.
+6. React Three Fiber é uma ferramenta seletiva, não uma obrigação total.
+7. Vercel melhora previews e entrega, não substitui direção artística.
+8. O redesign não passa se parecer um dashboard AI.
+9. Cada fase deve produzir comparação visual e prova técnica.
+10. Produção só muda com rollback e aprovação explícita.
+
+## Arquitetura do produto
+
+```text
+Progress Engine
+= dados, regras, evidência e verdade
+
+World Engine
+= hora, clima, estação, eventos e atmosfera
+
+Visual Engine
+= representação, materiais, luz e motion
+
+Universe Engine
+= Core, constelações, partículas e câmara
+
+Oracle Engine
+= interpretação e voz
+
+Frontend Shell
+= composição, navegação, interação e acessibilidade
+```
+
+## Qualidade visual
+
+A stack não garante beleza.
+
+A qualidade deve resultar de:
+
+- direção artística;
+- design system;
+- auditoria no browser;
+- variações comparadas;
+- screenshots antes/depois;
+- validação desktop/mobile;
+- motion coerente;
+- performance;
+- rejeição de padrões AI/SaaS genéricos.
+
+Pergunta de aceitação:
+
+> Isto parece um produto único chamado Sistema, ou uma interface gerada por AI?
+
+## Relação com as ferramentas
+
+- Superpowers governa planeamento, decomposição e debugging.
+- ui-ux-pro-max governa auditoria UX, consistência e bíblia visual.
+- 21st.dev Magic acelera exploração e variações de componentes.
+- Claude in Chrome observa o produto real.
+- Playwright regista estados e fluxos.
+- DevTools valida consola, network e performance.
+- Context7 e Tavily sustentam decisões atuais.
+
+Nenhuma ferramenta tem autoridade para definir sozinha a identidade.
+
+## Vercel
+
+Vercel começa como ambiente de Preview:
+
+```text
+GitHub Pages
+└── produção estável
+
+Vercel
+└── nova frontend em branches e pull requests
+```
+
+Só depois de paridade, testes, rollback e aprovação poderá tornar-se produção.
+
+## Ordem de construção
+
+1. ambiente e ferramentas;
+2. fundação TypeScript/React/Vite;
+3. shell visual;
+4. design system;
+5. World Engine;
+6. universo e Core;
+7. migração funcional;
+8. paridade;
+9. produção;
+10. agentes e automação.
+
+## Agentes e automação
+
+Hermes, OpenClaw, n8n, autonomous workflows e estratégias Money Print não
+fazem parte da primeira fase desta migração.
+
+A ordem correta é:
+
+```text
+frontend forte
+↓
+dados e operações estáveis
+↓
+automação
+↓
+agentes
+↓
+workflows autónomos controlados
+```
+
+O Sistema deve primeiro tornar-se uma casa visual, técnica e operacional forte.
+Só depois ganha trabalhadores autónomos.
+
+---
+
+# Camada V — Oracle Intelligence, Governance and Autonomous Operations
+
+## Visão
+
+Esta camada transforma o Oráculo de uma função de interpretação num sistema
+operacional pessoal e empresarial coordenador.
+
+O objetivo final é uma inteligência semelhante ao conceito funcional de um
+assistente avançado:
+
+- disponível por texto e voz;
+- consciente do contexto autorizado;
+- capaz de moderar o Sistema;
+- capaz de coordenar agentes;
+- capaz de gerir operações;
+- capaz de explicar decisões;
+- capaz de trabalhar de forma proativa;
+- incapaz de ultrapassar políticas silenciosamente.
+
+## Evolução
+
+```text
+Oracle as Interface
+↓
+Oracle as Assistant
+↓
+Oracle as Chief of Staff
+↓
+Oracle as Agent Supervisor
+↓
+Oracle as Money Machine Manager
+↓
+Oracle as Governed Autonomous Operator
+```
+
+## Etapa 1 — Foundation
+
+Objetivo:
+
+- consolidar Constituição;
+- mapear dados;
+- criar estados;
+- introduzir auditabilidade;
+- manter autonomia no Nível 0.
+
+Resultado:
+
+O Oráculo sabe explicar o que observa.
+
+## Etapa 2 — Conversational Core
+
+Objetivo:
+
+- conversa textual consistente;
+- contexto;
+- intenção;
+- continuidade;
+- respostas por camadas;
+- action cards.
+
+Resultado:
+
+O Oráculo deixa de ser uma função isolada e passa a ter presença contínua.
+
+## Etapa 3 — Memory
+
+Objetivo:
+
+- memória factual;
+- memória episódica;
+- preferências;
+- contexto operacional;
+- correção;
+- remoção;
+- transparência.
+
+Resultado:
+
+O Oráculo mantém continuidade sem inventar conhecimento.
+
+## Etapa 4 — Voice v1
+
+Objetivo:
+
+- push-to-talk;
+- STT;
+- TTS;
+- transcrição;
+- barge-in;
+- confirmação;
+- comandos internos.
+
+Resultado:
+
+O Daniel consegue operar o Sistema por voz de forma segura.
+
+## Etapa 5 — Personal Life OS
+
+Objetivo:
+
+- briefing;
+- debrief;
+- diário;
+- brain dump;
+- tarefas;
+- calendário;
+- estudo;
+- treino;
+- finanças;
+- projetos.
+
+Resultado:
+
+O Oráculo torna-se assistente pessoal operacional.
+
+## Etapa 6 — Governance Layer
+
+Objetivo:
+
+- policy engine;
+- approval engine;
+- risk engine;
+- agent registry;
+- audit ledger;
+- kill switch.
+
+Resultado:
+
+O Sistema fica preparado para autonomia real.
+
+## Etapa 7 — Agent Operations
+
+Objetivo:
+
+- integrar Hermes;
+- integrar OpenClaw;
+- integrar n8n;
+- task contracts;
+- reputação;
+- custos;
+- retries;
+- observabilidade.
+
+Resultado:
+
+O Oráculo coordena trabalho executado por agentes especializados.
+
+## Etapa 8 — Proactive Intelligence
+
+Objetivo:
+
+- attention engine;
+- deteção de padrões;
+- alertas proporcionais;
+- priorização;
+- modos operacionais;
+- Recovery Mode.
+
+Resultado:
+
+O Oráculo ajuda antes de ser solicitado, sem se tornar intrusivo.
+
+## Etapa 9 — Money Printing Machine v1
+
+Objetivo:
+
+- oportunidade;
+- lead;
+- scoring;
+- research;
+- offer drafts;
+- revisão humana.
+
+Resultado:
+
+O Oráculo gere um pipeline económico assistido.
+
+## Etapa 10 — Money Printing Machine v2
+
+Objetivo:
+
+- outreach supervisionado;
+- CRM;
+- follow-up;
+- delivery;
+- revenue intelligence;
+- aprendizagem.
+
+Resultado:
+
+O Oráculo torna-se gerente operacional da máquina.
+
+## Etapa 11 — Ambient Oracle
+
+Objetivo:
+
+- wake word;
+- sessões contínuas;
+- integração de dispositivos;
+- presença ambiente;
+- privacidade avançada.
+
+Resultado:
+
+O Oráculo está acessível de forma natural sem escuta invisível.
+
+## Etapa 12 — Governed Autonomy
+
+Objetivo:
+
+- autonomia por domínio;
+- limites de orçamento;
+- simulação;
+- auto-recovery;
+- políticas adaptativas aprovadas;
+- supervisão contínua.
+
+Resultado:
+
+O Oráculo gere operações de baixo e médio risco com pouca intervenção.
+
+## Etapa 13 — Oracle Evolution
+
+Objetivo:
+
+- novas skills;
+- avaliação de agentes;
+- melhoria de workflows;
+- otimização de atenção;
+- personalização;
+- expansão de domínios.
+
+Resultado:
+
+O Oráculo melhora continuamente sem redefinir a própria missão.
+
+## Capacidades futuras
+
+- controlo por voz do Sistema;
+- reuniões com notas e follow-up;
+- preparação automática de contexto;
+- simulação de decisões;
+- detetor de conflitos de agenda;
+- gestor de energia;
+- tutor de certificações;
+- gestor de projetos;
+- investigador pessoal;
+- preparação de viagens;
+- monitor financeiro;
+- War Room empresarial;
+- relatórios executivos;
+- análise de oportunidades;
+- gestão de agentes;
+- autoauditoria;
+- explicação causal;
+- deteção de automações degradadas;
+- recuperação de workflows;
+- interface multimodal.
+
+## Dependências
+
+A camada depende de:
+
+- frontend moderna;
+- Supabase estável;
+- eventos e logs;
+- permissões;
+- autenticação;
+- política de dados;
+- observabilidade;
+- ferramentas e agentes validados.
+
+## Regra de progressão
+
+Uma etapa não avança por demonstração visual.
+
+Avança quando existem:
+
+- utilidade real;
+- estabilidade;
+- logs;
+- testes;
+- política;
+- rollback;
+- confiança;
+- aprovação.
+
+## Norte final
+
+O Oráculo deve aumentar a capacidade do Daniel sem retirar a sua autoridade,
+privacidade, discernimento ou autonomia.

@@ -1,5 +1,27 @@
 # ORÁCULO-ROADMAP.md — do Conselheiro ao Guardião autónomo
 
+> ## ⚠ DOCUMENTO HISTÓRICO (2026-07-22)
+>
+> Este ficheiro é o esboço original da evolução do Oráculo e preserva-se pelo
+> valor histórico e pela leitura direta que faz do estado real do agente em
+> julho de 2026. **Não é a autoridade corrente.**
+>
+> SUCEDIDO POR, a 2026-07-24:
+>
+> - `SYSTEM-ORACLE-CONSTITUTION.md` — leis permanentes, identidade, autoridade,
+>   autonomia por níveis e limites;
+> - `docs/oracle-governance/` — 35 documentos que operacionalizam ideologia,
+>   comportamento, memória, voz, agentes, moderação, UI/presença e gates;
+> - a secção "Programa Oracle Intelligence & Governance" do
+>   `SPEC-CLAUDE-CODE.md` — o programa técnico;
+> - a Camada V do `SYSTEM-EVOLUTION-ROADMAP.md` — a sequência de evolução.
+>
+> Em caso de conflito, prevalece a Constituição. Este ficheiro ocupa a posição
+> 8 da ordem documental oficial, registada em `CLAUDE.md` §
+> "Fontes de verdade e precedência". As fases O1–O5 descritas abaixo foram
+> absorvidas e desenvolvidas com muito mais rigor pelo pacote de governação;
+> lê-as como intenção fundadora, não como plano de execução.
+
 > Documento-visão do Oráculo, companheiro do `SYSTEM-EVOLUTION-ROADMAP.md` (que
 > rege o organismo visual). Aqui vive a evolução do **agente**: de um
 > conselheiro invocado para um Guardião do Núcleo proativo, com ferramentas

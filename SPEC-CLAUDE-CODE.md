@@ -1419,9 +1419,8 @@ Defeitos apurados (nenhum corrigido nesta fase, exceto o bundle):
   tokens sobre os quais construir um design system.
 
 Três direções visuais apresentadas (A · O Observatório, B · A Sala de
-Operações, C · O Diário do Operador). Recomendada a **B**, por ser a única que
-ataca a densidade medida e a única que dá lugar próprio ao Oráculo.
-DECISÃO DO DANIEL PENDENTE — a Fase 2 não abre sem ela.
+Operações, C · O Diário do Operador). Escolha do Daniel: **B como shell, A como
+camada ambiental, C como modo especializado** — ver Fase 3.
 
 ### Fase 1 — fundação (PARCIAL 2026-07-25)
 
@@ -1444,7 +1443,100 @@ retida até a direção estar escolhida, porque essa é específica da direção
 - **Vercel** (`16d9e12`): `vercel.json` só para Preview. `--base=/` explícito
   (o `/Sistema/` do vite.config é do Pages). Produção intacta.
 
-Por fazer nesta fase, dependente da direção: tokens de design e a shell.
+### Fase 2 — tokens, moldura e as duas variações (CONCLUÍDA 2026-07-25)
+
+Lei da missão, formalizada em `src/design-system/tokens/material.css`:
+
+> **A hierarquia faz-se com luz, não com bordas.** O elemento em foco é
+> iluminado por dentro. Os restantes permanecem mate. Só existe UM portador
+> principal de luz por estado.
+
+Resposta direta ao que a baseline mediu (19 painéis, 2 cores de borda, 1
+material, 1 border-radius entre todos): a hierarquia não existia porque nada
+era diferente de nada.
+
+7 ficheiros de tokens (`primitives`, `material`, `type`, `space`, `motion`,
+`system`, `index`), com gate de identidade passado — os tokens só DEFINEM
+custom properties `--sys-*` e o HUD ficou pixel-idêntico à baseline.
+
+Moldura atrás de `?shell=`, com **todas as zonas montadas em permanência**: a
+troca de zona é de visibilidade, nunca de montagem. `visibility:hidden` e não
+`display:none`, porque este colapsaria a caixa de layout e o canvas das
+Constelações passaria a 0×0. Preserva identidade React, estado local, scroll
+interno por zona, efeitos já corridos e o contexto WebGL — provado marcando os
+nós com `data-*` e fazendo Operações→Universo→Operações.
+
+Duas variações construídas e comparadas com dados densos:
+
+| Operações @1440 | B1 · Consola | B2 · Órbita |
+| --- | --- | --- |
+| Ecrãs de scroll interno | 4,01 | 5,94 |
+| Largura do painel | 444 px | 277 px |
+| Largura desperdiçada | — | 797 px |
+
+A B2 falhou o teste de stress: a `--sys-measure` de 68ch, elegante no Núcleo,
+estrangulava o conteúdo operacional. **A B2 não tinha um problema de conceito —
+tinha uma medida única.**
+
+### Fase 3 — Órbita Instrumental, B2.1 (CONCLUÍDA 2026-07-25)
+
+Direção oficial, decidida pelo Daniel: **B2 define shell, Núcleo, cosmologia,
+atmosfera, navegação e presença do Oráculo; os princípios arquitetónicos da B1
+entram apenas na organização interna das zonas densas.** Não é mistura estética
+— é a resposta ao número medido.
+
+**Densidade data-driven** em `zones.ts`: `density: 'reading' | 'instrument'`
+mais grupos com `weight: main | side | full`. A composição decide-se por
+data-attribute no CSS; zero verificações por nome de zona no JSX.
+
+- `reading` → Núcleo, Oráculo, Reflexão (medida editorial)
+- `instrument` → Radar, Operações, Universo (largura disponível, colunas)
+
+Operações reorganizada por função **e por apetite de largura**, apurado a
+medir: prioridade (Missões + Sombras) na coluna principal, rotina (Diário +
+Treino) na lateral, revisão (Revisão + Sono + Calendário) em largura total.
+Duas composições anteriores ficaram acima do alvo (4,65 e 4,47) porque a coluna
+lateral puxava a altura toda; mover o Sono para o grupo `full` equilibrou.
+
+| Operações @1440, dados densos | HUD | B1 | B2 | **B2.1** |
+| --- | --- | --- | --- | --- |
+| Ecrãs de scroll | 5685 px de página | 4,01 | 5,94 | **3,81** |
+| Painel principal | — | 444 px | 277 px | **762 px** |
+| Largura desperdiçada | — | — | 797 px | **74 px** |
+
+Dois bugs estruturais corrigidos na composição, sem editar painéis: o
+`Diario.jsx` traz do HUD antigo a sua própria grelha `.cols` (1fr 1fr),
+pensada para largura total — numa coluna estreita partia-se em 220px, e dentro
+de um grupo `full` apanhava só uma faixa. Colapsa em `side`, atravessa em
+`full`. Sai quando os painéis forem redesenhados.
+
+**Luz de foco corrigida.** Pertencia ao contentor de largura total e pintava um
+retângulo iluminado vazio. Agora pertence ao painel, com um só portador
+garantido por `:not(:has(.panel:focus-within))`.
+
+**Mobile:** a órbita da B2 mostrava 3 de 6 zonas atrás de um gesto não
+anunciado. Passa a faixa de comando inferior com as 6 em grelha fixa, marcas
+gravadas, alvos a 44px exatos. A identidade orbital fica no Núcleo.
+
+**Consolidação:** B1 e B2 removidas depois de passarem os gates. Uma shell só,
+atrás de `?shell=1`. Sem parâmetro — ou com valor inválido — o HUD atual
+permanece intacto; a troca do comportamento por omissão é um gate à parte.
+
+Corrigidos ainda: o rótulo `SISTEMA · FASE 1` que vazava para o ecrã de entrada
+(passa a `SISTEMA · ACESSO`) e o cabeçalho de zona que roçava o Núcleo no
+mobile (2px → 26px de folga).
+
+Bundle: entry inalterado em ~114 KB gzip; CSS 15,45 KB gzip.
+
+### Por fazer — Fase 4
+
+O redesenho interno dos painéis. É o que falta para o mobile descer dos ~7,9
+ecrãs: sete painéis desenhados para desktop numa coluna de 284px são sempre
+longos, e nenhuma composição externa resolve isso. Também é aí que o `.cols`
+do Diário desaparece e a regra de rede de segurança sai do `instrumental.css`.
+
+Depois disso: a decisão do Modo Estação (A/B/C), a matriz de lacunas técnicas
+(Motion, R3F, Drei, pós-processamento, Vercel) e o gate de produção.
 
 ### Fase 1 — auditoria visual real
 

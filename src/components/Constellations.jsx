@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { initConstellation } from '../stage/constellation.js';
 
 // Constelações — o Céu do Operador (Missão 25 · Fase 16). O motor
 // (src/stage/constellation.js, 1255 linhas) já estava portado da Missão 16/17;
@@ -15,9 +14,13 @@ import { initConstellation } from '../stage/constellation.js';
 // no mesmo canvas). A reatividade (nascimento de estrelas por evidência) vem do
 // window.renderConstellation() disparado no subscribe do Stage.jsx.
 //
-// NOTA (fx/motion deferido): sem window.Motion, a câmara (fly-in/zoom/dolly)
-// assenta sem mola — funcional, mas sem o cinematográfico. A camada de mola
-// entra na fase da migração dedicada ao fx/motion.
+// BUNDLE (Missão 26 · Fase 1): o import de `../stage/constellation.js` era
+// ESTÁTICO, e esse módulo importa o Three.js estaticamente. Como o App.jsx
+// importa este componente estaticamente, o Rollup promovia o Three.js (675 KB)
+// ao chunk de entrada, anulando o `import('./stage/main.js')` dinâmico do
+// Stage.jsx:44 — o entry ficava com 979 KB e o palco só 16,8 KB. Passar a
+// import() dinâmico aqui devolve o Three.js ao chunk assíncrono. Não muda
+// comportamento: initConstellation() já só era chamado dentro deste efeito.
 let inited = false;
 
 export default function Constellations() {
@@ -27,7 +30,8 @@ export default function Constellations() {
     if (inited) return;                 // 1× por sessão (ver nota acima)
     if (!cvRef.current) return;
     inited = true;
-    initConstellation();                // agora o #constel-cv existe → nasce o céu
+    // agora o #constel-cv existe → nasce o céu (o módulo traz o Three.js consigo)
+    import('../stage/constellation.js').then((m) => m.initConstellation());
   }, []);
 
   return (

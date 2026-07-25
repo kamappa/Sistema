@@ -208,52 +208,33 @@ Pergunta obrigatória antes de concluir uma alteração visual:
 
 ## Arquitetura real (2026-07-25)
 
-### Produção — `main`, GitHub Pages
+O inventário de stack e de ficheiros é derivável do repositório (`package.json`,
+`ls`, `.github/workflows/`) e não se repete aqui. O que o código NÃO consegue
+explicar sozinho, e por isso vive neste ficheiro:
 
-- Aplicação estática sem build step: `index.html` carrega a ordem documentada
-  de scripts clássicos; `css/hud.css` concentra o estilo. `js/estacao.js` foi
-  inserido entre memória e navegação na Missão 24.
-- Palco WebGL em `js/stage/`, Three.js r170 vendorizado em `js/vendor/`,
-  façade global e comunicação por `js/bus.js`.
-
-### Branch React — `react-migration` (Missão 25, concluída)
-
-- React 18 + Vite 6, JSX sem TypeScript, Zustand como store, com a ponte
-  `window.__store` para o palco WebGL ler o estado fora do ciclo React.
-- `@supabase/supabase-js` por npm substitui o CDN; URL e anon key em
-  `src/lib/supabase.js` (a anon key é pública por desenho — o RLS protege).
-- O palco WebGL **não foi reescrito**: foi copiado para `src/stage/` e
-  alimentado por uma ponte de globais. Camada fx/motion portada na íntegra.
-- O Vanilla inteiro preservado em `legacy/` com histórico (`git mv`).
-- Workflow `.github/workflows/deploy-react.yml` preparado e **inativo** — só
-  dispara em `push` para `main`.
-
-### Backend — comum às duas
-
-- Supabase: auth de utilizador único, `app_state` JSONB com RLS,
-  `radar_items`, `oracle_reports` e Edge Function `oraculo`.
-- Oráculo: Radar, relatório, Conselho, Sussurro, contexto do Vault e voz de
-  Guardião do Núcleo.
-- Vault privado: Obsidian Git → `kamappa/vault-sistema` → Oráculo, com
-  whitelist de privacidade e relatórios escritos de volta.
-- Sistemas: missões, hábitos, sono, treino, revisão ativa, títulos reais,
-  constelações de evidência, Celestial Core, World/Solar Engine, Living
-  Memory, Radar, Oráculo e Modo Estação (este último só no Vanilla).
+- **Produção é `main`, Vanilla, sem build step.** A branch React existe mas não
+  está em produção. Confundir as duas é o erro que este parágrafo previne.
+- **O palco WebGL não foi reescrito na migração** — foi copiado para
+  `src/stage/` e alimentado por uma ponte de globais (`window.S`,
+  `window.__store`), porque ele corre num rAF fora do ciclo React. Quem mexer
+  nele tem de preservar essa ponte.
+- **O Vanilla inteiro está em `legacy/` com histórico** (`git mv`), e não se
+  apaga enquanto o React não estiver validado em produção.
+- **A anon key do Supabase em `src/lib/supabase.js` é pública por desenho** —
+  quem a vir no código não encontrou uma fuga; o RLS é que protege.
+- **O workflow de deploy está preparado e inativo** de propósito. Só dispara em
+  `push` para `main`.
+- **O Modo Estação só existe no Vanilla** — não foi migrado.
 
 ## Estado de execução
 
-O estado e o próximo passo não são inferidos deste resumo. Ler sempre
-`SPEC-CLAUDE-CODE.md`. À data desta revisão:
+**Ler sempre `SPEC-CLAUDE-CODE.md`.** Um resumo do estado aqui divergiria do
+SPEC à primeira fase concluída, e este ficheiro não tem como saber que ficou
+desatualizado.
 
-- **Missão 24** (Estação Espacial) — PAUSADA. Fases A e B concluídas; o
-  escopo visual restante foi absorvido pela Missão 26. Não retomar
-  desenvolvimento Vanilla nesta fase.
-- **Missão 25** (migração React + Vite) — CONCLUÍDA em 18 fases, verificada,
-  na branch `react-migration`. Falta apenas o gate de produção.
-- **Missão 26** (Renaissance Visual sobre React) — ATIVA, na branch
-  `mission-26/renaissance-visual`.
-- **Missão 30** da documentação — SUPERADA / ABSORVIDA PELA MISSÃO 25. O
-  número fica reservado e não deve ser reutilizado.
+Duas decisões de numeração que o SPEC regista e que NÃO se voltam a discutir: a
+Missão 30 da documentação está SUPERADA pela Missão 25 e o número fica
+reservado; a Missão 24 está PAUSADA e não se retoma desenvolvimento Vanilla.
 
 ## Autoridade da migração frontend
 
@@ -290,23 +271,16 @@ em produção, validado com a conta real e com rollback documentado.
 
 ## Ferramentas obrigatórias
 
-A preparação da nova frontend exige confirmação e prova prática. Estado real,
-verificado a 2026-07-25 nesta máquina:
+A preparação da nova frontend exige confirmação e **prova prática** de cada
+ferramenta — nunca presumir que está a funcionar:
 
-| Ferramenta | Estado | Prova |
-| --- | --- | --- |
-| Superpowers | operacional | skill invocada |
-| Context7 | operacional | resolveu `/pmndrs/react-three-fiber` |
-| 21st.dev Magic | operacional | tier free, 2 recuperações/dia |
-| ui-ux-pro-max | instalada | listada na sessão |
-| frontend-design | instalada | listada na sessão |
-| skill-creator | instalada | listada na sessão |
-| claude-code-setup | instalada | listada na sessão |
-| Tavily MCP | instalada | listada na sessão |
-| Playwright MCP | operacional | navegação + título + screenshot em Chrome 150 |
-| Chrome DevTools MCP | operacional | páginas, consola e network em Chrome 150 |
-| Claude in Chrome | operacional | extensão ligada; browser selecionado |
-| TypeScript LSP | **não operacional** | falta `typescript` no workspace — pendente da decisão de arquitetura da Missão 26 |
+Superpowers · Context7 · 21st.dev Magic · ui-ux-pro-max · frontend-design ·
+Playwright MCP · Chrome DevTools MCP · Claude in Chrome · TypeScript LSP.
+
+O estado verificado de cada uma vive no `SPEC-CLAUDE-CODE.md`, na fase que a
+verificou — não aqui. Uma tabela de estado num ficheiro sempre carregado
+envelhece em silêncio e passa a mentir; o SPEC é datado por fase e não tem esse
+problema.
 
 O Google Chrome é o browser oficial para Claude in Chrome, Playwright, Chrome
 DevTools, baseline visual, consola, network e performance. Brave/CDP fica como
@@ -322,60 +296,23 @@ pela pergunta:
 
 ## Oracle Governance Authority
 
-Esta secção é obrigatória para todo o trabalho relacionado com o Oráculo.
-Integrada a partir de `docs/oracle-governance/CLAUDE-ORACLE-BLOCK.md`.
+Obrigatório para todo o trabalho relacionado com o Oráculo.
 
-### Fontes de autoridade
+**Antes de alterar voz, personalidade, memória, autonomia, agentes,
+notificações, Money Printing Machine, moderação ou execução externa, ler:**
+`SYSTEM-ORACLE-CONSTITUTION.md`, depois `docs/oracle-governance/` pela ordem do
+`00_READ_ME_FIRST.md`. O programa técnico vive na secção "Programa Oracle
+Intelligence & Governance" do `SPEC-CLAUDE-CODE.md`; a sequência de evolução na
+Camada V do `SYSTEM-EVOLUTION-ROADMAP.md`.
 
-Antes de alterar voz, personalidade, memória, autonomia, agentes, notificações,
-Money Printing Machine, moderação ou execução externa, ler:
-
-1. `SYSTEM-ORACLE-CONSTITUTION.md`
-2. `docs/oracle-governance/00_READ_ME_FIRST.md`
-3. todos os ficheiros da pasta pela ordem documentada;
-4. `SPEC-CLAUDE-CODE.md`;
-5. `SYSTEM-EVOLUTION-ROADMAP.md`.
-
-### Identidade permanente
-
-O Oráculo é:
-
-- Chief Intelligence Officer;
-- Chief of Staff;
-- assistente pessoal;
-- moderador principal;
-- supervisor de agentes;
-- gestor da Money Printing Machine;
-- guardião da verdade;
-- coordenador de atenção;
-- auditor.
-
-Não tratar o Oráculo como uma simples caixa de chat.
-
-### Regra de implementação
-
-Antes de escrever código, o Claude Code deve apresentar:
-
-- capacidade atual;
-- objetivo;
-- problema real;
-- arquitetura afetada;
-- políticas afetadas;
-- dados necessários;
-- permissões necessárias;
-- riscos;
-- agentes envolvidos;
-- custos;
-- critérios de sucesso;
-- testes;
-- rollback;
-- limites da fase.
-
-Esperar aprovação antes de alterações estruturais.
+O Oráculo é Chief Intelligence Officer, Chief of Staff, assistente pessoal,
+moderador, supervisor de agentes, guardião da verdade e auditor. **Não é uma
+caixa de chat.**
 
 ### Regras invioláveis
 
-O Claude Code não pode:
+Estas ficam aqui, sempre carregadas, porque são proibições de segurança e não
+podem depender de alguém ter aberto o documento certo. O Claude Code não pode:
 
 - aumentar autonomia sem política;
 - criar memória silenciosa;
@@ -392,135 +329,12 @@ O Claude Code não pode:
 - colocar segredos no frontend;
 - alterar produção sem gate.
 
-### Processo obrigatório
-
-```text
-observar
-↓
-diagnosticar
-↓
-propor
-↓
-aprovar
-↓
-implementar
-↓
-testar
-↓
-verificar
-↓
-auditar
-↓
-documentar
-```
-
-### Autonomia
-
-Toda a funcionalidade deve ser classificada num nível de autonomia.
-
-O Claude deve indicar:
-
-- o que o Oráculo pode fazer sozinho;
-- o que prepara;
-- o que requer aprovação;
-- o que é proibido;
-- como se pausa;
-- como se reverte;
-- como se audita.
-
-### Voz
-
-Ao implementar voz, incluir:
-
-- indicador de escuta;
-- push-to-talk inicial;
-- transcrição;
-- confiança;
-- cancelamento;
-- barge-in;
-- confirmação de comandos sensíveis;
-- fallback textual;
-- privacidade;
-- logs;
-- modo silencioso.
-
-Wake word e escuta ambiente entram apenas depois de segurança e consentimento.
-
-### Memória
-
-Toda a memória deve ter:
-
-- origem;
-- data;
-- confiança;
-- sensibilidade;
-- finalidade;
-- possibilidade de correção;
-- possibilidade de remoção.
-
-Separar memória factual de inferência.
-
-### Agentes
-
-Antes de integrar Hermes, OpenClaw, n8n ou outro agente, criar:
-
-- registo;
-- função;
-- permissões;
-- ferramentas;
-- dados acessíveis;
-- custos;
-- limites;
-- task contract;
-- formato de retorno;
-- kill switch;
-- métricas.
-
-### Money Printing Machine
-
-A Money Printing Machine deve ser tratada como um sistema de operações
-legítimas, não como promessa de rendimento automático.
-
-Na primeira fase:
-
-- pesquisar;
-- classificar;
-- preparar;
-- criar drafts;
-- medir;
-- pedir aprovação.
-
-Outreach, preços, propostas e compromissos externos permanecem supervisionados.
-
-### UI e presença
-
-O Oráculo deve ter estados reais:
-
-- idle;
-- listening;
-- thinking;
-- delegating;
-- waiting;
-- verifying;
-- warning;
-- blocked;
-- speaking;
-- silent.
-
-A UI deve mostrar o estado real e permitir cancelamento.
-
 ### Gate final
 
-Nenhuma funcionalidade é aceite apenas porque funciona.
+Nenhuma funcionalidade é aceite apenas porque funciona. Tem de provar utilidade,
+verdade, segurança, auditabilidade, reversibilidade, controlo humano,
+consistência, qualidade visual e benefício superior ao risco.
 
-Tem de provar:
-
-- utilidade;
-- verdade;
-- segurança;
-- auditabilidade;
-- reversibilidade;
-- controlo humano;
-- consistência;
-- qualidade visual;
-- benefício superior ao risco.
+O detalhe operacional — processo, autonomia por níveis, voz, memória, agentes,
+Money Machine, estados de UI — está em `docs/oracle-governance/` e carrega-se
+quando for preciso, não em todas as sessões.

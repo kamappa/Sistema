@@ -41,7 +41,7 @@
   margin-inline: auto;
 }
 
-.sys-instrumental .sys-zone[data-density='reading'] .panel + .panel {
+.sys-instrumental .sys-zone[data-density='reading'] .sys-slot + .sys-slot {
   margin-top: var(--sys-space-7);
 }
 
@@ -98,7 +98,7 @@
 /* Num grupo `full` (que é grelha), o `.cols` é um item e apanhava só uma faixa
  * — partindo-se depois em duas colunas de ~200px. Atravessa o grupo todo, que
  * é a largura para que foi desenhado. */
-.sys-instrumental .sys-group[data-weight='full'] > .cols {
+.sys-instrumental .sys-group[data-weight='full'] > .sys-slot > .cols {
   grid-column: 1 / -1;
 }
 
@@ -112,8 +112,8 @@
   color: var(--sys-ink-far);
 }
 
-.sys-instrumental .sys-group .panel + .panel { margin-top: var(--sys-space-6); }
-.sys-instrumental .sys-group[data-weight='full'] .panel + .panel { margin-top: 0; }
+.sys-instrumental .sys-group .sys-slot + .sys-slot { margin-top: var(--sys-space-6); }
+.sys-instrumental .sys-group[data-weight='full'] .sys-slot + .sys-slot { margin-top: 0; }
 
 /* Painéis sem material de cartão. A identidade da B2 mantém-se. */
 .sys-instrumental .panel {
@@ -132,10 +132,23 @@
  *   - sem foco em painel nenhum, é o primeiro painel do grupo principal.
  * O `:not(:has(...))` garante que os dois casos nunca coexistem.
  */
+/* O primeiro slot de um grupo nem sempre tem painel — o Núcleo abre com a
+ * Saudação, que é texto. Por isso acende-se o primeiro grupo inteiro e
+ * apaga-se tudo o que venha DEPOIS do primeiro slot com painel. O resultado é
+ * "o primeiro painel da zona", que o CSS não sabe exprimir de uma vez. */
 .sys-instrumental .sys-zone-body:not(:has(.panel:focus-within))
-  .sys-group[data-weight='main'] > .panel:first-of-type {
+  > .sys-group:first-child .panel {
   background: var(--sys-mat-active);
   box-shadow: var(--sys-glow-inner);
+}
+
+/* A MESMA guarda `:not(:has(...))` é obrigatória aqui. Sem ela esta regra —
+ * que tem especificidade muito superior à do `:focus-within` — ganhava-lhe, e
+ * focar um painel que não fosse o primeiro deixava-o apagado. */
+.sys-instrumental .sys-zone-body:not(:has(.panel:focus-within))
+  > .sys-group:first-child .sys-slot:has(.panel) ~ .sys-slot .panel {
+  background: transparent;
+  box-shadow: none;
 }
 
 .sys-instrumental .panel:focus-within {

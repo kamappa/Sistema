@@ -42,8 +42,16 @@ export default function ZoneStage({ active, S }: Props) {
           {z.groups.map((g) => (
             <div key={g.id} className="sys-group" data-group={g.id} data-weight={g.weight}>
               {g.name && <h2 className="sys-group-name">{g.name}</h2>}
+              {/* Cada painel num slot. Existe por uma razão só: tornar
+                  determinístico QUAL é o primeiro painel de um grupo. Sem ele,
+                  `.panel:first-of-type` falhava em zonas cujo primeiro filho
+                  não é um `.panel` (o Núcleo começa com a Saudação), e a lei
+                  "só uma coisa acesa" virava "nada aceso" — medido: core e
+                  radar tinham ZERO portadores de luz. */}
               {g.panels.map((Panel, i) => (
-                <Panel key={i} S={S} />
+                <div className="sys-slot" key={i}>
+                  <Panel S={S} />
+                </div>
               ))}
             </div>
           ))}

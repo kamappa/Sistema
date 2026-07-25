@@ -161,6 +161,20 @@
   transition: background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
 }
 
+/* ── O céu das Constelações ────────────────────────────────────────────
+ * O `const-wrap` é dimensionado em 58vh, o que fazia sentido no HUD, onde a
+ * página é a janela. Dentro da shell não é: a órbita, o cabeçalho de zona e a
+ * faixa do Oráculo comem 279px, e a zona fica com 621 de 900. O painel media
+ * 675 e cortava 66px do céu abaixo da dobra — precisamente na peça que é a
+ * assinatura do produto.
+ *
+ * Passa a ser dimensionado pelo espaço da ZONA. Os 430px descontados são o
+ * cromado medido: órbita ~180, cabeçalho ~60, título + ajuda + chips + padding
+ * do painel ~153, mais folga. */
+.sys-instrumental .const-wrap {
+  height: clamp(320px, calc(100vh - 452px), 600px);
+}
+
 /* ── Mobile ────────────────────────────────────────────────────────────
  * As SEIS zonas têm de estar imediatamente visíveis. A órbita da B2 mostrava
  * 3 de 6 e exigia um gesto horizontal não anunciado — perda de contexto.

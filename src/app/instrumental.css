@@ -278,6 +278,21 @@
     letter-spacing: 0.1em;
   }
 
+  /* A medida editorial (68ch) é para dar conforto de leitura quando há largura
+   * a mais. Num telemóvel não há: a 358px de zona, o cap de 68ch fixava o
+   * conteúdo em 284px e deitava fora 74px — 21% da largura — em margens.
+   * Apanhado no teste em iPhone real; os meus 390px de emulação escondiam-no
+   * porque eu media a ALTURA e nunca a largura útil. */
+  .sys-instrumental .sys-zone[data-density='reading'] .sys-zone-body {
+    max-width: none;
+  }
+
+  /* E o padding do palco desce: 32px de cada lado é uma medida de desktop.
+   * Somado ao do .sys-stage-wrap dava 96px de um ecrã de 390 — 25% da largura
+   * gasta em margem, que era o que fazia o herói espremer-se. */
+  .sys-instrumental .sys-zone-scroll { padding-inline: var(--sys-space-3); }
+  .sys-instrumental .sys-stage-wrap { padding-inline: var(--sys-space-3); }
+
   /* Títulos de painel: a 284px de largura, `Treino · Calistenia — novato →
    * expert` quebrava em TRÊS linhas (105px). Medido: os títulos custavam 526px
    * dos 4855px da zona — 12%, mais do que qualquer outra despesa de cabeçalho.
@@ -384,23 +399,50 @@
    * o base.css esconde o botão e o conteúdo fica sempre visível. */
   .sys-instrumental .sys-collapse[data-open='false'] { display: none; }
 
+  /* Estes SÃO controlos e têm de o parecer. No teste em iPhone real liam-se
+   * como rótulos de secção — mono, maiúsculas, cinzento, sem nada que
+   * convidasse ao toque. Ganham chevron, filete e cor de texto legível; o
+   * tracking largo sai, porque era ele que os fazia parecer etiquetas. */
   .sys-instrumental .obj-filters-toggle,
   .sys-instrumental .obj-add-toggle,
   .sys-instrumental .sys-collapse-toggle {
-    display: block; /* o base.css esconde-os fora deste contexto */
+    display: flex; /* o base.css esconde-os fora deste contexto */
+    align-items: center;
+    gap: var(--sys-space-2);
     appearance: none;
     background: none;
     border: 0;
+    border-top: 1px solid var(--sys-seam);
     width: 100%;
     text-align: left;
     min-height: var(--sys-touch-min);
     padding: var(--sys-space-2) 0;
+    margin-top: var(--sys-space-3);
     cursor: pointer;
     font-family: var(--sys-type-data);
     font-size: var(--sys-step--1);
-    letter-spacing: var(--sys-track-label);
-    text-transform: uppercase;
-    color: var(--sys-ink-far);
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--sys-ink-mut);
+  }
+
+  .sys-instrumental .obj-filters-toggle::after,
+  .sys-instrumental .obj-add-toggle::after,
+  .sys-instrumental .sys-collapse-toggle::after {
+    content: '';
+    margin-left: auto;
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid var(--sys-ink-far);
+    border-bottom: 1.5px solid var(--sys-ink-far);
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+  }
+
+  .sys-instrumental .obj-filters-toggle[data-open='true']::after,
+  .sys-instrumental .obj-add-toggle[data-open='true']::after,
+  .sys-instrumental .sys-collapse-toggle[data-open='true']::after {
+    transform: rotate(-135deg) translateY(-2px);
   }
 
   .sys-instrumental .obj-filters-toggle[data-open='true'],

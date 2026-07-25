@@ -328,6 +328,81 @@
     display: none;
   }
 
+  /* ── Missões: a linha em dois andares ───────────────────────────────
+   * Medido: 6 missões custavam 572px, 64% do painel. Cada linha ocupava 92px
+   * porque estado, título, área, tier, tags e prazo disputavam a mesma linha
+   * flex e quebravam em três.
+   *
+   * Passa a dois andares explícitos: estado + título em cima, metadados em
+   * baixo. Os chips perdem a borda e o preenchimento — a 284px a borda de cada
+   * chip custava mais altura do que o texto que continha. A cor de cada um
+   * fica, que é o que os distingue.
+   */
+  .sys-instrumental .obj-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    padding-block: var(--sys-space-2);
+  }
+
+  /* força a quebra: o título ocupa o resto do primeiro andar */
+  .sys-instrumental .obj-row > .obj-t {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .sys-instrumental .obj-row > .wchip,
+  .sys-instrumental .obj-row > .up-x {
+    border: 0 !important;
+    padding: 0 !important;
+    font-size: 10px;
+    background: none;
+  }
+
+  /* o primeiro chip abre o segundo andar */
+  .sys-instrumental .obj-row > .wchip:first-of-type {
+    flex-basis: 100%;
+    margin-top: 2px;
+  }
+
+  .sys-instrumental .obj-row > .up-del {
+    margin-left: auto;
+    align-self: center;
+  }
+
+  /* Filtros e formulário de missões: recolhidos até serem precisos.
+   * Medidos em 106px e 90px de 900px. Os filtros abrem sozinhos quando há um
+   * ativo — uma lista filtrada nunca aparece sem se ver porquê; e o formulário
+   * fica aberto enquanto houver texto escrito. */
+  .sys-instrumental .obj-filters[data-open='false'],
+  .sys-instrumental .addq[data-open='false'] {
+    display: none;
+  }
+
+  .sys-instrumental .obj-filters-toggle,
+  .sys-instrumental .obj-add-toggle {
+    display: block; /* o base.css esconde-os fora deste contexto */
+    appearance: none;
+    background: none;
+    border: 0;
+    width: 100%;
+    text-align: left;
+    min-height: var(--sys-touch-min);
+    padding: var(--sys-space-2) 0;
+    cursor: pointer;
+    font-family: var(--sys-type-data);
+    font-size: var(--sys-step--1);
+    letter-spacing: var(--sys-track-label);
+    text-transform: uppercase;
+    color: var(--sys-ink-far);
+  }
+
+  .sys-instrumental .obj-filters-toggle[data-open='true'],
+  .sys-instrumental .obj-add-toggle[data-open='true'] {
+    color: var(--sys-ink-mut);
+  }
+
   /* O conselho: uma linha até ser tocado. */
   .sys-instrumental .tr-advice {
     display: -webkit-box;

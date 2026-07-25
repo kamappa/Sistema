@@ -15,6 +15,12 @@ export default function Objectives({ S }) {
   const [priSel, setPriSel] = useState('AUTO');
   const [deadline, setDeadline] = useState('');
   const set = (k, v) => setObjF((f) => ({ ...f, [k]: v }));
+  // Missão 26 · Fase 4. Filtros e formulário recolhidos em ecrã estreito —
+  // medidos em 106px e 90px de 900px. Só tem efeito abaixo de 900px: o CSS
+  // ignora estes estados em desktop, onde o painel fica como estava.
+  const [verFiltros, setVerFiltros] = useState(false);
+  const [verAdd, setVerAdd] = useState(false);
+  const filtrosAtivos = (objF.est !== 'all' ? 1 : 0) + (objF.area !== 'all' ? 1 : 0) + (objF.dif !== 'all' ? 1 : 0);
 
   const curArc = (S.worldArc && S.worldArc.status === 'active') ? S.worldArc.id : null;
   const curArcLabel = curArc ? (SEASON_ARCS.find((a) => a.id === curArc) || {}).name.split(' ').slice(0, 2).join(' ') : null;
@@ -34,7 +40,13 @@ export default function Objectives({ S }) {
     <div className="panel reveal" style={{ animationDelay: '.29s' }}>
       <div className="ptitle"><b>Missões</b> · Lista-mestra filtrável</div>
       <div id="objs">
-        <div className="obj-filters">
+        {/* Resumo tocável — só aparece em ecrã estreito (CSS). Diz sempre
+            quantos filtros estão ativos, para nunca haver lista filtrada sem
+            o utilizador saber porquê. */}
+        <button type="button" className="obj-filters-toggle" onClick={() => setVerFiltros((v) => !v)} data-open={verFiltros}>
+          {filtrosAtivos === 0 ? 'Filtros' : `Filtros · ${filtrosAtivos} ativo${filtrosAtivos > 1 ? 's' : ''}`}
+        </button>
+        <div className="obj-filters" data-open={verFiltros || filtrosAtivos > 0}>
           <select value={objF.est} onChange={(e) => set('est', e.target.value)}>{['all', 'pend', 'doing', 'done'].map((v) => <option key={v} value={v}>{estLbl[v]}</option>)}</select>
           <select value={objF.area} onChange={(e) => set('area', e.target.value)}><option value="all">Área: todas</option>{ATTRS.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
           <select value={objF.sort} onChange={(e) => set('sort', e.target.value)}>{[['prazo', 'Ordenar: prazo'], ['pri', 'Ordenar: prioridade'], ['created', 'Ordenar: criação']].map((x) => <option key={x[0]} value={x[0]}>{x[1]}</option>)}</select>
@@ -57,7 +69,10 @@ export default function Objectives({ S }) {
             );
           }) : <div className="up-empty">Sem missões neste filtro. Adiciona a primeira — Elite vale 150 XP e uma Sombra Nv 10.</div>}
         </div>
-        <div className="addq">
+        <button type="button" className="obj-add-toggle" onClick={() => setVerAdd((v) => !v)} data-open={verAdd}>
+          {verAdd ? 'Fechar' : '+ Nova missão'}
+        </button>
+        <div className="addq" data-open={verAdd || title !== ''}>
           <input id="ob-t" placeholder="Novo objetivo..." maxLength={90} value={title} onChange={(e) => setTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
           <select id="ob-a" value={areaSel} onChange={(e) => setAreaSel(e.target.value)}><option value="AUTO">Auto</option>{ATTRS.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
           <select id="ob-p" value={priSel} onChange={(e) => setPriSel(e.target.value)}><option value="AUTO">Auto</option><option value="side">Side</option><option value="main">Main</option><option value="elite">Elite</option><option value="boss">Boss</option></select>

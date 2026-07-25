@@ -25,7 +25,7 @@ import Constellations from './components/Constellations.jsx';
 import Toast from './components/Toast.jsx';
 import Topbar from './components/Topbar.jsx';
 import { exportStateFile } from './lib/exports.js';
-import { SHELL_VARIANT } from './app/useShellVariant.ts';
+import { SHELL_ON } from './app/useShellVariant.ts';
 import Shell from './app/Shell.tsx';
 
 // Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
@@ -44,10 +44,10 @@ export default function App() {
           <Splash text="A resolver sessão…" />
         ) : !S ? (
           <AuthGate />
-        ) : SHELL_VARIANT ? (
-          // Shell experimental da Missão 26, atrás de ?shell=b1|b2. Qualquer
-          // outro valor devolve null e cai no HUD — sem erro, por desenho.
-          <Shell variant={SHELL_VARIANT} S={S} />
+        ) : SHELL_ON ? (
+          // Órbita Instrumental (Missão 26), atrás de ?shell=1. Qualquer outro
+          // valor cai no HUD — sem erro, por desenho.
+          <Shell S={S} />
         ) : (
           <Hud />
         )}
@@ -84,7 +84,9 @@ function AuthGate() {
 
   return (
     <div className="foundation">
-      <div className="foundation-badge">SISTEMA · FASE 1</div>
+      {/* Era "SISTEMA · FASE 1" — o rótulo da fase da migração a vazar para a
+          cara do produto. Apanhado na baseline da M26. */}
+      <div className="foundation-badge">SISTEMA · ACESSO</div>
       <h1>Entrar no Sistema</h1>
       <form className="authbox" onSubmit={(e) => { e.preventDefault(); run(() => login(email, pass), 'A entrar…'); }}>
         <input type="email" placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" />

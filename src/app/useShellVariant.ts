@@ -1,37 +1,32 @@
-/* Interruptor da shell experimental — Missão 26 · Fase 2.
+/* Interruptor da shell — Missão 26.
  *
- * Contrato imposto pelo Daniel:
- *   - sem parâmetro           → HUD atual, pixel-idêntico à baseline;
- *   - ?shell=b1               → B1 · Consola;
- *   - ?shell=b2               → B2 · Órbita;
- *   - qualquer outro valor    → HUD atual, SEM ERRO.
+ * Contrato imposto pelo Daniel e ainda em vigor:
+ *   - sem parâmetro    → HUD atual, pixel-idêntico à baseline;
+ *   - ?shell=1         → Órbita Instrumental (a shell da Missão 26);
+ *   - qualquer outro   → HUD atual, SEM ERRO.
  *
- * O parâmetro é estado de PREVIEW VISUAL e mais nada. Não toca no Supabase, no
- * app_state nem no store de domínio, e não persiste em lado nenhum: fecha-se o
- * separador e desaparece. É lido uma vez, no arranque — a shell não muda de
- * variação a meio da sessão, o que evitaria comparar coisas diferentes.
+ * `b1` e `b2` foram as variações comparadas na Fase 2 e deixaram de existir
+ * quando a instrumental passou os gates; `instrumental` mantém-se aceite para
+ * não partir links guardados dessa fase. O HUD continua a ser o comportamento
+ * por omissão até à validação final — essa troca é um gate à parte.
+ *
+ * O parâmetro é estado de PREVIEW VISUAL e mais nada: não toca no Supabase, no
+ * app_state nem no store de domínio, e não persiste. É lido uma vez, no
+ * arranque.
  */
 
-/**
- * `instrumental` é a B2.1 — a direção oficial escolhida pelo Daniel a
- * 2026-07-25. B1 e B2 sobrevivem como referências de regressão visual e serão
- * removidas quando a instrumental passar todos os testes.
- */
-export type ShellVariant = 'b1' | 'b2' | 'instrumental';
+const VALID: readonly string[] = ['1', 'instrumental'];
 
-const VALID: readonly string[] = ['b1', 'b2', 'instrumental'];
-
-export function readShellVariant(search: string = window.location.search): ShellVariant | null {
+export function shellEnabled(search: string = window.location.search): boolean {
   let raw: string | null = null;
   try {
     raw = new URLSearchParams(search).get('shell');
   } catch {
-    return null; // querystring malformada → HUD atual, sem erro
+    return false; // querystring malformada → HUD atual, sem erro
   }
-  if (!raw) return null;
-  const v = raw.trim().toLowerCase();
-  return VALID.includes(v) ? (v as ShellVariant) : null;
+  if (!raw) return false;
+  return VALID.includes(raw.trim().toLowerCase());
 }
 
-/** Lido uma vez no módulo: a variação é fixa durante a sessão. */
-export const SHELL_VARIANT: ShellVariant | null = readShellVariant();
+/** Lido uma vez no módulo: a shell é fixa durante a sessão. */
+export const SHELL_ON: boolean = shellEnabled();

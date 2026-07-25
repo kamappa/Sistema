@@ -1,0 +1,93 @@
+/* Navegação orbital — a identidade da shell.
+ * Missão 26. Extraída de b2.css na consolidação da Fase 3.
+ *
+ * O Núcleo ao centro, as zonas em órbita à volta. Sem caixas, sem linhas.
+ * A cosmologia do projeto — "toda a energia converge para o Núcleo" — tornada
+ * navegação.
+ *
+ * PERFORMANCE: a profundidade recua por opacity + transform + escala +
+ * dessaturação, que o compositor trata sem repintar. Blur só como acabamento e
+ * apenas quando --sys-blur-enabled é 1. Nunca se anima filter:blur().
+ */
+
+[data-nav='orbit'] .sys-orbit {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: var(--sys-space-6) 0 var(--sys-space-5);
+  z-index: var(--sys-z-nav);
+}
+
+[data-nav='orbit'] .sys-orbit-core {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: var(--sys-space-4);
+}
+
+[data-nav='orbit'] .sys-orbit-core-mark {
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-3);
+  font-weight: var(--sys-weight-bold);
+  color: var(--sys-violet);
+  text-shadow: 0 0 24px var(--sys-light-focus);
+}
+
+[data-nav='orbit'] .sys-orbit-ring {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sys-space-6);
+  flex-wrap: wrap;
+}
+
+[data-nav='orbit'] .sys-orbit-mark {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: var(--sys-space-2) var(--sys-space-1);
+  cursor: pointer;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink);
+  /* SÓ opacity, transform e filter animam. */
+  transition:
+    opacity calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    transform calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    filter calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+/* Planos de profundidade: a distância orbital governa opacidade, escala e
+ * saturação. Nenhum destes força layout. */
+[data-nav='orbit'] .sys-orbit-mark[data-plane='1'] { opacity: var(--sys-depth-1); transform: scale(var(--sys-scale-1)); filter: var(--sys-far-1); }
+[data-nav='orbit'] .sys-orbit-mark[data-plane='2'] { opacity: var(--sys-depth-2); transform: scale(var(--sys-scale-2)); filter: var(--sys-far-2); }
+[data-nav='orbit'] .sys-orbit-mark[data-plane='3'] { opacity: var(--sys-depth-3); transform: scale(var(--sys-scale-3)); filter: var(--sys-far-3); }
+[data-nav='orbit'] .sys-orbit-mark[data-plane='4'] { opacity: var(--sys-depth-4); transform: scale(var(--sys-scale-4)); filter: var(--sys-far-4); }
+
+/* A ativa é a única acesa. */
+[data-nav='orbit'] .sys-orbit-mark[data-on='true'] {
+  color: var(--sys-violet);
+  text-shadow: 0 0 14px var(--sys-light-focus);
+}
+
+/* Recuar não é esconder: ao focar por teclado, a marca volta ao plano 1
+ * qualquer que fosse a sua distância. */
+[data-nav='orbit'] .sys-orbit-mark:focus-visible {
+  opacity: 1;
+  transform: scale(1);
+  filter: none;
+}
+
+[data-nav='orbit'] .sys-orbit-mark:hover { opacity: 1; filter: none; }
+
+@supports (backdrop-filter: blur(1px)) {
+  [data-nav='orbit'] .sys-orbit {
+    backdrop-filter: blur(calc(var(--sys-blur-recede) * var(--sys-blur-enabled)));
+  }
+}

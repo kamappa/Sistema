@@ -259,5 +259,22 @@
     box-shadow: 0 0 10px var(--sys-light-focus);
   }
 
-  .sys-instrumental .sys-zone-head { padding-top: var(--sys-space-6); }
+  /* O cabeçalho de zona quebrava em duas linhas e roçava o Núcleo fixo no
+   * topo. Em ecrã estreito o propósito passa a linha própria, com espaço
+   * reservado para o Núcleo por cima. */
+  .sys-instrumental .sys-zone-head {
+    display: block;
+    /* o Núcleo fixo ocupa 12–46px; space-8 deixa ~26px de folga real */
+    padding-top: var(--sys-space-8);
+    margin-bottom: var(--sys-space-4);
+  }
+
+  .sys-instrumental .sys-zone-name { font-size: var(--sys-step-2); }
+
+  .sys-instrumental .sys-zone-purpose {
+    display: block;
+    margin-top: var(--sys-space-1);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+  }
 }

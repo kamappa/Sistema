@@ -1,0 +1,263 @@
+/* B2.1 · ÓRBITA INSTRUMENTAL — a shell oficial da Missão 26.
+ *
+ * Herda de b2.css tudo o que define identidade: órbita, Núcleo ao centro,
+ * atmosfera, transições, presença do Oráculo em faixa. O que acrescenta é a
+ * DENSIDADE: as zonas deixam de partilhar uma medida única.
+ *
+ * O que a Fase 2 mediu e isto corrige:
+ *   Operações em B2 → 5,94 ecrãs, painéis a 277px, 797px desperdiçados.
+ *   A B2 não tinha um problema de conceito. Tinha `max-width: 68ch` em tudo.
+ */
+
+/* Base: a instrumental É a B2. A regra de composição é a única diferença. */
+.sys-instrumental {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'orbit'
+    'stage'
+    'oracle';
+}
+
+.sys-instrumental .sys-orbit { grid-area: orbit; }
+.sys-instrumental .sys-stage-wrap { grid-area: stage; }
+.sys-instrumental .sys-oracle { grid-area: oracle; }
+
+.sys-instrumental .sys-stage-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0 var(--sys-space-6);
+}
+
+/* ── Densidade ─────────────────────────────────────────────────────────
+ * A decisão vive no registo de zonas (density: reading | instrument) e chega
+ * aqui por data-attribute. Zero condições por nome de zona.
+ */
+
+/* READING — leitura e contemplação. Medida editorial, uma coluna, respiração. */
+.sys-instrumental .sys-zone[data-density='reading'] .sys-zone-body {
+  max-width: var(--sys-measure);
+  margin-inline: auto;
+}
+
+.sys-instrumental .sys-zone[data-density='reading'] .panel + .panel {
+  margin-top: var(--sys-space-7);
+}
+
+/* INSTRUMENT — usa a largura disponível, com um teto para não esticar linhas
+ * de texto até ao absurdo em monitores largos. */
+.sys-instrumental .sys-zone[data-density='instrument'] .sys-zone-body {
+  max-width: 1680px;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: var(--sys-space-6) var(--sys-space-7);
+  align-items: start;
+}
+
+/* Composição assimétrica de propósito: nenhuma grelha uniforme, nenhum cartão
+ * igual ao do lado. O peso vem do registo. */
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='main'] { grid-column: 1; }
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='side'] { grid-column: 2; }
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='full'] { grid-column: 1 / -1; }
+
+/* Um grupo `full` com vários painéis distribui-se, mas por medida mínima de
+ * legibilidade — não por número fixo de colunas. */
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='full'] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--sys-space-6);
+  align-items: start;
+}
+
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='full'] .sys-group-name {
+  grid-column: 1 / -1;
+}
+
+/* ── Divisão arquitetónica discreta ────────────────────────────────────
+ * A separação entre a coluna de prioridade e a de rotina é uma fronteira real
+ * entre sistemas — leva um filete, como na B1. Entre painéis do mesmo grupo,
+ * nada: só espaço.
+ */
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='side'] {
+  padding-left: var(--sys-space-6);
+  border-left: 1px solid var(--sys-seam);
+}
+
+/* Rede de segurança: alguns painéis trazem do HUD antigo a sua própria grelha
+ * `.cols` (1fr 1fr), pensada para emparelhar painéis à largura toda. Dentro de
+ * uma coluna estreita isso parte o conteúdo em duas colunas de ~220px e faz os
+ * rótulos quebrarem. Aqui colapsa — é composição externa, não redesenho do
+ * painel. Quando os painéis forem redesenhados (Fase 4), o `.cols` deixa de
+ * existir e esta regra sai. */
+.sys-instrumental .sys-group[data-weight='side'] .cols {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Num grupo `full` (que é grelha), o `.cols` é um item e apanhava só uma faixa
+ * — partindo-se depois em duas colunas de ~200px. Atravessa o grupo todo, que
+ * é a largura para que foi desenhado. */
+.sys-instrumental .sys-group[data-weight='full'] > .cols {
+  grid-column: 1 / -1;
+}
+
+.sys-group-name {
+  margin: 0 0 var(--sys-space-4);
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-far);
+}
+
+.sys-instrumental .sys-group .panel + .panel { margin-top: var(--sys-space-6); }
+.sys-instrumental .sys-group[data-weight='full'] .panel + .panel { margin-top: 0; }
+
+/* Painéis sem material de cartão. A identidade da B2 mantém-se. */
+.sys-instrumental .panel {
+  background: transparent;
+  border: 0;
+  padding-inline: 0;
+  margin-bottom: 0;
+}
+
+/* ── LUZ DE FOCO ───────────────────────────────────────────────────────
+ * Corrige o artefacto da B1: a luz pertencia ao contentor de largura total e
+ * pintava um retângulo iluminado e vazio ao lado do conteúdo.
+ *
+ * Agora a luz pertence ao PAINEL, e há exatamente um portador:
+ *   - com foco de teclado dentro de um painel, é esse painel;
+ *   - sem foco em painel nenhum, é o primeiro painel do grupo principal.
+ * O `:not(:has(...))` garante que os dois casos nunca coexistem.
+ */
+.sys-instrumental .sys-zone-body:not(:has(.panel:focus-within))
+  .sys-group[data-weight='main'] > .panel:first-of-type {
+  background: var(--sys-mat-active);
+  box-shadow: var(--sys-glow-inner);
+}
+
+.sys-instrumental .panel:focus-within {
+  background: var(--sys-mat-active);
+  box-shadow: var(--sys-glow-inner);
+}
+
+/* Reduced motion: a luz continua a indicar foco, apenas sem transição. */
+.sys-instrumental .panel {
+  transition: background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+/* ── Mobile ────────────────────────────────────────────────────────────
+ * As SEIS zonas têm de estar imediatamente visíveis. A órbita da B2 mostrava
+ * 3 de 6 e exigia um gesto horizontal não anunciado — perda de contexto.
+ * Aqui a órbita passa a faixa de comando inferior, com marcas gravadas.
+ * A identidade orbital fica no Núcleo e na transição.
+ */
+@media (max-width: 900px) {
+  .sys-instrumental {
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'core'
+      'stage'
+      'oracle'
+      'orbit';
+  }
+
+  .sys-instrumental .sys-stage-wrap { padding: 0 var(--sys-space-4); }
+
+  /* Uma coluna: em 390px não há largura para instrumento nenhum. */
+  .sys-instrumental .sys-zone[data-density='instrument'] .sys-zone-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sys-space-6);
+  }
+
+  .sys-instrumental [data-density='instrument'] .sys-group[data-weight='main'],
+  .sys-instrumental [data-density='instrument'] .sys-group[data-weight='side'],
+  .sys-instrumental [data-density='instrument'] .sys-group[data-weight='full'] {
+    grid-column: 1;
+  }
+
+  .sys-instrumental [data-density='instrument'] .sys-group[data-weight='full'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* o filete vertical não faz sentido numa coluna só */
+  .sys-instrumental [data-density='instrument'] .sys-group[data-weight='side'] {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--sys-seam);
+    padding-top: var(--sys-space-5);
+  }
+
+  /* Faixa de comando: as 6 zonas em grelha fixa. Sem scroll, sem gesto. */
+  .sys-instrumental .sys-orbit {
+    padding: 0;
+    background: var(--sys-mat-rest);
+    border-top: 1px solid var(--sys-seam);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    backdrop-filter: none;
+  }
+
+  /* O Núcleo sobe para o topo: continua presente, deixa de ocupar a faixa. */
+  .sys-instrumental .sys-orbit-core {
+    grid-area: core;
+    position: fixed;
+    top: var(--sys-space-3);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    z-index: var(--sys-z-nav);
+  }
+
+  .sys-instrumental .sys-orbit-core-mark { font-size: var(--sys-step-1); }
+
+  .sys-instrumental .sys-orbit-ring {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+    overflow: visible;
+    padding: 0;
+    width: 100%;
+  }
+
+  .sys-instrumental .sys-orbit-slot { display: block; }
+
+  /* Marca gravada, não botão de bottom navigation: sulco + sigla, sem caixa,
+     sem ícone genérico, sem pílula ativa. */
+  .sys-instrumental .sys-orbit-mark {
+    width: 100%;
+    min-height: var(--sys-touch-min);
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 5px;
+    padding: var(--sys-space-2) 2px;
+    font-size: 0.5rem;
+    letter-spacing: 0.06em;
+    /* todas as zonas legíveis: sem planos de profundidade no mobile */
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    color: var(--sys-ink-far);
+  }
+
+  .sys-instrumental .sys-orbit-mark::before {
+    content: '';
+    width: 16px;
+    height: 2px;
+    background: rgb(var(--sys-bone-rgb) / var(--sys-o-14));
+    transition: width calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+  }
+
+  .sys-instrumental .sys-orbit-mark[data-on='true'] { color: var(--sys-ink); }
+  .sys-instrumental .sys-orbit-mark[data-on='true']::before {
+    width: 26px;
+    background: var(--sys-violet);
+    box-shadow: 0 0 10px var(--sys-light-focus);
+  }
+
+  .sys-instrumental .sys-zone-head { padding-top: var(--sys-space-6); }
+}

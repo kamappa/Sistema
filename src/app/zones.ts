@@ -45,13 +45,49 @@ export type ZoneId =
  *  função com menos parâmetros continua a ser um componente válido aqui. */
 type PanelComponent = ComponentType<{ S: any }>;
 
+/**
+ * Densidade da zona — a decisão que a Fase 2 provou ser necessária.
+ *
+ * A B2 pura aplicava a mesma medida de leitura (68ch) a todas as zonas. No
+ * Núcleo isso é elegante; em Operações estrangulava os painéis a 277px e
+ * desperdiçava 797px de cada lado, com os hábitos a quebrar linha. A B2 não
+ * tinha um problema de conceito — tinha uma medida única.
+ *
+ *   reading    — leitura e contemplação: medida editorial, respiração, uma
+ *                coluna. Núcleo, Oráculo, Reflexão.
+ *   instrument — leitura de instrumento: usa a largura disponível, permite
+ *                colunas quando a informação o justifica, divisões
+ *                arquitetónicas discretas. Radar, Operações, Universo.
+ */
+export type ZoneDensity = 'reading' | 'instrument';
+
+/**
+ * Grupo de painéis dentro de uma zona. É o que torna Operações um instrumento
+ * em vez de uma página longa: os sete painéis passam a ter uma organização
+ * funcional em vez de uma ordem arbitrária.
+ *
+ * `weight` governa a composição em zonas `instrument`:
+ *   main — coluna principal, mais larga
+ *   side — coluna de apoio
+ *   full — atravessa a largura toda, por baixo das duas
+ * Em zonas `reading` o peso é ignorado: tudo empilha na medida editorial.
+ */
+export interface ZoneGroup {
+  id: string;
+  /** Micro-label em mono. Ausente = grupo sem cabeçalho. */
+  name?: string;
+  weight: 'main' | 'side' | 'full';
+  panels: PanelComponent[];
+}
+
 export interface Zone {
   id: ZoneId;
   /** Nome apresentado. Curto — vai em Rajdhani, reservado a identidade. */
   name: string;
   /** Uma linha que diz o que a zona É. Aparece ao entrar, não permanentemente. */
   purpose: string;
-  panels: PanelComponent[];
+  density: ZoneDensity;
+  groups: ZoneGroup[];
 }
 
 export const ZONES: Zone[] = [
@@ -59,41 +95,62 @@ export const ZONES: Zone[] = [
     id: 'core',
     name: 'Núcleo',
     purpose: 'O estado do Operador e a próxima ação.',
-    panels: [Greet, DeadlineBanner, Hero, World],
+    density: 'reading',
+    groups: [{ id: 'estado', weight: 'main', panels: [Greet, DeadlineBanner, Hero, World] }],
   },
   {
     id: 'radar',
     name: 'Radar',
     purpose: 'Sinais, oportunidades e o mundo filtrado para ti.',
-    panels: [RadarNews],
+    density: 'instrument',
+    groups: [{ id: 'sinais', weight: 'full', panels: [RadarNews] }],
   },
   {
     id: 'operations',
     name: 'Operações',
     purpose: 'Missões, hábitos, estudo, treino e sono.',
-    // Calendário aqui por decisão do Daniel (2026-07-25). Pode mais tarde ter
-    // uma vista resumida no Núcleo — sem sair daqui.
-    panels: [Diario, Objectives, Shadows, Recall, Training, Sleep, Calendar],
+    density: 'instrument',
+    // Organização FUNCIONAL, não a ordem em que os painéis foram migrados.
+    // Calendário aqui por decisão do Daniel (2026-07-25).
+    //
+    // A atribuição de peso segue o APETITE DE LARGURA de cada painel, apurado
+    // na medição: o Diário traz do HUD antigo a sua própria grelha `.cols` de
+    // duas colunas e parte-se ao meio se ficar numa coluna estreita; as
+    // Missões precisam de largura para título + chips + filtros numa linha;
+    // Treino e Sono são formulários compactos e vivem bem estreitos.
+    groups: [
+      { id: 'prioridade', name: 'Prioridade', weight: 'main', panels: [Objectives, Shadows] },
+      { id: 'rotina', name: 'Rotina e execução', weight: 'side', panels: [Diario, Training] },
+      { id: 'revisao', name: 'Revisão e recuperação', weight: 'full', panels: [Recall, Sleep, Calendar] },
+    ],
   },
   {
     id: 'universe',
     name: 'Universo',
     purpose: 'A evidência tornada céu.',
-    panels: [Attributes, Radar, Constellations, Titles, Achievements],
+    density: 'instrument',
+    groups: [
+      { id: 'ceu', weight: 'full', panels: [Constellations] },
+      { id: 'dominios', name: 'Domínios', weight: 'main', panels: [Attributes] },
+      { id: 'equilibrio', name: 'Equilíbrio', weight: 'side', panels: [Radar] },
+      { id: 'evidencia', name: 'Evidência', weight: 'full', panels: [Titles, Achievements] },
+    ],
   },
   {
     id: 'oracle',
     name: 'Oráculo',
     purpose: 'Interpretação, orientação e decisões.',
+    density: 'reading',
     // Mapa de Conhecimento aqui e não no Universo: tem expressão visual
     // cósmica, mas a função principal é interpretar e orientar.
-    panels: [OracleReport, Conselho, KnowledgeMap],
+    groups: [{ id: 'leitura', weight: 'main', panels: [OracleReport, Conselho, KnowledgeMap] }],
   },
   {
     id: 'reflection',
     name: 'Reflexão',
     purpose: 'Memória, debrief e o que o Sistema aprendeu contigo.',
-    panels: [Debuffs],
+    density: 'reading',
+    groups: [{ id: 'estados', weight: 'main', panels: [Debuffs] }],
   },
 ];
 

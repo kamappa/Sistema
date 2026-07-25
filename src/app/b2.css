@@ -18,7 +18,7 @@
     'oracle';
 }
 
-.sys-b2 .sys-orbit { grid-area: orbit; }
+[data-nav='orbit'] .sys-orbit { grid-area: orbit; }
 .sys-b2 .sys-stage-wrap { grid-area: stage; }
 .sys-b2 .sys-oracle { grid-area: oracle; }
 
@@ -40,7 +40,7 @@
 /* ── A órbita ──────────────────────────────────────────────────────────
  * O Núcleo ao centro, as marcas à volta. Sem caixas, sem linhas.
  */
-.sys-b2 .sys-orbit {
+[data-nav='orbit'] .sys-orbit {
   position: relative;
   display: grid;
   place-items: center;
@@ -48,7 +48,7 @@
   z-index: var(--sys-z-nav);
 }
 
-.sys-b2 .sys-orbit-core {
+[data-nav='orbit'] .sys-orbit-core {
   display: grid;
   place-items: center;
   width: 52px;
@@ -56,7 +56,7 @@
   margin-bottom: var(--sys-space-4);
 }
 
-.sys-b2 .sys-orbit-core-mark {
+[data-nav='orbit'] .sys-orbit-core-mark {
   font-family: var(--sys-type-display);
   font-size: var(--sys-step-3);
   font-weight: var(--sys-weight-bold);
@@ -64,7 +64,7 @@
   text-shadow: 0 0 24px var(--sys-light-focus);
 }
 
-.sys-b2 .sys-orbit-ring {
+[data-nav='orbit'] .sys-orbit-ring {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -75,7 +75,7 @@
   flex-wrap: wrap;
 }
 
-.sys-b2 .sys-orbit-mark {
+[data-nav='orbit'] .sys-orbit-mark {
   appearance: none;
   background: none;
   border: 0;
@@ -95,26 +95,26 @@
 
 /* Planos de profundidade: a distância orbital governa opacidade, escala e
  * saturação. Nenhum destes força layout. */
-.sys-b2 .sys-orbit-mark[data-plane='1'] { opacity: var(--sys-depth-1); transform: scale(var(--sys-scale-1)); filter: var(--sys-far-1); }
-.sys-b2 .sys-orbit-mark[data-plane='2'] { opacity: var(--sys-depth-2); transform: scale(var(--sys-scale-2)); filter: var(--sys-far-2); }
-.sys-b2 .sys-orbit-mark[data-plane='3'] { opacity: var(--sys-depth-3); transform: scale(var(--sys-scale-3)); filter: var(--sys-far-3); }
-.sys-b2 .sys-orbit-mark[data-plane='4'] { opacity: var(--sys-depth-4); transform: scale(var(--sys-scale-4)); filter: var(--sys-far-4); }
+[data-nav='orbit'] .sys-orbit-mark[data-plane='1'] { opacity: var(--sys-depth-1); transform: scale(var(--sys-scale-1)); filter: var(--sys-far-1); }
+[data-nav='orbit'] .sys-orbit-mark[data-plane='2'] { opacity: var(--sys-depth-2); transform: scale(var(--sys-scale-2)); filter: var(--sys-far-2); }
+[data-nav='orbit'] .sys-orbit-mark[data-plane='3'] { opacity: var(--sys-depth-3); transform: scale(var(--sys-scale-3)); filter: var(--sys-far-3); }
+[data-nav='orbit'] .sys-orbit-mark[data-plane='4'] { opacity: var(--sys-depth-4); transform: scale(var(--sys-scale-4)); filter: var(--sys-far-4); }
 
 /* A ativa é a única acesa. */
-.sys-b2 .sys-orbit-mark[data-on='true'] {
+[data-nav='orbit'] .sys-orbit-mark[data-on='true'] {
   color: var(--sys-violet);
   text-shadow: 0 0 14px var(--sys-light-focus);
 }
 
 /* Recuar não é esconder: ao focar por teclado, a marca volta ao plano 1
  * qualquer que fosse a sua distância. */
-.sys-b2 .sys-orbit-mark:focus-visible {
+[data-nav='orbit'] .sys-orbit-mark:focus-visible {
   opacity: 1;
   transform: scale(1);
   filter: none;
 }
 
-.sys-b2 .sys-orbit-mark:hover { opacity: 1; filter: none; }
+[data-nav='orbit'] .sys-orbit-mark:hover { opacity: 1; filter: none; }
 
 /* ── Zona ativa: sem caixa ─────────────────────────────────────────────
  * Na B2 o painel de topo não ganha material próprio — a luz vem da atmosfera
@@ -137,7 +137,7 @@
 
 /* Blur só quando permitido, e só no fundo — nunca animado. */
 @supports (backdrop-filter: blur(1px)) {
-  .sys-b2 .sys-orbit {
+  [data-nav='orbit'] .sys-orbit {
     backdrop-filter: blur(calc(var(--sys-blur-recede) * var(--sys-blur-enabled)));
   }
 }
@@ -149,14 +149,14 @@
 @media (max-width: 900px) {
   .sys-b2 .sys-stage-wrap { padding: 0 var(--sys-space-4); }
 
-  .sys-b2 .sys-orbit {
+  [data-nav='orbit'] .sys-orbit {
     padding: var(--sys-space-4) 0 var(--sys-space-3);
     backdrop-filter: none;
   }
 
-  .sys-b2 .sys-orbit-core { width: 40px; height: 40px; margin-bottom: var(--sys-space-3); }
+  [data-nav='orbit'] .sys-orbit-core { width: 40px; height: 40px; margin-bottom: var(--sys-space-3); }
 
-  .sys-b2 .sys-orbit-ring {
+  [data-nav='orbit'] .sys-orbit-ring {
     flex-wrap: nowrap;
     overflow-x: auto;
     justify-content: flex-start;
@@ -167,11 +167,11 @@
     scrollbar-width: none;
   }
 
-  .sys-b2 .sys-orbit-ring::-webkit-scrollbar { display: none; }
+  [data-nav='orbit'] .sys-orbit-ring::-webkit-scrollbar { display: none; }
 
-  .sys-b2 .sys-orbit-slot { scroll-snap-align: center; flex: none; }
+  [data-nav='orbit'] .sys-orbit-slot { scroll-snap-align: center; flex: none; }
 
-  .sys-b2 .sys-orbit-mark {
+  [data-nav='orbit'] .sys-orbit-mark {
     min-height: var(--sys-touch-min);
     display: grid;
     place-items: center;

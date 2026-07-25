@@ -35,9 +35,17 @@ export default function ZoneStage({ active, S }: Props) {
   return (
     <div className="sys-stage" data-active={active}>
       {ZONES.map((z) => (
-        <ZonePane key={z.id} zoneId={z.id} isActive={z.id === active}>
-          {z.panels.map((Panel, i) => (
-            <Panel key={i} S={S} />
+        <ZonePane key={z.id} zoneId={z.id} density={z.density} isActive={z.id === active}>
+          {/* Os grupos vêm do registo. A composição é decidida por CSS a partir
+              de data-density e data-weight — nunca por verificações do nome da
+              zona espalhadas pelo JSX. */}
+          {z.groups.map((g) => (
+            <div key={g.id} className="sys-group" data-group={g.id} data-weight={g.weight}>
+              {g.name && <h2 className="sys-group-name">{g.name}</h2>}
+              {g.panels.map((Panel, i) => (
+                <Panel key={i} S={S} />
+              ))}
+            </div>
           ))}
         </ZonePane>
       ))}
@@ -47,10 +55,12 @@ export default function ZoneStage({ active, S }: Props) {
 
 function ZonePane({
   zoneId,
+  density,
   isActive,
   children,
 }: {
   zoneId: ZoneId;
+  density: string;
   isActive: boolean;
   children: React.ReactNode;
 }) {
@@ -70,10 +80,13 @@ function ZonePane({
       ref={ref}
       className="sys-zone"
       data-zone={zoneId}
+      data-density={density}
       data-active={isActive ? 'true' : 'false'}
       aria-hidden={isActive ? undefined : true}
     >
-      <div className="sys-zone-scroll">{children}</div>
+      <div className="sys-zone-scroll">
+        <div className="sys-zone-body">{children}</div>
+      </div>
     </section>
   );
 }

@@ -19,6 +19,7 @@ import Atmosphere from './atmosphere/Atmosphere';
 import './shell.css';
 import './b1.css';
 import './b2.css';
+import './instrumental.css';
 
 interface Props {
   variant: ShellVariant;
@@ -28,10 +29,18 @@ interface Props {
 export default function Shell({ variant, S }: Props) {
   const [active, setActive] = useState<ZoneId>(DEFAULT_ZONE);
   const zone = zoneById(active);
+  // A instrumental (B2.1) usa a navegação orbital da B2 — a identidade é dela.
+  // O que muda é a composição interna das zonas, decidida por densidade.
   const Nav = variant === 'b1' ? RailNav : OrbitNav;
 
   return (
-    <div className={`sys-shell sys-${variant}`} data-variant={variant}>
+    <div
+      className={`sys-shell sys-${variant}`}
+      data-variant={variant}
+      // A navegação é um sistema à parte da composição: B2 e B2.1 partilham a
+      // órbita (é ela a identidade), e só a composição interna difere.
+      data-nav={variant === 'b1' ? 'rail' : 'orbit'}
+    >
       <Atmosphere />
 
       <Nav zones={ZONES} active={active} onSelect={setActive} S={S} />

@@ -12,9 +12,14 @@
  * variação a meio da sessão, o que evitaria comparar coisas diferentes.
  */
 
-export type ShellVariant = 'b1' | 'b2';
+/**
+ * `instrumental` é a B2.1 — a direção oficial escolhida pelo Daniel a
+ * 2026-07-25. B1 e B2 sobrevivem como referências de regressão visual e serão
+ * removidas quando a instrumental passar todos os testes.
+ */
+export type ShellVariant = 'b1' | 'b2' | 'instrumental';
 
-const VALID: readonly string[] = ['b1', 'b2'];
+const VALID: readonly string[] = ['b1', 'b2', 'instrumental'];
 
 export function readShellVariant(search: string = window.location.search): ShellVariant | null {
   let raw: string | null = null;

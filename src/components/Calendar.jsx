@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Collapse from '../design-system/Collapse.tsx';
 import { useStore } from '../store/useStore.js';
 import { EVT } from '../state/config.js';
 import { today, daysUntil } from '../state/dates.js';
@@ -56,15 +57,20 @@ export default function Calendar({ S }) {
           <button className="cal-nav" onClick={() => navMonth(1)}>›</button>
         </div>
         <div className="cal-grid">{cells}</div>
-        <div className="cal-add">
-          <input type="date" id="ev-date" value={evDate} onChange={(e) => setEvDate(e.target.value)} />
-          <input id="ev-title" placeholder="Prazo, exame, evento..." maxLength={60} value={evTitle} onChange={(e) => setEvTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
-          <select id="ev-type" value={evType} onChange={(e) => setEvType(e.target.value)}>
-            <option value="AUTO">Auto</option>
-            {Object.entries(EVT).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}
-          </select>
-          <button className="btn" onClick={add}>+ Add</button>
-        </div>
+        {/* Fase 4: a grelha do mês NÃO se comprime — é a função do painel, e
+            uma grelha de 7×6 ilegível não serve para nada. Só o formulário de
+            evento recolhe. */}
+        <Collapse label="+ Novo evento" forceOpen={evTitle !== ''}>
+          <div className="cal-add">
+            <input type="date" id="ev-date" value={evDate} onChange={(e) => setEvDate(e.target.value)} />
+            <input id="ev-title" placeholder="Prazo, exame, evento..." maxLength={60} value={evTitle} onChange={(e) => setEvTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
+            <select id="ev-type" value={evType} onChange={(e) => setEvType(e.target.value)}>
+              <option value="AUTO">Auto</option>
+              {Object.entries(EVT).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}
+            </select>
+            <button className="btn" onClick={add}>+ Add</button>
+          </div>
+        </Collapse>
         <div className="up-lbl">📌 Próximos prazos</div>
         {up.length ? up.map((e) => {
           const t = EVT[e.type] || EVT.outro, dd = daysUntil(e.date);

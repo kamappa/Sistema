@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Collapse from '../design-system/Collapse.tsx';
 import { useStore } from '../store/useStore.js';
 import { ATTRS, AM } from '../state/config.js';
 import { today } from '../state/dates.js';
@@ -46,6 +47,10 @@ export default function Diario({ S }) {
         <div id="oblig">{S.oblig.map((h) => <Hab key={h.id} h={h} list="oblig" oblig />)}</div>
         <div className="sec-lbl">✦ Extras</div>
         <div id="extras">{S.extras.map((h) => <Hab key={h.id} h={h} list="extras" oblig={false} />)}</div>
+        {/* Fase 4: só o formulário recolhe. Hábitos, extras, streaks e a
+            explicação das penalizações ficam sempre visíveis — são leitura e
+            decisão diárias, não registo ocasional. */}
+        <Collapse label="+ Novo hábito" forceOpen={text !== ''}>
         <div className="addq">
           <input id="nh-t" placeholder="Novo hábito diário (bónus)..." maxLength={60} value={text}
             onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
@@ -54,6 +59,7 @@ export default function Diario({ S }) {
           </select>
           <button className="btn" onClick={add}>+ Add</button>
         </div>
+        </Collapse>
       </div>
     </div>
   );

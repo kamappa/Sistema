@@ -54,11 +54,18 @@ export interface Objective {
   title: string;
   pri: Priority;
   area: DomainId;
-  tier?: string;
   status: ObjectiveStatus;
-  due: IsoDate | null;
+  /** O campo chama-se `deadline`, não `due` — `due` é do SM-2 da Revisão Ativa
+   *  e não existe num objetivo. Ver useStore.js:191. */
+  deadline: IsoDate | null;
   tags: string[];
   created: IsoDate;
+  /** `true` quando a prioridade/área vieram da triagem automática. */
+  auto?: boolean;
+  /** Id do arco sazonal, quando a missão nasceu de um arco aceite. */
+  arc?: string;
+  /** `true` quando a missão veio do Radar ou do Oráculo. */
+  oracle?: boolean;
   /** Só existe enquanto `status === 'done'`; apagada ao regredir. */
   doneDate?: IsoDate;
 }

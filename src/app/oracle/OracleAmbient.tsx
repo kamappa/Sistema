@@ -89,9 +89,14 @@ function collectSignals({
     }
 
     // Prazos vencidos: facto duro, lido das missões.
+    // O campo é `deadline` — é o que o store escreve (useStore.js:191) e o que
+    // Objectives/DeadlineBanner leem. `due` pertence ao SM-2 da Revisão Ativa e
+    // NUNCA existe num objetivo: lê-lo aqui punha este sinal a zero para
+    // sempre com dados reais, que é precisamente a mentira que a lei proíbe.
+    const hoje = new Date().toISOString().slice(0, 10);
     const overdue = (S.objectives ?? []).filter(
-      (o: { status: string; due?: string | null }) =>
-        o.status !== 'done' && o.due && o.due < new Date().toISOString().slice(0, 10)
+      (o: { status: string; deadline?: string | null }) =>
+        o.status !== 'done' && o.deadline && o.deadline < hoje
     ).length;
     if (overdue > 0) {
       out.push({

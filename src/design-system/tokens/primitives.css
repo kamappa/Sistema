@@ -1,0 +1,49 @@
+/* Primitivos — valores crus, sem semântica. Nada nesta camada diz PARA QUE
+ * serve; só diz O QUE é. A semântica vive em material.css e nos restantes.
+ *
+ * Missão 26 · Fase 2. Todos os tokens do Sistema levam o prefixo `--sys-` para
+ * não colidirem com o vocabulário do hud.css (--bg, --ink, --pur, --line, …),
+ * que continua a governar os 19 painéis reutilizados sem edição.
+ */
+
+:root {
+  /* ── Paleta, 6 valores nomeados ────────────────────────────────────────
+   * Deriva da direção visual permanente do CLAUDE.md: roxo/preto com azul
+   * profundo e magenta subtil. O void é mais fundo que o #07040f do HUD
+   * atual — a Sala de Operações precisa de um preto que aceite luz por cima
+   * sem cinzentar.
+   */
+  --sys-void:    #04030a;   /* o fundo de tudo; ausência de luz */
+  --sys-deep:    #0a0816;   /* material erguido do fundo */
+  --sys-azure:   #16264d;   /* azul profundo; atmosfera e distância */
+  --sys-violet:  #a78bfa;   /* identidade do Sistema */
+  --sys-magenta: #d946ef;   /* acento subtil, raro */
+  --sys-bone:    #e9e7f2;   /* texto de leitura */
+
+  /* Componentes RGB, para compor luz com alfa sem repetir literais. */
+  --sys-violet-rgb:  167 139 250;
+  --sys-magenta-rgb: 217 70 239;
+  --sys-bone-rgb:    233 231 242;
+  --sys-azure-rgb:   22 38 77;
+
+  /* ── Estados ──────────────────────────────────────────────────────────
+   * Não fazem parte da paleta de identidade: são sinais. Só aparecem quando
+   * há alerta ou perigo reais.
+   */
+  --sys-alert:  #fb923c;
+  --sys-danger: #ef4444;
+  --sys-alert-rgb:  251 146 60;
+  --sys-danger-rgb: 239 68 68;
+
+  /* ── Escala de opacidade ──────────────────────────────────────────────
+   * Degraus fixos. A luz do Sistema move-se por esta escala, não por valores
+   * arbitrários — é o que mantém "só uma coisa acesa" verificável.
+   */
+  --sys-o-04: 0.04;
+  --sys-o-08: 0.08;
+  --sys-o-14: 0.14;
+  --sys-o-24: 0.24;
+  --sys-o-40: 0.40;
+  --sys-o-62: 0.62;
+  --sys-o-88: 0.88;
+}

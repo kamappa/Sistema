@@ -1,0 +1,35 @@
+/* Motion — duração e easing.
+ *
+ * Leis herdadas do projeto (CLAUDE.md: "nenhuma animação é decorativa") e da
+ * grelha do Emil já usada na Missão 25 Fase 17: só transform e opacity, easings
+ * fortes, UI abaixo de 300ms, reduced-motion a sério.
+ *
+ * Regra específica da B2, imposta pelo Daniel: NUNCA animar filter:blur() em
+ * áreas grandes. A profundidade anima-se por opacity, transform e saturate.
+ */
+
+:root {
+  --sys-dur-instant: 90ms;   /* feedback direto ao toque */
+  --sys-dur-quick: 180ms;    /* troca de zona, foco */
+  --sys-dur-calm: 320ms;     /* expansão do Oráculo */
+  --sys-dur-slow: 620ms;     /* eventos do mundo, raros */
+
+  --sys-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --sys-ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --sys-ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  /* Multiplicador global. O reduced-motion põe-no a zero e todas as transições
+   * que o respeitem colapsam de uma só vez, sem cada componente ter de saber. */
+  --sys-motion-scale: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sys-motion-scale: 0;
+    --sys-dur-instant: 0ms;
+    --sys-dur-quick: 0ms;
+    --sys-dur-calm: 0ms;
+    --sys-dur-slow: 0ms;
+    --sys-blur-recede: 0px;
+  }
+}

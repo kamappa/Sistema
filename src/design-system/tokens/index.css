@@ -1,0 +1,18 @@
+/* Tokens da Sala de Operações — Missão 26 · Fase 2.
+ *
+ * ORDEM IMPORTA: primitives define os valores crus; material dá-lhes
+ * semântica; os restantes constroem por cima. system.css vem no fim porque as
+ * suas media queries sobrepõem-se aos valores de material e motion.
+ *
+ * GATE DE IDENTIDADE: esta camada só DEFINE custom properties com o prefixo
+ * `--sys-`. Não seleciona nenhum elemento e não altera nada. Com o HUD atual
+ * (sem `?shell=`), o Sistema tem de ficar pixel-idêntico à baseline. Se mudou,
+ * há um token a vazar e corrige-se antes de qualquer outra coisa.
+ */
+
+@import './primitives.css';
+@import './material.css';
+@import './type.css';
+@import './space.css';
+@import './motion.css';
+@import './system.css';

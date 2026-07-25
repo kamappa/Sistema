@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore.js';
 import { ATTRS, AM, PRI, OSTL, TIER_LABEL, SEASON_ARCS } from '../state/config.js';
-import { daysUntil } from '../state/dates.js';
+import { daysUntil, diffDays } from '../state/dates.js';
 
 // Missões (objetivos-mestra) — Missão 25 · Fase 6. Markup/lógica de
 // objetivos.js:65-98 (renderObjectives). Filtros locais (objF), lista ordenada,
@@ -55,7 +55,22 @@ export default function Objectives({ S }) {
         <div>
           {list.length ? list.map((o) => {
             const p = PRI[o.pri]; let dl = null;
-            if (o.deadline) { const d = daysUntil(o.deadline); const c = d <= 3 ? '#ef4444' : d <= 7 ? '#fb923c' : 'var(--mut)'; dl = <span className="up-x" style={{ color: c }}>{d < 0 ? 'atrasado' : d === 0 ? 'hoje' : d + 'd'}</span>; }
+            /* O prazo de uma missão CONCLUÍDA não é um alerta — é história.
+               Antes esta linha ignorava o estado e uma missão feita continuava
+               a dizer "atrasado" a vermelho: o Sistema a mentir sobre trabalho
+               que já estava entregue.
+               Como o `cycleObj` grava `doneDate` ao concluir, há prova para
+               dizer o que aconteceu de facto, em vez de esconder o chip. Sem
+               `doneDate` (missões fechadas antes desse campo existir) não se
+               afirma nada — nada nasce do nada.
+               A cor fica reservada ao que ainda exige ação; no que já passou é
+               a palavra que informa. */
+            if (o.deadline && o.status === 'done') {
+              if (o.doneDate) {
+                const atraso = diffDays(o.deadline, o.doneDate);
+                dl = <span className="up-x" style={{ color: 'var(--mut)' }}>{atraso <= 0 ? 'a tempo' : 'tarde ' + atraso + 'd'}</span>;
+              }
+            } else if (o.deadline) { const d = daysUntil(o.deadline); const c = d <= 3 ? '#ef4444' : d <= 7 ? '#fb923c' : 'var(--mut)'; dl = <span className="up-x" style={{ color: c }}>{d < 0 ? 'atrasado' : d === 0 ? 'hoje' : d + 'd'}</span>; }
             return (
               <div className={`obj-row ${o.status}`} data-oid={o.id} key={o.id}>
                 <span className="obj-st" onClick={() => cycleObj(o.id)} title="pendente → em curso → feito">{OSTL[o.status]}</span>

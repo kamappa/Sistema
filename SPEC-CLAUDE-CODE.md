@@ -1378,19 +1378,73 @@ presença do Oráculo: `SYSTEM-ORACLE-CONSTITUTION.md` e
 - Produção continua no Vanilla. Esta missão não ativa deploy.
 - O palco WebGL não se reescreve por dogma. Só muda onde houver ganho medido.
 
-### Fase 0 — ambiente e baseline (EM CURSO)
+### Fase 0 — ambiente e baseline (CONCLUÍDA 2026-07-25)
 
-- Ferramentas obrigatórias verificadas com prova prática, não presumidas.
-  Estado a 2026-07-25: Superpowers, Context7, 21st.dev Magic, ui-ux-pro-max,
-  frontend-design, skill-creator, claude-code-setup, Tavily, Playwright MCP,
-  Chrome DevTools MCP e Claude in Chrome operacionais; TypeScript LSP
-  pendente da decisão de arquitetura desta missão.
-- Google Chrome como browser oficial de observação, baseline, consola,
-  network e performance. Brave/CDP como fallback.
-- Reconciliação documental (feita — ver secção própria acima).
-- Baseline visual oficial por levantar: desktop e mobile, estado vazio e
-  estado com dados, navegação, Oráculo, Radar, universo, animações, loading,
-  erros, contraste e performance aparente.
+- **Ferramentas**: todas as obrigatórias operacionais e provadas. Google
+  Chrome 150 instalado e adotado como browser oficial (Brave/CDP passa a
+  fallback). TypeScript LSP resolvido na Fase 1 — ver abaixo.
+- **Reconciliação documental**: feita (secção própria acima).
+- **Baseline visual** levantada no Chrome real, com o Vite em
+  `localhost:5173/Sistema/`, estados vazio e semeado (offline, sem tocar em
+  dados reais). Capturas a 1440×900, 1280×800, 768×1024 e 390×844.
+
+Medições que passam a ser o ponto de partida da missão:
+
+| Medida | Valor |
+| --- | --- |
+| Altura do documento, 1440, conta VAZIA | 5685 px (6,3 ecrãs) |
+| Altura do documento, 390, com dados | 9825 px (11,6 ecrãs) |
+| Painéis | 19, todos `.panel` |
+| Cores de borda distintas entre os 19 | **2** (18 iguais) |
+| Materiais de fundo distintos | **1** |
+| `border-radius` distintos | **1** (`0px`) |
+| Consola | limpa (0 erros, 0 warnings) |
+| CLS | 0.00 |
+| Bundle bloqueante (antes da Fase 1) | 979 KB / 288,7 KB gzip |
+
+Leitura: a identidade do Sistema existe e é forte — céu, Solar Engine,
+Constelações, Títulos Reais. Está enterrada debaixo de uma casca genérica de
+19 cartões idênticos numa pilha vertical sem navegação. O problema da missão
+não é inventar identidade; é desenterrá-la.
+
+Defeitos apurados (nenhum corrigido nesta fase, exceto o bundle):
+
+- rótulo "Disciplina" do Núcleo cortado 22 px — o SVG tem
+  `viewBox="0 0 320 320"` com `overflow:hidden` e o rótulo (`text-anchor:end`,
+  x=43.95, largura 66) cai em −22. **Herdado do Vanilla** (`Radar.jsx:17` ≡
+  `engine.js:184`), logo presente também em produção;
+- o ecrã de entrada mostra `SISTEMA · FASE 1`, rótulo da fase da M25;
+- contraste abaixo de 4.5:1 em várias legendas de apoio (`#4a5568`);
+- `hud.css` com 791 linhas, 543 blocos e apenas **10 variáveis CSS** — não há
+  tokens sobre os quais construir um design system.
+
+Três direções visuais apresentadas (A · O Observatório, B · A Sala de
+Operações, C · O Diário do Operador). Recomendada a **B**, por ser a única que
+ataca a densidade medida e a única que dá lugar próprio ao Oráculo.
+DECISÃO DO DANIEL PENDENTE — a Fase 2 não abre sem ela.
+
+### Fase 1 — fundação (PARCIAL 2026-07-25)
+
+Executada a parte que é INDEPENDENTE da direção visual. A moldura/shell fica
+retida até a direção estar escolhida, porque essa é específica da direção.
+
+- **Bundle** (`1967fa0`): o Three.js saiu do chunk de entrada. O import de
+  `stage/constellation.js` em `Constellations.jsx` era estático e arrastava o
+  Three.js (675 KB) para o entry, anulando o `import()` dinâmico do
+  `Stage.jsx:44` — deriva entrada na Fase 16 da M25. Passou a `import()`
+  dentro do `useEffect` (onde `initConstellation` já era chamado: zero mudança
+  de comportamento) + `manualChunks` a isolar o React.
+  **979 → 492 KB; 288,7 → 156,6 KB gzip (−46%).** Verificado no Chrome real:
+  WebGL vivo, 24 estrelas nascidas de evidência semeada, consola limpa.
+- **TypeScript** (`1d89404`): `allowJs: true`, `checkJs: false`, `noEmit`.
+  `src/types/domain.ts` DESCREVE o `app_state` existente — não propõe modelo
+  novo. `npm run typecheck`. TypeScript fixado em **^5** e não ^7: a linha 7 é
+  a reescrita nativa e não traz `lib/tsserver.js`, o que mantinha o
+  TypeScript LSP inoperacional; com 5.9.3 o LSP responde.
+- **Vercel** (`16d9e12`): `vercel.json` só para Preview. `--base=/` explícito
+  (o `/Sistema/` do vite.config é do Pages). Produção intacta.
+
+Por fazer nesta fase, dependente da direção: tokens de design e a shell.
 
 ### Fase 1 — auditoria visual real
 

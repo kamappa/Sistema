@@ -25,6 +25,8 @@ import Constellations from './components/Constellations.jsx';
 import Toast from './components/Toast.jsx';
 import Topbar from './components/Topbar.jsx';
 import { exportStateFile } from './lib/exports.js';
+import { SHELL_VARIANT } from './app/useShellVariant.ts';
+import Shell from './app/Shell.tsx';
 
 // Missão 25 — casca React sobre o palco WebGL. Fase 1: store espelha o
 // app_state. Fase 2: o palco vive por trás de tudo. Fase 3: o primeiro painel
@@ -38,7 +40,17 @@ export default function App() {
     <>
       <Stage />
       <div className="app-content">
-        {!booted ? <Splash text="A resolver sessão…" /> : !S ? <AuthGate /> : <Hud />}
+        {!booted ? (
+          <Splash text="A resolver sessão…" />
+        ) : !S ? (
+          <AuthGate />
+        ) : SHELL_VARIANT ? (
+          // Shell experimental da Missão 26, atrás de ?shell=b1|b2. Qualquer
+          // outro valor devolve null e cai no HUD — sem erro, por desenho.
+          <Shell variant={SHELL_VARIANT} S={S} />
+        ) : (
+          <Hud />
+        )}
       </div>
       <Toast />
     </>

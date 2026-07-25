@@ -1,0 +1,198 @@
+/* Presença do Oráculo — material próprio, nunca material de painel.
+ * Missão 26 · Fase 2.
+ *
+ * É este ficheiro que resolve o achado mais duro da baseline sobre o Oráculo:
+ * hoje ele aparece como três cartões com o mesmo peso visual do painel do Sono.
+ * O `14_UI_UX_AND_PRESENCE.md` exige "presença nobre, silenciosa e contextual,
+ * não um card equivalente aos restantes".
+ */
+
+.sys-oracle {
+  position: relative;
+  z-index: var(--sys-z-oracle);
+  min-width: 0;
+}
+
+/* ── Ambient: faixa fina, sem borda, sem sombra ────────────────────────── */
+.sys-oracle-ambient {
+  appearance: none;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  min-height: var(--sys-oracle-h-mobile);
+  display: flex;
+  align-items: center;
+  gap: var(--sys-space-3);
+  padding: var(--sys-space-4);
+  text-align: left;
+  cursor: pointer;
+  background: var(--sys-mat-oracle);
+  color: var(--sys-ink-mut);
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: 0.04em;
+  transition: color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.sys-oracle-ambient:hover { color: var(--sys-ink); }
+
+/* A marca do Oráculo respira devagar. É a única animação permanente da shell,
+ * e comunica estado: o Sistema está atento. */
+.sys-oracle-mark {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--sys-radius-round);
+  background: var(--sys-violet);
+  box-shadow: 0 0 10px var(--sys-light-focus);
+  animation: sys-oracle-breath 5.5s ease-in-out infinite;
+}
+
+@keyframes sys-oracle-breath {
+  0%, 100% { opacity: 0.45; transform: scale(0.9); }
+  50%      { opacity: 1;    transform: scale(1.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sys-oracle-mark { animation: none; opacity: 0.8; }
+}
+
+.sys-oracle-silent { color: var(--sys-ink-far); font-style: italic; }
+.sys-oracle-sep { color: var(--sys-ink-far); }
+.sys-oracle-line [data-tone='alert'] { color: var(--sys-alert); }
+
+/* ── Active e War Room ─────────────────────────────────────────────────
+ * Expande sobre a zona sem a destruir: o fundo escurece, o contexto fica.
+ */
+.sys-oracle[data-state='active'],
+.sys-oracle[data-state='warroom'] {
+  position: fixed;
+  inset: 0;
+  z-index: var(--sys-z-overlay);
+  display: grid;
+  place-items: end center;
+  background: rgb(4 3 10 / 0.72);
+}
+
+.sys-oracle-panel {
+  width: min(1040px, 100%);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--sys-mat-oracle);
+  box-shadow: var(--sys-glow-inner);
+  animation: sys-oracle-rise calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+@keyframes sys-oracle-rise {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.sys-oracle-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sys-space-4);
+  padding: var(--sys-space-4) var(--sys-space-5);
+  border-bottom: 1px solid var(--sys-seam);
+}
+
+.sys-oracle-title {
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-2);
+  font-weight: var(--sys-weight-bold);
+  color: var(--sys-ink);
+}
+
+.sys-oracle-modes { display: flex; gap: var(--sys-space-2); margin-left: auto; }
+
+.sys-oracle-modes button,
+.sys-oracle-close {
+  appearance: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--sys-ink-far);
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  padding: var(--sys-space-2) var(--sys-space-3);
+  min-height: var(--sys-touch-min);
+}
+
+.sys-oracle-modes button[data-on='true'] {
+  color: var(--sys-violet);
+  text-shadow: 0 0 12px var(--sys-light-focus);
+}
+
+.sys-oracle-body {
+  overflow-y: auto;
+  padding: var(--sys-space-5);
+}
+
+/* O Conselho entra aqui sem o material de painel — dentro do Oráculo, é o
+   Oráculo que dá o material. */
+.sys-oracle-body .panel {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/* ── War Room ──────────────────────────────────────────────────────────── */
+.sys-warroom-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sys-space-5);
+}
+
+.sys-warroom-block { display: grid; gap: var(--sys-space-3); align-content: start; }
+
+.sys-warroom-head { display: grid; gap: var(--sys-space-2); }
+
+.sys-warroom-name {
+  margin: 0;
+  font-size: var(--sys-step-1);
+  font-weight: var(--sys-weight-semi);
+  color: var(--sys-ink);
+}
+
+/* O rótulo de maqueta tem de ser impossível de ignorar. */
+.sys-mock-tag {
+  justify-self: start;
+  font-family: var(--sys-type-data);
+  font-size: 0.625rem;
+  letter-spacing: var(--sys-track-label);
+  color: var(--sys-alert);
+  border: 1px dashed rgb(var(--sys-alert-rgb) / var(--sys-o-40));
+  padding: 2px var(--sys-space-2);
+}
+
+.sys-warroom-fields { margin: 0; display: grid; gap: var(--sys-space-2); }
+
+.sys-warroom-field {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sys-space-3);
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+}
+
+.sys-warroom-field dt { color: var(--sys-ink-far); }
+.sys-warroom-field dd { margin: 0; color: var(--sys-ink-far); }
+
+.sys-warroom-note {
+  margin-top: var(--sys-space-6);
+  color: var(--sys-ink-far);
+  font-size: var(--sys-step--1);
+  max-width: var(--sys-measure);
+}
+
+.sys-warroom-note code { font-family: var(--sys-type-data); }
+
+@media (max-width: 900px) {
+  .sys-oracle-panel { max-height: 100vh; height: 100vh; width: 100%; }
+  .sys-oracle[data-state='active'],
+  .sys-oracle[data-state='warroom'] { place-items: stretch; }
+}

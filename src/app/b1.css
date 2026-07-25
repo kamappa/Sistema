@@ -1,0 +1,162 @@
+/* B1 · Consola — composição arquitetónica.
+ *
+ * Grelha de três sistemas: consola | palco | oráculo. Cada fronteira leva UM
+ * filete, porque separa sistemas diferentes. Dentro de cada sistema não há
+ * linhas — a hierarquia é luz e espaço.
+ */
+
+.sys-b1 {
+  grid-template-columns: var(--sys-rail-w) minmax(0, 1fr) var(--sys-oracle-w);
+  grid-template-areas: 'rail stage oracle';
+}
+
+.sys-b1 .sys-rail { grid-area: rail; }
+.sys-b1 .sys-stage-wrap { grid-area: stage; }
+.sys-b1 .sys-oracle { grid-area: oracle; }
+
+.sys-b1 .sys-stage-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--sys-space-6) var(--sys-space-6) 0;
+  /* filete: consola|palco e palco|oráculo. Os dois únicos do ecrã. */
+  border-left: 1px solid var(--sys-seam);
+  border-right: 1px solid var(--sys-seam);
+}
+
+/* ── A consola ─────────────────────────────────────────────────────────
+ * Sem fundo de painel, sem caixas, sem hover retangular. Marcas gravadas.
+ */
+.sys-b1 .sys-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sys-space-6);
+  padding: var(--sys-space-5) 0;
+  z-index: var(--sys-z-nav);
+}
+
+.sys-b1 .sys-rail-core {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
+
+.sys-b1 .sys-rail-core-mark {
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-2);
+  font-weight: var(--sys-weight-bold);
+  color: var(--sys-violet);
+  /* o Núcleo é a única coisa com luz permanente — é a fonte, não um foco */
+  text-shadow: 0 0 16px var(--sys-light-focus);
+}
+
+.sys-b1 .sys-rail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sys-space-5);
+  width: 100%;
+}
+
+/* A marca gravada: um sulco vertical curto + nome em mono. Nenhuma caixa. */
+.sys-b1 .sys-mark {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: var(--sys-space-2) 0;
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: var(--sys-space-2);
+  cursor: pointer;
+  color: var(--sys-ink-far);
+  transition: color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.sys-b1 .sys-mark-groove {
+  width: 2px;
+  height: 18px;
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-14));
+  transition:
+    height calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.sys-b1 .sys-mark-name {
+  font-family: var(--sys-type-data);
+  font-size: 0.625rem;
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.sys-b1 .sys-mark:hover { color: var(--sys-ink-mut); }
+
+/* Foco = luz. O sulco enche e acende; o nome ganha corpo. Sem retângulo. */
+.sys-b1 .sys-mark[data-on='true'] { color: var(--sys-ink); }
+.sys-b1 .sys-mark[data-on='true'] .sys-mark-groove {
+  height: 34px;
+  background: var(--sys-violet);
+  box-shadow: 0 0 12px var(--sys-light-focus);
+}
+
+/* ── Mobile: a consola passa a faixa inferior ──────────────────────────
+ * Não é a barra encolhida — muda de eixo, de ordem e de tipografia.
+ */
+@media (max-width: 900px) {
+  .sys-b1 {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'stage'
+      'oracle'
+      'rail';
+  }
+
+  .sys-b1 .sys-stage-wrap {
+    border: 0;
+    padding: var(--sys-space-4) var(--sys-space-4) 0;
+  }
+
+  .sys-b1 .sys-rail {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0;
+    padding: 0 var(--sys-space-3);
+    border-top: 1px solid var(--sys-seam);
+    background: var(--sys-mat-rest);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .sys-b1 .sys-rail-core { display: none; }
+
+  .sys-b1 .sys-rail-list {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0;
+  }
+
+  .sys-b1 .sys-rail-list > li { flex: 1; }
+
+  .sys-b1 .sys-mark {
+    min-height: var(--sys-touch-min);
+    gap: var(--sys-space-1);
+  }
+
+  /* horizontal no mobile: ler de lado num telemóvel é hostil */
+  .sys-b1 .sys-mark-name {
+    writing-mode: horizontal-tb;
+    font-size: 0.5625rem;
+    letter-spacing: 0.08em;
+  }
+
+  .sys-b1 .sys-mark-groove { width: 18px; height: 2px; }
+  .sys-b1 .sys-mark[data-on='true'] .sys-mark-groove { width: 28px; height: 2px; }
+}

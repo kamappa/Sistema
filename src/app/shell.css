@@ -1,0 +1,134 @@
+/* Moldura da Sala de Operações — comum a B1 e B2.
+ * Missão 26 · Fase 2. As diferenças de composição vivem em b1.css e b2.css.
+ *
+ * Só se aplica dentro de `.sys-shell`, que só existe com ?shell=. O HUD atual
+ * nunca vê uma linha disto.
+ */
+
+.sys-shell {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  background: var(--sys-void);
+  color: var(--sys-ink);
+  font-family: var(--sys-type-body);
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  z-index: var(--sys-z-stage);
+  overflow: hidden;
+}
+
+/* ── Palco ─────────────────────────────────────────────────────────────
+ * As zonas empilham-se no mesmo espaço. Só uma está visível; todas mantêm a
+ * caixa de layout, para o canvas das Constelações não perder dimensões.
+ */
+.sys-stage {
+  position: relative;
+  min-width: 0;
+  /* dentro do .sys-stage-wrap (flex column) tem de reclamar o espaço que sobra
+   * do cabeçalho; sem isto fica com altura 0 e as zonas, sendo absolutas,
+   * não têm onde pintar */
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.sys-zone {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transition:
+    opacity calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    visibility calc(var(--sys-dur-quick) * var(--sys-motion-scale));
+}
+
+.sys-zone[data-active='false'] {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sys-zone[data-active='true'] {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Cada zona tem o seu próprio scroll — preservado ao sair e voltar, porque a
+ * zona nunca é desmontada. */
+.sys-zone-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--sys-stage-pad);
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--sys-bone-rgb) / var(--sys-o-14)) transparent;
+}
+
+/* ── Os painéis reutilizados ───────────────────────────────────────────
+ * Os 19 painéis chegam com as classes do hud.css. Aqui neutraliza-se APENAS o
+ * que exprimia hierarquia por borda — a lei da fase. Nada de conteúdo muda.
+ */
+.sys-shell .panel {
+  border: 0;
+  background: var(--sys-mat-rest);
+  margin-bottom: var(--sys-space-5);
+  box-shadow: none;
+}
+
+/* A luz de foco tem UM portador. Aqui é a zona ativa que a porta, não cada
+ * painel — é o que impede o regresso à parede de 19 caixas iguais. */
+.sys-zone[data-active='true'] .sys-zone-scroll > :first-child {
+  background: var(--sys-mat-active);
+}
+
+/* Títulos de painel deixam o Rajdhani uppercase e passam a Inter com peso.
+ * O tracking largo sobrevive só nos micro-labels em mono. */
+.sys-shell .ptitle {
+  font-family: var(--sys-type-body);
+  font-size: var(--sys-step-2);
+  font-weight: var(--sys-weight-semi);
+  letter-spacing: var(--sys-track-tight);
+  text-transform: none;
+  color: var(--sys-ink);
+}
+
+.sys-shell .dhint,
+.sys-shell .muted,
+.sys-shell small {
+  color: var(--sys-ink-mut);
+}
+
+/* ── Cabeçalho de zona ─────────────────────────────────────────────────
+ * O nome da zona é identidade: Rajdhani, reservado. O propósito aparece uma
+ * vez, ao entrar, e não fica a competir com o conteúdo.
+ */
+.sys-zone-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sys-space-4);
+  margin-bottom: var(--sys-space-5);
+}
+
+.sys-zone-name {
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-3);
+  font-weight: var(--sys-weight-bold);
+  letter-spacing: var(--sys-track-tight);
+  color: var(--sys-ink);
+  margin: 0;
+}
+
+.sys-zone-purpose {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-far);
+}
+
+/* ── Foco de teclado ───────────────────────────────────────────────────
+ * Visível e coerente com a lei: o foco também é luz.
+ */
+.sys-shell :focus-visible {
+  outline: 2px solid var(--sys-light-focus);
+  outline-offset: 2px;
+}

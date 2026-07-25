@@ -1,0 +1,40 @@
+/* Campo atmosférico — fallback sem WebGL.
+ *
+ * Com palco WebGL vivo (`data-quality` full|lite) esta camada é transparente:
+ * o céu procedural já está lá e duplicar luz seria ruído.
+ * Sem WebGL (`off`), pinta um campo derivado dos mesmos tokens, para a shell
+ * nunca ficar sobre um preto morto.
+ */
+
+.sys-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: var(--sys-z-atmosphere);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sys-atmosphere-field {
+  position: absolute;
+  inset: -10%;
+  opacity: 0;
+  transition: opacity calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+/* Sem WebGL: o campo assume. Lê --amb1/2/3 do Solar quando existirem (a hora
+ * do dia continua a pintar o ambiente), com os tokens como rede de segurança. */
+.sys-atmosphere[data-quality='off'] .sys-atmosphere-field {
+  opacity: 1;
+  background:
+    radial-gradient(
+      70% 50% at 18% 8%,
+      var(--amb1, rgb(var(--sys-violet-rgb) / var(--sys-o-14))) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      60% 45% at 88% 92%,
+      var(--amb3, rgb(var(--sys-magenta-rgb) / var(--sys-o-08))) 0%,
+      transparent 58%
+    ),
+    linear-gradient(180deg, var(--sys-azure) 0%, var(--sys-void) 46%);
+}

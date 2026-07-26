@@ -161,6 +161,42 @@
   transition: background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
 }
 
+/* ── Botões primários: luz é estado, não decoração ─────────────────────
+ * O `.btn` do HUD é um gradiente violeta cheio. Dentro da shell isso dava sete
+ * blocos no brilho máximo — seis em Operações, um no Oráculo — todos parados.
+ * Duas consequências: em Operações lia-se como a parede roxa que a direção
+ * proíbe, e em qualquer zona o elemento mais brilhante do ecrã passava a ser um
+ * botão que não está a fazer nada, competindo com o painel que É o portador da
+ * luz.
+ *
+ * Aqui o botão está calado em repouso — continua legível como botão pela borda,
+ * pelo peso e pelas maiúsculas — e acende quando o rato ou o teclado chegam a
+ * ele, que é quando deixa de ser decoração e passa a ser ação iminente.
+ * O texto sobe de contraste ao acender, porque o fundo cheio é claro. */
+.sys-instrumental .btn {
+  background: transparent;
+  color: var(--sys-ink);
+  border: 1px solid rgb(var(--sys-violet-rgb) / var(--sys-o-24));
+  transition:
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    border-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.sys-instrumental .btn:hover:not(:disabled),
+.sys-instrumental .btn:focus-visible:not(:disabled) {
+  background: linear-gradient(135deg, #8b5cf6, #c084fc);
+  border-color: transparent;
+  color: #12061f;
+}
+
+/* Desativado não é "calado": é indisponível, e tem de o dizer. */
+.sys-instrumental .btn:disabled {
+  border-color: rgb(var(--sys-bone-rgb) / var(--sys-o-14));
+  color: var(--sys-ink-far);
+  cursor: not-allowed;
+}
+
 /* ── O céu das Constelações ────────────────────────────────────────────
  * O `const-wrap` é dimensionado em 58vh, o que fazia sentido no HUD, onde a
  * página é a janela. Dentro da shell não é: a órbita, o cabeçalho de zona e a

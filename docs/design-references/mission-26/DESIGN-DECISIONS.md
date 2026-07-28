@@ -107,3 +107,58 @@ Registado para travar deriva:
 - não migrar para Tailwind, Next.js ou shadcn por influência de skills;
 - não trocar a tipografia por indicação de uma skill de design;
 - não alterar produção sem gate explícito.
+
+---
+
+### 2026-07-28 · Curvas de motion derivadas de referência, não de gosto
+
+**Decisão:** cinco tokens novos em `motion.css`, cada um com o ID da referência
+que o originou: `--sys-ease-gravity` (R15), `--sys-ease-contract` (R17),
+`--sys-ease-breath` (R19/R01), `--sys-cycle-ambient` 7,2 s, `--sys-cycle-attend`
+3,4 s. Mais `--sys-rise`/`--sys-fall` como direção semântica.
+
+**Porquê:** um easing escolhido por parecer bem não se pode defender nem
+revisitar. Com o ID da referência, qualquer decisão futura sabe de onde veio.
+
+**Alternativa rejeitada:** reutilizar `--sys-ease-out` para tudo. Fá-lo-ia
+parecer coerente, mas apagaria a diferença entre um evento com massa e um
+feedback de toque — que é precisamente a distinção que a gramática 3 exige.
+
+**Onde vive:** `src/design-system/tokens/motion.css`.
+
+---
+
+### 2026-07-28 · Sigilo do Oráculo — onda (R01), não esfera (R19)
+
+**Variantes consideradas:** duas, e a comparação foi real.
+
+| | **A — esfera de fitas** (R19) | **B — onda horizontal** (R01) ✅ |
+|---|---|---|
+| Origem | a referência mais bonita das duas | a única já na paleta certa |
+| Identidade | **esfera violeta a pulsar = retrato-robô do assistente de AI**; a missão proíbe por nome | horizontal, sem centro, sem contorno — não tem sósia óbvio |
+| Encaixe | exige área quadrada; a faixa tem 20 px de altura | nasceu horizontal; encaixa onde a presença já vivia |
+| Custo | esfera credível exige canvas ou muitas camadas | 3 paths SVG, anima só `transform` |
+
+**Decisão: B.** A esfera é mais bonita isolada e pior como produto — ganharia um
+elemento memorável à custa de parecer o que toda a gente já viu.
+
+**Porquê funciona:** a amplitude e o ritmo são função do número de sinais
+**reais**. Não há estado "bonito por defeito": o repouso é o mínimo de movimento
+que ainda se vê. Medido — silêncio 0,7 px de pico; quatro sinais 11,7 px; rácio
+16,7×. O alerta muda a **cor**, não o ritmo: acelerar seria pânico, e a
+Constituição pede um moderador.
+
+**Alternativa rejeitada dentro de B:** acelerar o ciclo com o alerta. Rejeitada
+por transformar informação em urgência.
+
+**Reduced motion:** o ciclo pára, a amplitude **fica**. É informação, não
+enfeite.
+
+**Onde vive:** `src/app/oracle/OracleSigil.tsx` + `oracle-sigil.css`.
+
+**Erro registado:** a primeira versão tinha três paths que eram linhas retas
+(pontos de controlo todos a y=10). `scaleY` sobre uma linha sem altura não faz
+nada — as métricas diziam `scaleY(1.6)` e eram verdade, mas media-se um número
+certo de uma coisa invisível. Só se apanhou por olhar para o screenshot em vez
+de confiar na medição. Lição para as fases seguintes: **uma métrica não
+substitui um olho**.

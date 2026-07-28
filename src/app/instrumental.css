@@ -620,3 +620,90 @@
   text-transform: none;
   white-space: nowrap;
 }
+
+/* ── Missões: a linha como instrumento ─────────────────────────────────
+ * Missão 26 · Fase F. Origem: R26 (trilho + visor) e gramática 8 (uma relação
+ * desenha-se com um arco, não com uma linha de tabela).
+ *
+ * O que estava: um flex com borda e SEIS caixas em fila — estado, título,
+ * domínio, tier, arco, tags, prazo. Cada atributo era uma caixa igual às
+ * outras, e o título — a única coisa que se lê — não tinha mais peso do que a
+ * palavra "Épica". É a coleção de cartões que a missão proíbe, em miniatura.
+ *
+ * O que passa a ser: um trilho estreito à esquerda (estado + domínio, por
+ * posição e cor), o título como visor, as relações numa linha secundária, e o
+ * prazo como leitura alinhada à direita. Hierarquia por alinhamento, escala e
+ * luz — não por bordas.
+ */
+.sys-instrumental .obj-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  column-gap: var(--sys-space-4);
+  row-gap: 2px;
+  padding: var(--sys-space-3) 0 var(--sys-space-3) var(--sys-space-4);
+  border: 0;
+  border-left: 2px solid color-mix(in oklab, var(--obj-area, var(--sys-seam)) 45%, transparent);
+  margin-bottom: 0;
+  transition:
+    border-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+/* O filete é a relação ao domínio: a mesma informação que a caixa dava, com
+   uma fração do peso visual e sem competir com o título. */
+.sys-instrumental .obj-row:hover {
+  border-left-color: var(--obj-area, var(--sys-seam));
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+  transform: none; /* o translateX do HUD sacudia a lista inteira ao passar */
+}
+
+.sys-instrumental .obj-row > .obj-st { grid-column: 1; grid-row: 1 / span 2; }
+.sys-instrumental .obj-row > .obj-t  { grid-column: 2; grid-row: 1; }
+.sys-instrumental .obj-row > .up-x   { grid-column: 3; grid-row: 1; }
+.sys-instrumental .obj-row > .up-del { grid-column: 4; grid-row: 1; }
+.sys-instrumental .obj-row > .obj-rel { grid-column: 2 / -1; grid-row: 2; }
+
+/* O título é o visor. Ganha o peso que as caixas lhe roubavam. */
+.sys-instrumental .obj-row > .obj-t {
+  font-size: var(--sys-step-0);
+  color: var(--sys-ink);
+  line-height: var(--sys-leading-tight, 1.3);
+}
+
+/* As relações recuam para uma linha de leitura, sem caixa. O que era uma
+   parede de contornos passa a texto etiquetado — a cor continua a dizer o
+   domínio e o tier, que é a informação que as bordas carregavam. */
+.sys-instrumental .obj-rel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sys-space-3);
+}
+
+.sys-instrumental .obj-rel .wchip {
+  border: 0 !important;
+  background: none !important;
+  padding: 0 !important;
+  font-size: var(--sys-step--1);
+  opacity: 0.78;
+}
+
+/* Separador entre relações: um ponto, não uma borda. */
+.sys-instrumental .obj-rel .wchip + .wchip::before {
+  content: '·';
+  margin-right: var(--sys-space-3);
+  color: var(--sys-ink-far);
+}
+
+/* Uma missão concluída recua inteira — continua legível, deixa de competir. */
+.sys-instrumental .obj-row.done { opacity: 0.55; }
+.sys-instrumental .obj-row.done > .obj-t { text-decoration: line-through; }
+
+/* Em curso: o trilho acende. É o único estado que merece luz, porque é o único
+   que representa trabalho a acontecer agora. */
+.sys-instrumental .obj-row.doing {
+  border-left-color: var(--obj-area, var(--sys-violet));
+  border-left-width: 3px;
+}
+.sys-instrumental .obj-row.doing::before { display: none; } /* o gradiente do HUD */

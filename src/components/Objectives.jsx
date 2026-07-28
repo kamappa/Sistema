@@ -72,13 +72,24 @@ export default function Objectives({ S }) {
               }
             } else if (o.deadline) { const d = daysUntil(o.deadline); const c = d <= 3 ? '#ef4444' : d <= 7 ? '#fb923c' : 'var(--mut)'; dl = <span className="up-x" style={{ color: c }}>{d < 0 ? 'atrasado' : d === 0 ? 'hoje' : d + 'd'}</span>; }
             return (
-              <div className={`obj-row ${o.status}`} data-oid={o.id} key={o.id}>
+              /* Missão 26 · Fase F — a linha passa a instrumento.
+                 `--obj-area` leva a cor do domínio para o CSS poder desenhar a
+                 relação como um filete, em vez de uma caixa com o nome dentro
+                 (gramática 8: uma relação desenha-se com um arco, não com uma
+                 linha de tabela).
+                 As relações (domínio, tier, arco, tags) passam a viver num só
+                 elemento `.obj-rel` — sem ele eram seis irmãos soltos num flex
+                 e não havia como os compor. Nenhum dado sai, nenhuma ação muda. */
+              <div className={`obj-row ${o.status}`} data-oid={o.id} key={o.id}
+                   style={{ ['--obj-area']: AM[o.area].color, ['--obj-tier']: p.c }}>
                 <span className="obj-st" onClick={() => cycleObj(o.id)} title="pendente → em curso → feito">{OSTL[o.status]}</span>
                 <span className="obj-t">{o.title}</span>
-                <span className="wchip" style={{ borderColor: AM[o.area].color, color: AM[o.area].color, padding: '2px 8px' }}>{AM[o.area].name}</span>
-                <span className="wchip" style={{ borderColor: p.c, color: p.c, padding: '2px 8px' }}>{TIER_LABEL[o.pri]}</span>
-                {(o.arc && o.arc === curArc) && <span className="wchip" style={{ padding: '1px 7px', fontSize: 9, borderColor: 'var(--line2)', color: 'var(--mut)' }}>{curArcLabel}</span>}
-                {(o.tags || []).map((tg) => <span className="wchip" key={tg} style={{ padding: '1px 7px', fontSize: 9, borderColor: 'var(--line2)', color: 'var(--mut)' }}>{tg}</span>)}
+                <span className="obj-rel">
+                  <span className="wchip" style={{ borderColor: AM[o.area].color, color: AM[o.area].color, padding: '2px 8px' }}>{AM[o.area].name}</span>
+                  <span className="wchip" style={{ borderColor: p.c, color: p.c, padding: '2px 8px' }}>{TIER_LABEL[o.pri]}</span>
+                  {(o.arc && o.arc === curArc) && <span className="wchip" style={{ padding: '1px 7px', fontSize: 9, borderColor: 'var(--line2)', color: 'var(--mut)' }}>{curArcLabel}</span>}
+                  {(o.tags || []).map((tg) => <span className="wchip" key={tg} style={{ padding: '1px 7px', fontSize: 9, borderColor: 'var(--line2)', color: 'var(--mut)' }}>{tg}</span>)}
+                </span>
                 {dl}<span className="up-del" onClick={() => delObjective(o.id)}>✕</span>
               </div>
             );

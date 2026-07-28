@@ -21,6 +21,34 @@
   /* Multiplicador global. O reduced-motion põe-no a zero e todas as transições
    * que o respeitem colapsam de uma só vez, sem cada componente ter de saber. */
   --sys-motion-scale: 1;
+
+  /* ── Curvas derivadas das referências ────────────────────────────────
+   * Missão 26 · Fase B. Cada uma tem origem declarada em REFERENCE-MAP.md;
+   * nenhuma foi escolhida por parecer bem.
+   */
+
+  /* R15 — o evento do Núcleo. Entrada lenta, pico depois do meio, saída longa.
+   * É a curva de uma coisa que ganha massa: nada salta, tudo se acumula.
+   * Para eventos com consequência, nunca para feedback de toque. */
+  --sys-ease-gravity: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* R17 — a contração. Acelera até ao fim, sem repouso no meio: comunica que
+   * algo está a ser puxado para dentro e ainda não terminou. */
+  --sys-ease-contract: cubic-bezier(0.55, 0, 0.85, 0.3);
+
+  /* R19/R01 — a respiração da presença. Simétrica de propósito: um ciclo não
+   * tem princípio privilegiado, e qualquer assimetria leria como intenção. */
+  --sys-ease-breath: cubic-bezier(0.45, 0, 0.55, 1);
+
+  /* Períodos de ciclo. Longos por lei: "serenidade por defeito, eventos épicos
+   * raros". Um ciclo abaixo de ~6s deixa de ser presença e passa a ser alarme. */
+  --sys-cycle-ambient: 7200ms;   /* Oráculo em repouso */
+  --sys-cycle-attend: 3400ms;    /* Oráculo com algo a dizer */
+
+  /* Direção semântica (gramática 9: vertical é ascensão). Não são estéticas —
+   * mudar o sinal muda o significado. */
+  --sys-rise: -1;    /* progresso, nível, ganho */
+  --sys-fall: 1;     /* decaimento, negligência, perda */
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -17,6 +17,7 @@
 
 import { useStore } from '../../store/useStore.js';
 import { seasonArcNow } from '../../state/world.js';
+import OracleSigil from './OracleSigil';
 
 interface Signal {
   key: string;
@@ -38,7 +39,12 @@ export default function OracleAmbient({ onInvoke }: { onInvoke: () => void }) {
       onClick={onInvoke}
       aria-label="Abrir o Oráculo"
     >
-      <span className="sys-oracle-mark" aria-hidden="true" />
+      {/* O sigilo substitui o ponto estático: a amplitude da onda É a contagem
+          de sinais. Um ponto que nunca muda não é presença, é um marcador. */}
+      <OracleSigil
+        signals={signals.length}
+        alert={signals.some((s) => s.tone === 'alert')}
+      />
       {signals.length === 0 ? (
         <span className="sys-oracle-silent">O Oráculo observa.</span>
       ) : (

@@ -1,0 +1,85 @@
+/* Sigilo de presença do Oráculo — Missão 26 · Fase D.
+ * Derivado da R01. Ver OracleSigil.tsx para o porquê da forma.
+ *
+ * Regra do projeto respeitada: só se anima transform e opacity. Nada de
+ * filter:blur() em área grande, nada de animar geometria SVG (que força
+ * recalculo de path a cada frame).
+ */
+
+.sys-oracle-sigil {
+  display: inline-block;
+  width: 4rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  /* o glow vem do próprio traço, não de um box-shadow por baixo: uma forma sem
+     contorno não pode ter uma caixa a denunciá-la */
+}
+
+.sys-oracle-sigil svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sys-oracle-sigil .fil {
+  fill: none;
+  stroke: rgb(var(--sys-violet-rgb) / var(--sys-o-62));
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+  /* Em repouso a onda é PLANA. A amplitude é o sinal; sem sinal não há onda.
+     O 0.14 de base é o mínimo para a linha não parecer um traço morto. */
+  transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 2.6));
+  transition: transform calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+/* Os três filamentos diferem em opacidade e fase — é a sobreposição que dá
+   matéria. O f2 é o portador; os outros dois são o halo estrutural. */
+.sys-oracle-sigil .f1 { opacity: 0.4; }
+.sys-oracle-sigil .f2 { opacity: 1; }
+.sys-oracle-sigil .f3 { opacity: 0.28; }
+
+/* ── A respiração ──────────────────────────────────────────────────────
+ * Duas ondas em contrafase dentro do mesmo elemento: a curvatura vem de
+ * escalar em Y com origem deslocada, não de recalcular o `d` do path.
+ */
+@keyframes sys-sigil-breath {
+  0%, 100% { transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 2.6)) translateY(0); }
+  50%      { transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 4.4)) translateY(calc(var(--sys-rise) * 0.6px)); }
+}
+
+.sys-oracle-sigil .fil {
+  animation: sys-sigil-breath var(--sys-cycle-ambient) var(--sys-ease-breath) infinite;
+}
+
+/* Fases: sem desfasamento, os três filamentos seriam um só traço mais grosso. */
+.sys-oracle-sigil .f1 { animation-delay: calc(var(--sys-cycle-ambient) * -0.33); }
+.sys-oracle-sigil .f3 { animation-delay: calc(var(--sys-cycle-ambient) * -0.66); }
+
+/* Com sinais o ciclo aperta. Não é urgência decorativa: é a diferença entre
+   "estou aqui" e "tenho algo para ti". */
+.sys-oracle-sigil[data-attending='true'] .fil {
+  animation-duration: var(--sys-cycle-attend);
+  stroke: rgb(var(--sys-violet-rgb) / var(--sys-o-88));
+}
+.sys-oracle-sigil[data-attending='true'] .f1 { animation-delay: calc(var(--sys-cycle-attend) * -0.33); }
+.sys-oracle-sigil[data-attending='true'] .f3 { animation-delay: calc(var(--sys-cycle-attend) * -0.66); }
+
+/* Alerta muda a COR, não o ritmo. Acelerar mais seria pânico, e a Constituição
+   pede um moderador, não um alarme. */
+.sys-oracle-sigil[data-alert='true'] .fil {
+  stroke: rgb(var(--sys-magenta-rgb, 244 114 182) / var(--sys-o-88));
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────
+ * O ciclo pára. A AMPLITUDE FICA — é informação, não enfeite. Quem não pode
+ * ver movimento continua a distinguir um Oráculo com três sinais de um calado.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sys-oracle-sigil .fil {
+    animation: none;
+    /* congela no meio do ciclo, não no mínimo: é onde a forma se lê melhor */
+    transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 3.5));
+  }
+}

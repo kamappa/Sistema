@@ -184,6 +184,21 @@ float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));
   q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
   return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
+/* M26 — porque a nebulosa não parecia real.
+   O que estava aqui era UMA a DUAS oitavas de ruído de valor. Ruído suave, em
+   poucas oitavas, só sabe fazer manchas: dá nevoeiro uniforme e nunca dá nuvem.
+   Nenhuma constante corrige isso — foi por isso que baixar e subir a amplitude
+   não mudou o que se via.
+   Uma nebulosa tem três coisas que isto não tinha:
+     · MUITAS escalas sobrepostas — fbm de 5 oitavas;
+     · CRISTAS e VAZIOS em vez de altos e baixos suaves — é o que o ruído
+       ridged faz, dobrando o ruído sobre si (1-|2n-1|) e elevando ao quadrado;
+     · FILAMENTOS torcidos, que vêm de deformar o espaço de amostragem com outro
+       ruído (domain warping) em vez de amostrar em linha reta. */
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*noise(p);p*=2.03;a*=.5;}return v;}
+float ridged(vec2 p){float v=0.,a=.5,prev=1.;
+  for(int i=0;i<5;i++){float n=1.-abs(noise(p)*2.-1.);n*=n;v+=a*n*prev;prev=n;p*=2.07;a*=.5;}
+  return v;}
 void main(){
   vec3 col=mix(vec3(.027,.022,.062),vec3(.062,.042,.118),vUv.y*.7);
   /* nevoeiro do domínio — coordenadas de mundo (acompanha o dolly de leve);
@@ -192,8 +207,22 @@ void main(){
   vec2 px=vUv*uRes;
   vec2 p=((px-uOff*.25)/(1.+(uZoom-1.)*.25))/uRes*3.1;
   float breathe=1.+.06*sin(uTime*.285); /* a respiração da cena (M12·2C) */
-  float n=noise(p+vec2(uTime*.008,-uTime*.005));
-  if(uDetail>1.5)n=n*.7+.3*noise(p*2.2+vec2(-uTime*.006,uTime*.009));
+  /* Deformação de domínio: amostra-se um espaço já torcido por outro ruído.
+     É daqui que vêm os filamentos — sem isto, as cristas saem paralelas e
+     lê-se como tecido, não como gás. */
+  vec2 dr=vec2(uTime*.008,-uTime*.005);
+  float n;
+  if(uDetail>1.5){
+    vec2 q=vec2(fbm(p+dr),fbm(p+vec2(4.7,2.1)+dr));
+    n=ridged(p+1.9*q+dr);
+    /* curva de contraste: empurra os vazios para preto e deixa só as cristas
+       acesas. Sem isto, cinco oitavas dão a MESMA média cinzenta de antes —
+       a estrutura existe mas não se vê. */
+    n=pow(clamp(n*1.05,0.,1.),3.2);
+  }else{
+    /* tier baixo: duas oitavas e sem warping. Mais pobre, mas o mesmo desenho */
+    n=pow(clamp(ridged(p+dr)*1.05,0.,1.),2.6);
+  }
   /* M26: .20 → .36 → .24. Duas correções, e a segunda por ver o céu POVOADO.
      A primeira subida resolvia um céu chapado, mas foi calibrada com o céu
      vazio — sem estrelas, uma nebulosa forte só parecia rica. Com as
@@ -201,8 +230,14 @@ void main(){
      quase desapareciam e a evidência perdia para o cenário.
      As estrelas são o assunto; a nebulosa é o contexto. Quando as duas
      competem, é o contexto que desce. */
-  col+=uTint*n*n*.24*breathe*(1.-vUv.y*.35);
-  col+=vec3(.05,.045,.09)*n*.13; /* poeira neutra: tira o preto absoluto */
+  /* Agora que n tem cristas e vazios, a amplitude pode subir sem lavar nada:
+     o que sobe são as CRISTAS, e os vazios ficam pretos. Era isto que faltava —
+     com névoa uniforme, subir a amplitude subia o ecrã inteiro. */
+  col+=uTint*n*.42*breathe*(1.-vUv.y*.35);
+  /* segunda camada, mais fria e mais larga, para haver profundidade entre
+     duas massas em vez de uma só folha de gás */
+  col+=uTint.bgr*pow(ridged(p*.55+vec2(3.1,-1.4)),2.4)*.16*breathe;
+  col+=vec3(.05,.045,.09)*n*.10; /* poeira neutra: tira o preto absoluto */
   /* Solar Engine: a luz da hora real toca a poeira — quente ao entardecer,
      fria de noite; o hue do domínio continua a dominar */
   col+=uAmb*(n*.08+.015);

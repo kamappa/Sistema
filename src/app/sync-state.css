@@ -1,0 +1,74 @@
+/* Estado de sincronização — Missão 26 · Fase I. Ver SyncState.tsx para o porquê.
+ * Gramática da R17: contrair = em curso; discreto = terminado. */
+
+.sys-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sys-space-3);
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  color: var(--sys-ink-far);
+  white-space: nowrap;
+}
+
+.sys-sync-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-24));
+  flex: 0 0 auto;
+  transition:
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    box-shadow calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+/* ok — o estado normal cala-se. O que interessa saber é quando NÃO está
+   guardado; anunciar "guardado" a toda a hora é ruído que ensina a ignorar. */
+.sys-sync[data-sync='ok'] { display: none; }
+
+/* local — facto, não repreensão. Quem usa sem conta merece saber onde os dados
+   vivem, sem um aviso a piscar por cima. */
+.sys-sync[data-sync='local'] .sys-sync-dot {
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-24));
+}
+
+/* saving — R17: contrai e não descansa. Não diz que acabou porque não acabou. */
+@keyframes sys-sync-contract {
+  0%   { transform: scale(1.5); opacity: .25; }
+  70%  { transform: scale(.7);  opacity: 1; }
+  100% { transform: scale(.6);  opacity: 0; }
+}
+.sys-sync[data-sync='saving'] .sys-sync-dot {
+  background: var(--sys-violet);
+  animation: sys-sync-contract 900ms var(--sys-ease-contract) infinite;
+}
+
+/* err — o único estado que não se cala, e o único com cor de alarme.
+   Uma gravação falhada é trabalho que o Daniel pensa ter e não tem. */
+.sys-sync[data-sync='err'] {
+  color: #fca5a5;
+}
+.sys-sync[data-sync='err'] .sys-sync-dot {
+  background: var(--red);
+  box-shadow: 0 0 8px var(--red);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sys-sync[data-sync='saving'] .sys-sync-dot {
+    animation: none;
+    /* sem ciclo, o estado tem de continuar a distinguir-se: fica no meio da
+       contração, aceso, em vez de desaparecer no fim do keyframe */
+    transform: scale(.85);
+    opacity: 1;
+  }
+}
+
+/* A faixa de sistema: canto inferior direito, fora do caminho da leitura. */
+.sys-sync-slot {
+  position: fixed;
+  right: var(--sys-space-5);
+  bottom: var(--sys-space-4);
+  z-index: var(--sys-z-nav);
+  pointer-events: none;
+}

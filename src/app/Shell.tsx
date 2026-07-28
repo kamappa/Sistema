@@ -23,6 +23,7 @@ import OraclePresence from './oracle/OraclePresence';
 import Atmosphere from './atmosphere/Atmosphere';
 import './shell.css';
 import './nav/orbit.css';
+import SyncState from './SyncState';
 import './instrumental.css';
 
 interface Props {
@@ -48,6 +49,9 @@ export default function Shell({ S }: Props) {
       </div>
 
       <OraclePresence />
+      {/* O estado de gravacao vive na faixa de sistema: nunca foi mostrado na
+          shell, e uma gravacao falhada em silencio contradiz o estado guardado. */}
+      <div className="sys-sync-slot"><SyncState /></div>
     </div>
   );
 }

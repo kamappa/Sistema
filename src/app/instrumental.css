@@ -931,3 +931,59 @@
    fração de XP, e a streak já é uma leitura no cartão ("MELHOR STREAK"). Dois
    anéis concêntricos com dados diferentes a 6px de distância não se leem — e
    duplicar um número que está ao lado é o erro que esta missão anda a corrigir. */
+
+/* ── Universo: títulos e conquistas ────────────────────────────────────
+ * Missão 26 · Fase G.
+ *
+ * Eram duas grelhas de cartões com borda — a última parede de caixas do
+ * produto. Passam à mesma língua das outras zonas: sem moldura, com o estado
+ * dito por luz e por um filete.
+ *
+ * A diferença entre bloqueado e desbloqueado é a informação toda destes dois
+ * painéis, e por isso é ela que fica com o contraste: o desbloqueado é o
+ * portador da luz, o bloqueado recua sem desaparecer. Ninguém precisa de uma
+ * borda à volta de um cadeado para perceber que está fechado.
+ */
+.sys-instrumental .ach,
+.sys-instrumental .tit {
+  border: 0;
+  border-left: 2px solid var(--sys-seam);
+  background: none;
+  padding: var(--sys-space-4) 0 var(--sys-space-4) var(--sys-space-4);
+  transition:
+    border-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    opacity calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+/* Bloqueado: recua, mas continua legível. Uma conquista que não se lê não
+   convida a nada — e o Sistema mostra o caminho, não só o troféu. */
+.sys-instrumental .ach { opacity: 0.42; }
+
+/* Desbloqueado: é o que aconteceu de facto, e por isso é o que tem luz. */
+.sys-instrumental .ach.on {
+  opacity: 1;
+  border-left-color: color-mix(in oklab, var(--gold) 65%, transparent);
+}
+
+.sys-instrumental .tit.un {
+  border-left-color: color-mix(in oklab, var(--gold) 65%, transparent);
+}
+
+.sys-instrumental .ach:hover,
+.sys-instrumental .tit:hover {
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+}
+
+/* O título aberto é o foco do momento: ganha o filete cheio. */
+.sys-instrumental .tit.open {
+  border-left-color: rgb(var(--sys-violet-rgb) / var(--sys-o-62));
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+}
+
+/* O crachá de rank do domínio, nos Atributos, segue as outras leituras:
+   a cor diz o rank, a caixa não acrescentava nada. */
+.sys-instrumental .ar {
+  border: 0;
+  padding: 0 0 0 var(--sys-space-3);
+}

@@ -225,3 +225,45 @@ referência privada de estudo, e só isso.
 **Biblioteca organizada.** Os 50 ficheiros foram triados do `00-inbox` para as
 categorias `01`–`07` por cópia. Os originais permanecem em `docs/design
 references/`. Zero por classificar.
+
+---
+
+## S09 · `mapa de workflow seja constelacao seja agentes.jpg` — DUPLA CLASSIFICAÇÃO
+
+1024×1024 · analisada 2026-07-28 · confiança **alta**
+
+Esta merece entrada própria porque é a única referência com um **nome que
+declara intenção** em vez de descrever uma imagem — e porque é boa e má ao
+mesmo tempo.
+
+**Factual:** mockup de um "AI Agent Directory". Nós hexagonais com ícones,
+ligados por arcos curvos; dois centros a brilhar (magenta e ciano); gradiente
+roxo; barra lateral à esquerda. O texto está **corrompido** — "Rebet Activity",
+"Talding", "Neuralls", "Settings" duas vezes. É uma imagem gerada por AI.
+
+### Como STRUCTURE — aproveitável
+
+**Extrair:** o grafo onde a relação é a informação. Os nós valem pouco sozinhos;
+o que se lê são os arcos e quais os centros com mais ligações. É a gramática 8
+com forma, e é o que o nome que o Daniel lhe deu quer dizer: um mapa que serve
+de constelação e de árvore de agentes ao mesmo tempo.
+
+**Onde já vive:** as Constelações **já são este grafo** — estrelas ligadas por
+arcos, com o Núcleo como centro. A intenção está servida; não se constrói um
+segundo grafo ao lado. Quando o registo de agentes do Oráculo existir, é esta a
+forma que já cá está para o receber.
+
+### Como ANTI-REFERENCE — a rejeitar inteira
+
+A aparência é, ponto por ponto, o que a missão proíbe por nome:
+
+| Na referência | A missão diz |
+|---|---|
+| gradiente roxo de fundo | "template roxo" |
+| barra lateral com ícones | "sidebar administrativa" |
+| hexágonos com ícones de cérebro/circuito | "dashboard AI genérico" |
+| ciano sobre roxo | a paleta é violeta/magenta sobre preto |
+
+**Veredicto:** extrair a topologia, rejeitar tudo o que se vê. E registar que o
+texto corrompido é o sinal de que a imagem é gerada — uma referência assim serve
+para pensar, nunca para copiar detalhe.

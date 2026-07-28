@@ -162,3 +162,55 @@ nada — as métricas diziam `scaleY(1.6)` e eram verdade, mas media-se um núme
 certo de uma coisa invisível. Só se apanhou por olhar para o screenshot em vez
 de confiar na medição. Lição para as fases seguintes: **uma métrica não
 substitui um olho**.
+
+---
+
+### 2026-07-28 · Rank como manómetro (Fase E)
+
+**Decisão:** a letra do rank e a fração de progresso passam a ser **um único
+instrumento**. Letra ao centro (qual), anel à volta (quanto), rótulo com o
+destino ("Rank E → D") — que é o que o anel não sabe dizer.
+
+**Porquê:** origem R25. Antes eram dois pedaços da mesma frase em sítios
+diferentes do cartão: um crachá que não dizia nada e uma barra horizontal
+noutro sítio. A barra foi removida — mostrar o mesmo número duas vezes no mesmo
+cartão é ruído, não redundância útil.
+
+**Rejeitado da referência:** o ciano flamejante e as unidades falsas ("rpm").
+A cor vem de `r.color` (rank real), o anel de `rankFrac` (progresso real). Um
+manómetro sem valor verdadeiro seria um crachá com pretensões.
+
+**Cuidado técnico:** o id `#rankbadge` mantém-se — o `fx.js:76` e o
+`stage/main.js:66` leem-no para a cerimónia de rank-up e para apontar um efeito
+do palco. A chamada a `Motion.fillBar` ficou guardada pela existência do
+elemento, para repor a barra não exigir mais nenhuma alteração.
+
+**Medido:** letra `S`, anel a 0,556, cor `rgb(251,191,36)` do rank, `#rankbadge`
+intacto, barra antiga removida.
+
+---
+
+## ⚠ Decisão que NÃO tomei sozinho — o avatar
+
+`src/assets/avatar.js` é um JPEG em base64 (17 KB) com um retrato de estilo
+**anime**, herdado do Vanilla.
+
+A missão diz, textualmente: *"Não usar personagens de anime ou arte externa como
+representação final"* e *"a identidade deve parecer um registo vivo de um
+operador real"*.
+
+**Não o removi**, e a razão é que isto não é uma decisão de design — é a cara que
+o Daniel escolheu para se representar. Apagá-la por interpretação de uma regra
+seria eu a decidir sobre a identidade dele.
+
+Três caminhos, para escolher:
+
+- **A** — manter. A regra passa a ser lida como "não gerar arte de anime nova",
+  e o avatar existente é uma escolha pessoal explícita.
+- **B** — substituir por um sigilo **procedural** derivado dos dados reais
+  (níveis por domínio, streaks, títulos): uma forma que muda com a evolução e
+  que é, literalmente, um registo vivo. Original, sem licença de terceiros.
+- **C** — remover e deixar só o manómetro e o nome. O mais austero, e talvez o
+  mais coerente com "instrumento, não menu de RPG".
+
+Sem resposta, fica **A** — a opção que não destrói nada.

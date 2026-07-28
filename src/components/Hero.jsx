@@ -53,8 +53,13 @@ export default function Hero({ S }) {
       window.setNum('qd', qd);
       window.setNum('bstk', bstk);
     }
-    if (window.Motion && window.Motion.fillBar) {
-      window.Motion.fillBar('oxp', document.getElementById('oxp-fill'), rankFrac * 100);
+    // A barra `oxp` deixou de existir: a fração do rank passou para o anel do
+    // manómetro, e mostrar o mesmo número duas vezes no mesmo cartão era ruído.
+    // A chamada fica guardada pela existência do elemento — se alguém repuser a
+    // barra, a mola volta a assumir sem mais nenhuma alteração.
+    const bar = document.getElementById('oxp-fill');
+    if (bar && window.Motion && window.Motion.fillBar) {
+      window.Motion.fillBar('oxp', bar, rankFrac * 100);
     }
   });
 
@@ -81,16 +86,29 @@ export default function Hero({ S }) {
             <div className="st"><span className="n" id="qd">{qd}</span><span className="l">Missões</span></div>
           </div>
         </div>
+        {/* Missão 26 · Fase E — o rank passa a manómetro (origem: R25).
+            A letra ao centro diz QUAL; o anel à volta diz QUANTO falta para o
+            próximo. Antes a letra não dizia nada e a fração vivia numa barra
+            noutro sítio do cartão: dois pedaços da mesma frase, separados.
+            O id `rankbadge` mantém-se — o fx.js e o palco WebGL leem-no. */}
         <div className="rankbox">
-          <div className="rankbadge" id="rankbadge" style={{ borderColor: r.color, color: r.color, background: `radial-gradient(circle,${hexA(r.color, .14)},transparent 70%)` }}>
-            <span id="rankl">{r.l}</span>
+          <div className="rankgauge">
+            <svg viewBox="0 0 92 92" aria-hidden="true">
+              <circle className="rg-track" cx="46" cy="46" r="42" />
+              <circle
+                className="rg-fill" cx="46" cy="46" r="42"
+                stroke={r.color}
+                strokeDasharray={2 * Math.PI * 42}
+                strokeDashoffset={2 * Math.PI * 42 * (1 - rankFrac)}
+              />
+            </svg>
+            <div className="rankbadge" id="rankbadge" style={{ borderColor: r.color, color: r.color, background: `radial-gradient(circle,${hexA(r.color, .14)},transparent 70%)` }}>
+              <span id="rankl">{r.l}</span>
+            </div>
           </div>
-          <div className="rl">Rank</div>
+          {/* O anel diz quanto; só a palavra pode dizer PARA ONDE. */}
+          <div className="rl" id="rank-prog-lbl">{progLbl}</div>
         </div>
-      </div>
-      <div className="oxp">
-        <div className="oxp-head"><span id="rank-prog-lbl">{progLbl}</span><span id="oxp-txt">Nível {lvl}</span></div>
-        <div className="oxp-bar"><div className="oxp-fill" id="oxp-fill" style={{ width: (rankFrac * 100) + '%' }} /></div>
       </div>
     </div>
   );

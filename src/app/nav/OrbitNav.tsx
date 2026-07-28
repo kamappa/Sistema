@@ -113,7 +113,30 @@ function useCoreReading(S: Record<string, unknown> | null) {
   const ocBusy = useStore((s: { ocBusy: boolean }) => s.ocBusy);
   const report = useStore((s: { report: unknown }) => s.report);
   const [levelJumped, setLevelJumped] = useState(false);
+  const [composing, setComposing] = useState(false);
   const prevLevel = useRef<number | null>(null);
+
+  /* `listening`: o Operador está a escrever para o Oráculo.
+   *
+   * Feito por eventos de foco no documento, e não por uma flag no store nem por
+   * uma alteração ao Conselho.jsx. Duas razões: o composer é um componente
+   * legado que não precisa de saber que o Núcleo existe, e um estado puramente
+   * de interface não tem de atravessar o estado de domínio.
+   *
+   * O preço é acoplar ao id `#oc-in`, que é estável (o hud.css já o usa). Fica
+   * declarado aqui para quem o renomear saber o que parte. */
+  useEffect(() => {
+    const isComposer = (el: EventTarget | null) =>
+      el instanceof Element && !!el.closest('#oc-in, [data-sys-composer]');
+    const on = (e: FocusEvent) => { if (isComposer(e.target)) setComposing(true); };
+    const off = (e: FocusEvent) => { if (isComposer(e.target)) setComposing(false); };
+    document.addEventListener('focusin', on);
+    document.addEventListener('focusout', off);
+    return () => {
+      document.removeEventListener('focusin', on);
+      document.removeEventListener('focusout', off);
+    };
+  }, []);
 
   const level = S ? safeLevel(S) : null;
 
@@ -129,7 +152,7 @@ function useCoreReading(S: Record<string, unknown> | null) {
     return () => clearTimeout(t);
   }, [level]);
 
-  return readCore({ S: S as Record<string, any> | null, ocBusy, report, levelJumped });
+  return readCore({ S: S as Record<string, any> | null, ocBusy, report, levelJumped, composing });
 }
 
 function safeLevel(S: Record<string, unknown>): number | null {

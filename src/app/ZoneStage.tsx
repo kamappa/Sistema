@@ -35,7 +35,7 @@ export default function ZoneStage({ active, S }: Props) {
   return (
     <div className="sys-stage" data-active={active}>
       {ZONES.map((z) => (
-        <ZonePane key={z.id} zoneId={z.id} density={z.density} isActive={z.id === active}>
+        <ZonePane key={z.id} zoneId={z.id} zoneName={z.name} density={z.density} isActive={z.id === active}>
           {/* Os grupos vêm do registo. A composição é decidida por CSS a partir
               de data-density e data-weight — nunca por verificações do nome da
               zona espalhadas pelo JSX. */}
@@ -63,11 +63,13 @@ export default function ZoneStage({ active, S }: Props) {
 
 function ZonePane({
   zoneId,
+  zoneName,
   density,
   isActive,
   children,
 }: {
   zoneId: ZoneId;
+  zoneName: string;
   density: string;
   isActive: boolean;
   children: React.ReactNode;
@@ -84,6 +86,9 @@ function ZonePane({
   }, [isActive]);
 
   return (
+    /* A zona e uma REGIAO com nome. Sem isto, quem usa leitor de ecra entra no
+       conteudo sem saber onde esta: ouve os paineis, nao ouve a zona. O nome vem
+       do registo, o mesmo que pinta o cabecalho - nunca duas verdades. */
     <section
       ref={ref}
       className="sys-zone"
@@ -91,6 +96,8 @@ function ZonePane({
       data-density={density}
       data-active={isActive ? 'true' : 'false'}
       aria-hidden={isActive ? undefined : true}
+      role="region"
+      aria-label={zoneName}
     >
       <div className="sys-zone-scroll">
         <div className="sys-zone-body">{children}</div>

@@ -707,3 +707,70 @@
   border-left-width: 3px;
 }
 .sys-instrumental .obj-row.doing::before { display: none; } /* o gradiente do HUD */
+
+/* ── Hábitos: a mesma língua das missões ───────────────────────────────
+ * Missão 26 · Fase F, segunda peça.
+ *
+ * Depois de as missões perderem a caixa, o Diário ficou ao lado delas com o
+ * aspeto antigo — caixas com borda a toda a volta, fundo próprio e, nos
+ * obrigatórios, um filete vermelho por cima disso. Duas composições diferentes
+ * na mesma zona, à distância de um olhar.
+ *
+ * O curioso é que o HUD já tinha a ideia certa: `.hab.oblig` desenhava um filete
+ * à esquerda. Estava era enterrado debaixo de uma borda completa. Aqui a borda
+ * sai e o filete assume, que é o que ele sempre quis ser.
+ *
+ * Sem alterações ao Diario.jsx: a marcação já separava marca, nome, meta e
+ * streak. Só faltava composição.
+ */
+.sys-instrumental .hab {
+  border: 0;
+  border-left: 2px solid var(--sys-seam);
+  background: none;
+  padding: var(--sys-space-3) 0 var(--sys-space-3) var(--sys-space-4);
+  margin-bottom: 0;
+  transition:
+    border-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    opacity calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.sys-instrumental .hab:hover {
+  border-left-color: rgb(var(--sys-violet-rgb) / var(--sys-o-62));
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+}
+
+/* Obrigatório: o filete diz que falhar custa. É a mesma informação que a borda
+   vermelha dava, sem a caixa a gritar à volta. */
+.sys-instrumental .hab.oblig {
+  border-left-color: color-mix(in oklab, var(--red) 70%, transparent);
+}
+
+/* Feito recua — não celebra com fundo verde. O verde fica no filete, que é
+   onde se lê de relance ao percorrer a coluna. */
+.sys-instrumental .hab.done {
+  border-left-color: var(--em);
+  background: none;
+  opacity: 0.6;
+}
+.sys-instrumental .hab.done .hn { text-decoration: line-through; }
+
+/* O nome é o visor; a meta recua para leitura secundária, como nas missões. */
+.sys-instrumental .hab .hn {
+  font-size: var(--sys-step-0);
+  color: var(--sys-ink);
+}
+.sys-instrumental .hab .hm {
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  opacity: 0.82;
+}
+
+/* A streak é uma leitura de instrumento: alinhada à direita, mono, calada
+   quando é zero. Uma streak a zero não é uma conquista para exibir. */
+.sys-instrumental .hab .stk {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}
+.sys-instrumental .hab .stk.off { opacity: 0.35; }

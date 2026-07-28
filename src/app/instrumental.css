@@ -774,3 +774,57 @@
   color: var(--sys-ink-mut);
 }
 .sys-instrumental .hab .stk.off { opacity: 0.35; }
+
+/* ── Métricas: leitura, não crachá ─────────────────────────────────────
+ * Missão 26 · Fase F, terceira peça. Fecha Treino e Sono de uma vez — os dois
+ * partilham `.tr-stats`, o que é sorte e também sinal de que já eram a mesma
+ * coisa por baixo.
+ *
+ * O que estava: "Sessões: 12", "Esta semana: 2/3", "Média 7d: 7h" — cada uma
+ * dentro de uma caixa com borda. São LEITURAS de instrumento, e uma leitura não
+ * precisa de moldura; precisa de estar alinhada com as outras e de se ler de
+ * relance.
+ *
+ * Origem: R26, o trilho de métricas emparelhadas com rótulo mono minúsculo.
+ * Rejeitado da mesma referência: os cantos em esquadria e a densidade de UI de
+ * filme que não informa nada.
+ */
+.sys-instrumental .tr-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sys-space-3) var(--sys-space-5);
+  margin-bottom: var(--sys-space-4);
+}
+
+.sys-instrumental .tr-stats .wchip {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  letter-spacing: var(--sys-track-label);
+}
+
+/* A cor de estado sobrevive — era o que as bordas coloridas carregavam. Um
+   `.green` diz "no alvo", e isso é informação, não enfeite. */
+.sys-instrumental .tr-stats .wchip.green { color: var(--em); }
+.sys-instrumental .tr-stats .wchip.gold  { color: #fde68a; }
+
+/* Separador entre leituras: um filete vertical fino, como num painel de
+   instrumentos. Não é uma borda a fechar caixa — é uma divisão entre medidas. */
+.sys-instrumental .tr-stats .wchip + .wchip {
+  padding-left: var(--sys-space-5);
+  border-left: 1px solid var(--sys-seam);
+}
+
+/* As linhas de treino já traziam o filete do exercício. Fica; o que sai é a
+   caixa à volta, pelo mesmo motivo dos hábitos. */
+.sys-instrumental .trl {
+  background: none;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  padding-left: var(--sys-space-4);
+}

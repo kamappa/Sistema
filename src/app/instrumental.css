@@ -1236,3 +1236,21 @@ body:has(.sys-instrumental) .toast.pen {
   font-size: var(--sys-step--1);
   color: var(--sys-ink-mut);
 }
+
+/* ── As restantes falhas de contraste ──────────────────────────────────
+ * Missão 26 · Fase J. Auditoria completa às SEIS zonas: 11 falhas, e todas com
+ * a mesma causa — `--mut2` (rgb 78,71,104) a 10px, rácio 2,29 contra 4,5.
+ *
+ * Duas classes: `.cal-wd`, os cabeçalhos dos dias da semana, e `.dbf-tag`, o
+ * estado dos pilares. Nenhuma é decorativa: "Seg/Ter/Qua" é o que torna uma
+ * grelha de 42 números legível como calendário, e "inativo" é o estado de um
+ * pilar. Texto que não se lê não é discreto — está ausente.
+ *
+ * Sobem para `--sys-ink-mut` e para o degrau tipográfico do sistema. Continuam
+ * a ser a informação mais recuada do painel; passam a ser legíveis.
+ */
+.sys-instrumental .cal-wd,
+.sys-instrumental .dbf-tag {
+  color: var(--sys-ink-mut);
+  font-size: var(--sys-step--1);
+}

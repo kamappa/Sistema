@@ -1695,11 +1695,9 @@ existiam desde a Fase 3. Reabre-se se passar dos 5 ecrãs com dados reais.
 - **War Room** ligado a dados;
 - **performance** nunca medida: bundle em 996 KB de JS, FPS em mobile e tempo de
   arranque por medir;
-- **contraste**: auditoria WCAG AA corrida a 2026-07-29 sobre quatro zonas, 370
-  elementos com texto. Corrigida a falha da `.vit-note` (2,29 contra 4,5
-  mínimo) — era a ressalva que impede a barra de burnout de se fazer passar por
-  diagnóstico, e uma ressalva ilegível não existe. **Restam 7 falhas** por
-  identificar e corrigir uma a uma;
+- ~~contraste~~ **FECHADO 2026-07-29**: auditoria WCAG AA às seis zonas, 396
+  elementos com texto, **zero falhas**. As 11 originais tinham todas a mesma
+  causa — `--mut2` a 10px, rácio 2,29.
 - resoluções 1280×800 e 768×1024 por testar;
 - 41 referências por analisar;
 - resíduos de 6px (Universo) e 3px (Operações), sem barra de scroll;

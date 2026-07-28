@@ -1407,7 +1407,7 @@ time               Specifies the time when command is to run.
 
 /* A cena ganha uma luz alta e larga — não tem bordo porque não tem forma:
    nasce fora do ecrã e cai. É ela que diz "estás nesta zona". */
-.sys-instrumental .sys-zone[data-active='true'] .sys-zone-scroll::before {
+.sys-instrumental .sys-zone[data-active='true']::before {
   content: '';
   position: absolute;
   /* A luz tem de MORRER DENTRO da caixa. A primeira versao usava
@@ -1429,13 +1429,27 @@ time               Specifies the time when command is to run.
   );
 }
 
-.sys-instrumental .sys-zone-scroll { position: relative; }
+.sys-instrumental .sys-zone { position: absolute; }
 .sys-instrumental .sys-zone-body { position: relative; z-index: 1; }
 
 /* 3 · A zona ocupa a altura. Com pouco conteúdo, o espaço vai para o fim e não
    fica um vazio a meio; com muito, comporta-se como antes. */
+/* BUG MEU, corrigido:  criava 41px de
+   transbordo PERMANENTE, porque 100% ja e a altura do conteudo do scroll e o
+   padding somava-se por cima. Resultado: uma barra de scroll que nunca devia
+   existir e conteudo cortado em baixo - foi o que o Daniel viu com o Momentum
+   e o burnout meio tapados.
+   O objectivo (a zona ocupar a altura) faz-se com flex, que preenche sem
+   ACRESCENTAR altura. */
+.sys-instrumental .sys-zone-scroll {
+  display: flex;
+  flex-direction: column;
+  /* respiro no fim: sem isto a ultima linha encosta a faixa do Oraculo e nao se
+     percebe se acabou ou se esta cortada */
+  padding-bottom: var(--sys-space-7);
+}
 .sys-instrumental .sys-zone-body {
-  min-height: calc(100% - var(--sys-space-6));
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
 }

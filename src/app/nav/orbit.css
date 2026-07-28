@@ -91,3 +91,21 @@
     backdrop-filter: blur(calc(var(--sys-blur-recede) * var(--sys-blur-enabled)));
   }
 }
+
+/* ── Contraste da órbita ───────────────────────────────────────────────
+ * Missão 26 · 2026-07-29. O Daniel: "Universo e Oráculo estão quase invisíveis".
+ * Medido e confirmado: a órbita usa planos de profundidade para recuar as zonas
+ * distantes, e o plano 4 estava a `opacity: .14`. Isso não é recuar — é
+ * desaparecer, e uma zona que existe não pode parecer desativada.
+ *
+ * Os planos mantêm-se (a profundidade é a metáfora da órbita e comunica
+ * distância), mas com um PISO. Recuar passa a ir de 100% a 52%, não a 14%.
+ */
+[data-nav='orbit'] .sys-orbit-mark[data-plane='2'] { opacity: .78; }
+[data-nav='orbit'] .sys-orbit-mark[data-plane='3'] { opacity: .64; }
+[data-nav='orbit'] .sys-orbit-mark[data-plane='4'] { opacity: .52; }
+
+/* Hover e foco trazem a marca para a frente, seja qual for o plano: alcançar
+   uma zona distante não deve exigir adivinhar onde ela está. */
+[data-nav='orbit'] .sys-orbit-mark:hover,
+[data-nav='orbit'] .sys-orbit-mark:focus-visible { opacity: 1; }

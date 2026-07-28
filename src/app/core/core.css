@@ -1,0 +1,149 @@
+/* Núcleo da shell — os oito estados.
+ * Missão 26 · Fase C. Ver coreState.ts para a evidência de cada um.
+ *
+ * ORIGEM (REFERENCE-MAP.md):
+ *  - R25, o rank como manómetro: a letra ao centro diz QUAL, o anel diz QUANTO,
+ *    e só o anel exterior se mexe. Aqui o anel é a `charge`, que vem de dados.
+ *  - R15, a convergência: no `levelup` o anel colapsa PARA DENTRO antes de
+ *    assentar maior. A energia vem do mundo para o Núcleo, nunca ao contrário.
+ *  - R17, a contração: no `processing` o anel é puxado para dentro sem repouso.
+ *
+ * O QUE SE REJEITOU das três: o ciano flamejante da R25, o azul da R17 e o
+ * bloom branco a 100% da R15. A paleta é a do Sistema.
+ *
+ * Só se anima transform e opacity. O `charge` entra por custom property, para
+ * a intensidade ser proporcional e não um degrau escolhido à mão.
+ */
+
+.sys-orbit-core {
+  position: relative;
+  isolation: isolate;
+}
+
+/* O anel. Não é uma borda: é um instrumento, e por isso vive num pseudo-
+   elemento próprio que pode escalar sem mexer com a letra. */
+.sys-orbit-core::before {
+  content: '';
+  position: absolute;
+  inset: -0.45rem;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--sys-violet-rgb) / calc(0.10 + var(--core-charge, 0) * 0.55));
+  transform: scale(calc(0.92 + var(--core-charge, 0) * 0.12));
+  transition:
+    transform calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-gravity),
+    border-color calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out),
+    opacity calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out);
+  pointer-events: none;
+}
+
+/* ── dormant ──────────────────────────────────────────────────────────
+ * Sem sessão. O anel não existe: nada a medir, logo nada a mostrar. */
+.sys-orbit-core[data-core='dormant']::before { opacity: 0; }
+.sys-orbit-core[data-core='dormant'] .sys-orbit-core-mark { opacity: 0.28; }
+
+/* ── ambient ──────────────────────────────────────────────────────────
+ * O repouso. Respira ao ritmo lento da presença, com amplitude mínima.
+ * É o estado mais comum e por isso o que menos pode incomodar. */
+@keyframes sys-core-breathe {
+  0%, 100% { transform: scale(calc(0.92 + var(--core-charge, 0) * 0.12)); }
+  50%      { transform: scale(calc(0.96 + var(--core-charge, 0) * 0.12)); }
+}
+.sys-orbit-core[data-core='ambient']::before {
+  animation: sys-core-breathe var(--sys-cycle-ambient) var(--sys-ease-breath) infinite;
+}
+
+/* ── listening ────────────────────────────────────────────────────────
+ * O Operador está a escrever. O anel ABRE — atenção é espaço, não pressa. */
+.sys-orbit-core[data-core='listening']::before {
+  transform: scale(1.14);
+  border-color: rgb(var(--sys-violet-rgb) / var(--sys-o-62));
+}
+
+/* ── processing ───────────────────────────────────────────────────────
+ * R17: contração sem repouso. Comunica que ainda não terminou. */
+@keyframes sys-core-contract {
+  0%   { transform: scale(1.18); opacity: 0.15; }
+  70%  { transform: scale(0.90); opacity: 1; }
+  100% { transform: scale(0.86); opacity: 0; }
+}
+.sys-orbit-core[data-core='processing']::before {
+  animation: sys-core-contract 1100ms var(--sys-ease-contract) infinite;
+}
+
+/* ── insight ──────────────────────────────────────────────────────────
+ * Há algo para ler. Presença firme e parada: uma boa notícia não pisca. */
+.sys-orbit-core[data-core='insight']::before {
+  border-color: rgb(var(--sys-violet-rgb) / var(--sys-o-88));
+  transform: scale(1.06);
+}
+
+/* ── warning ──────────────────────────────────────────────────────────
+ * Prazos vencidos. Cor de aviso e um segundo anel: o que exige ação tem
+ * mais matéria, não mais velocidade. */
+.sys-orbit-core[data-core='warning']::before {
+  border-color: rgb(var(--sys-magenta-rgb) / calc(0.35 + var(--core-charge, 0) * 0.5));
+  transform: scale(calc(1.0 + var(--core-charge, 0) * 0.1));
+}
+.sys-orbit-core[data-core='warning']::after {
+  content: '';
+  position: absolute;
+  inset: -0.75rem;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--sys-magenta-rgb) / calc(var(--core-charge, 0) * 0.22));
+  pointer-events: none;
+}
+
+/* ── levelup ──────────────────────────────────────────────────────────
+ * R15: colapsa PARA DENTRO e assenta MAIOR do que começou. O delta é o
+ * significado; sem ele isto era confetti. */
+@keyframes sys-core-ascend {
+  0%   { transform: scale(1.5);  opacity: 0; }
+  45%  { transform: scale(0.88); opacity: 1; }
+  100% { transform: scale(1.12); opacity: 0.85; }
+}
+.sys-orbit-core[data-core='levelup']::before {
+  border-color: rgb(var(--sys-violet-rgb) / var(--sys-o-88));
+  animation: sys-core-ascend var(--sys-dur-slow) var(--sys-ease-gravity) forwards;
+}
+
+/* ── critical ─────────────────────────────────────────────────────────
+ * Burnout. O único estado sobre o CORPO do Operador. Não acelera: fica
+ * pesado e escuro. Um sistema que grita quando o dono está exausto está a
+ * piorar o problema que devia sinalizar. */
+.sys-orbit-core[data-core='critical']::before {
+  border-color: rgb(var(--sys-magenta-rgb) / var(--sys-o-62));
+  transform: scale(0.88);
+}
+.sys-orbit-core[data-core='critical'] .sys-orbit-core-mark {
+  opacity: 0.55;
+}
+
+/* ── Reduced motion ───────────────────────────────────────────────────
+ * Os ciclos param. As ESCALAS E AS CORES ficam — são o que distingue os oito
+ * estados. Quem não pode ver movimento continua a ler o Núcleo. */
+@media (prefers-reduced-motion: reduce) {
+  .sys-orbit-core::before,
+  .sys-orbit-core::after {
+    animation: none !important;
+  }
+  /* o levelup vive de uma animação `forwards`; sem ela precisa do estado final */
+  .sys-orbit-core[data-core='levelup']::before { transform: scale(1.12); opacity: 0.85; }
+  .sys-orbit-core[data-core='processing']::before { transform: scale(0.94); opacity: 1; }
+}
+
+/* Utilidade para texto só de leitor de ecrã.
+ * Não existia no projeto — o `.sr-only` do OrbitNav apareceria como texto solto
+ * ao lado do Núcleo sem esta regra. Fica aqui por agora; se um segundo
+ * componente precisar dela, sobe ao design system (a repetição é que justifica
+ * a abstração, não a antecipação). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

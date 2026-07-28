@@ -14,8 +14,12 @@
  * visualmente distantes. Só as ZONAS inativas (no ZoneStage) ficam inertes.
  */
 
+import { useEffect, useRef, useState } from 'react';
 import type { Zone, ZoneId } from '../zones';
 import { rankOf, overallLevel } from '../../state/config.js';
+import { useStore } from '../../store/useStore.js';
+import { readCore } from '../core/coreState';
+import '../core/core.css';
 
 interface Props {
   zones: Zone[];
@@ -27,6 +31,7 @@ interface Props {
 export default function OrbitNav({ zones, active, onSelect, S }: Props) {
   const rank = readRank(S);
   const activeIndex = zones.findIndex((z) => z.id === active);
+  const core = useCoreReading(S);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLUListElement>) {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -40,8 +45,19 @@ export default function OrbitNav({ zones, active, onSelect, S }: Props) {
 
   return (
     <nav className="sys-orbit" aria-label="Zonas do Sistema">
-      <div className="sys-orbit-core" aria-hidden="true">
-        <span className="sys-orbit-core-mark">{rank}</span>
+      {/* O Núcleo deixa de ser uma letra parada. O `data-core` traz o estado e
+          o `--core-charge` a sua intensidade, ambos derivados de dados reais.
+          O title expõe a EVIDÊNCIA: o Sistema mostra provas, não sinais. */}
+      <div
+        className="sys-orbit-core"
+        data-core={core.state}
+        style={{ ['--core-charge' as string]: core.charge.toFixed(3) }}
+        title={core.evidence}
+      >
+        <span className="sys-orbit-core-mark" aria-hidden="true">{rank}</span>
+        {/* O estado do Núcleo é informação, não enfeite — quem usa leitor de
+            ecrã tem direito à mesma leitura que quem vê o anel. */}
+        <span className="sr-only">Núcleo: {core.evidence}</span>
       </div>
 
       <ul className="sys-orbit-ring" onKeyDown={onKeyDown}>
@@ -84,5 +100,42 @@ function readRank(S: Record<string, unknown>): string {
     return rankOf(overallLevel(S)).l as string;
   } catch {
     return '';
+  }
+}
+
+/* Leitura do Núcleo, com a única parte que precisa de memória: o salto de
+ * nível. Um level up não está no estado — o estado só sabe o nível ATUAL. A
+ * subida é a diferença entre duas leituras, e por isso guarda-se a anterior.
+ *
+ * O sinal é transitório de propósito: dura --sys-dur-slow e apaga-se. Um Núcleo
+ * que ficasse eufórico para sempre deixava de comunicar seja o que for. */
+function useCoreReading(S: Record<string, unknown> | null) {
+  const ocBusy = useStore((s: { ocBusy: boolean }) => s.ocBusy);
+  const report = useStore((s: { report: unknown }) => s.report);
+  const [levelJumped, setLevelJumped] = useState(false);
+  const prevLevel = useRef<number | null>(null);
+
+  const level = S ? safeLevel(S) : null;
+
+  useEffect(() => {
+    if (level == null) return;
+    const before = prevLevel.current;
+    prevLevel.current = level;
+    // Na primeira leitura não há salto — só há um valor. Confundir arranque
+    // com subida seria celebrar o que não aconteceu.
+    if (before == null || level <= before) return;
+    setLevelJumped(true);
+    const t = setTimeout(() => setLevelJumped(false), 620);
+    return () => clearTimeout(t);
+  }, [level]);
+
+  return readCore({ S: S as Record<string, any> | null, ocBusy, report, levelJumped });
+}
+
+function safeLevel(S: Record<string, unknown>): number | null {
+  try {
+    return overallLevel(S) as number;
+  } catch {
+    return null;
   }
 }

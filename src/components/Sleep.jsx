@@ -56,7 +56,7 @@ export default function Sleep({ S }) {
             </select>
             <button className="btn" onClick={reg}>Registar noite</button>
           </div>
-          <div className="vit-note">Alvo: 7,5–9h e consistência de horário (o cérebro premeia regularidade mais do que maratonas de fim de semana). Hora-alvo de recolher <input type="time" style={{ width: 'auto', padding: '3px 6px' }} value={S.sleep.bedT} onChange={(e) => setSleepT('bedT', e.target.value)} /> — o mundo lembra-te à noite. Noite no alvo marca o pilar do sono sozinha.</div>
+          <div className="vit-note">Alvo: 7,5–9h e consistência de horário (o cérebro premeia regularidade mais do que maratonas de fim de semana). Hora-alvo de recolher <input type="time" aria-label="Hora-alvo de recolher" style={{ width: 'auto', padding: '3px 6px' }} value={S.sleep.bedT} onChange={(e) => setSleepT('bedT', e.target.value)} /> — o mundo lembra-te à noite. Noite no alvo marca o pilar do sono sozinha.</div>
         </Collapse>
       </div>
     </div>

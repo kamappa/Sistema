@@ -47,10 +47,10 @@ export default function Objectives({ S }) {
           {filtrosAtivos === 0 ? 'Filtros' : `Filtros · ${filtrosAtivos} ativo${filtrosAtivos > 1 ? 's' : ''}`}
         </button>
         <div className="obj-filters" data-open={verFiltros || filtrosAtivos > 0}>
-          <select value={objF.est} onChange={(e) => set('est', e.target.value)}>{['all', 'pend', 'doing', 'done'].map((v) => <option key={v} value={v}>{estLbl[v]}</option>)}</select>
-          <select value={objF.area} onChange={(e) => set('area', e.target.value)}><option value="all">Área: todas</option>{ATTRS.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
-          <select value={objF.sort} onChange={(e) => set('sort', e.target.value)}>{[['prazo', 'Ordenar: prazo'], ['pri', 'Ordenar: prioridade'], ['created', 'Ordenar: criação']].map((x) => <option key={x[0]} value={x[0]}>{x[1]}</option>)}</select>
-          <select value={objF.dif} onChange={(e) => set('dif', e.target.value)}><option value="all">Dificuldade: todas</option>{['⚡ Rápida', '🔨 Média', '🏔 Épica'].map((v) => <option key={v} value={v}>{v}</option>)}</select>
+          <select aria-label="Filtrar por estado" value={objF.est} onChange={(e) => set('est', e.target.value)}>{['all', 'pend', 'doing', 'done'].map((v) => <option key={v} value={v}>{estLbl[v]}</option>)}</select>
+          <select aria-label="Filtrar por área" value={objF.area} onChange={(e) => set('area', e.target.value)}><option value="all">Área: todas</option>{ATTRS.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}</select>
+          <select aria-label="Ordenar missões" value={objF.sort} onChange={(e) => set('sort', e.target.value)}>{[['prazo', 'Ordenar: prazo'], ['pri', 'Ordenar: prioridade'], ['created', 'Ordenar: criação']].map((x) => <option key={x[0]} value={x[0]}>{x[1]}</option>)}</select>
+          <select aria-label="Filtrar por dificuldade" value={objF.dif} onChange={(e) => set('dif', e.target.value)}><option value="all">Dificuldade: todas</option>{['⚡ Rápida', '🔨 Média', '🏔 Épica'].map((v) => <option key={v} value={v}>{v}</option>)}</select>
         </div>
         <div>
           {list.length ? list.map((o) => {

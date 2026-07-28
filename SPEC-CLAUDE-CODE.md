@@ -1615,6 +1615,106 @@ Um screenshot novo já não parece um dashboard AI; a shell integra-se no mundo
 existente sem quebrar lógica, touch nem performance; os números continuam
 idênticos aos da Missão 25; e o mobile parece produto, não versão encolhida.
 
+### Execução — 2026-07-28 (28 commits, branch `mission-26/renaissance-visual`)
+
+Registo do que foi feito, com o que foi **medido**, não com o que se pretendia.
+Cada fase tem commits próprios; o `docs/design-references/mission-26/` tem a
+biblioteca, a gramática e as decisões com alternativas rejeitadas.
+
+**Fase 0 · biblioteca de referências** — CONCLUÍDA
+50 ficheiros triados (21 mp4, 9 gif, 20 jpg), 338 frames extraídas, 30 contact
+sheets. **9 analisadas a fundo**, 41 continuam `INVENTARIADO`. Cinco documentos
+versionados; a pasta `local/` fica gitignored (direitos de autor, 120 MB, e não
+são fonte de verdade). Achados: dois ficheiros `.gif` são PNG estáticos — um
+deles era a referência da transição de zona, que **não existe**; três duplicados
+por hash; 26 nomes são lixo de scraper e o sinal são os nomes das pastas.
+
+**Fase B · tokens** — CONCLUÍDA
+Cinco curvas com o ID da referência que as originou (`--sys-ease-gravity` R15,
+`--sys-ease-contract` R17, `--sys-ease-breath` R19/R01), dois períodos de ciclo
+e `--sys-rise`/`--sys-fall` como direção semântica.
+
+**Fase C · Núcleo** — CONCLUÍDA
+Oito estados presos a evidência real, com precedência deliberada: `critical`
+ganha a tudo (é o único sobre o corpo do Operador), `insight` fica em último
+(boa notícia não tapa aviso). **7 dos 8 verificados em uso**; `dormant` é
+inalcançável pela shell por desenho. Corpo volumétrico com halo, não contorno.
+
+**Fase D · Oráculo** — PARCIAL
+Ambient feito: sigilo de onda derivado da R01 (não da esfera R19, que é o
+cliché do assistente de AI), com amplitude função de sinais reais — silêncio
+0,7px de pico, quatro sinais 11,7px. Active feito: briefing que diz o que o
+Oráculo já sabe, com a evidência de cada linha, antes do campo de escrita.
+**War Room continua maqueta**, rotulada como tal.
+
+**Fase E · identidade** — CONCLUÍDA
+Rank como manómetro (R25): letra ao centro, anel com `rankFrac`, rótulo com o
+destino. Avatar substituído por sigilo procedural de seis vértices derivado dos
+níveis reais — decisão do Daniel entre três opções; `avatar.js` **não foi
+apagado**.
+
+**Fase F · Operações** — CONCLUÍDA
+Sete painéis. Missões, hábitos, métricas, calendário e revisão passam de caixas
+a instrumentos. Zona mede **4,52 ecrãs** com 5 missões.
+
+**Fase G · Universo** — CONCLUÍDA
+Céu reescrito: fbm de 5 oitavas com ruído *ridged* e domain warping, mais camada
+contínua de gás. Estrelas com leque de tamanho 2,3× e difração que **nunca tinha
+desenhado nada** (o braço morria mais perto do centro que o núcleo). Painéis e
+atributos na mesma língua.
+
+**Fase H · varredura** — CONCLUÍDA
+Últimas molduras herdadas do HUD. Campos de entrada mantêm contorno de propósito:
+é afordância, não decoração.
+
+**Fase I · estados de sistema** — CONCLUÍDA
+Vazios como convite. **Duas mentiras estruturais corrigidas**, e são os achados
+mais sérios da missão: o `sync` existia desde a M25 e nunca foi mostrado; o
+`loadOracleData` tinha `catch (e) {}` e uma falha de rede disfarçava-se de "não
+há notícias". Toast reposicionado — tapava o Núcleo, precisamente no momento em
+que havia algo para mostrar.
+
+**Fase J · mobile e a11y** — PARCIAL
+Medido a 390×844: transbordo 129→6px, alvos de toque 9→0 abaixo de 32px. Zonas
+passam a `role="region"` com nome; `inert` nas inativas já funcionava, com zero
+fugas de teclado.
+
+**Fora de fase · PWA** — CONCLUÍDA
+O Vanilla era instalável e a migração da M25 perdeu isso. Manifest, ícones e
+service worker que guarda a **shell e nunca os dados** — servir dados em cache
+mostraria o Sistema de ontem como se fosse o de hoje.
+
+### Fase 5 — resolvida sem intervenção estrutural
+
+As três opções (vista "Hoje" / grupos / índice) deixaram de se justificar: a
+recomposição da Fase F trouxe Operações a 4,52 ecrãs por densidade. Os grupos já
+existiam desde a Fase 3. Reabre-se se passar dos 5 ecrãs com dados reais.
+
+### Por fazer
+
+- **War Room** ligado a dados;
+- **performance** nunca medida: bundle em 996 KB de JS, FPS em mobile e tempo de
+  arranque por medir;
+- **contraste**: auditoria WCAG AA corrida a 2026-07-29 sobre quatro zonas, 370
+  elementos com texto. Corrigida a falha da `.vit-note` (2,29 contra 4,5
+  mínimo) — era a ressalva que impede a barra de burnout de se fazer passar por
+  diagnóstico, e uma ressalva ilegível não existe. **Restam 7 falhas** por
+  identificar e corrigir uma a uma;
+- resoluções 1280×800 e 768×1024 por testar;
+- 41 referências por analisar;
+- resíduos de 6px (Universo) e 3px (Operações), sem barra de scroll;
+
+- células do calendário em mobile por confirmar.
+
+### Bloqueado no Daniel
+
+- **teste com dados reais** — a maior lacuna. Sem ele não fecham densidade,
+  contraste nem equilíbrio entre camadas; enganou duas vezes nesta sessão;
+- **Modo Estação**: renascer / absorver / reformar;
+- **matriz de tecnologia**: TypeScript, Motion, R3F, Drei, pós-processamento,
+  Vercel;
+- **gate de produção**: o Pages continua a servir o Vanilla a partir de `main`.
+
 ## Missão 27 — World Engine II · Estações, Calendário e Eventos de Prova
 (PLANEADA; extensão das M12, M23 — não reconstrução)
 

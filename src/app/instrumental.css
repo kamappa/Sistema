@@ -1220,3 +1220,19 @@ body:has(.sys-instrumental) .toast.pen {
   }
 }
 
+
+/* ── A única falha de contraste da auditoria ───────────────────────────
+ * Missão 26 · Fase J. Auditoria WCAG AA sobre a zona ativa, a órbita e a faixa
+ * do Oráculo: 1 falha em toda a superfície.
+ *
+ * `.vit-note` estava a 9,5px em `--mut2`, com rácio de 2,29 contra um mínimo de
+ * 4,5. É a nota que diz "estas estimativas não são diagnósticos" — precisamente
+ * o texto que o Sistema NÃO pode esconder, porque é a ressalva que impede uma
+ * barra de burnout de se fazer passar por avaliação clínica.
+ *
+ * Uma ressalva ilegível é uma ressalva que não existe.
+ */
+.sys-instrumental .vit-note {
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}

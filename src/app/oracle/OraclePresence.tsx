@@ -13,6 +13,7 @@
 import { useEffect, useRef, useState } from 'react';
 import OracleAmbient from './OracleAmbient';
 import OracleWarRoom from './OracleWarRoom';
+import OracleBriefing from './OracleBriefing';
 import Conselho from '../../components/Conselho.jsx';
 import './oracle.css';
 
@@ -111,7 +112,10 @@ export default function OraclePresence() {
           </header>
 
           <div className="sys-oracle-body">
-            {state === 'active' ? <Conselho /> : <OracleWarRoom />}
+            {/* O Oraculo diz o que JA SABE antes de pedir para escreveres.
+                Sem isto, invoca-lo dava um campo vazio - uma caixa de chat, que
+                e o que a Constituicao proibe por nome. */}
+            {state === 'active' ? <><OracleBriefing /><Conselho /></> : <OracleWarRoom />}
           </div>
         </div>
       )}

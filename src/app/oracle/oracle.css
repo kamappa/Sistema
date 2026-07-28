@@ -196,3 +196,44 @@
   .sys-oracle[data-state='active'],
   .sys-oracle[data-state='warroom'] { place-items: stretch; }
 }
+
+/* Briefing de invocação — Missão 26 · Fase D. Ver OracleBriefing.tsx.
+ * A hierarquia diz o que isto é: o FACTO em tinta cheia, a EVIDÊNCIA por baixo
+ * em tinta recuada. Quem lê depressa apanha os factos; quem duvida tem a prova
+ * na linha seguinte, sem ter de perguntar. */
+.sys-oracle-brief { margin-bottom: var(--sys-space-6); }
+
+.sys-oracle-brief-h {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-far);
+  margin: 0 0 var(--sys-space-4);
+}
+
+.sys-oracle-brief-list { list-style: none; margin: 0; padding: 0; }
+
+.sys-oracle-brief-list li {
+  padding: var(--sys-space-3) 0 var(--sys-space-3) var(--sys-space-4);
+  border-left: 2px solid var(--sys-seam);
+}
+.sys-oracle-brief-list li[data-tone='alert'] {
+  border-left-color: color-mix(in oklab, var(--sys-magenta) 65%, transparent);
+}
+.sys-oracle-brief-list li[data-tone='good'] {
+  border-left-color: color-mix(in oklab, var(--em) 60%, transparent);
+}
+
+.sys-oracle-brief-list .ob-head {
+  display: block;
+  font-size: var(--sys-step-0);
+  color: var(--sys-ink);
+}
+.sys-oracle-brief-list .ob-ev {
+  display: block;
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  margin-top: 1px;
+}

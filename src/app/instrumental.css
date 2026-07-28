@@ -828,3 +828,64 @@
   border-bottom: 0;
   padding-left: var(--sys-space-4);
 }
+
+/* ── Calendário: a grelha é o instrumento ──────────────────────────────
+ * Missão 26 · Fase F, quarta peça.
+ *
+ * O que estava: 42 células, cada uma com a sua borda. Lidas juntas, não davam
+ * uma grelha — davam quarenta e duas caixas. E a lei diz que a hierarquia se faz
+ * com luz e material, não com bordas.
+ *
+ * O que passa a ser: as células perdem a borda e ganham um material ténue; o
+ * que as separa é o espaço. Só o HOJE recebe luz, porque só o hoje é o portador.
+ * O passado cumprido marca-se com um filete em baixo, não com uma moldura.
+ *
+ * A grelha 7×6 mantém-se intacta e nunca comprimida — decisão da Fase 4.
+ */
+.sys-instrumental .cal-cell {
+  border: 0;
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+  transition:
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    box-shadow calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.sys-instrumental .cal-cell.empty { background: none; }
+
+.sys-instrumental .cal-cell:hover {
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+  transform: none; /* o translate do HUD fazia a grelha inteira estremecer */
+}
+
+/* Hoje é o portador da luz nesta grelha. Um só. */
+.sys-instrumental .cal-cell.today {
+  background: var(--sys-mat-active);
+  box-shadow: var(--sys-glow-inner);
+}
+
+/* Dia passado com obrigatórios cumpridos: um filete em baixo, como uma marca
+   num registo. Não é uma caixa verde — é uma anotação. */
+.sys-instrumental .cal-cell.past-ok {
+  box-shadow: inset 0 -2px 0 0 color-mix(in oklab, var(--em) 55%, transparent);
+}
+
+/* ── Revisão: o resumo já era uma tabela de leituras ───────────────────
+ * `.rc-sum-row` são pares rótulo/valor — exatamente o formato certo. Só o
+ * filete separador estava a usar a cor de borda de caixa; passa à costura.
+ */
+.sys-instrumental .rc-sum-row { border-top-color: var(--sys-seam); }
+
+/* A meta da pergunta (tema, dificuldade) segue a mesma regra das outras
+   leituras: sem caixa, com a cor a dizer o tema. */
+.sys-instrumental .rc-meta .wchip {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+}
+.sys-instrumental .rc-meta .wchip + .wchip {
+  padding-left: var(--sys-space-4);
+  border-left: 1px solid var(--sys-seam);
+}

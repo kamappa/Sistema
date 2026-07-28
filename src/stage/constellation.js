@@ -211,17 +211,23 @@ void main(){
      É daqui que vêm os filamentos — sem isto, as cristas saem paralelas e
      lê-se como tecido, não como gás. */
   vec2 dr=vec2(uTime*.008,-uTime*.005);
-  float n;
+  float n,base;
   if(uDetail>1.5){
     vec2 q=vec2(fbm(p+dr),fbm(p+vec2(4.7,2.1)+dr));
     n=ridged(p+1.9*q+dr);
-    /* curva de contraste: empurra os vazios para preto e deixa só as cristas
-       acesas. Sem isto, cinco oitavas dão a MESMA média cinzenta de antes —
-       a estrutura existe mas não se vê. */
-    n=pow(clamp(n*1.05,0.,1.),3.2);
+    /* Curva de contraste, com uma correção importante: a pow(3.2) esmagava
+       tudo o que não era crista até zero, e o resultado eram BURACOS PRETOS
+       chapados com fronteira visível — manchas, não profundidade.
+       O espaço não tem buracos: tem gás fraco em todo o lado e cristas por
+       cima. Baixa para 2.4 e o vazio deixa de ser um recorte. */
+    n=pow(clamp(n*1.05,0.,1.),2.4);
+    /* A camada CONTÍNUA que faltava: fbm suave de baixa amplitude que nunca
+       chega a zero. É ela que preenche o que era buraco e faz as cristas
+       assentarem sobre alguma coisa em vez de flutuarem sobre o nada. */
+    base=fbm(p*.7+dr*.5);
   }else{
-    /* tier baixo: duas oitavas e sem warping. Mais pobre, mas o mesmo desenho */
-    n=pow(clamp(ridged(p+dr)*1.05,0.,1.),2.6);
+    n=pow(clamp(ridged(p+dr)*1.05,0.,1.),2.0);
+    base=fbm(p*.7);
   }
   /* M26: .20 → .36 → .24. Duas correções, e a segunda por ver o céu POVOADO.
      A primeira subida resolvia um céu chapado, mas foi calibrada com o céu
@@ -233,7 +239,10 @@ void main(){
   /* Agora que n tem cristas e vazios, a amplitude pode subir sem lavar nada:
      o que sobe são as CRISTAS, e os vazios ficam pretos. Era isto que faltava —
      com névoa uniforme, subir a amplitude subia o ecrã inteiro. */
-  col+=uTint*n*.42*breathe*(1.-vUv.y*.35);
+  col+=uTint*n*.40*breathe*(1.-vUv.y*.35);
+  /* o gas continuo: fraco, mas presente em todo o lado. Sem ele os vazios eram
+     recortes pretos com fronteira - o defeito que o Daniel viu como manchas. */
+  col+=uTint*base*.085*breathe;
   /* segunda camada, mais fria e mais larga, para haver profundidade entre
      duas massas em vez de uma só folha de gás */
   col+=uTint.bgr*pow(ridged(p*.55+vec2(3.1,-1.4)),2.4)*.16*breathe;

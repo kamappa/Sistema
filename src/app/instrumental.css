@@ -1085,3 +1085,47 @@
   background: none;
   padding-inline: 0;
 }
+
+/* ── Estados vazios: convite, não desculpa ─────────────────────────────
+ * Missão 26 · Fase I.
+ *
+ * A ESCRITA já estava certa. Cada vazio do Sistema diz o que fazer a seguir:
+ * "Adiciona a primeira — Elite vale 150 XP", "Responde ao lote diário e o mapa
+ * desenha-se sozinho", "O exército aguarda". Isso é exatamente o que um ecrã
+ * vazio deve ser.
+ *
+ * O TRATAMENTO é que dizia o contrário: itálico, cinzento fraco, 12px. É a
+ * tipografia da nota de rodapé — a mesma que se usa para um aviso legal que
+ * ninguém deve ler. Uma frase que convida a agir escrita como quem se desculpa
+ * lê-se como "não há nada aqui" em vez de "começa por aqui".
+ *
+ * Aqui o vazio ganha espaço, contraste e uma marca. Continua discreto — não é
+ * um alerta — mas deixa de parecer um erro de sistema.
+ */
+.sys-instrumental .up-empty,
+.sys-instrumental .log-empty,
+.sys-instrumental .xpline-empty {
+  font-style: normal;
+  font-size: var(--sys-step-0);
+  color: var(--sys-ink-mut);
+  line-height: var(--sys-leading-normal);
+  padding: var(--sys-space-5) 0 var(--sys-space-5) var(--sys-space-5);
+  position: relative;
+  text-align: left;
+  max-width: 52ch; /* é uma frase para ler, não uma legenda a atravessar o ecrã */
+}
+
+/* A marca: um filete curto, do mesmo vocabulário das linhas de missão e hábito.
+   Diz "aqui vive alguma coisa que ainda não começou" — que é diferente de
+   "aqui não há nada". */
+.sys-instrumental .up-empty::before,
+.sys-instrumental .log-empty::before,
+.sys-instrumental .xpline-empty::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: var(--sys-space-5);
+  width: 2px;
+  height: 1.2em;
+  background: rgb(var(--sys-violet-rgb) / var(--sys-o-40));
+}

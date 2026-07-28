@@ -183,12 +183,15 @@ void main(){
   float breathe=1.+.06*sin(uTime*.285); /* a respiração da cena (M12·2C) */
   float n=noise(p+vec2(uTime*.008,-uTime*.005));
   if(uDetail>1.5)n=n*.7+.3*noise(p*2.2+vec2(-uTime*.006,uTime*.009));
-  /* M26: .20 → .36. A nebulosa do domínio existia mas quase não se via, e o
-     céu do painel lia-se como cinzento chapado ao lado do céu do palco. Subir
-     a NEBULOSA não toca na lei: nebulosa é matéria, não evidência — as
-     estrelas continuam a nascer só de nível, streak, missão ou Título. */
-  col+=uTint*n*n*.36*breathe*(1.-vUv.y*.35);
-  col+=vec3(.05,.045,.09)*n*.17; /* poeira neutra: tira o preto absoluto */
+  /* M26: .20 → .36 → .24. Duas correções, e a segunda por ver o céu POVOADO.
+     A primeira subida resolvia um céu chapado, mas foi calibrada com o céu
+     vazio — sem estrelas, uma nebulosa forte só parecia rica. Com as
+     constelações lá, a mesma nebulosa lavava-as: as linhas entre estrelas
+     quase desapareciam e a evidência perdia para o cenário.
+     As estrelas são o assunto; a nebulosa é o contexto. Quando as duas
+     competem, é o contexto que desce. */
+  col+=uTint*n*n*.24*breathe*(1.-vUv.y*.35);
+  col+=vec3(.05,.045,.09)*n*.13; /* poeira neutra: tira o preto absoluto */
   /* Solar Engine: a luz da hora real toca a poeira — quente ao entardecer,
      fria de noite; o hue do domínio continua a dominar */
   col+=uAmb*(n*.08+.015);

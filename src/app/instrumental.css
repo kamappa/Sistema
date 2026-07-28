@@ -987,3 +987,44 @@
   border: 0;
   padding: 0 0 0 var(--sys-space-3);
 }
+
+/* ── Atributos: seis medidores, não seis caixas ────────────────────────
+ * Missão 26 · Fase G. A barra tinha `border: 1px solid var(--line)` à volta do
+ * carril — seis molduras num painel onde a informação é comparar seis valores.
+ * A moldura não ajuda a comparar; a linha de base sim.
+ *
+ * O carril passa a um filete de fundo, o preenchimento é a luz, e a leitura de
+ * XP alinha à direita como nas outras métricas. O que se compara ao percorrer a
+ * coluna é onde cada barra ACABA — e é isso que fica sem nada por cima.
+ */
+.sys-instrumental .abar {
+  border: 0;
+  height: 3px;
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+  border-radius: 2px;
+  overflow: visible;
+}
+
+.sys-instrumental .afill {
+  border-radius: 2px;
+  /* o preenchimento leva o seu próprio brilho: é a única luz da linha, e é ela
+     que diz quanto falta */
+  box-shadow: 0 0 8px currentColor;
+  transition: width calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+/* A leitura de XP passa a instrumento: mono, à direita, calada. */
+.sys-instrumental .axp {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-far);
+  text-align: right;
+  margin-top: var(--sys-space-2, 4px);
+}
+
+/* O nível ganha o peso que tinha na caixa do rank, agora sem caixa nenhuma. */
+.sys-instrumental .alv b { color: var(--sys-ink); }
+
+/* Respiração entre domínios: comparar seis valores exige que eles não se
+   toquem. Era 14px para tudo. */
+.sys-instrumental .attr + .attr { margin-top: var(--sys-space-5); }

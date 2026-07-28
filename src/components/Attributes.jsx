@@ -27,7 +27,7 @@ export default function Attributes({ S }) {
                 </div>
                 <div className="alv">Nv <b>{s.level}</b></div>
               </div>
-              <div className="abar"><div className="afill" data-a={a.id} style={{ width: pct + '%', background: `linear-gradient(90deg,${a.color},${a.color}88 45%,${a.color} 75%,${a.color}cc)` }} /></div>
+              <div className="abar"><div className="afill" data-a={a.id} style={{ width: pct + '%', color: a.color, background: `linear-gradient(90deg,${a.color},${a.color}88 45%,${a.color} 75%,${a.color}cc)` }} /></div>
               <div className="axp">{s.xp} / {nd} XP</div>
             </div>
           );

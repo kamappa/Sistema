@@ -158,9 +158,20 @@ const hxv=h=>[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseI
 /* profundidade determinística por estrela (0=funda, 1=próxima) — nunca aleatória
    em runtime, para o parallax ser estável entre sessões */
 const zOf=s=>{let h=0;for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return .15+.7*((h%1000)/1000);};
-/* peso da evidência → tamanho e difração (títulos e campanhas brilham mais) */
-const szOf=s=>s.req?((s.req.title||s.req.done!=null)?22:(s.req.streak!=null)?20:17):20;
-const spOf=s=>(s.req&&(s.req.title||s.req.done!=null))?1:0;
+/* peso da evidência → tamanho e difração.
+   M26: o leque ia de 17 a 22 — 1,3× entre a estrela mais fraca e a mais forte.
+   Na prática todas se liam iguais, e um céu de pontos idênticos é a mesma
+   parede de caixas iguais que se corrigiu nos painéis, só que no céu.
+   As referências do Daniel (`universo.jpg`, `constelacao.jpg`) mostram o
+   contrário: nós grandes e sólidos ao lado de pontos mínimos, e é ESSA
+   variação que carrega a informação. Um Título Real não pode ter o tamanho de
+   um nível.
+   Passa a 15 → 34, um leque de 2,3×, com a difração a acompanhar em vez de ser
+   um privilégio só dos títulos. */
+const szOf=s=>s.req?((s.req.title)?34:(s.req.done!=null)?27:(s.req.streak!=null)?21:15):20;
+/* A difração deixa de ser binária: é o que separa uma estrela franca de um
+   ponto. Título 1.0, campanha 0.65, streak 0.3, nível nenhuma. */
+const spOf=s=>!s.req?0:(s.req.title?1:(s.req.done!=null?.65:(s.req.streak!=null?.3:0)));
 
 const BG_VERT=`varying vec2 vUv;
 void main(){vUv=position.xy*.5+.5;gl_Position=vec4(position.xy,1.,1.);}`;

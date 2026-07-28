@@ -1351,3 +1351,95 @@ time               Specifies the time when command is to run.
   mask-image: radial-gradient(ellipse 92% 118% at 50% 40%, #000 55%, transparent 100%);
   box-shadow: none;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * FULL-BLEED — o palco deixa de ser uma página com um cartão
+ * 2026-07-29. Direção corrigida pelo Daniel: "está a parecer um card dentro
+ * de uma página e não uma dashboard que ocupa o ecrã todo".
+ *
+ * Três causas, todas estruturais — nenhuma se resolvia com espaçamento:
+ *
+ * 1. CONTAINERS COM MAX-WIDTH. As zonas tinham 1600px (leitura) e 1680px
+ *    (instrumento), centrados. Um container centrado com margens iguais é a
+ *    definição de "página"; um sistema não tem margens, tem gutters.
+ *
+ * 2. O PORTADOR DA LUZ ERA O PAINEL. Dar material a um objeto fá-lo ler como
+ *    objeto — foi por isso que dissolver a borda não chegou. A luz sobe ao
+ *    PALCO: passa a ser ambiente da zona, e o painel deixa de existir como
+ *    coisa. O conteúdo assenta na cena em vez de flutuar numa placa.
+ *
+ * 3. A ZONA NÃO OCUPAVA ALTURA. Com um painel só, o conteúdo era uma banda no
+ *    topo e o resto do ecrã ficava morto. Uma zona é uma superfície, não um
+ *    bloco alinhado ao topo.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+/* 1 · Full-bleed. Sem teto, sem centragem. Os gutters crescem com o ecrã, para
+   um monitor grande não colar o conteúdo ao vidro. */
+.sys-instrumental .sys-zone[data-density='reading'] .sys-zone-body,
+.sys-instrumental .sys-zone[data-density='instrument'] .sys-zone-body {
+  max-width: none;
+  margin-inline: 0;
+}
+
+.sys-instrumental .sys-stage-wrap {
+  padding-inline: clamp(1.5rem, 3.2vw, 4.5rem);
+}
+
+/* 2 · A luz é do PALCO, não do painel. O painel deixa de ter fundo, sombra e
+   máscara — deixa de ser uma superfície. O que acende é a zona. */
+.sys-instrumental .panel,
+.sys-instrumental .sys-zone-body:not(:has(.panel:focus-within))
+  > .sys-group:first-child .panel,
+.sys-instrumental .panel:focus-within {
+  background: none;
+  box-shadow: none;
+  -webkit-mask-image: none;
+  mask-image: none;
+  /* O CULPADO FINAL da caixa. O  do HUD tem backdrop-filter:blur(6px),
+     e um backdrop-filter desenha uma REGIAO VISIVEL mesmo sem fundo nenhum:
+     desfoca o que esta atras dentro dos limites do elemento, e o limite ve-se.
+     Tirei fundo, sombra, borda e mascara e a caixa continuava la - era isto.
+     Tambem e o que a regra do projeto ja proibia: nada de blur em area grande. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  clip-path: none;
+}
+
+/* A cena ganha uma luz alta e larga — não tem bordo porque não tem forma:
+   nasce fora do ecrã e cai. É ela que diz "estás nesta zona". */
+.sys-instrumental .sys-zone[data-active='true'] .sys-zone-scroll::before {
+  content: '';
+  position: absolute;
+  /* A luz tem de MORRER DENTRO da caixa. A primeira versao usava
+      e ainda tinha opacidade ao chegar aos limites do
+     elemento — cortava em aresta nos quatro lados e desenhava outra caixa, que
+     e exactamente o defeito que isto vinha corrigir.
+     Agora a elipse e mais pequena que a caixa e chega a transparente aos 70%:
+     nao ha bordo porque a luz ja acabou antes de a caixa acabar. */
+  inset: 0 0 auto 0;
+  height: 78vh;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 62% 58% at 50% 4%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-14)) 0%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-08)) 26%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-04)) 46%,
+    transparent 70%
+  );
+}
+
+.sys-instrumental .sys-zone-scroll { position: relative; }
+.sys-instrumental .sys-zone-body { position: relative; z-index: 1; }
+
+/* 3 · A zona ocupa a altura. Com pouco conteúdo, o espaço vai para o fim e não
+   fica um vazio a meio; com muito, comporta-se como antes. */
+.sys-instrumental .sys-zone-body {
+  min-height: calc(100% - var(--sys-space-6));
+  display: flex;
+  flex-direction: column;
+}
+.sys-instrumental .sys-zone[data-density='instrument'] .sys-zone-body {
+  display: grid;
+  align-content: start;
+}

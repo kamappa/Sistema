@@ -82,11 +82,23 @@
   box-shadow: none;
 }
 
-/* A luz de foco tem UM portador. Aqui é a zona ativa que a porta, não cada
- * painel — é o que impede o regresso à parede de 19 caixas iguais. */
-.sys-zone[data-active='true'] .sys-zone-scroll > :first-child {
-  background: var(--sys-mat-active);
-}
+/* A luz de foco tem UM portador. Aqui era a zona ativa que a portava, com o
+ * material aplicado ao PRIMEIRO FILHO do scroll — que é o corpo inteiro da
+ * zona.
+ *
+ * REMOVIDO em 2026-07-29. Era a caixa. O `--sys-mat-active` termina numa base
+ * opaca, e aplicá-lo a um elemento que ocupa a zona toda desenhava um retângulo
+ * de 1723×705 com arestas duras — precisamente o "card dentro de uma página"
+ * que o Daniel apontou.
+ *
+ * Custou três tentativas a encontrar porque eu estava a limpar o PAINEL: tirei
+ * fundo, sombra, máscara, backdrop-filter e clip-path, e a caixa continuava lá.
+ * Era o contentor acima, escrito na Fase 2 e nunca revisitado. Lição: quando
+ * uma correção não muda o que se vê, o alvo está errado — foi o mesmo erro das
+ * oitavas da nebulosa.
+ *
+ * A luz da zona vive agora em `instrumental.css`, num pseudo-elemento que
+ * desvanece dentro dos próprios limites e por isso não tem bordo. */
 
 /* Títulos de painel deixam o Rajdhani uppercase e passam a Inter com peso.
  * O tracking largo sobrevive só nos micro-labels em mono. */

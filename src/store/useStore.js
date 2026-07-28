@@ -56,6 +56,10 @@ export const useStore = create((set, get) => ({
   initStarted: false, // guarda contra o duplo-invoke do StrictMode
   radar: [],          // radar_items (Oráculo · Fase 14)
   report: null,       // último oracle_report
+  fetchErr: null,     // M26: falha ao ir buscar Radar/relatório. NÃO se engole:
+                      // sem isto, uma falha de rede mostrava o estado VAZIO, que
+                      // diz "não há notícias" quando a verdade é "não consegui
+                      // perguntar". São coisas diferentes e o Sistema não mente.
   ocMsgs: [],         // Conselho: log de exibição (não persiste) — Fase 15
   ocBusy: false,
 
@@ -441,8 +445,12 @@ export const useStore = create((set, get) => ({
       const since = new Date(); since.setDate(since.getDate() - 7);
       const { data: r } = await supabase.from('radar_items').select('*').gte('d', fmt(since)).order('created_at', { ascending: false }).limit(48);
       const { data: rep } = await supabase.from('oracle_reports').select('report,created_at').order('created_at', { ascending: false }).limit(1);
-      set({ radar: r || [], report: (rep && rep[0]) || null });
-    } catch (e) {}
+      set({ radar: r || [], report: (rep && rep[0]) || null, fetchErr: null });
+    } catch (e) {
+      // o estado anterior fica: dados velhos com aviso valem mais que um vazio
+      // falso. O que muda é passar a haver aviso.
+      set({ fetchErr: (e && e.message) ? String(e.message) : 'sem ligação' });
+    }
   },
 
   // acceptRadarMission — porto de radar.js:81-88. Cria missão via triage (tag

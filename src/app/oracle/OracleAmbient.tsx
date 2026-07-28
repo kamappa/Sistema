@@ -29,8 +29,23 @@ export default function OracleAmbient({ onInvoke }: { onInvoke: () => void }) {
   const radar = useStore((s: { radar: unknown[] }) => s.radar);
   const report = useStore((s: { report: unknown }) => s.report);
   const S = useStore((s: { S: Record<string, any> | null }) => s.S);
+  const fetchErr = useStore((s: { fetchErr: string | null }) => s.fetchErr);
 
   const signals = collectSignals({ radar, report, S });
+
+  // Uma falha de rede ganha a tudo o resto: os outros sinais podem estar
+  // desactualizados e o Operador tem de saber isso ANTES de confiar neles.
+  if (fetchErr) {
+    return (
+      <button type="button" className="sys-oracle-ambient" onClick={onInvoke}
+        aria-label="Abrir o Oráculo" data-tone="alert">
+        <OracleSigil signals={0} alert />
+        <span className="sys-oracle-line">
+          <span data-tone="alert">Sem ligação ao Radar — o que vês pode estar desatualizado.</span>
+        </span>
+      </button>
+    );
+  }
 
   return (
     <button

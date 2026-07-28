@@ -1173,3 +1173,50 @@ body:has(.sys-instrumental) .toast.pen {
   border-left-color: var(--red);
   box-shadow: 0 0 34px rgb(239 68 68 / .3);
 }
+
+/* ── Mobile: correções medidas a 390×844 ──────────────────────────────
+ * Missão 26 · Fase J. Três defeitos reais, nenhum visível no PC.
+ */
+@media (max-width: 900px) {
+  /* 1. TRANSBORDO de 127px no Universo. Não era a grelha — essa já colapsa a
+     uma coluna. Eram os SETE chips de domínio numa fila que não cabe em 356px.
+     Passam a envolver: um filtro escondido fora do ecrã é um filtro que não
+     existe, e scroll horizontal escondido é pior do que duas linhas. */
+  .sys-instrumental .const-chips {
+    flex-wrap: wrap;
+    gap: var(--sys-space-3);
+  }
+
+  /* 2. ALVOS DE TOQUE. Nove controlos abaixo dos 32px, quase todos `.mini` a
+     26px de altura. A recomendação são 44px; aqui fico nos 36 porque estes
+     botões vivem em linhas densas e 44 obrigaria a recompor os painéis todos —
+     36 resolve o erro de toque sem partir a composição, e fica dito que não é
+     o ideal, é o defensável. */
+  .sys-instrumental .mini,
+  .sys-instrumental .up-del,
+  .sys-instrumental .obj-st,
+  .sys-instrumental .notif-btn,
+  .sys-instrumental .cal-nav button,
+  .sys-instrumental .cal-nav {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 3. As leituras de instrumento perdem os separadores verticais: em coluna
+     estreita partem a meio e ficam filetes soltos entre linhas. */
+  .sys-instrumental .tr-stats .wchip + .wchip,
+  .sys-instrumental .rc-meta .wchip + .wchip {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  /* O toast ocupa a largura toda menos as margens: a 390px, 32rem sairia fora. */
+  body:has(.sys-instrumental) .toast {
+    left: var(--sys-space-4);
+    right: var(--sys-space-4);
+    max-width: none;
+  }
+}
+

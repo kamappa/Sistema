@@ -889,3 +889,45 @@
   padding-left: var(--sys-space-4);
   border-left: 1px solid var(--sys-seam);
 }
+
+/* ── Sigilo do Operador ────────────────────────────────────────────────
+ * Missão 26 · Fase E. Substitui o retrato herdado do Vanilla.
+ * A forma são os seis domínios; o anel é a maior streak; a cor é o rank.
+ */
+.op-sigil { position: relative; display: grid; place-items: center; }
+.op-sigil svg { width: 100%; height: 100%; }
+
+/* Teia de referência: onde a forma estaria se todos os domínios fossem iguais.
+   Serve para o desequilíbrio se ver — um polígono sozinho não tem contra o quê
+   ser lido. */
+.op-sigil .op-web {
+  fill: none;
+  stroke: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+  stroke-width: 1;
+}
+
+.op-sigil .op-shape {
+  fill-opacity: 0.16;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  /* a forma muda quando os níveis mudam: acumula, não salta (R15) */
+  transition: all calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+.op-sigil .op-node { opacity: 0.9; }
+
+.op-sigil .op-ring {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  opacity: 0.75;
+  transition: stroke-dashoffset calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+/* O sigilo não desenha anel próprio: o `.avatar-ring` que já o envolve mostra a
+   fração de XP, e a streak já é uma leitura no cartão ("MELHOR STREAK"). Dois
+   anéis concêntricos com dados diferentes a 6px de distância não se leem — e
+   duplicar um número que está ao lado é o erro que esta missão anda a corrigir. */

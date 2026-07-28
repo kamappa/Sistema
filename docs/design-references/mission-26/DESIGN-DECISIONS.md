@@ -214,3 +214,77 @@ Três caminhos, para escolher:
   mais coerente com "instrumento, não menu de RPG".
 
 Sem resposta, fica **A** — a opção que não destrói nada.
+
+---
+
+### 2026-07-28 · Avatar → sigilo procedural (opção B)
+
+**Decisão:** o retrato de estilo anime herdado do Vanilla é substituído por um
+**sigilo derivado dos dados reais**. Escolha do Daniel entre as três opções
+registadas acima.
+
+**Como funciona:** seis vértices, um por domínio, com o raio dado pelo nível real
+normalizado pelo mais alto. Uma teia de referência por trás mostra onde a forma
+estaria se tudo fosse igual — sem ela um polígono sozinho não tem contra o quê
+ser lido, e o desequilíbrio não se veria. Cor de preenchimento = rank. Um ponto
+por vértice na cor do domínio.
+
+Piso de 0,22 no raio: um domínio a zero continua a **existir**, só não tem
+alcance. Colapsar o polígono num ponto diria que o domínio não conta.
+
+**Porquê:** um retrato fixo é igual no dia em que começas e no dia em que chegas
+a Rank S. A missão pede uma identidade que pareça "um registo vivo de um
+operador real" — isto é literalmente isso: se os dados mudarem, a cara muda.
+
+**Origem visual: nenhuma.** Não havia referência para isto na biblioteca. Fica
+registado, porque uma decisão sem origem declarada é uma decisão que ninguém
+pode contestar depois.
+
+**Reversível:** o `src/assets/avatar.js` **não foi apagado**. Voltar atrás é
+reimportar o `AVATAR` e trocar o componente pelo `<img>` — uma linha em cada
+sítio.
+
+**Correção a meio:** a primeira versão trazia um anel próprio com a streak.
+Duplicava o "MELHOR STREAK" que está a dois centímetros no mesmo cartão, e
+ficava colado ao anel de XP que já envolve o avatar — dois anéis concêntricos
+com dados diferentes a 6px não se leem. O anel saiu; a streak ficou só na
+leitura para leitor de ecrã.
+
+**Medido:** 6 vértices, 6 pontos de domínio, cor `rgb(251,191,36)` do rank,
+leitura completa em `.sr-only`, `<img>` antigo ausente do DOM.
+
+---
+
+### 2026-07-28 · Fase 5 — resolvida por medição, sem intervenção estrutural
+
+**Contexto:** a Fase 5 nasceu para decidir como reduzir a zona Operações, que
+media 5,94 ecrãs na B2 e 3,81 na primeira composição. Três opções em aberto:
+**A** vista "Hoje", **B** grupos, **C** índice.
+
+**Medição de hoje, depois da Fase F:** com 5 missões, Operações mede
+**2807px de conteúdo em 621px visíveis = 4,52 ecrãs**.
+
+**Decisão: nenhuma das três.** O problema que a Fase 5 ia resolver por estrutura
+foi resolvido por densidade — tirar as molduras às linhas de missão, hábito,
+métrica e calendário encolheu a zona sem esconder um único dado.
+
+Porque não cada uma:
+
+- **A · vista "Hoje"** — é uma funcionalidade de produto, não uma correção de
+  composição. Criaria um segundo sítio onde a verdade vive, e a decisão sobre
+  o que é "hoje" teria de ser tomada em vez de mostrada. Fica no backlog como
+  ideia de produto, não como remédio de layout.
+- **B · grupos** — **já existem** desde a Fase 3 (`zones.ts`: prioridade, rotina
+  e execução, revisão e recuperação). Estava resolvida antes de ser proposta.
+- **C · índice** — a 4,52 ecrãs não se justifica. Um índice para saltar entre
+  sete painéis a menos de cinco ecrãs acrescenta um controlo para poupar um
+  gesto de scroll.
+
+**O que fica registado:** o Daniel proibiu explicitamente perseguir a meta dos
+cinco ecrãs "através de compressões marginais, redução de legibilidade ou
+ocultação arbitrária de conteúdo". Não se comprimiu nada, não se escondeu nada,
+e a legibilidade **subiu** — os títulos ganharam o peso que as caixas lhes
+roubavam. A meta foi atingida por consequência, não por perseguição.
+
+**Reaberta se:** a zona voltar a passar dos 5 ecrãs com dados reais do Daniel.
+Nessa altura a opção A é a primeira a reconsiderar, e como funcionalidade.

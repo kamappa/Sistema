@@ -1,6 +1,6 @@
 import { useLayoutEffect } from 'react';
 import { ATTRS, RANKS, need, rankOf, titleOf, overallLevel, TITLES_REAL } from '../state/config.js';
-import { AVATAR } from '../assets/avatar.js';
+import OperatorSigil from './OperatorSigil.jsx';
 
 // cerimónia de rank-up detetada no render() do Vanilla (engine.js:110) — o
 // último rank visto vive fora do componente (sobrevive a re-renders); só uma
@@ -74,7 +74,7 @@ export default function Hero({ S }) {
               style={{ transition: 'stroke-dashoffset 1s cubic-bezier(.22,1,.36,1)' }} />
             <defs><linearGradient id="og" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#a78bfa" /><stop offset="1" stopColor="#f0abfc" /></linearGradient></defs>
           </svg>
-          <div className="avatar" id="avatar"><img src={AVATAR} alt="Daniel" /></div>
+          <div className="avatar" id="avatar"><OperatorSigil S={S} size={92} /></div>
         </div>
         <div className="hid">
           <div className="nm">Daniel</div>

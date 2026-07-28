@@ -12,3 +12,10 @@ dist/
 # propósito: o projeto tem PNG reais versionados (ícones), por isso nada de *.png.
 .playwright-mcp/
 /playwright-prova.png
+
+# Biblioteca visual da Missao 26 — referencias ficam no disco, nunca no Git.
+# Sao ficheiros de terceiros (peso, direitos de autor) e frames derivadas.
+docs/design-references/mission-26/local/
+# A pasta original do Daniel, pelo mesmo motivo: ~120 MB de mp4/gif/jpg que um
+# `git add .` distraido meteria no historico para sempre.
+docs/design references/

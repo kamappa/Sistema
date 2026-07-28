@@ -12,3 +12,14 @@ createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>
 );
+
+/* Service worker — Missão 26. Só em produção: em dev, um SW a servir a shell em
+ * cache lutaria com o HMR do Vite e daria bugs impossíveis de reproduzir.
+ * Regista sem bloquear o arranque; se falhar, a app corre na mesma. */
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/Sistema/sw.js').catch(() => {
+      /* sem SW o Sistema funciona — só não abre offline */
+    });
+  });
+}

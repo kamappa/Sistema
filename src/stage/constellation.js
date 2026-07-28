@@ -294,11 +294,24 @@ void main(){
   float d=length(q);
   float core=smoothstep(.17,.09,d);               /* ponto de luz nítido */
   float hot=smoothstep(.09,.02,d);                /* coração quase branco */
-  float halo=exp(-d*7.5)*.32*smoothstep(.5,.18,d); /* halo curto, sem borrão */
+  /* M26: o halo alcanca mais longe e leva mais peso. Era exp(-d*7.5)*.32 com um
+     smoothstep a corta-lo aos .18 - um halo que acaba antes de se ver nao e
+     bloom, e uma borda. E o bloom e metade do que faz uma estrela parecer uma
+     fonte de luz em vez de um pixel aceso. */
+  float halo=exp(-d*4.6)*.5;
   float sp=0.;
-  if(vSpike>0.){ /* difração em cruz — só nas estrelas de maior evidência */
-    sp=(pow(max(0.,1.-abs(q.x)*9.),7.)+pow(max(0.,1.-abs(q.y)*9.),7.))
-       *smoothstep(.5,.06,d)*.4*vSpike;
+  if(vSpike>0.){
+    /* Difracao em cruz. O que estava aqui nao se via, e a razao e aritmetica:
+       abs(q.x)*9. passa de 1 logo aos .111, portanto o braco morria mais perto
+       do centro do que o proprio nucleo da estrela. Elevado a 7 entao,
+       desaparecia de vez.
+       Um braco de difracao e FINO na perpendicular e LONGO ao longo do eixo.
+       Passam a ser dois termos separados: espessura (26 = fino) e comprimento
+       (2.05 = chega a borda do sprite). */
+    float thin=26.;
+    float sx=pow(max(0.,1.-abs(q.y)*thin),3.)*pow(max(0.,1.-abs(q.x)*2.05),1.6);
+    float sy=pow(max(0.,1.-abs(q.x)*thin),3.)*pow(max(0.,1.-abs(q.y)*2.05),1.6);
+    sp=(sx+sy)*.9*vSpike;
   }
   float a=mix((core*.5+halo*.2)*.6,core*.85+hot*.6+halo+sp,vMode)*vB*vFade*(1.+vWv*.9);
   vec3 col=mix(vec3(.6,.56,.76),uCol,vMode);

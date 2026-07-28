@@ -1129,3 +1129,47 @@
   height: 1.2em;
   background: rgb(var(--sys-violet-rgb) / var(--sys-o-40));
 }
+
+/* ── Notificações ──────────────────────────────────────────────────────
+ * Missão 26 · Fase I.
+ *
+ * COLISÃO MEDIDA: o toast do HUD desliza para o topo ao centro (top:22px,
+ * left:50%). Na shell, é exatamente onde o Núcleo passou a viver. Medido —
+ * Núcleo em [694,32→746,84], toast em [576,22→864,123]: tapa-o por completo.
+ *
+ * Não é um detalhe de estética. Um evento importante — A R I S E, subida de
+ * nível — anuncia-se tapando o próprio Núcleo que acabou de crescer, que é a
+ * prova que o evento produziu. O anúncio escondia a consequência.
+ *
+ * Passa para o canto inferior direito, junto ao estado de gravação: é lá que
+ * vive a faixa de sistema, e é o único sítio do ecrã sem conteúdo a ler.
+ */
+.sys-instrumental ~ .toast,
+.sys-shell ~ .toast,
+body:has(.sys-instrumental) .toast {
+  top: auto;
+  left: auto;
+  right: var(--sys-space-5);
+  bottom: calc(var(--sys-space-7) + 1.5rem);
+  transform: translate(0, 140%);
+  text-align: left;
+  min-width: 0;
+  max-width: min(32rem, calc(100vw - 4rem));
+  /* material em vez de borda cheia: o clip-path chanfrado do HUD fica, porque é
+     identidade do produto; o que sai é a moldura violeta a toda a volta, que
+     era o último contorno completo do Sistema */
+  border: 0;
+  border-left: 2px solid var(--sys-violet);
+  background: linear-gradient(135deg, rgb(13 20 35 / .97), rgb(22 16 42 / .97));
+  box-shadow: 0 0 34px rgb(var(--sys-violet-rgb) / .22);
+}
+
+body:has(.sys-instrumental) .toast.show {
+  transform: translate(0, 0);
+}
+
+/* Penalização mantém a cor de alarme; muda o filete, não a caixa. */
+body:has(.sys-instrumental) .toast.pen {
+  border-left-color: var(--red);
+  box-shadow: 0 0 34px rgb(239 68 68 / .3);
+}

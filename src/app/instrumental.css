@@ -1028,3 +1028,60 @@
 /* Respiração entre domínios: comparar seis valores exige que eles não se
    toquem. Era 14px para tudo. */
 .sys-instrumental .attr + .attr { margin-top: var(--sys-space-5); }
+
+/* ── Os últimos componentes com moldura ────────────────────────────────
+ * Missão 26 · Fase H. Varredura final: o que ainda trazia `border: 1px solid
+ * var(--line)` do HUD e ainda não tinha sido tratado.
+ *
+ * REGRA QUE NÃO SE APLICA AQUI: campos de entrada mantêm o contorno. Uma borda
+ * num input não é decoração — é a afordância que diz onde se pode escrever, e
+ * tirá-la trocaria coerência por usabilidade. O que sai são as molduras dos
+ * CONTENTORES, não as dos controlos.
+ */
+
+/* Sinais vitais (Momentum, Burnout, Recuperação) — três medidores, e o mesmo
+   raciocínio dos Atributos: o que se compara é onde cada um acaba. */
+.sys-instrumental .vit {
+  border: 0;
+  background: none;
+  padding-left: 0;
+}
+
+/* Todas as barras de progresso restantes seguem o carril dos Atributos. */
+.sys-instrumental .tit-bar,
+.sys-instrumental .tb-bar,
+.sys-instrumental .oxp-bar {
+  border: 0;
+  height: 3px;
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+  border-radius: 2px;
+}
+.sys-instrumental .tit-fill,
+.sys-instrumental .tb-fill { border-radius: 2px; }
+
+/* Pergunta da Revisão: é conteúdo para ler, não um cartão. O foco de leitura
+   faz-se com espaço e com a luz do painel, que já existe. */
+.sys-instrumental .q {
+  border: 0;
+  border-left: 2px solid rgb(var(--sys-violet-rgb) / var(--sys-o-24));
+  background: none;
+  padding-left: var(--sys-space-4);
+}
+
+/* Faixa de prazos: já tem cor própria a dizer urgência; a moldura só repetia. */
+.sys-instrumental .dbf,
+.sys-instrumental .deadline-banner {
+  border: 0;
+  border-left: 2px solid color-mix(in oklab, var(--red) 60%, transparent);
+}
+
+/* Contentores de formulário: sai a caixa do GRUPO, ficam as dos campos. */
+.sys-instrumental .addq,
+.sys-instrumental .addq-recall,
+.sys-instrumental .cal-add,
+.sys-instrumental .cal-nav,
+.sys-instrumental .rst {
+  border: 0;
+  background: none;
+  padding-inline: 0;
+}

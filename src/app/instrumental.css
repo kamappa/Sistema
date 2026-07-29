@@ -1025,11 +1025,15 @@
   transition: width calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
 }
 
-/* A leitura de XP passa a instrumento: mono, à direita, calada. */
+/* A leitura de XP passa a instrumento: mono, à direita, calada.
+   FALHA DE CONTRASTE apanhada na Fase 6C: estava em `--sys-ink-far`, que a
+   13px sobre o vazio dá 3,23:1. É o mesmo tom que a Fase 5 já tinha tirado dos
+   rótulos do Núcleo — este escapou porque vive na zona Universo. Vale a regra
+   geral: `--sys-ink-far` não serve texto, serve filetes. */
 .sys-instrumental .axp {
   font-family: var(--sys-type-data);
   font-size: var(--sys-step--1);
-  color: var(--sys-ink-far);
+  color: var(--sys-ink-mut);
   text-align: right;
   margin-top: var(--sys-space-2, 4px);
 }

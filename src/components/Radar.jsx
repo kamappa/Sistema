@@ -29,7 +29,17 @@ export default function Radar({ S }) {
     <div className="panel reveal" style={{ animationDelay: '.15s' }}>
       <div className="ptitle"><b>Núcleo</b> · Equilíbrio</div>
       <div className="radar-wrap">
-        <svg id="radar" width="320" height="320" viewBox="0 0 320 320" dangerouslySetInnerHTML={{ __html: radarSVG(S, rank) }} />
+        {/* Missão 26 · Fase 6C — O RÓTULO CORTADO, FINALMENTE.
+            Defeito medido na Fase 0 e herdado do Vanilla (`engine.js:184`):
+            "Disciplina" tem `text-anchor: end`, começa em x=43,95 com ~66px de
+            largura, e termina em −22. Com `viewBox="0 0 320 320"` os 22px
+            caíam fora da janela.
+
+            A correção abre a JANELA, não mexe na geometria: o SVG gerado
+            continua idêntico ao do Vanilla, por isso não pode introduzir
+            divergência de números. 40px de folga de cada lado cobrem o rótulo
+            mais largo com margem. */}
+        <svg id="radar" width="400" height="330" viewBox="-40 -6 400 330" dangerouslySetInnerHTML={{ __html: radarSVG(S, rank) }} />
         <div className="radar-note">A escala sobe com o teu rank. Hexágono pequeno = início; cresce à medida que evoluis. Ponta isolada = desequilíbrio.</div>
       </div>
     </div>

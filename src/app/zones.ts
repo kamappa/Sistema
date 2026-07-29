@@ -41,6 +41,7 @@ import CoreHorizon from './core/CoreHorizon';
 import CoreOracle from './core/CoreOracle';
 import { ReflectionNow, ReflectionPatterns, ReflectionMemory } from './reflection/Reflection';
 import BodySpace from './body/BodySpace';
+import Universe from './universe/Universe';
 
 /* O `DeadlineBanner` saiu do registo na Fase 5 e o componente NÃO foi apagado.
  *
@@ -188,9 +189,14 @@ export const ZONES: Zone[] = [
     name: 'Universo',
     purpose: 'A evidência tornada céu.',
     density: 'instrument',
+    // Missão 26 · Fase 6C — a INVERSÃO. O campo celeste abre a zona; a lista
+    // de seis barras desce para instrumento secundário. Nenhuma foi apagada:
+    // o campo mostra a forma e as relações, a lista mostra os números, e uma
+    // cosmologia sem números seria bonita e inútil.
     groups: [
+      { id: 'campo', weight: 'full', panels: [Universe] },
       { id: 'ceu', weight: 'full', panels: [Constellations] },
-      { id: 'dominios', name: 'Domínios', weight: 'main', panels: [Attributes] },
+      { id: 'dominios', name: 'Domínios · detalhe', weight: 'main', panels: [Attributes] },
       { id: 'equilibrio', name: 'Equilíbrio', weight: 'side', panels: [Radar] },
       { id: 'evidencia', name: 'Evidência', weight: 'full', panels: [Titles, Achievements] },
     ],

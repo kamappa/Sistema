@@ -1857,20 +1857,44 @@ Corpo e Recuperação — `elementFromPoint` no centro do cartão devolvia
 `bs-r-meta`. A shell cria contexto de empilhamento e um filho não sai dele. Um
 evento invisível é indistinguível de um evento que não aconteceu.
 
+### Fase 6C · Universo — campo celeste (CONCLUÍDA 2026-07-30)
+
+A inversão: o campo abre a zona, a lista de seis barras desce para instrumento
+secundário. Núcleo ao centro (tamanho pelo nível global, cor pelo rank), seis
+domínios em órbita de **raio fixo** — são pares, e pôr o mais forte mais perto
+sugeriria uma hierarquia que não existe; o que varia é a massa. Órbita externa
+com títulos e conquistas, cheios quando provados.
+
+**Assinaturas de movimento** com a mesma gramática física, uma por domínio, e
+só a do domínio **selecionado** anima. **Sigilos paramétricos** gerados de um
+hash do id — não classifico por domínio porque o `ACH` não guarda domínio.
+
+**Rótulo cortado do radar: FECHADO.** Defeito da Fase 0, herdado do Vanilla e
+presente em produção. A correção abre a janela do `viewBox` e não mexe na
+geometria, por isso não pode introduzir divergência de números.
+
+### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
+
+Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,
+`no signal` (diz o que vigia, quando olhou e quando volta) e `error` (com botão
+de recuperação — nunca se disfarça de vazio). O eixo passa a ser o **tempo**:
+os dias descem como marcas de varrimento.
+
+Não inventei métricas: não há barra de confiança porque o domínio não guarda
+confiança. A hora da próxima passagem é apresentada como **previsão**, com a
+ressalva escrita.
+
 ### Por fazer da Fase 6/7 — NÃO COMEÇADO
 
 Por ordem de dependência, não de valor:
 
-1. **Universo** (6C) — campo celeste navegável, assinaturas por atributo,
-   conquistas e sigilos paramétricos;
-2. **Radar** (6E) — estado vazio operacional, scanning, sinais;
-3. **Escada de Ascensão** (6D);
-4. **Calendário** (6F) — today vs selected, e os restantes estados;
-5. **Entrada e transições de zona** (6G);
-6. **Estados de arco por implementar no domínio** — `milestone`, `climax` e
+1. **Escada de Ascensão** (6D);
+2. **Calendário** (6F) — today vs selected, e os restantes estados;
+3. **Entrada e transições de zona** (6G);
+4. **Estados de arco por implementar no domínio** — `milestone`, `climax` e
    `archived` estão declarados e inalcançáveis. Precisam de onde guardar um
    marco atingido, e isso é decisão de domínio;
-7. **Sobreposição entre o pilar `kegel` do Treino e a rotina guiada de
+5. **Sobreposição entre o pilar `kegel` do Treino e a rotina guiada de
    Pavimento Pélvico** — são dois registos para a mesma atividade: o primeiro
    move a progressão do domínio, o segundo escreve em `bodyRoutines` com XP
    zero. Não os fundi porque fundi-los muda o que "sessão de treino" significa,

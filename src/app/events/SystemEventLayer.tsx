@@ -29,6 +29,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   dismissSystemEvent,
   subscribeSystemEvents,
@@ -69,7 +70,19 @@ export default function SystemEventLayer() {
 
   const animate = eventsAnimate();
 
-  return (
+  /* PORTAL para o `<body>`, e não é cosmética.
+   *
+   * Medido com `elementFromPoint`: com a camada dentro da shell, o anúncio
+   * ficava POR BAIXO do overlay do Corpo e Recuperação — `.sys-shell` cria
+   * contexto de empilhamento e um filho não sai dele, por muito alto que seja
+   * o `--sys-z-toast`. Fechar uma sessão de treino produzia o evento e o
+   * Operador nunca o via.
+   *
+   * É o mesmo defeito que o `BodySpace` já tinha apanhado. Aqui é pior: um
+   * evento invisível é indistinguível de um evento que não aconteceu, e a lei
+   * diz que o Sistema mostra provas.
+   */
+  return createPortal(
     <div
       className="sys-ev-layer"
       /* `status` e não `alert`: um anúncio de progresso não interrompe um
@@ -125,6 +138,7 @@ export default function SystemEventLayer() {
             informação já está no texto e nas leituras. */}
         {animate && <span className="sys-ev-flow" aria-hidden="true" />}
       </article>
-    </div>
+    </div>,
+    document.body
   );
 }

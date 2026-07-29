@@ -23,15 +23,29 @@ import { useStore } from '../../store/useStore.js';
 import { ROUTINES, routineSeconds, sourceById, type Routine } from './routines';
 import { readRecovery } from './recoveryRead';
 import RoutinePlayer from './RoutinePlayer';
+import TrainingSession from './TrainingSession';
 import Training from '../../components/Training.jsx';
 import Sleep from '../../components/Sleep.jsx';
+import { TLINES } from '../../state/config.js';
 import './body.css';
 
 const mins = (s: number) => Math.max(1, Math.round(s / 60));
+/** Mantido em sincronia com `SETS` do TrainingSession — é só a frase de
+ *  apresentação; o número que conta vive lá. */
+const SETS_HINT = 3;
+const MODE_KEY = 'sistema:treino-modo';
 
 export default function BodySpace({ S }: { S: Record<string, any> }) {
   const [open, setOpen] = useState(false);
   const [playing, setPlaying] = useState<Routine | null>(null);
+  const [training, setTraining] = useState(false);
+  const [mode, setModeState] = useState<'guided' | 'quick'>(() => {
+    try { return localStorage.getItem(MODE_KEY) === 'quick' ? 'quick' : 'guided'; } catch { return 'guided'; }
+  });
+  const setMode = (m: 'guided' | 'quick') => {
+    setModeState(m);
+    try { localStorage.setItem(MODE_KEY, m); } catch { /* modo privado: fica só nesta sessão */ }
+  };
   const logBodyRoutine = useStore((s: any) => s.logBodyRoutine);
   const panelRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
@@ -161,9 +175,43 @@ export default function BodySpace({ S }: { S: Record<string, any> }) {
                       redesenhados nesta passagem, e isso está dito no relatório
                       em vez de ficar escondido: o que esta fase entrega é o
                       ESPAÇO e as rotinas guiadas. */}
+                  {/* ── TREINO ──
+                      Dois modos, e o guiado NÃO é obrigatório. A preferência
+                      fica em localStorage: é uma escolha de interface, não um
+                      dado do Operador, e não tem nada que fazer no app_state
+                      nem a viajar para a nuvem. */}
                   <section className="bs-sec">
-                    <h3 className="bs-h">Treino</h3>
-                    <Training S={S} />
+                    <div className="bs-modes">
+                      <h3 className="bs-h">Treino</h3>
+                      <div className="bs-mode-sw" role="group" aria-label="Modo de treino">
+                        <button type="button" data-on={mode === 'guided'} onClick={() => setMode('guided')}>Guiado</button>
+                        <button type="button" data-on={mode === 'quick'} onClick={() => setMode('quick')}>Registo rápido</button>
+                      </div>
+                    </div>
+
+                    {mode === 'guided' ? (
+                      training ? (
+                        <TrainingSession S={S} onClose={() => setTraining(false)} />
+                      ) : (
+                        <div className="bs-start">
+                          <p className="bs-r-lede">
+                            {TLINES.length} exercícios, {SETS_HINT} séries cada, com demonstração,
+                            ritmo e descanso contado.
+                          </p>
+                          <p className="bs-claim">
+                            Nada é gravado enquanto não concluíres o resumo. Sair a meio não
+                            perde dados porque ainda não há dados para perder.
+                          </p>
+                          <button className="cc-act-go" type="button" onClick={() => setTraining(true)}>
+                            Começar sessão
+                          </button>
+                        </div>
+                      )
+                    ) : (
+                      /* O painel antigo, inteiro. Quem já sabe o que faz não
+                         tem de ser guiado — e a lista compacta é mais rápida. */
+                      <Training S={S} />
+                    )}
                   </section>
 
                   <section className="bs-sec">

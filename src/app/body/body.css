@@ -315,3 +315,127 @@
   .bs-r-meta span + span { padding-left: var(--sys-space-3); margin-left: var(--sys-space-3); }
   .bp-counts span + span { padding-left: var(--sys-space-3); margin-left: var(--sys-space-3); }
 }
+
+/* ── SESSÃO GUIADA DE TREINO ────────────────────────────────────────────
+ * Missão 26 · Fase 7, segunda passagem.
+ *
+ * Reutiliza a língua do `RoutinePlayer` (`.bp-*`): é o mesmo tipo de coisa —
+ * um fluxo com cabeçalho persistente, demonstração e registo — e dois fluxos
+ * com aspetos diferentes ensinariam duas interfaces para uma função.
+ */
+.ts { display: grid; gap: var(--sys-space-5); }
+
+.bs-modes {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--sys-space-4); flex-wrap: wrap;
+}
+
+/* Os dois modos são um par, não dois botões soltos: partilham a costura e só
+   um está aceso. Sem pílula e sem caixa — o aceso é o que tem cor de tinta. */
+.bs-mode-sw { display: flex; }
+.bs-mode-sw button {
+  appearance: none; background: none; border: 0;
+  border-bottom: 2px solid transparent;
+  padding: var(--sys-space-2) var(--sys-space-4);
+  min-height: 36px; cursor: pointer;
+  font-family: var(--sys-type-data); font-size: var(--sys-step--1);
+  letter-spacing: 0.04em; color: var(--sys-ink-mut);
+}
+.bs-mode-sw button[data-on='true'] { color: var(--sys-ink); border-bottom-color: var(--sys-violet); }
+.bs-mode-sw button:hover { color: var(--sys-ink); }
+
+.bs-start { display: grid; gap: var(--sys-space-3); justify-items: start; }
+
+.ts-line {
+  margin: 0;
+  font-family: var(--sys-type-data); font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label); text-transform: uppercase;
+}
+
+.ts-targets { margin-top: var(--sys-space-3); }
+
+.ts-sets { margin: var(--sys-space-3) 0 0; font-size: var(--sys-step-0); color: var(--sys-ink-mut); }
+.ts-sets b { font-family: var(--sys-type-data); color: var(--sys-ink); }
+
+.ts-field { display: grid; gap: var(--sys-space-2); margin-top: var(--sys-space-4); max-width: 24rem; }
+.ts-field > span { font-family: var(--sys-type-data); font-size: var(--sys-step--1); color: var(--sys-ink-mut); }
+.ts-field input {
+  min-height: 44px;
+  font-size: var(--sys-step-1);
+  /* o contorno FICA: num campo é afordância, não decoração (regra da Fase H) */
+}
+
+/* ── Resultados ────────────────────────────────────────────────────────
+ * Substituem o `<select>` de "Fácil / OK / Difícil", que não dizia se era
+ * dificuldade, execução, dor ou qualidade. Cada opção diz o que é e o que
+ * significa — e o painel em baixo diz o que cada uma FAZ à progressão.
+ */
+.ts-results { border: 0; padding: 0; margin: var(--sys-space-4) 0 0; display: grid; gap: 0; }
+.ts-results legend {
+  padding: 0; font-family: var(--sys-type-data); font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label); text-transform: uppercase; color: var(--sys-ink-mut);
+}
+.ts-results label {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 var(--sys-space-3);
+  align-items: baseline; padding: var(--sys-space-2) 0; min-height: 44px; cursor: pointer;
+  border-top: 1px solid var(--sys-seam);
+}
+.ts-results label input { grid-row: 1 / span 2; width: 18px; height: 18px; accent-color: var(--sys-violet); align-self: center; }
+.ts-res-l { color: var(--sys-ink-mut); font-size: var(--sys-step-0); }
+.ts-results label[data-on='true'] .ts-res-l { color: var(--sys-ink); }
+.ts-res-h { grid-column: 2; font-size: var(--sys-step--1); color: var(--sys-ink-mut); }
+
+.ts-map { margin: var(--sys-space-2) 0 var(--sys-space-3) var(--sys-space-5); color: var(--sys-ink-mut); line-height: var(--sys-leading-normal); max-width: 68ch; }
+.ts-map b { color: var(--sys-ink); }
+
+/* ── Descanso ──────────────────────────────────────────────────────────
+ * Uma coisa só no ecrã. O descanso é parte do exercício, e um ecrã cheio de
+ * outras coisas convidaria a encurtá-lo.
+ */
+.ts-rest { justify-items: center; text-align: center; }
+.ts-rest-l {
+  margin: var(--sys-space-6) 0 0;
+  font-family: var(--sys-type-data); font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label); text-transform: uppercase; color: var(--sys-ink-mut);
+}
+.ts-rest-t {
+  margin: var(--sys-space-2) 0 0;
+  font-family: var(--sys-type-display); font-size: var(--sys-step-6);
+  font-weight: var(--sys-weight-bold); line-height: 1; color: var(--sys-violet);
+  font-variant-numeric: tabular-nums;
+}
+.ts-rest-n { margin: 0; max-width: 46ch; color: var(--sys-ink-mut); font-size: var(--sys-step-0); line-height: var(--sys-leading-normal); }
+.ts-rest .bp-acts { justify-content: center; }
+
+/* ── Resumo ────────────────────────────────────────────────────────────
+ * Linha a linha, o que vai ser gravado. "Concluir treino" deixa de ser um
+ * botão que se carrega às cegas.
+ */
+.ts-sum { list-style: none; margin: 0; padding: 0; }
+.ts-sum li {
+  display: grid; grid-template-columns: minmax(7rem, auto) minmax(0, 1fr) auto;
+  gap: var(--sys-space-2) var(--sys-space-5); align-items: baseline;
+  padding: var(--sys-space-3) 0;
+}
+.ts-sum li + li { border-top: 1px solid var(--sys-seam); }
+.ts-sum li[data-empty='true'] { opacity: 0.5; }
+.ts-sum-n { font-family: var(--sys-type-data); font-size: var(--sys-step--1); letter-spacing: var(--sys-track-label); text-transform: uppercase; }
+.ts-sum-v { font-family: var(--sys-type-data); font-size: var(--sys-step-0); color: var(--sys-ink); }
+.ts-sum-r { font-size: var(--sys-step--1); color: var(--sys-ink-mut); text-align: right; }
+.ts-adv { color: var(--em); }
+
+.ts-warn {
+  margin: 0; padding-left: var(--sys-space-4);
+  border-left: 2px solid var(--sys-alert);
+  color: #fde68a; font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal); max-width: 66ch;
+}
+
+.ts-check { display: flex; align-items: center; gap: var(--sys-space-3); min-height: 44px; cursor: pointer; color: var(--sys-ink-mut); }
+.ts-check input { width: 18px; height: 18px; accent-color: var(--sys-violet); }
+
+@media (max-width: 900px) {
+  .ts-sum li { grid-template-columns: minmax(0, 1fr); }
+  .ts-sum-r { text-align: left; }
+  .ts-rest-t { font-size: var(--sys-step-5); }
+}

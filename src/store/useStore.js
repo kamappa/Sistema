@@ -374,8 +374,31 @@ export const useStore = create((set, get) => ({
     if (adv.length) { if (advXp) addXp(S, 'corpo', advXp); }
     S.training.sessions.push({ d: today(), lines, extra: extraOk, notes, adv: adv.length, xp: xp + advXp });
     plog(S, '🏋️ Treino (' + logged + ' linhas' + (extraOk ? ' + extra' : '') + (nToday ? ' · ' + (nToday + 1) + 'ª sessão do dia' : '') + ')', xp + advXp);
+    // SYSTEM EVENT (M26·F7) — a sessão e a evolução de progressão são
+    // acontecimentos do mundo, não avisos de formulário. Encenados antes do
+    // `save()`, que é quem os publica. Os toasts que ficam nesta função são
+    // TRAVAS e ressalvas ("4º dia seguido", "2ª sessão sem XP total") — esses
+    // são resposta a um formulário e continuam onde estão.
+    sysEvent({
+      dedupe: 'train:' + today() + ':' + S.training.sessions.length,
+      kind: 'habit',
+      title: 'Sessão registada',
+      subject: logged + (logged === 1 ? ' linha' : ' linhas') + (extraOk ? ' + volume extra' : ''),
+      color: AM.corpo.color,
+      readings: [{ label: AM.corpo.name, value: (xp + advXp) > 0 ? '+' + (xp + advXp) + ' XP' : 'sem XP' }],
+    });
+    if (adv.length) {
+      sysEvent({
+        dedupe: 'prog:' + today() + ':' + adv.join('|'),
+        kind: 'levelup',
+        title: 'Progressão',
+        subject: adv.join(' · '),
+        color: '#34d399',
+        readings: [{ label: 'Passos', value: '+' + adv.length }],
+        holdMs: 8000,
+      });
+    }
     set({ S: { ...S } }); get().save();
-    if (adv.length) fx('toast', 'EVOLUÇÃO DE PROGRESSÃO', '↑ ' + adv.join(' · '), '#34d399');   // treino.js:46
     if (nToday === 1) fx('toast', 'Sessão registada', '2.ª sessão de hoje — XP a metade. O músculo cresce no descanso.', '#fb923c');
     else if (nToday >= 2) fx('toast', 'Sessão registada', '3.ª+ sessão de hoje — registada sem XP. Dados honestos, corpo protegido.', '#fb923c');
     fx('floatXP', (xp + advXp) > 0 ? '+' + (xp + advXp) + ' XP' : 'registado', '#f472b6');

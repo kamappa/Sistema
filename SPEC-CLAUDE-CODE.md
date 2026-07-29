@@ -1836,23 +1836,45 @@ resultado da gravação; se falhar, não há sigilo a formar-se, há uma mensage
 dizer que não ficou guardado. Verificado ponta a ponta: `worldArc` null →
 active, missões 6 → 10, e o mundo fica com a camada da estação ao fechar.
 
+### Fase 7 · Treino em fluxo guiado (CONCLUÍDA 2026-07-30)
+
+Sessão guiada de calistenia com três contagens distintas, cinco resultados com
+nome (em vez do `OK`, que não dizia se era dificuldade, execução, dor ou
+qualidade), demonstrações por exercício, descanso de 90 s contado, e um resumo
+que mostra linha a linha o que vai ser gravado e prediz o que sobe de passo.
+
+**Dor não promove:** "dor/desconforto" e "demasiado difícil" mapeiam para
+`feel: 'd'`, e o domínio já recusa avançar com esse valor. Não é regra nova.
+
+**Registo rápido** continua a existir — o painel antigo, inteiro. A preferência
+fica em `localStorage`, porque é escolha de interface e não dado do Operador.
+
+Verificado: sessões 8→9, progressão `push` 4→5 com 14 reps contra alvo 10,
++51 XP, pausa congela o relógio, 41 elementos sem falha de contraste.
+
+**Bug apanhado por medição:** o anúncio de evento ficava por baixo do overlay do
+Corpo e Recuperação — `elementFromPoint` no centro do cartão devolvia
+`bs-r-meta`. A shell cria contexto de empilhamento e um filho não sai dele. Um
+evento invisível é indistinguível de um evento que não aconteceu.
+
 ### Por fazer da Fase 6/7 — NÃO COMEÇADO
 
 Por ordem de dependência, não de valor:
 
-1. **Treino em fluxo guiado** (7) — o espaço existe e o painel de Treino entra
-   nele **inteiro, sem redesenho**. A sessão guiada de calistenia, os modos
-   guiado/rápido para o treino e as demonstrações por exercício ficam por
-   fazer; o que está feito é o padrão, provado nas duas rotinas novas;
-2. **Universo** (6C) — campo celeste navegável, assinaturas por atributo,
+1. **Universo** (6C) — campo celeste navegável, assinaturas por atributo,
    conquistas e sigilos paramétricos;
-3. **Radar** (6E) — estado vazio operacional, scanning, sinais;
-4. **Escada de Ascensão** (6D);
-5. **Calendário** (6F) — today vs selected, e os restantes estados;
-6. **Entrada e transições de zona** (6G);
-7. **Estados de arco por implementar no domínio** — `milestone`, `climax` e
+2. **Radar** (6E) — estado vazio operacional, scanning, sinais;
+3. **Escada de Ascensão** (6D);
+4. **Calendário** (6F) — today vs selected, e os restantes estados;
+5. **Entrada e transições de zona** (6G);
+6. **Estados de arco por implementar no domínio** — `milestone`, `climax` e
    `archived` estão declarados e inalcançáveis. Precisam de onde guardar um
-   marco atingido, e isso é decisão de domínio.
+   marco atingido, e isso é decisão de domínio;
+7. **Sobreposição entre o pilar `kegel` do Treino e a rotina guiada de
+   Pavimento Pélvico** — são dois registos para a mesma atividade: o primeiro
+   move a progressão do domínio, o segundo escreve em `bodyRoutines` com XP
+   zero. Não os fundi porque fundi-los muda o que "sessão de treino" significa,
+   e isso é decisão do Daniel.
 
 ### Por fazer
 

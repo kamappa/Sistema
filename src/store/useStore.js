@@ -556,8 +556,12 @@ export const useStore = create((set, get) => ({
         : [{ label: 'Mente', value: '+15 XP' }],
       holdMs: 8000,
     });
-    set({ S: { ...S } }); get().save();
-    return { n };
+    set({ S: { ...S } });
+    // A cerimónia de aceitação NÃO pode começar antes de a escrita passar —
+    // celebrar uma decisão que não ficou guardada seria o Sistema a afirmar
+    // uma coisa falsa. `saved` é o que o overlay espera para animar.
+    const saved = get().save();
+    return { n, saved };
   },
   arcLater: () => { const S = get().S; S.worldArc = { id: seasonArcNow().id, status: 'later', snooze: today() }; set({ S: { ...S } }); get().save(); },
   arcIgnore: () => { const S = get().S; S.worldArc = { id: seasonArcNow().id, status: 'dismissed' }; set({ S: { ...S } }); get().save(); },

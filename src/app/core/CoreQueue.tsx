@@ -25,7 +25,9 @@
  * medida à direita, separadas por espaço e não por caixas.
  */
 
+import { useState } from 'react';
 import { useStore } from '../../store/useStore.js';
+import ArcPreview from '../arcs/ArcPreview';
 import { daysUntil, today } from '../../state/dates.js';
 import { seasonArcNow } from '../../state/world.js';
 import { AM } from '../../state/config.js';
@@ -39,9 +41,9 @@ const MAX_ROWS = 4;
 export default function CoreQueue({ S }: { S: Record<string, any> }) {
   const report = useStore((s: { report: unknown }) => s.report);
   const radar = useStore((s: { radar: unknown[] }) => s.radar);
-  const arcAccept = useStore((s: any) => s.arcAccept);
   const arcLater = useStore((s: any) => s.arcLater);
   const arcIgnore = useStore((s: any) => s.arcIgnore);
+  const [preview, setPreview] = useState(false);
 
   const cur = readNextAction({ S, report, radar });
   const skipId = cur.act?.id;
@@ -93,16 +95,22 @@ export default function CoreQueue({ S }: { S: Record<string, any> }) {
               matéria do Universo. O que decide é o que o arco muda. */}
           <p className="cc-dec-d">{arc.desc}</p>
           <div className="cc-dec-acts">
-            {cur.kind !== 'decision' && (
-              <button className="mini" type="button" onClick={() => arcAccept()}>
-                Aceitar arco (+15 {AM.mente.name})
-              </button>
-            )}
+            {/* Missão 26 · Fase 7 — ACEITAR DEIXA DE SER UM CLIQUE DE PASSAGEM.
+                Um arco dura meses e muda multiplicadores, missões e atmosfera;
+                decidir isso num botão de 26px, entre duas linhas de texto, era
+                pedir uma decisão de estação com a cerimónia de um checkbox.
+                O botão abre o preview, e é lá que se aceita — com o que ganha,
+                o que custa e o que acontece se ignorar à vista. */}
+            <button className="mini" type="button" onClick={() => setPreview(true)}>
+              Ver o arco
+            </button>
             <button className="mini" type="button" onClick={() => arcLater()}>Mais tarde</button>
             <button className="mini" type="button" onClick={() => arcIgnore()}>Ignorar</button>
           </div>
         </div>
       )}
+
+      {preview && <ArcPreview S={S} onClose={() => setPreview(false)} />}
 
       {rows.length > 0 && <Block name="Em espera" rows={rows} />}
     </section>

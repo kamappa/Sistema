@@ -1,0 +1,297 @@
+/* PREVIEW E CERIMÓNIA DO ARCO.
+ * Missão 26 · Fase 7.
+ *
+ * A única superfície do Sistema que pode ser CENA em vez de instrumento — um
+ * arco é um acontecimento de meses, e acontece uma vez por estação. A raridade
+ * é o que autoriza a escala; se isto aparecesse todos os dias, seria ruído.
+ *
+ * Continua a não haver moldura, não há caixa e não há emblema: a hierarquia é
+ * escala e luz, como em todo o lado.
+ */
+
+.ap-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--sys-z-overlay);
+  display: grid;
+  /* 0.9 deixava o Command Core legível por trás e o preview ficava com texto
+     por cima de texto. Um acontecimento de meses pede o ecrã inteiro — é o
+     único momento do produto em que isso se justifica, e justifica-se porque
+     é raro. */
+  background: rgb(4 3 10 / 0.97);
+  padding: var(--sys-space-5);
+  /* A camada da estação entra JÁ no preview, mas contida ao overlay: o mundo
+     ainda não mudou — isto é uma pré-visualização, e a diferença tem de se
+     manter até a decisão ser tomada. */
+  background-image: radial-gradient(
+    ellipse 80% 60% at 50% 108%,
+    color-mix(in oklab, var(--arc-accent) 34%, transparent) 0%,
+    color-mix(in oklab, var(--arc-accent-soft) 14%, transparent) 38%,
+    transparent 72%
+  );
+  overflow-y: auto;
+}
+
+.ap-panel {
+  width: 100%;
+  max-width: 1040px;
+  margin: auto;
+  outline: none;
+  display: grid;
+  gap: var(--sys-space-6);
+  padding-block: var(--sys-space-6);
+}
+
+.ap-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sys-space-5);
+}
+
+.ap-kicker {
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+/* A grandeza única deste ecrã. Rajdhani está reservado a identidade, e o nome
+   de um arco de quatro meses é identidade. */
+.ap-title {
+  margin: var(--sys-space-2) 0 0;
+  font-family: var(--sys-type-display);
+  font-size: clamp(2rem, 4.4vw, 3.5rem);
+  font-weight: var(--sys-weight-bold);
+  line-height: 1;
+  letter-spacing: var(--sys-track-tight);
+  color: var(--sys-ink);
+}
+
+.ap-desc {
+  margin: var(--sys-space-3) 0 0;
+  font-size: var(--sys-step-1);
+  color: var(--sys-ink-mut);
+  max-width: 56ch;
+  line-height: var(--sys-leading-normal);
+}
+
+.ap-close {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  color: var(--sys-ink-mut); width: 44px; height: 44px; font-size: var(--sys-step-1);
+}
+.ap-close:hover, .ap-close:focus-visible { color: var(--sys-ink); }
+
+.ap-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--sys-space-7);
+  align-items: start;
+}
+
+.ap-sigil { display: grid; justify-items: center; gap: var(--sys-space-3); }
+
+/* A respiração do sigilo é AMBIENTE, e por isso `data-ambient`: em regime
+   `calm` pára, e fora da zona ativa não corre. Ciclo lento — é presença, não
+   evento (gramática 3). */
+@keyframes ap-breathe {
+  from { transform: scale(0.98); opacity: 0.85; }
+  to   { transform: scale(1.02); opacity: 1; }
+}
+.ap-sigil .arc-sigil {
+  animation: ap-breathe var(--sys-cycle-ambient) var(--sys-ease-breath) infinite alternate;
+}
+
+.ap-gesture {
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.ap-info { display: grid; gap: var(--sys-space-5); }
+
+.ap-sec { display: grid; gap: var(--sys-space-3); }
+
+.ap-sh {
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+  padding-top: var(--sys-space-3);
+  border-top: 1px solid var(--sys-seam);
+}
+.ap-sec:first-child .ap-sh { border-top: 0; padding-top: 0; }
+
+/* ── Mapa temporal ─────────────────────────────────────────────────────
+ * Início, hoje e fim. Nada mais, porque nada mais está guardado.
+ */
+.ap-time { display: grid; gap: var(--sys-space-2); }
+
+.ap-time-bar {
+  position: relative;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--arc-accent) 55%, transparent),
+    color-mix(in oklab, var(--arc-accent-soft) 25%, transparent));
+}
+
+.ap-time-now {
+  position: absolute;
+  top: 50%;
+  width: 9px; height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: var(--arc-accent-soft);
+  box-shadow: 0 0 12px var(--arc-accent);
+}
+
+.ap-time-l {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sys-space-4);
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}
+.ap-time-l span:nth-child(2) { color: var(--sys-ink); }
+
+/* ── Domínios favorecidos ──────────────────────────────────────────────── */
+.ap-bonus { display: flex; flex-wrap: wrap; gap: 0; margin: 0; }
+.ap-bonus > div { padding: 0 var(--sys-space-5); border-left: 2px solid var(--dom, var(--sys-seam)); }
+.ap-bonus > div:first-child { padding-left: var(--sys-space-4); }
+
+.ap-bonus dt {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+.ap-bonus dd {
+  margin: var(--sys-space-1) 0 0;
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-3);
+  font-weight: var(--sys-weight-bold);
+  line-height: 1;
+  color: var(--sys-ink);
+}
+
+.ap-note, .ap-plain {
+  margin: 0;
+  font-size: var(--sys-step--1);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink-mut);
+  max-width: 66ch;
+}
+.ap-plain { font-size: var(--sys-step-0); }
+
+.ap-cost { margin: 0; padding-left: var(--sys-space-5); color: var(--sys-ink-mut); line-height: var(--sys-leading-normal); max-width: 66ch; }
+.ap-cost b { color: var(--sys-ink); }
+
+.ap-quests { list-style: none; margin: var(--sys-space-2) 0 0; padding: 0; display: grid; }
+.ap-quests li {
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--sys-space-4);
+  padding: var(--sys-space-2) 0;
+}
+.ap-quests li + li { border-top: 1px solid var(--sys-seam); }
+.ap-q-t { color: var(--sys-ink-mut); font-size: var(--sys-step-0); }
+.ap-q-d { font-family: var(--sys-type-data); font-size: var(--sys-step--1); white-space: nowrap; }
+
+/* A pergunta do arco: é o que ele quer que respondas em quatro meses. */
+.ap-boss {
+  margin: 0;
+  font-size: var(--sys-step-2);
+  line-height: var(--sys-leading-tight);
+  color: var(--sys-ink);
+  max-width: 40ch;
+  padding-left: var(--sys-space-4);
+  border-left: 2px solid color-mix(in oklab, var(--arc-accent) 60%, transparent);
+}
+
+.ap-acts { display: flex; flex-wrap: wrap; gap: var(--sys-space-4); align-items: center; }
+.ap-acts .mini { min-height: 36px; }
+
+/* ── Cerimónia ─────────────────────────────────────────────────────────
+ * Curta e com fim visível — é um ARCO, não um ciclo (gramática 3). Não
+ * bloqueia: o botão de sair está lá desde o primeiro instante do estado final.
+ */
+.ap-ceremony {
+  display: grid;
+  justify-items: center;
+  gap: var(--sys-space-5);
+  text-align: center;
+  padding: var(--sys-space-8) var(--sys-space-4);
+}
+
+@keyframes ap-converge {
+  from { transform: scale(1.35); opacity: 0; }
+  60%  { opacity: 1; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* A energia converge PARA o sigilo — do ambiente para dentro (R15). Corre uma
+   vez. Sem movimento permitido, o estado final aparece direto. */
+.ap-overlay[data-stage='forming'] .ap-form .arc-sigil {
+  animation: ap-converge calc(var(--sys-dur-slow) * 2 * var(--sys-motion-scale)) var(--sys-ease-gravity) both;
+}
+
+.ap-cer-t {
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.ap-done-r { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; margin: 0; }
+.ap-done-r > div { padding: 0 var(--sys-space-5); }
+.ap-done-r > div + div { border-left: 1px solid var(--sys-seam); }
+.ap-done-r dt {
+  font-family: var(--sys-type-data); font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label); text-transform: uppercase; color: var(--sys-ink-mut);
+}
+.ap-done-r dd {
+  margin: var(--sys-space-1) 0 0;
+  font-family: var(--sys-type-display); font-size: var(--sys-step-3);
+  font-weight: var(--sys-weight-bold); line-height: 1; color: var(--sys-ink);
+}
+
+.ap-oracle {
+  margin: 0;
+  max-width: 60ch;
+  text-align: left;
+  padding-left: var(--sys-space-4);
+  border-left: 2px solid rgb(var(--sys-magenta-rgb) / var(--sys-o-40));
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink);
+}
+
+.ap-oracle-l {
+  display: block;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+@media (max-width: 900px) {
+  .ap-overlay { padding: var(--sys-space-4); }
+  .ap-body { grid-template-columns: minmax(0, 1fr); gap: var(--sys-space-5); }
+  .ap-sigil .arc-sigil { width: 104px; height: 104px; }
+  .ap-bonus > div { padding-inline: var(--sys-space-3); }
+  .ap-bonus > div:first-child { padding-left: var(--sys-space-3); }
+  .ap-done-r > div { padding-inline: var(--sys-space-3); }
+  .ap-time-l { flex-wrap: wrap; }
+}

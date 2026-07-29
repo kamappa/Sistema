@@ -1,0 +1,317 @@
+/* CORPO E RECUPERAÇÃO.
+ * Missão 26 · Fase 7.
+ *
+ * O espaço é um subespaço, e tem de o parecer: entra por cima da zona, com o
+ * palco a ver-se por trás. Não é uma página nova — é uma mesa que se abre.
+ */
+
+/* ── A entrada, dentro de Operações ────────────────────────────────────── */
+.bs-entry { display: grid; gap: var(--sys-space-4); }
+
+.bs-sum { display: grid; gap: var(--sys-space-2); }
+
+.bs-rec { display: flex; align-items: baseline; gap: var(--sys-space-3); }
+
+.bs-rec-l {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.bs-rec-v {
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-2);
+  font-weight: var(--sys-weight-bold);
+  color: var(--sys-ink);
+}
+
+/* A cor do estado é semântica e usa a paleta do Sistema — não uma escala nova.
+   `recuperar` NÃO é vermelho de perigo: é âmbar de atenção. Descansar não é
+   uma falha, e pintá-lo de vermelho dizia o contrário. */
+.bs-rec[data-level='pronto'] .bs-rec-v,
+.bs-rec-full[data-level='pronto'] strong { color: var(--em); }
+.bs-rec[data-level='moderado'] .bs-rec-v,
+.bs-rec-full[data-level='moderado'] strong { color: #fde68a; }
+.bs-rec[data-level='recuperar'] .bs-rec-v,
+.bs-rec-full[data-level='recuperar'] strong { color: var(--sys-alert); }
+.bs-rec[data-level='sem-dados'] .bs-rec-v,
+.bs-rec-full[data-level='sem-dados'] strong { color: var(--sys-ink-mut); }
+
+.bs-rec-m {
+  margin: 0;
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  line-height: var(--sys-leading-normal);
+  max-width: 56ch;
+}
+
+.bs-quick { list-style: none; margin: 0; padding: 0; }
+.bs-quick li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sys-space-4);
+  padding: var(--sys-space-2) 0;
+  font-size: var(--sys-step-0);
+  color: var(--sys-ink-mut);
+}
+.bs-quick li + li { border-top: 1px solid var(--sys-seam); }
+.bs-quick-r { font-family: var(--sys-type-data); font-size: var(--sys-step--1); }
+
+.bs-entry .cc-act-go { justify-self: start; }
+
+/* ── O overlay ─────────────────────────────────────────────────────────
+ * Cobre o palco sem o destruir: a zona por baixo continua montada, com o
+ * scroll e o WebGL intactos.
+ */
+.bs-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--sys-z-overlay);
+  display: grid;
+  place-items: stretch;
+  background: rgb(4 3 10 / 0.82);
+  padding: var(--sys-space-5);
+}
+
+/* O overlay leva a classe `sys-instrumental` para herdar as correções da
+   shell. Isso traz também a GRELHA da shell, que aqui não serve — o overlay
+   não tem órbita nem faixa do Oráculo. Reposto para o layout próprio. */
+.bs-overlay.sys-instrumental {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: none;
+}
+
+/* Os `.mini` do Treino e do Sono vinham a 26px do HUD. Dentro do espaço, onde
+   se regista uma sessão com o telemóvel na mão, 32px é o mínimo defensável. */
+.bs-overlay .mini { min-height: 32px; }
+
+.bs-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-width: 1100px;
+  width: 100%;
+  margin-inline: auto;
+  outline: none;
+  /* Sem moldura completa — a lei da luz vale aqui como em todo o lado. Uma
+     costura em cima e o material do fundo chegam para dizer onde começa. */
+  border-top: 1px solid var(--sys-seam);
+  background: linear-gradient(180deg, rgb(10 8 22 / .96), rgb(4 3 10 / .98));
+}
+
+.bs-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sys-space-5);
+  padding: var(--sys-space-5) var(--sys-space-6) var(--sys-space-4);
+  border-bottom: 1px solid var(--sys-seam);
+}
+
+.bs-title {
+  margin: 0;
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-3);
+  font-weight: var(--sys-weight-bold);
+  color: var(--sys-ink);
+}
+
+.bs-lede {
+  margin: var(--sys-space-1) 0 0;
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}
+
+.bs-close {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  color: var(--sys-ink-mut);
+  width: 44px; height: 44px; font-size: var(--sys-step-1); line-height: 1;
+}
+.bs-close:hover, .bs-close:focus-visible { color: var(--sys-ink); }
+
+.bs-scroll {
+  overflow-y: auto;
+  padding: var(--sys-space-5) var(--sys-space-6) var(--sys-space-8);
+  display: grid;
+  gap: var(--sys-space-7);
+}
+
+.bs-sec { display: grid; gap: var(--sys-space-3); }
+
+.bs-h {
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.bs-rec-full strong {
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-4);
+  font-weight: var(--sys-weight-bold);
+  line-height: 1;
+}
+.bs-rec-full p { margin: var(--sys-space-2) 0 0; color: var(--sys-ink-mut); max-width: 62ch; }
+
+.bs-inputs { margin-top: var(--sys-space-3); }
+
+.bs-sug { margin: 0; font-size: var(--sys-step-1); color: var(--sys-ink); max-width: 62ch; line-height: var(--sys-leading-normal); }
+
+/* A ressalva é uma linha de leitura, com filete. Não é letra pequena. */
+.bs-disclaimer,
+.bs-claim {
+  margin: 0;
+  padding-left: var(--sys-space-4);
+  border-left: 1px solid var(--sys-seam);
+  font-size: var(--sys-step--1);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink-mut);
+  max-width: 66ch;
+}
+
+/* ── Cartão de rotina ──────────────────────────────────────────────────── */
+.bs-routine { border-top: 1px solid var(--sys-seam); padding-top: var(--sys-space-5); }
+
+.bs-r-lede { margin: 0; font-size: var(--sys-step-1); color: var(--sys-ink); max-width: 56ch; }
+
+.bs-r-meta {
+  display: flex; flex-wrap: wrap; gap: var(--sys-space-2) 0;
+  font-family: var(--sys-type-data); font-size: var(--sys-step--1); color: var(--sys-ink-mut);
+}
+.bs-r-meta span + span { padding-left: var(--sys-space-4); margin-left: var(--sys-space-4); border-left: 1px solid var(--sys-seam); }
+.bs-done { color: var(--em); }
+
+.bs-routine .cc-act-go { justify-self: start; }
+
+.bs-r-list, .bs-r-safe { font-size: var(--sys-step-0); color: var(--sys-ink-mut); }
+.bs-r-list summary, .bs-r-safe summary {
+  cursor: pointer;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: 0.04em;
+  color: var(--sys-ink-mut);
+  min-height: var(--sys-touch-min);
+  display: flex; align-items: center;
+}
+.bs-r-list ol, .bs-r-list ul { margin: var(--sys-space-2) 0 0 var(--sys-space-5); line-height: var(--sys-leading-normal); }
+.bs-r-list li { margin-bottom: var(--sys-space-2); }
+
+.bs-cautions, .bs-red { margin: var(--sys-space-2) 0 0 var(--sys-space-5); line-height: var(--sys-leading-normal); max-width: 68ch; }
+
+/* Os sinais de alarme são a única coisa desta zona com cor de perigo, e é a
+   cor de perigo do Sistema — a semântica não muda de sítio para sítio. */
+.bs-red-h { margin: var(--sys-space-4) 0 0; color: #fca5a5; font-weight: var(--sys-weight-semi); }
+.bs-red { color: #fca5a5; }
+
+.bs-src { margin: 0; font-size: var(--sys-step--1); color: var(--sys-ink-mut); }
+.bs-src a { color: var(--sys-ink-mut); text-decoration: underline; }
+.bs-src a:hover, .bs-src a:focus-visible { color: var(--sys-ink); }
+
+/* ── Reprodutor ────────────────────────────────────────────────────────── */
+.bp { display: grid; gap: var(--sys-space-5); }
+
+.bp-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--sys-space-4);
+  padding-bottom: var(--sys-space-3);
+  border-bottom: 1px solid var(--sys-seam);
+}
+
+/* TRÊS contagens, três significados. O treino antigo repetia "Passo 1/8" em
+   cada exercício e não tinha progresso de sessão nenhum. */
+.bp-counts {
+  display: flex; flex-wrap: wrap; gap: var(--sys-space-2) 0;
+  font-family: var(--sys-type-data); font-size: var(--sys-step--1); color: var(--sys-ink-mut);
+}
+.bp-counts span + span { padding-left: var(--sys-space-4); margin-left: var(--sys-space-4); border-left: 1px solid var(--sys-seam); }
+.bp-counts b { color: var(--sys-ink); }
+
+.bp-close {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  color: var(--sys-ink-mut); width: 44px; height: 44px; font-size: var(--sys-step-0);
+}
+
+.bp-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--sys-space-6);
+  align-items: start;
+}
+
+.bp-h { margin: 0; font-size: var(--sys-step-2); color: var(--sys-ink); }
+.bp-goal { margin: var(--sys-space-2) 0 0; color: var(--sys-ink-mut); max-width: 56ch; line-height: var(--sys-leading-normal); }
+
+.bp-phase {
+  display: flex; align-items: baseline; gap: var(--sys-space-4);
+  margin-top: var(--sys-space-4);
+}
+.bp-phase-l { font-size: var(--sys-step-1); color: var(--sys-ink); }
+.bp-phase-t {
+  font-family: var(--sys-type-display); font-size: var(--sys-step-3);
+  font-weight: var(--sys-weight-bold); color: var(--sys-violet); font-variant-numeric: tabular-nums;
+}
+.bp-breath {
+  font-family: var(--sys-type-data); font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label); text-transform: uppercase; color: var(--sys-ink-mut);
+}
+
+.bp-acts { display: flex; flex-wrap: wrap; gap: var(--sys-space-3); align-items: center; margin-top: var(--sys-space-4); }
+
+.bp-more { margin-top: var(--sys-space-2); }
+.bp-more summary {
+  cursor: pointer; font-family: var(--sys-type-data); font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut); min-height: var(--sys-touch-min); display: flex; align-items: center;
+}
+.bp-how { margin: var(--sys-space-2) 0 var(--sys-space-3) var(--sys-space-5); line-height: var(--sys-leading-normal); color: var(--sys-ink-mut); max-width: 68ch; }
+.bp-mistake, .bp-stop, .bp-src { margin: 0 0 var(--sys-space-2); font-size: var(--sys-step-0); color: var(--sys-ink-mut); max-width: 68ch; line-height: var(--sys-leading-normal); }
+.bp-stop { color: #fca5a5; }
+.bp-src { font-size: var(--sys-step--1); }
+.bp-src a { color: var(--sys-ink-mut); text-decoration: underline; }
+
+.bp-done-t { margin: 0; font-size: var(--sys-step-1); color: var(--sys-ink); }
+.bp-done-n { margin: 0; font-size: var(--sys-step--1); color: var(--sys-ink-mut); max-width: 62ch; line-height: var(--sys-leading-normal); }
+
+/* ── Demonstração ──────────────────────────────────────────────────────── */
+.bd { margin: 0; display: grid; justify-items: center; gap: var(--sys-space-3); }
+
+.bd svg { display: block; }
+
+/* A transição é a demonstração. Com `--sys-motion-scale` a zero (reduced
+   motion) fica a POSIÇÃO da fase, que é a informação — o trajeto é o
+   acessório. */
+.bd .bd-move {
+  transition:
+    transform calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-inout),
+    d calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-inout),
+    opacity calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.bd-cap {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  text-align: center;
+  max-width: 22ch;
+  line-height: var(--sys-leading-tight);
+}
+
+@media (max-width: 900px) {
+  .bs-overlay { padding: 0; }
+  .bs-panel { max-width: none; }
+  .bs-head { padding: var(--sys-space-4); }
+  .bs-scroll { padding: var(--sys-space-4) var(--sys-space-4) var(--sys-space-8); gap: var(--sys-space-6); }
+
+  /* A demonstração por cima do texto: num telemóvel, ver e ler ao lado um do
+     outro dá duas colunas de 150px e nenhuma serve. */
+  .bp-body { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .bp-info { width: 100%; }
+
+  .bs-r-meta span + span { padding-left: var(--sys-space-3); margin-left: var(--sys-space-3); }
+  .bp-counts span + span { padding-left: var(--sys-space-3); margin-left: var(--sys-space-3); }
+}

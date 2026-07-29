@@ -37,6 +37,15 @@ const fx = (name, ...args) => { if (typeof window !== 'undefined' && window[name
 // por existência, para o motor nunca depender de a casca React estar montada.
 // A CHAMADA VEM SEMPRE DEPOIS DE `save()` DEVOLVER TRUE — ver systemEvents.ts.
 const sysEvent = (ev) => { if (typeof window !== 'undefined' && window.sysEvent) window.sysEvent(ev); };
+
+/* Dias seguidos com a rotina registada, a contar de hoje para trás. Puro. */
+function bodyStreak(dates) {
+  if (!dates || !dates.length) return 0;
+  const set = new Set(dates); let c = 0; const d = new Date();
+  for (;;) { const k = d.toISOString().slice(0, 10); if (set.has(k)) { c++; d.setDate(d.getDate() - 1); } else break; }
+  return c;
+}
+export { bodyStreak };
 const afterPaint = (fn) => { if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(() => requestAnimationFrame(fn)); };
 
 function localLoad() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
@@ -408,6 +417,41 @@ export const useStore = create((set, get) => ({
   // ===== ESTADOS / TÍTULOS (Fase 10) =====
   // toggleDebuff — porto de hud.js:15.
   toggleDebuff: (id) => { const S = get().S; S.debuffs[id] = !S.debuffs[id]; set({ S: { ...S } }); get().save(); },
+
+  /* logBodyRoutine — Missão 26 · Fase 7.
+   *
+   * NÃO CRIA UMA REGRA DE XP NOVA, e é deliberado: o ganho é ZERO. O motor de
+   * XP foi auditado na Missão 25 e "divergência de número = bug"; inventar um
+   * valor para o pavimento pélvico ou para a mobilidade seria eu a decidir
+   * quanto vale uma coisa que o Daniel nunca ponderou.
+   *
+   * O que isto faz é REGISTAR: uma entrada no diário e a data da última vez.
+   * Se o Daniel quiser que estas rotinas dêem XP, é uma decisão dele e entra
+   * como regra de domínio, com valor escolhido por ele.
+   *
+   * `S.bodyRoutines` é um campo novo no JSON do app_state. NÃO é uma alteração
+   * de schema — a coluna do Supabase é `jsonb` — e o `normalize` preserva
+   * campos desconhecidos, por isso sobrevive a um carregamento. */
+  logBodyRoutine: (id, name) => {
+    const S = get().S; if (!S) return { error: 'sem-estado' };
+    S.bodyRoutines = S.bodyRoutines || {};
+    const hist = S.bodyRoutines[id] || [];
+    if (hist[hist.length - 1] === today()) return { error: 'ja-registada' };
+    // 60 datas chegam para ler consistência de dois meses; guardar tudo faria
+    // o estado crescer sem ninguém alguma vez o ler.
+    S.bodyRoutines[id] = [...hist, today()].slice(-60);
+    plog(S, name + ' · rotina feita', 0);
+    sysEvent({
+      dedupe: 'body:' + id + ':' + today(),
+      kind: 'habit',
+      title: 'Rotina registada',
+      subject: name,
+      color: AM.corpo.color,
+      readings: [{ label: 'Seguidas', value: String(bodyStreak(S.bodyRoutines[id])) }],
+    });
+    set({ S: { ...S } }); get().save();
+    return { ok: true };
+  },
 
   // applyAntidote — porto de hud.js:16-22. 1× por estado por dia (Fuga 4):
   // repetir não dá efeito nem XP. Desliga o estado, +10 Disciplina, registo.

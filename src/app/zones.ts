@@ -23,8 +23,9 @@ import Diario from '../components/Diario.jsx';
 import Objectives from '../components/Objectives.jsx';
 import Shadows from '../components/Shadows.jsx';
 import Recall from '../components/Recall.jsx';
-import Training from '../components/Training.jsx';
-import Sleep from '../components/Sleep.jsx';
+/* Training e Sleep saíram do registo na Fase 7 e os componentes ficam: são
+ * importados pelo `BodySpace`, que os monta dentro do subespaço, e continuam a
+ * servir o HUD sem `?shell=`, que é o que está em produção. */
 import Calendar from '../components/Calendar.jsx';
 import OracleReport from '../components/OracleReport.jsx';
 import Conselho from '../components/Conselho.jsx';
@@ -37,6 +38,7 @@ import CoreQueue from './core/CoreQueue';
 import CoreHorizon from './core/CoreHorizon';
 import CoreOracle from './core/CoreOracle';
 import { ReflectionNow, ReflectionPatterns, ReflectionMemory } from './reflection/Reflection';
+import BodySpace from './body/BodySpace';
 
 /* O `DeadlineBanner` saiu do registo na Fase 5 e o componente NÃO foi apagado.
  *
@@ -167,8 +169,16 @@ export const ZONES: Zone[] = [
     // Treino e Sono são formulários compactos e vivem bem estreitos.
     groups: [
       { id: 'prioridade', name: 'Prioridade', weight: 'main', panels: [Objectives, Shadows] },
-      { id: 'rotina', name: 'Rotina e execução', weight: 'side', panels: [Diario, Training] },
-      { id: 'revisao', name: 'Revisão e recuperação', weight: 'full', panels: [Recall, Sleep, Calendar] },
+      { id: 'rotina', name: 'Rotina e execução', weight: 'side', panels: [Diario] },
+      // Missão 26 · Fase 7 — Treino e Sono saem daqui e passam a viver dentro
+      // do subespaço Corpo e Recuperação, com o pavimento pélvico e a
+      // mobilidade da mandíbula e pescoço. Pertencem todos ao mesmo ciclo de
+      // carga e recuperação, e estavam espalhados por uma zona onde competiam
+      // com missões e calendário.
+      //
+      // A órbita continua com SEIS marcas: isto é um subespaço, não uma zona.
+      { id: 'corpo', name: 'Corpo e recuperação', weight: 'side', panels: [BodySpace] },
+      { id: 'revisao', name: 'Revisão e planeamento', weight: 'full', panels: [Recall, Calendar] },
     ],
   },
   {

@@ -288,3 +288,104 @@ roubavam. A meta foi atingida por consequência, não por perseguição.
 
 **Reaberta se:** a zona voltar a passar dos 5 ecrãs com dados reais do Daniel.
 Nessa altura a opção A é a primeira a reconsiderar, e como funcionalidade.
+
+---
+
+### 2026-07-29 · Command Core — a Próxima Ação substitui a faixa de prazos
+
+**Decisão:** o `DeadlineBanner` sai do Núcleo. A informação que ele dava passa a
+dois sítios com verbo: as missões urgentes tornam-se a **Próxima Ação** (visor
+da coluna direita), os eventos a ≤7 dias tornam-se o **Horizonte** (coluna
+esquerda). O componente **não foi apagado** — o HUD sem `?shell=`, que é o que
+serve produção, continua a usá-lo.
+
+**Porquê:** a faixa era o elemento mais brilhante do ecrã, ocupava a largura
+toda e **não era acionável**. Anunciava "URGENTE" e deixava o Operador a
+procurar onde resolver. Pior para a lei da luz: um alerta a gritar e um visor de
+ação são dois portadores em competição, e dois portadores são zero hierarquia.
+
+A urgência passa a ser o **motivo** da ação, num filete de 3px à esquerda do
+visor e num rótulo mono. A mesma informação, uma fração do peso visual, no sítio
+onde tem botão.
+
+**Alternativa rejeitada:** manter a faixa e baixar-lhe o contraste. Resolvia o
+brilho e mantinha o problema real — dizer duas vezes, uma delas sem saída.
+
+**Onde vive:** `src/app/core/next-action.ts` (read model),
+`NextAction.tsx`, `CoreQueue.tsx`, `CoreHorizon.tsx`, `command-core.css`.
+
+---
+
+### 2026-07-29 · O Núcleo passa a zona `instrument`, com colunas invertidas
+
+**Decisão:** a zona `core` deixa de ser `reading` e passa a `instrument` com
+duas colunas — **Estado** (esquerda) e **Ação** (direita) — e uma razão de
+colunas própria, `1fr / 1.25fr`, declarada no registo (`zones.ts`, campo
+`columns` novo).
+
+**Porquê:** como `reading`, os painéis empilhavam-se numa faixa e a metade
+direita do ecrã ficava sem função (item 1 do diagnóstico). E a razão padrão das
+zonas instrumentais (1.55/1) daria à identidade do Operador mais largura do que
+à ação, que é o contrário da hierarquia desta zona.
+
+**Alternativa rejeitada:** uma regra CSS condicionada ao nome da zona. O registo
+existe precisamente para a composição ser dado; uma exceção por nome no CSS teria
+sido a primeira fissura nessa disciplina.
+
+**Equilíbrio medido:** primeira versão 895px (ação) contra 649px (estado) — a
+coluna direita transbordava e as saídas da decisão caíam abaixo da dobra. Mover
+o Horizonte para a esquerda pôs as colunas a **612 / 720**, e a zona a 794px de
+conteúdo em 621 visíveis (1,28 ecrãs, contra 5,94 da B2 pura).
+
+---
+
+### 2026-07-29 · O botão da Próxima Ação é a exceção à regra dos botões calados
+
+**Decisão:** `.cc-act-go` é o único botão preenchido e aceso da shell.
+
+**Porquê:** a decisão de 2026-07-28 calou os botões primários porque eram sete,
+todos parados, todos no brilho máximo — luz sem estado. Este tem estado: é o
+Sistema a dizer o que fazer a seguir, e é o portador da luz desta zona. Os
+`.mini` da Decisão ficam calados pela mesma lei — se acendessem os dois, a
+decisão competiria com a ação, e a precedência que a Próxima Ação estabelece
+seria desmentida pelo ecrã.
+
+**Contraste, medido:** o gradiente do `.btn` do HUD começa em `#8b5cf6` e, com o
+texto escuro encostado à esquerda, dá **4,08:1** — abaixo dos 4,5. Baixar a letra
+para preto puro chegava a 4,53, uma passagem por dois centésimos. O gradiente
+passa a começar no violeta de identidade `#a78bfa` → **6,05:1**.
+
+---
+
+### 2026-07-29 · Interpretação do "briefing contextual do Oráculo"
+
+**Contexto:** a decisão de produto fechada diz que a metade direita é *Próxima
+Ação + briefing contextual do Oráculo*.
+
+**Decisão:** o briefing foi implementado como a **fila, a decisão e o horizonte**
+— leituras de instrumento com evidência — e **não** como uma segunda lista de
+bullets ao lado do `OracleBriefing` que já existe na presença do Oráculo.
+
+**Porquê:** os dois leriam a mesma fonte (missões vencidas, pilares por fechar,
+arco por decidir, relatório) e diriam o mesmo com palavras diferentes, a 300px
+de distância. Duplicar era o erro que esta missão corrige desde a Fase E.
+
+**Fica em aberto:** a coluna da ação não tem atribuição visível ao Oráculo. É
+deliberado — a presença do Oráculo é a faixa, e a Constituição diz que ele não é
+um cartão. **Se o Daniel quiser a voz do Oráculo explícita nesta coluna, é uma
+decisão dele e não minha**, porque muda a natureza da coluna de "instrumento do
+Sistema" para "o Oráculo a falar".
+
+---
+
+## Defeitos anteriores apanhados na Fase 5
+
+Nenhum foi introduzido por esta fase. Ficam registados porque foram medidos.
+
+| Defeito | Causa | Estado |
+|---|---|---|
+| `prefers-reduced-motion` não parava 12 animações | `*` não seleciona pseudo-elementos, e todas as animações decorativas do HUD vivem em `::before`/`::after` (`ringpulse`, `tipglow`, `cornerbreath`, `menteDrift`, `vincTwinkle`) | **corrigido** — `*,*::before,*::after`; medido: 12 → 0 |
+| `.sys-group-name` a 3,23:1 | `--sys-ink-far` (bone a 40%) sobre o vazio, a 13px | **corrigido** — sobe a `--sys-ink-mut`. A auditoria da Fase J deu "zero falhas" e esta classe já lá estava: o método é que não compunha opacidades sobre o fundo |
+| `.sys-sync-slot` por cima da faixa de comando em mobile | fixo no canto inferior direito, que em ≤900px é onde a órbita passa a viver | **corrigido** — passa a linha da grelha |
+| Texto de ajuda do `at.exe` dentro de dois comentários de `instrumental.css` | interpolação de shell numa sessão anterior escreveu a saída de um comando dentro do ficheiro | **corrigido** — comentários reescritos |
+| `.panel::before` — filete ciano de 34px a respirar 7,9s | herdado do HUD, onde marcava o canto de um cartão; na shell os painéis não têm caixa | **removido na shell** — animação decorativa e borda, as duas proibidas |

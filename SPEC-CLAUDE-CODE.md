@@ -1690,19 +1690,81 @@ As três opções (vista "Hoje" / grupos / índice) deixaram de se justificar: a
 recomposição da Fase F trouxe Operações a 4,52 ecrãs por densidade. Os grupos já
 existiam desde a Fase 3. Reabre-se se passar dos 5 ecrãs com dados reais.
 
+### Fase 5 · segunda passagem — Command Core composto (CONCLUÍDA 2026-07-29)
+
+A Fase 5 tinha sido fechada por medição (acima). O Daniel reabriu-a com um
+diagnóstico novo, e este é diferente do anterior: já não é densidade, é
+**composição**. *"O conteúdo foi espalhado pelo viewport, mas ainda não foi
+composto como um único instrumento."*
+
+**O que mudou, e é estrutural.** O Núcleo deixou de ser uma zona `reading` com
+quatro painéis empilhados e passou a zona `instrument` com duas naturezas de
+informação e razão de colunas própria:
+
+- **ESTADO** (esquerda) — saudação, Operador, mundo, horizonte. Lê-se.
+- **AÇÃO** (direita) — Próxima Ação, decisão, fila. Executa-se.
+
+**A Próxima Ação** é um read model novo (`src/app/core/next-action.ts`) que
+implementa a precedência de produto fechada pelo Daniel — vencida/urgente →
+em curso → pilar de hoje → decisão pendente → briefing → nada crítico — com
+desempate determinístico (prazo → já iniciada → mais antiga → id). **Não é uma
+regra de domínio nova**: lê o estado que já existe e herda o limiar de 2 dias do
+`DeadlineBanner` em vez de inventar um seu.
+
+**O que saiu.** O `DeadlineBanner` sai do Núcleo (o componente fica — o HUD de
+produção usa-o); a proposta de arco sai do painel World. Nada se perdeu: as
+missões urgentes viraram o visor, os eventos viraram o Horizonte, a decisão
+ganhou cabeçalho e três saídas alinhadas em vez de três botões a flutuar.
+
+**Medido, a 1440×900, conta semeada com 5 missões abertas, 2 eventos, arco por
+decidir e burnout a 85%:**
+
+| Medida | Antes | Depois |
+| --- | --- | --- |
+| Altura da zona | 975 px em 621 | **794 px em 621** (1,28 ecrãs) |
+| Equilíbrio das colunas | — (uma coluna) | 612 / 720 px |
+| Corpo da ação dominante | não existia | 34,6 px, contra 28 px do nome da zona |
+| Portadores de luz | 2 (faixa vermelha + painel) | **1** (o visor) |
+| Falhas WCAG AA na zona | 12 em 58 elementos | **0 em 58** |
+| Alvos de toque < 32 px | 2 | **0** |
+| Animações sob `reduced-motion` | 12 | **0** |
+| Transbordo horizontal | 0 | 0 |
+| Erros de consola | 0 | 0 |
+
+Verificado a 1440×900, 1280×800, 768×1024 e 390×844, em Chrome headless com
+**perfil isolado** — a sessão Supabase real do Daniel vive no perfil normal, e
+clicar num botão desta zona escreveria no estado dele.
+
+**Conta vazia:** "quatro zeros parecem loading" resolvido na origem — um valor
+sem registo mostra travessão, não zero, e o `setNum` só assume quando há valor.
+Nível 1, XP —, streak —, missões —. A zona cabe (28 px de corte).
+
+**Quatro defeitos anteriores apanhados por medição**, nenhum introduzido nesta
+fase: a guarda de `prefers-reduced-motion` nunca apanhou pseudo-elementos;
+`.sys-group-name` estava a 3,23:1 desde a Fase 3 (a auditoria da Fase J deu
+"zero falhas" porque não compunha opacidades sobre o fundo — o número era
+otimista, o método é que estava errado); o estado de gravação tapava a faixa de
+comando em mobile; e dois comentários do `instrumental.css` tinham dentro a
+ajuda do `at.exe`, escrita por interpolação de shell numa sessão anterior.
+
+Detalhe, alternativas rejeitadas e origens visuais em
+`docs/design-references/mission-26/DESIGN-DECISIONS.md`.
+
 ### Por fazer
 
 - **War Room** ligado a dados;
 - **performance** nunca medida: bundle em 996 KB de JS, FPS em mobile e tempo de
   arranque por medir;
-- ~~contraste~~ **FECHADO 2026-07-29**: auditoria WCAG AA às seis zonas, 396
-  elementos com texto, **zero falhas**. As 11 originais tinham todas a mesma
-  causa — `--mut2` a 10px, rácio 2,29.
-- resoluções 1280×800 e 768×1024 por testar;
+- ~~contraste~~ **REABERTO e fechado outra vez a 2026-07-29**: a auditoria da
+  Fase J dava "396 elementos, zero falhas" mas não compunha opacidades sobre o
+  fundo. Com a composição, `--sys-ink-far` sobre o vazio a 13px dá 3,23:1. A
+  zona Núcleo está a **zero falhas em 58 elementos**; as outras cinco zonas
+  **precisam de nova passagem com o método corrigido**;
+- ~~resoluções 1280×800 e 768×1024 por testar~~ **testadas** (Núcleo);
 - 41 referências por analisar;
 - resíduos de 6px (Universo) e 3px (Operações), sem barra de scroll;
-
-- células do calendário em mobile por confirmar.
+- células do calendário em mobile por confirmar;
+- **atribuição do Oráculo na coluna da ação** — decisão do Daniel, não minha.
 
 ### Bloqueado no Daniel
 

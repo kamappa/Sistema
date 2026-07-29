@@ -15,7 +15,7 @@
  * e não persiste em lado nenhum.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ZONES, DEFAULT_ZONE, zoneById, type ZoneId } from './zones';
 import ZoneStage from './ZoneStage';
 import OrbitNav from './nav/OrbitNav';
@@ -24,8 +24,12 @@ import Atmosphere from './atmosphere/Atmosphere';
 import './shell.css';
 import './nav/orbit.css';
 import SyncState from './SyncState';
+import SystemEventLayer from './events/SystemEventLayer';
+import { installSystemEventBridge } from './events/systemEvents';
+import { startMotionRegime } from './motion/motionTier';
 import './instrumental.css';
 import './core/command-core.css';
+import './motion/motion-regime.css';
 
 interface Props {
   S: Record<string, unknown>;
@@ -34,6 +38,15 @@ interface Props {
 export default function Shell({ S }: Props) {
   const [active, setActive] = useState<ZoneId>(DEFAULT_ZONE);
   const zone = zoneById(active);
+
+  // O regime de movimento e a ponte de eventos instalam-se uma vez. Ambos são
+  // idempotentes de propósito: o StrictMode do React 18 corre efeitos duas
+  // vezes em desenvolvimento, e uma segunda instalação não pode duplicar
+  // listeners nem anúncios.
+  useEffect(() => {
+    startMotionRegime();
+    installSystemEventBridge();
+  }, []);
 
   return (
     <div className="sys-shell sys-instrumental" data-nav="orbit">
@@ -53,6 +66,8 @@ export default function Shell({ S }: Props) {
       {/* O estado de gravacao vive na faixa de sistema: nunca foi mostrado na
           shell, e uma gravacao falhada em silencio contradiz o estado guardado. */}
       <div className="sys-sync-slot"><SyncState /></div>
+      {/* Anúncios de eventos: um dominante de cada vez, os outros em fila. */}
+      <SystemEventLayer />
     </div>
   );
 }

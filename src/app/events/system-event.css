@@ -1,0 +1,185 @@
+/* SYSTEM EVENT — o anúncio.
+ * Missão 26 · Fase 6A.
+ *
+ * Vive no canto inferior direito, por cima da faixa de sistema e ao lado da
+ * presença do Oráculo. É o único sítio do ecrã sem conteúdo para ler — a mesma
+ * conclusão a que a Fase I chegou quando mudou o toast do topo, onde tapava o
+ * Núcleo precisamente no momento em que havia algo a mostrar.
+ */
+
+.sys-ev-layer {
+  position: fixed;
+  right: var(--sys-space-5);
+  bottom: calc(var(--sys-space-7) + 1.5rem);
+  z-index: var(--sys-z-toast);
+  display: grid;
+  justify-items: end;
+  pointer-events: none;
+}
+
+.sys-ev {
+  position: relative;
+  overflow: hidden;
+  pointer-events: auto;
+  width: min(26rem, calc(100vw - 3rem));
+  padding: var(--sys-space-4) var(--sys-space-6) var(--sys-space-4) var(--sys-space-5);
+  /* Sem moldura completa: um filete de domínio à esquerda, como as linhas de
+     missão e de hábito. É o que faz o anúncio pertencer ao Sistema em vez de
+     parecer uma notificação do sistema operativo. */
+  border: 0;
+  border-left: 2px solid var(--ev-area, var(--sys-violet));
+  background: linear-gradient(
+    100deg,
+    color-mix(in oklab, var(--sys-deep) 96%, transparent),
+    color-mix(in oklab, var(--sys-void) 96%, transparent)
+  );
+  box-shadow: 0 0 40px rgb(var(--sys-violet-rgb) / var(--sys-o-14));
+}
+
+/* Entrada: sobe. `--sys-rise` é direção semântica — o que confirma, sobe
+   (gramática 9, origem R11). Curva de gravidade (R15): acumula, não salta. */
+@keyframes sys-ev-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.sys-ev[data-animate='true'] {
+  animation: sys-ev-in var(--sys-dur-calm) var(--sys-ease-gravity) both;
+}
+
+/* Sem movimento permitido, o anúncio simplesmente ESTÁ. Não pisca, não desliza:
+   o conteúdo é a informação e sobrevive inteiro. */
+.sys-ev[data-animate='false'] {
+  animation: none;
+}
+
+.sys-ev-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sys-space-3);
+  margin-bottom: var(--sys-space-1);
+}
+
+.sys-ev-kind {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--ev-area, var(--sys-violet));
+}
+
+/* Quantos esperam atrás. Sem isto, uma fila seria indistinguível de um evento
+   só — que é exatamente o defeito do toast que isto substitui. */
+.sys-ev-more {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}
+
+.sys-ev-subject {
+  margin: 0;
+  font-size: var(--sys-step-1);
+  font-weight: var(--sys-weight-medium);
+  line-height: var(--sys-leading-tight);
+  color: var(--sys-ink);
+}
+
+/* As leituras seguem a língua dos instrumentos: rótulo mono minúsculo, valor
+   por baixo, separadas por um filete. Nunca crachás. */
+.sys-ev-readings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: var(--sys-space-3) 0 0;
+}
+
+.sys-ev-readings > div {
+  padding: 0 var(--sys-space-4);
+}
+.sys-ev-readings > div:first-child { padding-left: 0; }
+.sys-ev-readings > div + div { border-left: 1px solid var(--sys-seam); }
+
+.sys-ev-readings dt {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.sys-ev-readings dd {
+  margin: 0;
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-2);
+  font-weight: var(--sys-weight-bold);
+  line-height: 1.1;
+  color: var(--sys-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.sys-ev-close {
+  position: absolute;
+  top: var(--sys-space-2);
+  right: var(--sys-space-2);
+  appearance: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--sys-ink-mut);
+  font-size: var(--sys-step--1);
+  /* 32px: é um alvo real, não um ✕ de 12px que ninguém acerta */
+  width: 32px;
+  height: 32px;
+  line-height: 1;
+}
+
+.sys-ev-close:hover,
+.sys-ev-close:focus-visible { color: var(--sys-ink); }
+
+/* ── A convergência ────────────────────────────────────────────────────
+ * ORIGEM: R15, gramática 1 — a energia varre do ambiente PARA o centro, nunca
+ * do centro para fora. Aqui o traço atravessa o anúncio da direita para a
+ * esquerda: o Núcleo está no topo ao centro, o anúncio no canto inferior
+ * direito, e a direção diz para onde foi o que acabaste de fazer.
+ *
+ * Corre UMA vez e acaba. Um ciclo diria "a processar"; isto terminou.
+ */
+@keyframes sys-ev-flow {
+  from { transform: translateX(105%); opacity: 0; }
+  25%  { opacity: 1; }
+  to   { transform: translateX(-105%); opacity: 0; }
+}
+
+.sys-ev-flow {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--ev-area, var(--sys-violet)),
+    transparent
+  );
+  animation: sys-ev-flow var(--sys-dur-slow) var(--sys-ease-gravity) both;
+}
+
+/* Aviso: mantém a cor de alarme e perde a celebração. Um evento negativo não
+   sobe nem brilha — informa. */
+.sys-ev[data-kind='warning'] {
+  border-left-color: var(--sys-danger);
+  box-shadow: 0 0 40px rgb(var(--sys-danger-rgb) / var(--sys-o-14));
+}
+.sys-ev[data-kind='warning'] .sys-ev-kind { color: #fca5a5; }
+.sys-ev[data-kind='warning'] .sys-ev-flow { display: none; }
+
+@media (max-width: 900px) {
+  .sys-ev-layer {
+    left: var(--sys-space-4);
+    right: var(--sys-space-4);
+    /* acima da faixa de comando e da faixa do Oráculo, como o slot de gravação */
+    bottom: calc(var(--sys-touch-min) + var(--sys-oracle-h-mobile) + var(--sys-space-4) + env(safe-area-inset-bottom, 0px));
+    justify-items: stretch;
+  }
+  .sys-ev { width: auto; }
+}

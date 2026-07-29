@@ -33,10 +33,19 @@ let syncTimer = null;
 // do React, por isso corre num requestAnimationFrame.
 const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
 const fx = (name, ...args) => { if (typeof window !== 'undefined' && window[name]) window[name](...args); };
+// SYSTEM EVENT (M26·F6A). Mesma disciplina das outras primitivas de FX: guardada
+// por existência, para o motor nunca depender de a casca React estar montada.
+// A CHAMADA VEM SEMPRE DEPOIS DE `save()` DEVOLVER TRUE — ver systemEvents.ts.
+const sysEvent = (ev) => { if (typeof window !== 'undefined' && window.sysEvent) window.sysEvent(ev); };
 const afterPaint = (fn) => { if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(() => requestAnimationFrame(fn)); };
 
 function localLoad() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
-function localSave(S) { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+// M26·F6A — devolve se GUARDOU MESMO. Antes engolia a exceção em silêncio, e um
+// localStorage cheio ou bloqueado (modo privado, quota) fazia o Sistema
+// continuar como se tivesse gravado. É a mesma classe de mentira estrutural que
+// a Fase I apanhou no `loadOracleData`, e agora tem consequência prática: os
+// SYSTEM EVENTS só nascem depois desta função dizer que sim.
+function localSave(S) { try { localStorage.setItem(KEY, JSON.stringify(S)); return true; } catch (e) { return false; } }
 
 async function cloudLoad(user) {
   const { data, error } = await supabase.from('app_state').select('state').eq('user_id', user.id).maybeSingle();
@@ -102,18 +111,27 @@ export const useStore = create((set, get) => ({
   },
 
   // Espelha save() do auth.js:76 — local imediato, nuvem com debounce.
+  // Devolve se a escrita LOCAL passou. Quem quiser anunciar um evento tem de
+  // esperar por este true — celebrar antes de guardar seria afirmar uma coisa
+  // que ainda podia falhar.
   save: () => {
-    const S = get().S; if (!S) return;
-    localSave(S);
+    const S = get().S; if (!S) return false;
+    const okLocal = localSave(S);
+    if (!okLocal) set({ sync: 'err' });
+    // Publica (ou deita fora) os eventos encenados durante esta ação. É aqui
+    // que a regra "o evento nasce depois da escrita" deixa de depender de quem
+    // escreve o próximo componente e passa a ser estrutural.
+    if (typeof window !== 'undefined' && window.sysCommit) window.sysCommit(okLocal);
     const user = get().user;
     if (user) {
-      set({ sync: 'saving' });
+      if (okLocal) set({ sync: 'saving' });
       clearTimeout(syncTimer);
       syncTimer = setTimeout(async () => {
         const ok = await cloudSave(user, get().S);
         set({ sync: ok ? 'ok' : 'err' });
       }, 900);
     }
+    return okLocal;
   },
 
   login: async (email, password) => {
@@ -149,6 +167,7 @@ export const useStore = create((set, get) => ({
     const S = get().S;
     const h = S[list].find((x) => x.id === id); if (!h) return;
     const done = h.lastDone === today();
+    let gained = 0;
     if (!done) {
       h.undo = { streak: h.streak, lastDone: h.lastDone, peak: S.streakPeak || null };
       h.streak = (h.lastDone === yday()) ? h.streak + 1 : 1; h.lastDone = today();
@@ -156,13 +175,37 @@ export const useStore = create((set, get) => ({
       const bonus = Math.min(h.streak, 10); const g = Math.round((h.xp + bonus) * xpMult(S, h.attr)); h.lastGain = g;
       addXp(S, h.attr, g); plog(S, h.name, g);
       fx('floatXP', '+' + g + ' XP', AM[h.attr].color);                    // engine.js:74
-      if (list === 'oblig') fx('toast', 'Pilar confirmado', h.name + ' · +' + g + ' XP', AM[h.attr].color);
+      gained = g;
     } else {
       const back = (h.lastGain !== undefined && h.lastGain !== null) ? h.lastGain : h.xp;
       addXp(S, h.attr, -back); unlog(S, h.name, today());
       fx('floatXP', '−' + back + ' XP', '#ef4444');
       if (h.undo) { h.streak = h.undo.streak; h.lastDone = h.undo.lastDone; if (h.undo.peak !== undefined) S.streakPeak = h.undo.peak; delete h.undo; }
       else { h.lastDone = null; h.streak = Math.max(0, h.streak - 1); }
+    }
+    // SYSTEM EVENT (M26·F6A) — encenado aqui, publicado pelo `save()`.
+    //
+    // Desmarcar não gera evento de propósito: é uma correção de registo, não um
+    // acontecimento. Anunciar "desfizeste" seria o Sistema a comentar o
+    // Operador em vez de registar o mundo.
+    //
+    // O toast do HUD saiu daqui: dizia a mesma coisa e era um elemento único no
+    // DOM, por isso dois pilares seguidos anunciavam um. A fila resolve isso.
+    //
+    // Dedupe com o XP total: se o Daniel desmarcar e voltar a marcar no mesmo
+    // dia, é um facto novo e tem de poder anunciar-se outra vez.
+    if (!done) {
+      sysEvent({
+        dedupe: 'habit:' + id + ':' + today() + ':' + Math.round(S.totalXP),
+        kind: list === 'oblig' ? 'pillar' : 'habit',
+        title: list === 'oblig' ? 'Pilar confirmado' : 'Registado',
+        subject: h.name,
+        color: AM[h.attr].color,
+        readings: [
+          { label: AM[h.attr].name, value: '+' + gained + ' XP' },
+          { label: 'Streak', value: h.streak + (h.streak === 1 ? ' dia' : ' dias') },
+        ],
+      });
     }
     set({ S: { ...S } }); get().save();
     // onda de conclusão (M12·3B) — depois do render do React, no elemento novo
@@ -225,14 +268,34 @@ export const useStore = create((set, get) => ({
       S.shadows.push({ id: 's' + Date.now(), ref: o.id, name: o.title, lvl: p.lvl, d: today() });
       plog(S, '🗡 ARISE: ' + o.title, p.xp);
       fx('floatXP', '+' + p.xp + ' XP', AM[o.area].color);                           // objetivos.js:56
-      fx('toast', 'A R I S E', '🗡 ' + o.title + ' ergueu-se — Sombra Nv ' + p.lvl, '#a78bfa');
       fx('cineArise');                                                                // A R I S E cinematográfico
     }
     if (o.status === 'done' && next !== 'done') {
       const p = PRI[o.pri]; addXp(S, o.area, -p.xp); unlog(S, '🗡 ARISE: ' + o.title, o.doneDate);
       S.shadows = S.shadows.filter((s) => s.ref !== o.id); delete o.doneDate;
     }
-    o.status = next; set({ S: { ...S } }); get().save();
+    o.status = next;
+    // SYSTEM EVENT (M26·F6A) — substitui o toast; encenado aqui, publicado pelo
+    // `save()`. A Sombra é a consequência persistente que a gramática 2 exige
+    // ("um evento tem de deixar o mundo diferente"): não é um número de
+    // celebração, é um objeto novo no exército que fica lá depois de a animação
+    // acabar.
+    if (next === 'done') {
+      const p = PRI[o.pri];
+      sysEvent({
+        dedupe: 'mission:' + id + ':' + today() + ':' + Math.round(S.totalXP),
+        kind: 'mission',
+        title: 'Missão erguida',
+        subject: o.title,
+        color: AM[o.area] ? AM[o.area].color : undefined,
+        readings: [
+          { label: AM[o.area] ? AM[o.area].name : 'XP', value: '+' + p.xp + ' XP' },
+          { label: 'Sombra', value: 'Nv ' + p.lvl },
+        ],
+        holdMs: 7000,
+      });
+    }
+    set({ S: { ...S } }); get().save();
     if (next === 'done') afterPaint(() => fx('cardWave', document.querySelector('.obj-row[data-oid="' + id + '"]'), 'rgba(167,139,250,.5)'));
   },
 

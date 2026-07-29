@@ -1,0 +1,65 @@
+/* Regime de movimento — a folha que o `motionTier.ts` comanda.
+ * Missão 26 · Fase 6A.
+ *
+ * `<html data-motion>` tem quatro valores e o CSS obedece sem saber porquê. O
+ * JS decide, o CSS executa — nenhum componente precisa de perguntar.
+ */
+
+/* ── PAUSED · separador em segundo plano ───────────────────────────────
+ * Congela, não desliga. `animation-play-state` guarda a posição: ao voltar, o
+ * ciclo continua de onde estava em vez de saltar para o princípio, e um
+ * Operador que muda de separador e volta não vê o mundo a recomeçar.
+ *
+ * Vale para pseudo-elementos — a lição que a Fase 5 aprendeu à custa de doze
+ * animações que a guarda de reduced-motion nunca apanhou.
+ */
+html[data-motion='paused'] *,
+html[data-motion='paused'] *::before,
+html[data-motion='paused'] *::after {
+  animation-play-state: paused !important;
+}
+
+/* ── CALM · poupança de dados ou bateria baixa ─────────────────────────
+ * Cai o AMBIENT, que é movimento contínuo e por isso o que custa sem parar.
+ * Ficam responsive, event e transition: são curtos, acontecem por acção do
+ * Operador, e são eles que dizem que o Sistema percebeu.
+ *
+ * Marcar `data-ambient` num elemento é declarar "isto é ambiente" — e é essa
+ * declaração que o torna desligável. O que não estiver marcado não é ambiente.
+ */
+html[data-motion='calm'] [data-ambient],
+html[data-motion='calm'] [data-ambient]::before,
+html[data-motion='calm'] [data-ambient]::after {
+  animation: none !important;
+}
+
+/* ── STILL · o utilizador pediu menos movimento ────────────────────────
+ * A guarda dura já vive no hud.css (`*,*::before,*::after`). Aqui fica só o
+ * que o regime acrescenta: `--sys-motion-scale` a zero para as transições que
+ * o multiplicam, e que de outra forma teriam de repetir a media query.
+ */
+html[data-motion='still'] {
+  --sys-motion-scale: 0;
+}
+
+/* ── Um AMBIENTE dominante por zona ────────────────────────────────────
+ * Regra de composição, não de performance: "máximo de um elemento ambiental
+ * dominante por zona". O secundário não desaparece — recua para metade da
+ * amplitude, que é o que o distingue de dominante.
+ *
+ * O CSS não sabe contar, por isso a marcação é que declara: `data-ambient` é
+ * ambiente, `data-ambient="dominant"` é O ambiente da zona. Duas declarações
+ * dominantes na mesma zona são um erro de composição, e o seletor abaixo
+ * torna-o visível em vez de o esconder.
+ */
+.sys-zone [data-ambient]:not([data-ambient='dominant']) {
+  opacity: 0.62;
+}
+
+/* Fora da zona ativa não há ambiente nenhum: é movimento que ninguém vê, num
+   nó que está montado só para não perder scroll nem contexto WebGL. */
+.sys-zone[data-active='false'] [data-ambient],
+.sys-zone[data-active='false'] [data-ambient]::before,
+.sys-zone[data-active='false'] [data-ambient]::after {
+  animation-play-state: paused !important;
+}

@@ -22,8 +22,27 @@ export function addXp(S, attr, amt, silent) {
   // TODOS os level-ups (hábitos, missões, treino, sono, recall, sussurro…),
   // exatamente como o Vanilla. Guardado por window.* (o palco/fx podem não
   // existir com reduced-motion ou fora do browser).
-  if (!silent && ups.length && window.toast) {
-    ups.forEach((u) => window.toast('Nível aumentado', AM[u].name + ' subiu para nível ' + S.attrs[u].level, AM[u].color));
+  // M26·F6A — a subida de nível passa para a FILA DE EVENTOS, não para o toast.
+  //
+  // Medido: concluir uma missão que faz subir um domínio produzia DOIS anúncios
+  // ao mesmo tempo, em dois sistemas diferentes, sobrepostos no mesmo canto do
+  // ecrã — o SYSTEM EVENT da missão por baixo e o toast do nível por cima, os
+  // dois ilegíveis. Um só canal de anúncio, uma só fila.
+  //
+  // A chave de deduplicação é o facto: atributo + nível atingido. Se o mesmo
+  // nível voltar a ser atingido depois de uma reversão, o XP total já mudou e a
+  // chave também — ver a nota em systemEvents.ts.
+  if (!silent && ups.length && window.sysEvent) {
+    ups.forEach((u) =>
+      window.sysEvent({
+        dedupe: 'level:' + u + ':' + S.attrs[u].level + ':' + Math.round(S.totalXP),
+        kind: 'levelup',
+        title: 'Nível aumentado',
+        subject: AM[u].name + ' subiu para nível ' + S.attrs[u].level,
+        color: AM[u].color,
+        readings: [{ label: AM[u].name, value: 'Nv ' + S.attrs[u].level }],
+      })
+    );
     if (window.celebrate) window.celebrate(AM[ups[0]].color);
   }
   if (amt > 0 && !silent && window.barBurst) window.barBurst(attr);

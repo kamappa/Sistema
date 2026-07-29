@@ -479,6 +479,45 @@ estação passou a entrar também na luz da zona, com o violeta a dominar 72/28.
 
 ---
 
+### 2026-07-29 · Corpo e Recuperação — conteúdo de saúde com fonte
+
+**Decisão:** nenhuma série, duração ou aviso entra sem fonte oficial
+identificada e datada. As fontes vivem em `src/app/body/routines.ts` e aparecem
+no produto, com ligação, junto de cada rotina.
+
+| Fonte | Usada para |
+|---|---|
+| Cambridge University Hospitals NHS FT | identificação do músculo; não contrair glúteos/pernas/abdómen; **não usar parar o jato de urina como exercício** |
+| North Tees and Hartlepool NHS FT | contração lenta 5 s × 8, rápidas × 10, ≥3× por dia |
+| NHS — *10 ways to stop leaks* | respirar normalmente; meses até haver benefício |
+| Worcestershire Acute Hospitals NHS Trust | posição de repouso da mandíbula, chin tuck 3–5 s × 8–10, abertura controlada × 8–10, lista do que evitar |
+| Dynamic Health (NHS) | mobilidade cervical 5 s × 5–10, retração escapular, red flags |
+
+**Divergência entre fontes, e como foi resolvida:** North Tees indica 5 s × 8;
+Cambridge indica ≥10 contrações até 6× por dia sem duração; o NHS indica 2 s a
+subir até 10 s. O Sistema usa o **conservador** — 5 s, 8 repetições, 3× por dia
+— e **não sobe automaticamente**, porque subir depende de manter a técnica e o
+Sistema não consegue ver isso. A divergência fica escrita no ficheiro.
+
+**Excluído por não ter fonte oficial:** treino de "jawline", mastigação
+excessiva, dispositivos de resistência, neck bridges, amplitudes forçadas.
+
+**Demonstrações:** quatro figuras SVG originais, animadas pelo valor das fases.
+Zero assets externos. **Abstratas de propósito** — uma silhueta sem rosto mostra
+direção, amplitude e ritmo, que é tudo o que um exercício precisa de comunicar;
+o pavimento pélvico é um *diagrama* de bacia, não um corpo.
+
+**Sem regra de XP nova:** `logBodyRoutine` regista com ganho **zero**.
+Verificado: `totalXP` igual antes e depois. Quanto vale o pavimento pélvico é
+uma decisão do Daniel, não minha.
+
+**Dois bugs apanhados na passagem:** o overlay dentro do palco ficava por baixo
+da órbita (`.sys-stage-wrap` cria contexto de empilhamento) → portal; e ao sair
+para o `<body>` o portal perdeu as correções da shell e a nota do Sono voltou a
+2,25:1 → a classe `sys-instrumental` no overlay repõe-nas.
+
+---
+
 ## Defeitos anteriores apanhados na Fase 5
 
 Nenhum foi introduzido por esta fase. Ficam registados porque foram medidos.

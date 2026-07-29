@@ -1793,6 +1793,25 @@ e um clique escreveria no estado dele):
 | Erros de consola | 0 |
 | Build | passa · JS 1,03 MB / 292 KB gzip |
 
+### Fase 8 · Reflexão — Observatório Interior (CONCLUÍDA 2026-07-29)
+
+A zona prometia memória, debrief e aprendizagem e entregava quatro
+interruptores. Passa a sete leituras em duas colunas — observação e memória —
+com a interpretação curta do Oráculo. "Inimigos internos" saiu; o binário ganhou
+tempo (última ação, frequência no registo) sem inventar uma escala que ninguém
+registou. 74 elementos, zero falhas de contraste.
+
+### Fase 7 · Corpo e Recuperação (CONCLUÍDA 2026-07-29)
+
+Subespaço full-screen dentro de Operações — a órbita continua com seis marcas.
+Reúne Treino, Sono, Pavimento Pélvico e Mandíbula/Pescoço, ligados pelo estado
+de recuperação (sono + carga). Sessão guiada com demonstrações SVG originais,
+temporizador que congela em pausa, e registo só por confirmação. **Sem regra de
+XP nova** — verificado: `totalXP` igual antes e depois.
+
+Conteúdo de saúde com **fonte oficial, data de revisão e divergência entre
+fontes registada**; ver `DESIGN-DECISIONS.md`. O que não tinha fonte não entrou.
+
 ### Por fazer da Fase 6/7 — NÃO COMEÇADO
 
 Por ordem de dependência, não de valor:
@@ -1800,17 +1819,17 @@ Por ordem de dependência, não de valor:
 1. **Relatório do Oráculo por camadas** (6B) — resumo executivo, sinais,
    evidência, interpretação, análise completa recolhida. É a maior queixa de
    legibilidade em aberto;
-2. **Corpo e Recuperação** (7) — espaço full-screen, sessão guiada, modo de
-   registo rápido, demonstrações animadas. **Bloqueado por investigação**:
-   Pavimento Pélvico e Mandíbula/Pescoço exigem fontes oficiais de saúde
-   citadas e datadas antes de qualquer conteúdo entrar;
-3. **Preview e cerimónia do Summer Arc** (7) — o motor está feito, a
+2. **Preview e cerimónia do Summer Arc** (7) — o motor está feito, a
    experiência não;
+3. **Treino em fluxo guiado** (7) — o espaço existe e o painel de Treino entra
+   nele **inteiro, sem redesenho**. A sessão guiada de calistenia, os modos
+   guiado/rápido para o treino e as demonstrações por exercício ficam por
+   fazer; o que está feito é o padrão, provado nas duas rotinas novas;
 4. **Universo** (6C) — campo celeste navegável, assinaturas por atributo,
    conquistas e sigilos paramétricos;
 5. **Radar** (6E) — estado vazio operacional, scanning, sinais;
 6. **Escada de Ascensão** (6D);
-7. **Operações** (6F) — grupo Corpo e Recuperação, calendário today vs selected;
+7. **Calendário** (6F) — today vs selected, e os restantes estados;
 8. **Entrada e transições de zona** (6G).
 
 ### Por fazer

@@ -52,12 +52,15 @@
   opacity: var(--arc-presence);
   /* `data-ambient` não se pode pôr num pseudo-elemento, e este É ambiente:
      em regime `calm` tem de parar. A regra vive aqui, com a mesma condição. */
+  /* 52% lavava o texto nas zonas com pouco conteúdo, onde mais glow fica à
+     vista — apanhado na Reflexão, não no Núcleo. A camada é secundária: tem de
+     ser suficiente para se ver a estação e insuficiente para competir. */
   background: radial-gradient(
     ellipse 76% 96% at 50% 88%,
-    color-mix(in oklab, var(--arc-accent) 52%, transparent) 0%,
-    color-mix(in oklab, var(--arc-accent-soft) 26%, transparent) 34%,
-    color-mix(in oklab, var(--arc-accent) 10%, transparent) 58%,
-    transparent 78%
+    color-mix(in oklab, var(--arc-accent) 38%, transparent) 0%,
+    color-mix(in oklab, var(--arc-accent-soft) 18%, transparent) 34%,
+    color-mix(in oklab, var(--arc-accent) 7%, transparent) 58%,
+    transparent 76%
   );
   transition: opacity calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
 }

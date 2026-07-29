@@ -29,11 +29,14 @@ import Calendar from '../components/Calendar.jsx';
 import OracleReport from '../components/OracleReport.jsx';
 import Conselho from '../components/Conselho.jsx';
 import KnowledgeMap from '../components/KnowledgeMap.jsx';
-import Debuffs from '../components/Debuffs.jsx';
+/* O `Debuffs` saiu do registo na Fase 8 e o componente NÃO foi apagado —
+ * continua a servir o HUD sem `?shell=`, que é o que está em produção. A
+ * Reflexão passou a ler os mesmos `S.debuffs` por outra apresentação. */
 import NextAction from './core/NextAction';
 import CoreQueue from './core/CoreQueue';
 import CoreHorizon from './core/CoreHorizon';
 import CoreOracle from './core/CoreOracle';
+import { ReflectionNow, ReflectionPatterns, ReflectionMemory } from './reflection/Reflection';
 
 /* O `DeadlineBanner` saiu do registo na Fase 5 e o componente NÃO foi apagado.
  *
@@ -193,8 +196,24 @@ export const ZONES: Zone[] = [
     id: 'reflection',
     name: 'Reflexão',
     purpose: 'Memória, debrief e o que o Sistema aprendeu contigo.',
-    density: 'reading',
-    groups: [{ id: 'estados', weight: 'main', panels: [Debuffs] }],
+    // Missão 26 · Fase 8 — a zona prometia memória, debrief e aprendizagem e
+    // entregava quatro interruptores numa lista vazia. O diagnóstico do Daniel
+    // foi mais fundo do que o visual: a FUNÇÃO não estava definida.
+    //
+    // Passa a Observatório Interior, em duas naturezas:
+    //   OBSERVAÇÃO (esquerda) — o que os dados mostram agora e o que reparas
+    //                           em ti. Lê-se e regista-se.
+    //   MEMÓRIA    (direita)  — o que já aconteceu, o que assumiste, o que
+    //                           ficou provado, e a leitura do Oráculo.
+    //
+    // O `Debuffs` original NÃO foi apagado: continua a servir o HUD sem
+    // `?shell=`, que é o que está em produção.
+    density: 'instrument',
+    columns: 'minmax(0, 1.1fr) minmax(0, 1fr)',
+    groups: [
+      { id: 'observacao', name: 'Observação', weight: 'main', panels: [ReflectionNow, ReflectionPatterns] },
+      { id: 'memoria', name: 'Memória', weight: 'side', panels: [ReflectionMemory] },
+    ],
   },
 ];
 

@@ -1,0 +1,364 @@
+/* REFLEXÃO — o Observatório Interior.
+ * Missão 26 · Fase 8.
+ *
+ * O material tem de ser DIFERENTE das zonas operacionais — era a queixa: "a
+ * grelha e o material são praticamente iguais". A diferença não é decorativa:
+ * ali executa-se, aqui observa-se, e a superfície tem de dizer isso antes de
+ * se ler uma palavra.
+ *
+ * Como se distingue, e cada uma tem razão:
+ *   - nada tem filete de domínio colorido: aqui não há prioridade nem tier;
+ *   - as separações são hairlines horizontais, não trilhos verticais;
+ *   - a única cor de estado é o alerta da carga, e é a mesma do resto do
+ *     Sistema — a semântica de perigo pertence ao Sistema permanente;
+ *   - zero animação própria. Esta zona é presença (gramática 3), e presença
+ *     não pisca. O único movimento é o sigilo do Oráculo, que já é função de
+ *     estado real.
+ */
+
+.sys-zone[data-zone='reflection'] .rf-h {
+  margin: 0 0 var(--sys-space-3);
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.rf-h-sep {
+  margin-top: var(--sys-space-6);
+  padding-top: var(--sys-space-5);
+  border-top: 1px solid var(--sys-seam);
+}
+
+.rf-lede,
+.rf-note,
+.rf-empty {
+  margin: 0 0 var(--sys-space-4);
+  font-size: var(--sys-step--1);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink-mut);
+  max-width: 62ch;
+}
+
+/* A ressalva da carga é uma LINHA DE LEITURA, não uma nota de rodapé. Um
+   número de saúde sem origem declarada é uma opinião com ar de medição — e a
+   Fase J já tinha aprendido que uma ressalva ilegível é uma ressalva que não
+   existe. */
+.rf-note {
+  padding-left: var(--sys-space-4);
+  border-left: 1px solid var(--sys-seam);
+}
+
+/* ── Estado presente ───────────────────────────────────────────────────
+ * Três leituras grandes, lado a lado, com os ingredientes por baixo. É a
+ * diferença entre "risco de burnout 85%" dito por um sistema e "carga 85%,
+ * calculada das tuas streaks, sono e XP" dito com a conta à mostra.
+ */
+.rf-gauges {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0;
+  margin: 0 0 var(--sys-space-4);
+}
+
+.rf-gauge {
+  padding: 0 var(--sys-space-5);
+}
+.rf-gauge:first-child { padding-left: 0; }
+.rf-gauge + .rf-gauge { border-left: 1px solid var(--sys-seam); }
+
+.rf-gauge dt {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.rf-gauge dd {
+  margin: var(--sys-space-1) 0 0;
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-4);
+  font-weight: var(--sys-weight-bold);
+  line-height: 1;
+  color: var(--sys-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.rf-gauge[data-tone='alert'] dd { color: #fca5a5; }
+.rf-gauge[data-tone='good'] dd { color: var(--em); }
+
+.rf-from {
+  margin: var(--sys-space-2) 0 0;
+  font-size: var(--sys-step--1);
+  line-height: var(--sys-leading-tight);
+  color: var(--sys-ink-mut);
+  max-width: 26ch;
+}
+
+/* ── Debrief: trilho de leituras ───────────────────────────────────────
+ * Três colunas de pares rótulo/valor. É a mesma língua do trilho do Operador
+ * no Núcleo (origem R26), e resolve o problema de espaço sem esconder nada.
+ */
+/* Três colunas FIXAS, não `auto-fit`: as regras de filete usam `nth-child(3n+1)`
+   e com auto-fit o número de colunas muda com a largura — a 4 colunas o filete
+   caía no sítio errado e apareciam costuras soltas no início de linha. */
+.rf-debrief {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sys-space-4) 0;
+  margin: 0;
+}
+
+.rf-debrief > div { padding: 0 var(--sys-space-4); }
+.rf-debrief > div:nth-child(3n + 1) { padding-left: 0; }
+.rf-debrief > div + div { border-left: 1px solid var(--sys-seam); }
+.rf-debrief > div:nth-child(3n + 1) { border-left: 0; }
+
+.rf-debrief dt {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+  line-height: var(--sys-leading-tight);
+}
+
+.rf-debrief dd {
+  margin: var(--sys-space-1) 0 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step-1);
+  color: var(--sys-ink);
+}
+
+.rf-debrief > div[data-tone='good'] dd { color: var(--em); }
+.rf-debrief > div[data-tone='alert'] dd { color: #fca5a5; }
+
+/* ── Linhas de leitura ─────────────────────────────────────────────────
+ * Rótulo à esquerda, valor à direita, origem por baixo. Sem caixa: o que as
+ * separa é uma costura, como num registo.
+ */
+.rf-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rf-rows li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px var(--sys-space-5);
+  padding: var(--sys-space-2) 0;
+}
+
+.rf-rows li + li { border-top: 1px solid var(--sys-seam); }
+
+.rf-row-l { color: var(--sys-ink-mut); font-size: var(--sys-step-0); }
+
+.rf-row-v {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step-0);
+  color: var(--sys-ink);
+  text-align: right;
+}
+
+.rf-row-f {
+  grid-column: 1 / -1;
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}
+
+.rf-rows li[data-tone='good'] .rf-row-v { color: var(--em); }
+.rf-rows li[data-tone='alert'] .rf-row-v { color: #fca5a5; }
+
+/* ── Padrões internos ──────────────────────────────────────────────────
+ * O interruptor deixa de ser um cartão vermelho com "ATIVO" longe do nome.
+ * O estado lê-se ao lado do nome; o resto é contexto e tempo.
+ *
+ * NADA AQUI É PUNITIVO. Um padrão notado não fica vermelho — fica ACESO, com
+ * a mesma luz que o Sistema usa para "isto tem a tua atenção agora".
+ */
+.rf-plist { list-style: none; margin: 0; padding: 0; }
+
+.rf-p {
+  padding: var(--sys-space-4) 0;
+  border-top: 1px solid var(--sys-seam);
+}
+.rf-p:first-child { border-top: 0; padding-top: 0; }
+
+.rf-p-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sys-space-4);
+}
+
+.rf-p-mark {
+  display: flex;
+  align-items: center;
+  gap: var(--sys-space-3);
+  cursor: pointer;
+  /* alvo real: era um div sem foco nem semântica */
+  min-height: var(--sys-touch-min);
+}
+
+/* A caixa mede 20px, mas o ALVO é o `<label>` que a envolve — 44px de altura,
+   com o nome lá dentro. É por isso que uma auditoria que meça o `<input>` a
+   reporta como pequena e na prática não é: o WCAG conta a área de ativação. */
+.rf-p-mark input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--sys-violet);
+  cursor: pointer;
+}
+
+.rf-p-name {
+  font-size: var(--sys-step-1);
+  color: var(--sys-ink-mut);
+}
+
+.rf-p[data-noted='true'] .rf-p-name { color: var(--sys-ink); }
+
+/* O estado ao lado do nome, não no outro extremo do cartão. */
+.rf-p-read {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: 0.04em;
+  color: var(--sys-ink-mut);
+  white-space: nowrap;
+}
+
+.rf-p[data-noted='true'] .rf-p-read { color: var(--sys-violet); }
+
+.rf-p-ef {
+  margin: var(--sys-space-1) 0 0;
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink-mut);
+  max-width: 58ch;
+}
+
+.rf-p-time {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sys-space-2) var(--sys-space-5);
+  margin-top: var(--sys-space-2);
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}
+
+.rf-p-time span + span {
+  padding-left: var(--sys-space-5);
+  border-left: 1px solid var(--sys-seam);
+  cursor: help;
+}
+
+/* A ação só aparece quando há alguma coisa notada. Um botão de antídoto sempre
+   visível convida a clicar sem ter notado nada, e isso enche o registo de
+   eventos que não aconteceram. */
+.rf-p-act {
+  margin-top: var(--sys-space-3);
+  padding-left: var(--sys-space-4);
+  border-left: 2px solid rgb(var(--sys-violet-rgb) / var(--sys-o-40));
+}
+
+.rf-p-an {
+  margin: 0 0 var(--sys-space-3);
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink);
+  max-width: 58ch;
+}
+
+.sys-zone[data-zone='reflection'] .mini { min-height: 36px; }
+
+/* ── Memória e registo ─────────────────────────────────────────────────
+ * A Living Memory é a única prosa desta zona. Ganha medida e peso: é uma
+ * frase para ler, não uma legenda.
+ */
+.rf-memory {
+  margin: 0;
+  font-size: var(--sys-step-1);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink);
+  max-width: 56ch;
+  padding-left: var(--sys-space-4);
+  border-left: 2px solid rgb(var(--sys-magenta-rgb) / var(--sys-o-24));
+}
+
+.rf-log { list-style: none; margin: 0; padding: 0; }
+
+.rf-log li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sys-space-4);
+  padding: var(--sys-space-2) 0;
+}
+.rf-log li + li { border-top: 1px solid var(--sys-seam); }
+
+.rf-log-t { color: var(--sys-ink-mut); font-size: var(--sys-step-0); min-width: 0; }
+
+.rf-log-w {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  white-space: nowrap;
+}
+
+/* ── O Oráculo ─────────────────────────────────────────────────────────
+ * Mesma marca e mesma fronteira do Command Core: o Sistema mostra os números,
+ * o Oráculo diz o que eles significam juntos. Curto, e no topo da coluna —
+ * é a leitura que enquadra o resto.
+ */
+.rf-oracle {
+  padding: 0 0 var(--sys-space-5) var(--sys-space-4);
+  margin-bottom: var(--sys-space-5);
+  border-left: 2px solid rgb(var(--sys-magenta-rgb) / var(--sys-o-40));
+  border-bottom: 1px solid var(--sys-seam);
+  display: grid;
+  gap: var(--sys-space-2);
+}
+
+.rf-oracle-h {
+  display: flex;
+  align-items: center;
+  gap: var(--sys-space-3);
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.rf-oracle-h .sys-oracle-sigil { width: 34px; height: 12px; flex: 0 0 auto; }
+
+.rf-oracle-t {
+  margin: 0;
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink);
+  max-width: 62ch;
+  cursor: help;
+}
+
+.rf-oracle-t[data-tone='alert'] { color: #fca5a5; }
+
+@media (max-width: 900px) {
+  .rf-gauges { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: var(--sys-space-4); }
+  .rf-gauge { padding-left: var(--sys-space-4); }
+  .rf-gauge:nth-child(odd) { padding-left: 0; border-left: 0; }
+  .rf-p-time span + span { padding-left: 0; border-left: 0; }
+
+  /* Duas colunas, e o filete acompanha: a 358px, três rótulos em mono partem-se
+     ao meio. */
+  .rf-debrief { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rf-debrief > div:nth-child(3n + 1) { padding-left: var(--sys-space-4); border-left: 1px solid var(--sys-seam); }
+  .rf-debrief > div:nth-child(odd) { padding-left: 0; border-left: 0; }
+}

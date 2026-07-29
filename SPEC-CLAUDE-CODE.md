@@ -1812,25 +1812,47 @@ XP nova** — verificado: `totalXP` igual antes e depois.
 Conteúdo de saúde com **fonte oficial, data de revisão e divergência entre
 fontes registada**; ver `DESIGN-DECISIONS.md`. O que não tinha fonte não entrou.
 
+### Fase 6B · Relatório do Oráculo por camadas (CONCLUÍDA 2026-07-29)
+
+A parede de texto era de forma, não de conteúdo. **O relatório já chega
+estruturado** — `report.report` é JSON com campos nomeados — por isso não houve
+parser nenhum, nem `dangerouslySetInnerHTML`, nem heurística de emojis.
+
+Sete camadas, com o resumo e o alerta sempre abertos e a análise integral
+recolhida. Valor novo: **cada sinal do Oráculo tem ao lado a evidência local do
+Sistema** — quando não coincidem, vê-se. A análise completa percorre o objeto
+inteiro, por isso um campo novo da Edge Function aparece em vez de desaparecer
+(verificado com um campo inventado: os 14 aparecem). 82 elementos, zero falhas.
+
+### Fase 7 · Preview e cerimónia do Summer Arc (CONCLUÍDA 2026-07-29)
+
+Mapa temporal, domínios com multiplicador real, o que aceitar faz (as 4 missões
+com nome e domínio), o que acontece se ignorar, e a pergunta do arco. Sigilo
+**procedural** — um desenho, quatro arcos, com o comprimento e a inclinação dos
+raios em função do fluxo do motivo.
+
+**A cerimónia só começa depois de a escrita passar**: `arcAccept` devolve o
+resultado da gravação; se falhar, não há sigilo a formar-se, há uma mensagem a
+dizer que não ficou guardado. Verificado ponta a ponta: `worldArc` null →
+active, missões 6 → 10, e o mundo fica com a camada da estação ao fechar.
+
 ### Por fazer da Fase 6/7 — NÃO COMEÇADO
 
 Por ordem de dependência, não de valor:
 
-1. **Relatório do Oráculo por camadas** (6B) — resumo executivo, sinais,
-   evidência, interpretação, análise completa recolhida. É a maior queixa de
-   legibilidade em aberto;
-2. **Preview e cerimónia do Summer Arc** (7) — o motor está feito, a
-   experiência não;
-3. **Treino em fluxo guiado** (7) — o espaço existe e o painel de Treino entra
+1. **Treino em fluxo guiado** (7) — o espaço existe e o painel de Treino entra
    nele **inteiro, sem redesenho**. A sessão guiada de calistenia, os modos
    guiado/rápido para o treino e as demonstrações por exercício ficam por
    fazer; o que está feito é o padrão, provado nas duas rotinas novas;
-4. **Universo** (6C) — campo celeste navegável, assinaturas por atributo,
+2. **Universo** (6C) — campo celeste navegável, assinaturas por atributo,
    conquistas e sigilos paramétricos;
-5. **Radar** (6E) — estado vazio operacional, scanning, sinais;
-6. **Escada de Ascensão** (6D);
-7. **Calendário** (6F) — today vs selected, e os restantes estados;
-8. **Entrada e transições de zona** (6G).
+3. **Radar** (6E) — estado vazio operacional, scanning, sinais;
+4. **Escada de Ascensão** (6D);
+5. **Calendário** (6F) — today vs selected, e os restantes estados;
+6. **Entrada e transições de zona** (6G);
+7. **Estados de arco por implementar no domínio** — `milestone`, `climax` e
+   `archived` estão declarados e inalcançáveis. Precisam de onde guardar um
+   marco atingido, e isso é decisão de domínio.
 
 ### Por fazer
 

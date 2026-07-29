@@ -529,3 +529,59 @@ Nenhum foi introduzido por esta fase. Ficam registados porque foram medidos.
 | `.sys-sync-slot` por cima da faixa de comando em mobile | fixo no canto inferior direito, que em ≤900px é onde a órbita passa a viver | **corrigido** — passa a linha da grelha |
 | Texto de ajuda do `at.exe` dentro de dois comentários de `instrumental.css` | interpolação de shell numa sessão anterior escreveu a saída de um comando dentro do ficheiro | **corrigido** — comentários reescritos |
 | `.panel::before` — filete ciano de 34px a respirar 7,9s | herdado do HUD, onde marcava o canto de um cartão; na shell os painéis não têm caixa | **removido na shell** — animação decorativa e borda, as duas proibidas |
+
+---
+
+### 2026-07-29 · Relatório do Oráculo — camadas, não parede
+
+**Decisão:** sete camadas com progressive disclosure, em vez de catorze campos
+com a mesma largura, cor e densidade.
+
+**O que tornou isto seguro:** o relatório **já chega estruturado**. Antes de
+escrever uma linha inspecionei o que a Edge Function devolve — `report.report` é
+um objeto JSON com campos nomeados. Não houve parser, não houve
+`dangerouslySetInnerHTML`, não houve heurística de emojis. Verificado: zero
+`<script>`, zero `innerHTML` no subárvore.
+
+**O que acrescenta valor novo:** cada sinal do Oráculo passa a ter ao lado a
+**evidência local do Sistema**. O Oráculo diz "média abaixo do alvo"; o Sistema
+mostra "média 7d 7,5h". Quando não coincidem, vê-se — e ver isso vale mais do
+que a frase.
+
+**Nada se perde:** a análise completa percorre o objeto inteiro. Um campo que o
+componente não conhece aparece com a própria chave. Verificado com um campo
+inventado no teste.
+
+**Alternativa rejeitada:** reescrever a Edge Function para devolver as camadas
+prontas. Teria acoplado uma decisão de apresentação a um serviço com custo e
+latência, e obrigaria a um deploy para mudar a ordem de dois blocos.
+
+---
+
+### 2026-07-29 · Summer Arc — preview e cerimónia
+
+**Decisão:** aceitar um arco deixa de ser um clique de passagem. O botão do
+Command Core abre um preview em ecrã inteiro, e é lá que se decide.
+
+**Porquê:** um arco dura meses, muda multiplicadores, acrescenta missões e
+altera a atmosfera. Decidir isso num botão de 26px entre duas linhas de texto é
+pedir uma decisão de estação com a cerimónia de um checkbox.
+
+**O que o preview mostra, tudo com dados reais:** mapa temporal (início, hoje,
+fim), domínios com o multiplicador verdadeiro, o que aceitar faz (as missões que
+entram, com nome e domínio), o que acontece se ignorar, e a pergunta do arco.
+
+**O que NÃO inventa:** marcos. O domínio não guarda marcos atingidos. Um marco
+no mapa seria prometer uma cerimónia que nunca ia acontecer.
+
+**Sigilo procedural:** um desenho, quatro arcos. O comprimento e a inclinação
+dos raios são função do `flow` do motivo, por isso um arco novo ganha sigilo sem
+ninguém abrir o ficheiro. Origem R15 e gramática 1 — os raios **apontam para** o
+núcleo, não saem dele. Rejeitado: o emblema, o brasão, o contorno grosso.
+
+**A cerimónia só começa depois de a escrita passar.** `arcAccept` devolve o
+resultado da gravação; se falhar, não há sigilo a formar-se — há uma mensagem a
+dizer que não ficou guardado e um botão para repetir.
+
+**Escala autorizada pela raridade:** é a única superfície do produto que pode
+ser cena em vez de instrumento, e só porque acontece uma vez por estação.

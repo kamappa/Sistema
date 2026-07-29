@@ -378,6 +378,107 @@ Sistema" para "o Oráculo a falar".
 
 ---
 
+### 2026-07-29 · A fronteira Sistema / Oráculo no Command Core
+
+**Decisão do Daniel:** a coluna da ação continua a ser um instrumento do
+Sistema; interpretação, prioridade explicada, risco e decisão sugerida passam a
+ter atribuição explícita ao Oráculo.
+
+**Como se implementou a fronteira**, e é uma regra que o código tem de resistir
+a quebrar: o read model (`oracleRead.ts`) recusa-se a repetir um facto que o
+visor mostra ao lado. De "1 prazo vencido" — que é do Sistema — só pode nascer
+*"está à frente por ser o único prazo já passado; as outras 3 missões esperam
+sem custo"*, que é o que aquele facto significa para a ordem de trabalho.
+
+**Curto por lei:** duas falas, uma ou duas linhas. A análise extensa é da zona
+Oráculo. Cada fala traz o `because` — a condição verificável que a produziu —
+no `title`, para auditar sem sujar o corpo do texto.
+
+**Distingue-se por três marcas, nenhuma decorativa:** o sigilo de onda (R01, a
+única marca do Oráculo no produto), o rótulo em mono, e um filete no material do
+Oráculo. Sem caixa, sem fundo próprio, sem avatar — a Constituição proíbe o
+cartão de assistente, e uma voz não é um objeto.
+
+**Nada disto chama um modelo.** É leitura local e determinística. O que custa
+dinheiro e latência é o Conselho, e continua a ser um sítio próprio.
+
+**Origem visual:** R01. **Rejeitado:** a esfera da R19 (o retrato-robô do
+assistente de AI), qualquer avatar, e o formato de bolha de chat.
+
+---
+
+### 2026-07-29 · Fase 6A — a fila de eventos e o regime de movimento
+
+**Decisão:** dois canais de anúncio, com fronteira declarada.
+**SYSTEM EVENT** (fila, com consequência) para acontecimentos do mundo — missão
+erguida, pilar fechado, nível, arco aceite, conquista. **Toast** (o herdado, um
+de cada vez) para validação de formulário — "falta info", "data inválida",
+"trava do Sistema".
+
+**Porquê dois:** misturá-los faria da fila de eventos um caixote. Uma resposta a
+um formulário não é um acontecimento. O que não podiam era ocupar o mesmo pixel
+— e ocupavam: medido, os dois em `bottom: space-7 + 1.5rem`, sobrepostos e
+ambos ilegíveis. O SYSTEM EVENT sobe, porque é o que tem consequência.
+
+**O evento nasce depois da escrita, e isso é estrutural.** A primeira versão
+confiava em cada sítio de chamada se lembrar de emitir depois do `save()`. Não
+sobreviveu ao primeiro caso real: o `addXp` anuncia subidas de nível a meio da
+ação, antes de qualquer escrita, e tem dez sítios de chamada. Agora quem emite
+**encena** e o `save()` é que publica — ou deita fora, se a escrita local
+falhar.
+
+**Alternativa rejeitada:** esperar pela gravação na nuvem. É debounced a 900ms;
+poria o feedback a um segundo do gesto e não seria mais verdadeiro — o dado já
+está seguro no dispositivo, e quem diz se a nuvem falhou é o estado de
+sincronização, que existe desde a Fase I.
+
+**A causa antes da consequência:** o nível subia antes de a missão ser
+anunciada. A ordem passou a ser por significado, não por ordem de chamada.
+
+**Regime de movimento:** quatro sinais (reduced-motion, poupança de dados,
+bateria, separador escondido) lidos num sítio e escritos em `<html
+data-motion>`. `paused` **congela** com `animation-play-state` em vez de
+desligar — quem muda de separador e volta não vê o mundo a recomeçar. `calm`
+corta só o AMBIENT, que é o único custo contínuo.
+
+**Origem visual:** R15 e a gramática 1 — a energia converge para dentro. O traço
+do anúncio atravessa na direção do Núcleo e corre **uma vez**; um ciclo diria "a
+processar", e isto terminou. **Rejeitado:** o bloom a 100%, as partículas de
+celebração (dizem o oposto da convergência) e qualquer moldura de videojogo.
+
+---
+
+### 2026-07-29 · Fase 7 — Arc Engine data-driven
+
+**Decisão:** o arco ativo lê-se num só sítio (`arcModel.ts`) e chega ao CSS como
+duas cores e uma direção. Nenhum componente pergunta "isto é o Summer Arc?".
+
+**Porquê:** condição explícita do Daniel. Um `if (arc.id === 'summer')` em cinco
+ficheiros significa que o Bloom Arc exige cinco alterações — e a lei é que a
+progressão muda o mundo, não que se reconstrói a aplicação de estação em
+estação.
+
+**A prova está no ficheiro:** o Bloom Arc são quatro linhas de CSS. Não existe
+`<BloomLayer/>`. Verificado no browser: trocar `--arc-accent`,
+`--arc-accent-soft` e `data-arc-flow` muda o mundo de âmbar para verde sem tocar
+em código.
+
+**O que a camada sazonal pode mexer:** atmosfera, cor **secundária**, motivo,
+transições. **O que não pode:** estrutura, legibilidade, navegação, semântica de
+perigo, acessibilidade.
+
+**Estados por implementar, e ficam declarados:** `milestone`, `climax` e
+`archived` estão no tipo porque a máquina de estados é a aprovada, e
+`arcState()` **nunca os devolve**. O domínio não tem onde guardar um marco
+atingido; inventá-lo seria mostrar um marco que ninguém atingiu.
+
+**Correção medida:** a primeira versão punha a camada só no fundo do ecrã.
+`elementFromPoint` mostrou que a faixa do Oráculo e os painéis a cobriam quase
+toda — o Sistema dizia que o mundo tinha mudado e o mundo estava igual. A
+estação passou a entrar também na luz da zona, com o violeta a dominar 72/28.
+
+---
+
 ## Defeitos anteriores apanhados na Fase 5
 
 Nenhum foi introduzido por esta fase. Ficam registados porque foram medidos.

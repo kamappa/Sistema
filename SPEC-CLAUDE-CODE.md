@@ -1750,6 +1750,69 @@ ajuda do `at.exe`, escrita por interpolação de shell numa sessão anterior.
 Detalhe, alternativas rejeitadas e origens visuais em
 `docs/design-references/mission-26/DESIGN-DECISIONS.md`.
 
+### Fase 6A + 6B(voz) + 7(motor) — Sistema Vivo, fundações (2026-07-29)
+
+O Daniel abriu a **Fase 6 — Sistema Vivo** (13 subsistemas) e a **Fase 7 — Arc
+Engine + Corpo e Recuperação** (23 secções) no mesmo pedido. Esta sessão
+entregou as **fundações de que tudo o resto depende**, verificadas; o restante
+está listado em "Por fazer da Fase 6/7" e **não** foi começado.
+
+**Voz do Oráculo no Command Core** — CONCLUÍDA
+A coluna da ação continua a ser instrumento do Sistema. Interpretação,
+prioridade explicada, risco e decisão sugerida ganham atribuição explícita, com
+o sigilo R01 e o rótulo em mono. O read model recusa repetir factos que o visor
+já mostra; cada fala traz a condição que a produziu.
+
+**Fase 6A · motion e eventos** — CONCLUÍDA
+Regime de movimento em `<html data-motion>` a partir de quatro sinais.
+`paused` congela em vez de desligar. Fila de eventos com deduplicação,
+contador, dispensa e pausa ao ler — o toast do HUD é um elemento único e
+**perdia o primeiro de dois eventos seguidos**. O evento passa a nascer depois
+da escrita, e isso é estrutural: quem emite encena, o `save()` publica.
+O `localSave` deixou de engolir a exceção.
+
+**Fase 7 · Arc Engine** — MOTOR CONCLUÍDO
+Read model único; a shell passa duas cores e uma direção ao CSS. O Bloom Arc
+são quatro linhas de CSS e nenhum componente novo — verificado no browser.
+`milestone`/`climax`/`archived` ficam declarados e inalcançáveis: o domínio não
+tem onde guardar um marco.
+
+Medido em perfil Chrome isolado (a sessão real do Daniel vive no perfil normal
+e um clique escreveria no estado dele):
+
+| Medida | Resultado |
+| --- | --- |
+| Missão concluída | +150 XP, Sombra criada, estado escrito, visor recalculado |
+| Dois pilares seguidos | dois anúncios (antes: um) |
+| Três emissões com a mesma chave | uma entrada |
+| Ordem | causa antes da consequência |
+| Contraste WCAG AA, com arco ativo | 62 elementos, **0 falhas** |
+| Alvos < 32 px | 0 |
+| Animações sob `reduced-motion` | 0 |
+| Transbordo horizontal (4 resoluções) | 0 |
+| Erros de consola | 0 |
+| Build | passa · JS 1,03 MB / 292 KB gzip |
+
+### Por fazer da Fase 6/7 — NÃO COMEÇADO
+
+Por ordem de dependência, não de valor:
+
+1. **Relatório do Oráculo por camadas** (6B) — resumo executivo, sinais,
+   evidência, interpretação, análise completa recolhida. É a maior queixa de
+   legibilidade em aberto;
+2. **Corpo e Recuperação** (7) — espaço full-screen, sessão guiada, modo de
+   registo rápido, demonstrações animadas. **Bloqueado por investigação**:
+   Pavimento Pélvico e Mandíbula/Pescoço exigem fontes oficiais de saúde
+   citadas e datadas antes de qualquer conteúdo entrar;
+3. **Preview e cerimónia do Summer Arc** (7) — o motor está feito, a
+   experiência não;
+4. **Universo** (6C) — campo celeste navegável, assinaturas por atributo,
+   conquistas e sigilos paramétricos;
+5. **Radar** (6E) — estado vazio operacional, scanning, sinais;
+6. **Escada de Ascensão** (6D);
+7. **Operações** (6F) — grupo Corpo e Recuperação, calendário today vs selected;
+8. **Entrada e transições de zona** (6G).
+
 ### Por fazer
 
 - **War Room** ligado a dados;

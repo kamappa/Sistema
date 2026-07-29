@@ -33,6 +33,7 @@ import Debuffs from '../components/Debuffs.jsx';
 import NextAction from './core/NextAction';
 import CoreQueue from './core/CoreQueue';
 import CoreHorizon from './core/CoreHorizon';
+import CoreOracle from './core/CoreOracle';
 
 /* O `DeadlineBanner` saiu do registo na Fase 5 e o componente NÃO foi apagado.
  *
@@ -135,7 +136,10 @@ export const ZONES: Zone[] = [
     columns: 'minmax(0, 1fr) minmax(0, 1.25fr)',
     groups: [
       { id: 'estado', name: 'Estado', weight: 'main', panels: [Greet, Hero, World, CoreHorizon] },
-      { id: 'accao', name: 'Ação', weight: 'side', panels: [NextAction, CoreQueue] },
+      // A coluna é um instrumento do SISTEMA; o `CoreOracle` é o único bloco
+      // dela que fala como Oráculo, e está entre o visor e a fila de propósito
+      // — interpreta o que está em cima antes de se mostrar o que espera.
+      { id: 'accao', name: 'Ação', weight: 'side', panels: [NextAction, CoreOracle, CoreQueue] },
     ],
   },
   {

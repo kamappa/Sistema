@@ -257,6 +257,61 @@
   color: var(--sys-ink-mut);
 }
 
+/* ── A voz do Oráculo ──────────────────────────────────────────────────
+ * Missão 26 · Fase 6B. A coluna continua a ser um instrumento do Sistema; este
+ * é o único bloco dela que fala, e tem de se distinguir sem virar um cartão de
+ * assistente (o que a Constituição proíbe por nome).
+ *
+ * Três marcas, nenhuma decorativa: o sigilo de onda (R01, a única marca do
+ * Oráculo no produto), o rótulo em mono, e um filete no material do Oráculo —
+ * distinto dos filetes de domínio, que são violeta ou cor de atributo.
+ *
+ * Sem caixa, sem fundo próprio, sem avatar. Uma voz não é um objeto.
+ */
+.cc-oracle {
+  margin-top: var(--sys-space-5);
+  padding: 0 0 0 var(--sys-space-4);
+  border-left: 2px solid rgb(var(--sys-magenta-rgb) / var(--sys-o-40));
+  display: grid;
+  gap: var(--sys-space-2);
+}
+
+.cc-oracle-h {
+  display: flex;
+  align-items: center;
+  gap: var(--sys-space-3);
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+/* O sigilo aqui é pequeno: a presença dominante do Oráculo é a faixa em baixo,
+   e duas presenças do mesmo tamanho no mesmo ecrã seriam duas entidades. */
+.cc-oracle-h .sys-oracle-sigil {
+  width: 34px;
+  height: 12px;
+  flex: 0 0 auto;
+}
+
+.cc-oracle-t {
+  margin: 0;
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink);
+  /* prosa: mantém medida mesmo com a zona full-bleed */
+  max-width: 62ch;
+  /* o `title` traz o `because` — sinal de que há mais a saber, sem o mostrar */
+  cursor: help;
+}
+
+/* O risco é o único que muda de cor. Uma interpretação sobre o corpo do
+   Operador não pode ler-se com o mesmo peso de uma nota sobre a ordem da fila. */
+.cc-oracle-t[data-tone='alert'] { color: #fca5a5; }
+
 /* ── A fila e o horizonte ──────────────────────────────────────────────
  * ORIGEM: R26, o trilho de leituras emparelhadas — rótulo à esquerda, medida à
  * direita, separadas por espaço e um filete. Nunca por caixas.

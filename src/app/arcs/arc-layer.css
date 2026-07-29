@@ -1,0 +1,164 @@
+/* ARC LAYER — a camada sazonal.
+ * Missão 26 · Fase 7.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  O SISTEMA PERMANENTE NÃO SE TOCA.                                   ║
+ * ║  estrutura · legibilidade · navegação · materiais fundamentais ·     ║
+ * ║  acessibilidade · semântica de perigo                                ║
+ * ║                                                                       ║
+ * ║  A ARC LAYER só pode mexer em:                                       ║
+ * ║  atmosfera · cor SECUNDÁRIA · partículas · motivo · transições        ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * É por isso que este ficheiro tem tão poucas regras, e é de propósito: um
+ * tema que precisa de muitas regras está a redesenhar a aplicação em vez de a
+ * vestir. Um arco declara TRÊS coisas — duas cores e uma direção — e o resto é
+ * o mesmo Sistema.
+ *
+ * COMO SE PROVA QUE UM ARCO NOVO NÃO EXIGE COMPONENTES NOVOS: o Bloom Arc
+ * (primavera) está aqui em baixo e são quatro linhas. Não há um
+ * `<BloomLayer/>`, não há um `if (arc === 'bloom')` em lado nenhum — as cores
+ * vêm do `arcModel.ts` por custom property e a direção do movimento vem do
+ * `data-arc-flow`. Trocar a estação troca o mundo sem tocar em código.
+ */
+
+/* As custom properties são escritas pelo Shell a partir do `arcModel`. Aqui só
+   se declaram os valores neutros: sem arco ativo, a camada não existe. */
+.sys-shell {
+  --arc-accent: transparent;
+  --arc-accent-soft: transparent;
+  --arc-presence: 0; /* 0 = sem arco; 1 = arco a decorrer */
+}
+
+/* ── Atmosfera ─────────────────────────────────────────────────────────
+ * Uma luz baixa, no horizonte da zona. Não tem forma porque nasce fora do ecrã
+ * e cai — a mesma disciplina da luz de palco, e pela mesma razão: qualquer
+ * elipse que ainda tenha opacidade nos limites desenha uma caixa.
+ *
+ * A opacidade é deliberadamente baixa. A referência da estação é uma peça
+ * isolada em fundo preto; o Sistema tem sempre texto por cima (gramática 4).
+ */
+.sys-shell::after {
+  content: '';
+  position: fixed;
+  /* Sobe até meio ecrã: ancorada só no fundo, a faixa do Oráculo tapava-a
+     quase toda e a estação ficava invisível — medido, e foi o primeiro
+     resultado desta fase que não se via no screenshot. O pico do gradiente fica
+     a 88% da altura, não a 100%, precisamente para não morrer atrás da faixa. */
+  inset: auto 0 0 0;
+  height: 56vh;
+  pointer-events: none;
+  z-index: var(--sys-z-atmosphere);
+  opacity: var(--arc-presence);
+  /* `data-ambient` não se pode pôr num pseudo-elemento, e este É ambiente:
+     em regime `calm` tem de parar. A regra vive aqui, com a mesma condição. */
+  background: radial-gradient(
+    ellipse 76% 96% at 50% 88%,
+    color-mix(in oklab, var(--arc-accent) 52%, transparent) 0%,
+    color-mix(in oklab, var(--arc-accent-soft) 26%, transparent) 34%,
+    color-mix(in oklab, var(--arc-accent) 10%, transparent) 58%,
+    transparent 78%
+  );
+  transition: opacity calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+/* ── O motivo em movimento ─────────────────────────────────────────────
+ * UM elemento ambiental por zona, e este é o do mundo — por isso é subtil e
+ * fica no horizonte, longe de onde se lê. `data-ambient` sem `dominant`: em
+ * regime `calm` desliga, e nunca compete com o Núcleo.
+ *
+ * A DIREÇÃO é o significado (gramática 9): `out` expande, `in` converge, `up`
+ * sobe. Não é uma escolha estética — trocar o sinal troca o que o arco diz.
+ */
+@keyframes arc-out { from { transform: scaleX(0.94) translateY(4px); opacity: 0.55; }
+                     to   { transform: scaleX(1.06) translateY(0);   opacity: 1; } }
+@keyframes arc-in  { from { transform: scaleX(1.06); opacity: 1; }
+                     to   { transform: scaleX(0.94); opacity: 0.55; } }
+@keyframes arc-up  { from { transform: translateY(10px); opacity: 0.5; }
+                     to   { transform: translateY(-6px); opacity: 1; } }
+
+.sys-shell[data-arc-flow='out']::after {
+  animation: arc-out var(--sys-cycle-ambient) var(--sys-ease-breath) infinite alternate;
+}
+.sys-shell[data-arc-flow='in']::after {
+  animation: arc-in var(--sys-cycle-ambient) var(--sys-ease-breath) infinite alternate;
+}
+.sys-shell[data-arc-flow='up']::after {
+  animation: arc-up var(--sys-cycle-ambient) var(--sys-ease-breath) infinite alternate;
+}
+
+/* Sem arco, sem movimento. Não é uma otimização — é a lei: o movimento comunica
+   estado, e "não há arco" não é um estado que precise de se anunciar. */
+.sys-shell:not([data-arc])::after { animation: none; }
+
+/* Regime `calm` (poupança de dados ou bateria baixa): a camada sazonal fica,
+   o ciclo pára. A cor é informação — diz em que estação o mundo está — e o
+   movimento é que é o custo contínuo. */
+html[data-motion='calm'] .sys-shell::after { animation: none !important; }
+
+/* ── A estação entra na LUZ da zona ────────────────────────────────────
+ * A primeira versão punha a camada só no fundo do ecrã. Medido com
+ * `elementFromPoint`: a faixa do Oráculo e os painéis cobriam-na quase toda, e
+ * a estação via-se num canto — o Sistema dizia "o mundo mudou" e o mundo estava
+ * igual.
+ *
+ * A correção não é subir a opacidade até o texto sofrer. É pôr a estação onde a
+ * zona já tem luz: a luz de palco (`.sys-zone::before`) passa a levar uma
+ * fração do acento sazonal. Continua a ser violeta — a identidade do Sistema
+ * não muda de estação — mas com a temperatura da estação lá dentro.
+ *
+ * O violeta domina de propósito (72/28): a cor secundária é secundária.
+ */
+.sys-shell[data-arc] .sys-zone[data-active='true']::before {
+  background: radial-gradient(
+    ellipse 62% 58% at 50% 4%,
+    color-mix(in oklab, var(--arc-accent) 28%, rgb(var(--sys-violet-rgb) / var(--sys-o-24))) 0%,
+    color-mix(in oklab, var(--arc-accent) 18%, rgb(var(--sys-violet-rgb) / var(--sys-o-14))) 26%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-04)) 46%,
+    transparent 70%
+  );
+}
+
+/* ── A marca do arco na navegação ──────────────────────────────────────
+ * A órbita ganha um acento da estação. Um filete, não uma cor de texto — a
+ * legibilidade da navegação pertence ao Sistema permanente e não muda de
+ * estação.
+ */
+.sys-shell[data-arc] .sys-orbit-mark[data-on='true']::before {
+  background: color-mix(in oklab, var(--arc-accent) 60%, var(--sys-violet));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * A PROVA: o Bloom Arc não precisa de um componente novo.
+ *
+ * Estas quatro linhas são tudo o que separa a primavera do verão no ecrã. As
+ * cores vêm do `arcModel.ts` e chegam por custom property; a direção do
+ * movimento vem do `data-arc-flow`. Não existe `<BloomLayer/>`, não existe
+ * `if (arc.id === 'bloom')` em componente nenhum.
+ *
+ * O que muda em cada arco: `--arc-accent`, `--arc-accent-soft`, `flow`.
+ * O que NUNCA muda: tudo o resto.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+/* Emergência (bloom) — mais estreita e mais alta do que a solar: o verão abre
+   no horizonte inteiro, a primavera irrompe em pontos. */
+.sys-shell[data-arc='bloom']::after {
+  background: radial-gradient(
+    ellipse 38% 110% at 50% 92%,
+    color-mix(in oklab, var(--arc-accent) 30%, transparent) 0%,
+    color-mix(in oklab, var(--arc-accent-soft) 14%, transparent) 38%,
+    transparent 72%
+  );
+}
+
+/* Compressão (winter) — mais baixa e mais larga: o inverno não irrompe, assenta. */
+.sys-shell[data-arc='winter']::after {
+  height: 34vh;
+  opacity: calc(var(--arc-presence) * 0.7);
+}
+
+@media (max-width: 900px) {
+  /* Em mobile a atmosfera desce de altura: 42vh num ecrã de 844px é metade do
+     mundo, e a camada é secundária por definição. */
+  .sys-shell::after { height: 26vh; }
+}

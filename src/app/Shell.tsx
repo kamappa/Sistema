@@ -27,9 +27,11 @@ import SyncState from './SyncState';
 import SystemEventLayer from './events/SystemEventLayer';
 import { installSystemEventBridge } from './events/systemEvents';
 import { startMotionRegime } from './motion/motionTier';
+import { activeArcTheme } from './arcs/arcModel';
 import './instrumental.css';
 import './core/command-core.css';
 import './motion/motion-regime.css';
+import './arcs/arc-layer.css';
 
 interface Props {
   S: Record<string, unknown>;
@@ -48,8 +50,27 @@ export default function Shell({ S }: Props) {
     installSystemEventBridge();
   }, []);
 
+  /* ARC LAYER (Fase 7). A shell lê o arco ativo por UM read model e passa-o ao
+     CSS por custom property. Nenhum componente pergunta "isto é o Summer Arc?"
+     — trocar de estação troca duas cores e uma direção, e mais nada. */
+  const arc = activeArcTheme(S);
+
   return (
-    <div className="sys-shell sys-instrumental" data-nav="orbit">
+    <div
+      className="sys-shell sys-instrumental"
+      data-nav="orbit"
+      data-arc={arc?.id}
+      data-arc-flow={arc?.motif.flow}
+      style={
+        arc
+          ? ({
+              '--arc-accent': arc.motif.accent,
+              '--arc-accent-soft': arc.motif.accentSoft,
+              '--arc-presence': 1,
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
       <Atmosphere />
 
       <OrbitNav zones={ZONES} active={active} onSelect={setActive} S={S} />

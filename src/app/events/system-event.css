@@ -7,10 +7,21 @@
  * Núcleo precisamente no momento em que havia algo a mostrar.
  */
 
+/* DOIS CANAIS, DUAS ALTURAS.
+ *
+ * O `.toast` herdado continua a existir, e deve: serve VALIDAÇÃO — "falta
+ * info", "data inválida", "trava do Sistema". Isso não é um acontecimento do
+ * mundo, é uma resposta a um formulário, e misturar as duas coisas na mesma
+ * fila tornaria a fila de eventos um caixote.
+ *
+ * O que não pode acontecer é ocuparem o mesmo pixel. Medido: os dois estavam
+ * em `bottom: space-7 + 1.5rem` e sobrepunham-se, com os dois ilegíveis. O
+ * SYSTEM EVENT sobe acima do toast, porque é o que tem consequência.
+ */
 .sys-ev-layer {
   position: fixed;
   right: var(--sys-space-5);
-  bottom: calc(var(--sys-space-7) + 1.5rem);
+  bottom: calc(var(--sys-space-7) + 5.5rem);
   z-index: var(--sys-z-toast);
   display: grid;
   justify-items: end;
@@ -177,8 +188,8 @@
   .sys-ev-layer {
     left: var(--sys-space-4);
     right: var(--sys-space-4);
-    /* acima da faixa de comando e da faixa do Oráculo, como o slot de gravação */
-    bottom: calc(var(--sys-touch-min) + var(--sys-oracle-h-mobile) + var(--sys-space-4) + env(safe-area-inset-bottom, 0px));
+    /* acima da faixa de comando, da faixa do Oráculo e do toast de validação */
+    bottom: calc(var(--sys-touch-min) + var(--sys-oracle-h-mobile) + 4.5rem + env(safe-area-inset-bottom, 0px));
     justify-items: stretch;
   }
   .sys-ev { width: auto; }

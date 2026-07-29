@@ -18,9 +18,21 @@ export default function Achievements({ S }) {
       if (a.cond(S) && !S.seenAch.includes(a.id)) {
         S.seenAch.push(a.id); dirty = true;
         if (achBaseline) {
-          // cineMoment com fallback de toast (reduced-motion / overlay ocupado) — hud.js:11
-          if (!(window.cineMoment && window.cineMoment('Conquista desbloqueada', a.ico + ' ' + a.name, 'rgba(251,191,36,.2)')))
-            if (window.toast) window.toast('Conquista desbloqueada', a.ico + ' ' + a.name, '#fbbf24');
+          // cineMoment continua a ser o momento alto (hud.js:11). O que muda
+          // (M26·F6A) é o registo: em vez de um toast que se sobrescreve, o
+          // desbloqueio entra na FILA de eventos e espera a sua vez, para que
+          // duas conquistas na mesma ação sejam ambas anunciadas.
+          window.cineMoment && window.cineMoment('Conquista desbloqueada', a.ico + ' ' + a.name, 'rgba(251,191,36,.2)');
+          if (window.sysEvent) {
+            window.sysEvent({
+              dedupe: 'ach:' + a.id,
+              kind: 'arc',
+              title: 'Conquista desbloqueada',
+              subject: a.name,
+              color: '#fbbf24',
+              holdMs: 8000,
+            });
+          }
         }
       }
     });

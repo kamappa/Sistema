@@ -492,8 +492,27 @@ export const useStore = create((set, get) => ({
       S.objectives.push({ id: 'o' + Date.now() + '_' + i, title: q.t, area: q.area || tr.area || 'oficio', pri: q.pri || tr.imp, auto: true, deadline: b.end, status: 'pend', created: today(), tags: [a.name.split(' ')[0] + ' Arco', ...(tr.tags || [])], arc: a.id }); n++;
     });
     addXp(S, 'mente', 15); plog(S, 'Arco aceite: ' + a.name, 15);
+    // SYSTEM EVENT (M26·F7) — aceitar um arco é um acontecimento do mundo, não
+    // um aviso de formulário. O toast antigo saía num `setTimeout(900)`, o que
+    // tinha um defeito por trás: anunciava passados 900ms QUER a gravação
+    // tivesse corrido bem quer não. Agora é o `save()` que publica, e as
+    // missões que entraram são a prova (gramática 2: o evento deixa o mundo
+    // diferente).
+    sysEvent({
+      dedupe: 'arc:' + a.id + ':' + today(),
+      kind: 'arc',
+      title: 'Arco aceite',
+      subject: a.name,
+      color: '#fb923c',
+      readings: n
+        ? [
+            { label: 'Missões', value: '+' + n },
+            { label: 'Mente', value: '+15 XP' },
+          ]
+        : [{ label: 'Mente', value: '+15 XP' }],
+      holdMs: 8000,
+    });
     set({ S: { ...S } }); get().save();
-    if (n) setTimeout(() => fx('toast', 'O ARCO TROUXE MISSÕES', '⚔️ ' + n + ' missões especiais entraram na lista-mestra, com prazo no fim do arco', '#fb923c'), 900); // world.js:78
     return { n };
   },
   arcLater: () => { const S = get().S; S.worldArc = { id: seasonArcNow().id, status: 'later', snooze: today() }; set({ S: { ...S } }); get().save(); },

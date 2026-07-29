@@ -1,0 +1,563 @@
+/* ═══════════════════════════════════════════════════════════════════════
+ * COMMAND CORE — composição
+ * Missão 26 · Fase 5 · 2026-07-29
+ *
+ * O diagnóstico que isto responde, palavra do Daniel: "o conteúdo foi
+ * espalhado pelo viewport, mas ainda não foi composto como um único
+ * instrumento". Não era falta de decoração — era falta de estrutura. Cinco
+ * blocos empilhados, cada um com o seu alinhamento, e metade do ecrã sem
+ * função.
+ *
+ * A COMPOSIÇÃO. Duas colunas com naturezas diferentes, separadas por uma
+ * costura real (a mesma que a B1 usa entre sistemas):
+ *
+ *   ESTADO — quem é o Operador, em que mundo está. Lê-se, não se executa.
+ *   AÇÃO   — o que fazer agora, o que espera, o que aí vem. É o visor.
+ *
+ * A LEI DA LUZ, aplicada. "Só existe um portador principal de luz por
+ * estado." Nesta zona o portador é a Próxima Ação — nem o Operador, nem o
+ * alerta, nem o arco. Tudo o resto é matéria escura com texto legível por
+ * cima. É por isso que a faixa vermelha teve de sair: dois portadores em
+ * competição são zero hierarquia.
+ *
+ * ORIGENS declaradas por bloco, no comentário de cada secção.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── O esqueleto partilhado ────────────────────────────────────────────
+ * Item 8 do diagnóstico: "os blocos não partilham um esqueleto de
+ * alinhamento suficientemente forte". A causa era simples e não estava no
+ * espaçamento: cada painel trazia do HUD o seu próprio recuo interno, e três
+ * margens esquerdas diferentes numa coluna leem-se como desalinhamento mesmo
+ * quando cada uma, sozinha, está certa.
+ *
+ * Aqui a coluna tem UM eixo. Tudo encosta a ele.
+ */
+.sys-zone[data-zone='core'] .sys-slot > .panel {
+  padding-inline: 0;
+  padding-block: 0;
+}
+
+/* Item 8, segunda causa: as duas colunas começavam a alturas diferentes. A
+   esquerda abria com a saudação (texto, com line-height próprio) e a direita
+   com um micro-label mono. Duas primeiras linhas a alturas diferentes leem-se
+   como duas páginas encostadas, por muito que a grelha esteja certa. */
+.sys-zone[data-zone='core'] .sys-group > .sys-slot:first-child > * {
+  margin-top: 0;
+}
+
+/* ── A varredura das marcas do HUD ─────────────────────────────────────
+ * `.panel::before` é um filete de 34×1px em ciano com `box-shadow` e uma
+ * animação `cornerbreath` de 7,9s. No HUD marcava o canto de um cartão. Aqui
+ * os painéis não têm caixa — e o que sobra é um risco solto a piscar em cima
+ * de cada bloco, sem canto para marcar.
+ *
+ * Duas leis o proíbem, não uma questão de gosto: "nenhuma animação é
+ * decorativa" e "a hierarquia faz-se com luz, não com bordas". Um traço que
+ * respira sem estado nenhum por trás é exatamente as duas coisas.
+ */
+.sys-instrumental .panel::before {
+  content: none;
+}
+
+/* ═══ COLUNA DA AÇÃO ═══════════════════════════════════════════════════ */
+
+/* ── O visor ───────────────────────────────────────────────────────────
+ * ORIGEM: R26 — trilho estreito de leituras + visor grande com o objeto de
+ * atenção. Extraído: a assimetria de escala entre o que se lê e o que se
+ * observa, o rótulo mono minúsculo a identificar o instrumento, a leitura
+ * alinhada à direita.
+ * Rejeitado: os cantos em esquadria, a moldura dupla, a marca de água e a
+ * densidade de HUD de cinema que não informa nada. Este visor não tem
+ * moldura — a hierarquia é escala e luz, como manda a lei.
+ */
+.cc-act {
+  position: relative;
+  display: grid;
+  gap: var(--sys-space-4);
+  padding: var(--sys-space-6) var(--sys-space-6) var(--sys-space-6) var(--sys-space-5);
+  /* A luz do portador: uma elipse alta que nasce no canto superior esquerdo e
+     morre antes de tocar os limites. Sem aresta, sem base opaca — a mesma
+     disciplina que a correção de 2026-07-29 impôs ao palco. */
+  background: radial-gradient(
+    ellipse 90% 120% at 12% 0%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-14)) 0%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-08)) 34%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-04)) 58%,
+    transparent 82%
+  );
+}
+
+/* O trilho de estado: um filete à esquerda, do mesmo vocabulário das linhas de
+   missão e de hábito. É ele que carrega a urgência — não um fundo vermelho a
+   ocupar a largura toda. A mesma informação, um vigésimo do peso visual. */
+.cc-act::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  /* atravessa o visor inteiro: recuado do topo e do fundo, o filete lia-se
+     como um traço solto em vez de um trilho */
+  top: var(--sys-space-2);
+  bottom: var(--sys-space-2);
+  width: 2px;
+  background: rgb(var(--sys-violet-rgb) / var(--sys-o-40));
+}
+
+.cc-act[data-tone='alert']::before { background: var(--sys-danger); width: 3px; }
+.cc-act[data-tone='active']::before { background: var(--sys-violet); }
+.cc-act[data-tone='calm']::before { background: rgb(var(--sys-bone-rgb) / var(--sys-o-24)); }
+
+/* Sem nada crítico, a luz desce. O Núcleo não finge urgência para o ecrã ter
+   contraste — se o quadro está limpo, parece limpo. */
+.cc-act[data-tone='calm'] {
+  background: radial-gradient(
+    ellipse 90% 120% at 12% 0%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-08)) 0%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-04)) 40%,
+    transparent 78%
+  );
+}
+
+.cc-act-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sys-space-4);
+}
+
+.cc-act-label {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+/* A leitura de prazo: mono, à direita, como num painel de instrumentos. A cor
+   diz o estado; a palavra diz o valor. Nenhuma das duas grita. */
+.cc-act-when {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: 0.04em;
+  color: var(--sys-ink-mut);
+  white-space: nowrap;
+}
+
+.cc-act[data-tone='alert'] .cc-act-when { color: #fca5a5; }
+
+/* O objeto de atenção. É o maior corpo de letra do ecrã — maior do que o nome
+   da zona — porque é a única coisa que responde à pergunta com que o Operador
+   abre o Sistema. Item 2 do diagnóstico resolvido por escala, não por cor. */
+.cc-act-title {
+  margin: 0;
+  font-family: var(--sys-type-body);
+  font-size: clamp(1.6rem, 2.4vw, 2.5rem);
+  font-weight: var(--sys-weight-semi);
+  line-height: var(--sys-leading-tight);
+  letter-spacing: var(--sys-track-tight);
+  color: var(--sys-ink);
+  /* texto corrido mantém medida mesmo quando a zona é full-bleed */
+  max-width: 22ch;
+  text-wrap: balance;
+}
+
+/* Motivo e prova, na mesma linha e com pesos diferentes: primeiro percebe-se o
+   QUE, depois o PORQUÊ. O motivo tem cor de estado; a prova recua. */
+.cc-act-why {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sys-space-3);
+  font-size: var(--sys-step-0);
+  max-width: 52ch;
+}
+
+.cc-act-reason {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.cc-act[data-tone='alert'] .cc-act-reason { color: #fca5a5; }
+.cc-act[data-tone='active'] .cc-act-reason { color: var(--sys-violet); }
+
+.cc-act-ev {
+  color: var(--sys-ink-mut);
+  line-height: var(--sys-leading-normal);
+}
+
+.cc-act-ev::before {
+  content: '·';
+  margin-right: var(--sys-space-3);
+  color: var(--sys-ink-far);
+}
+
+.cc-act-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--sys-space-5);
+  flex-wrap: wrap;
+  margin-top: var(--sys-space-1);
+}
+
+/* ── O ÚNICO botão aceso do Sistema ────────────────────────────────────
+ * A decisão de 2026-07-28 calou os botões primários em repouso, e a razão era
+ * boa: sete botões no brilho máximo, todos parados, competiam com o painel que
+ * era o portador da luz.
+ *
+ * Este é a exceção, e a exceção prova a regra em vez de a furar. Os sete
+ * estavam acesos sem estado — eram formulários à espera de alguém. Este É o
+ * estado: é o Sistema a dizer o que fazer a seguir, é o portador da luz desta
+ * zona, e é o único. Se acendessem os dois, a lei estaria quebrada — por isso
+ * o `.mini` da secção Decisão fica calado.
+ */
+.cc-act-go {
+  appearance: none;
+  cursor: pointer;
+  font-family: var(--sys-type-body);
+  font-size: var(--sys-step-0);
+  font-weight: var(--sys-weight-semi);
+  letter-spacing: 0.01em;
+  color: #12061f;
+  /* CONTRASTE, medido: o gradiente do `.btn` do HUD começa em #8b5cf6, e o
+     texto escuro por cima dá 4,08:1 — abaixo dos 4,5 exigidos. O texto está
+     encostado à esquerda, ou seja, precisamente sobre a ponta escura.
+     A correção é acender o gradiente, não escurecer mais a letra: baixar a
+     letra para preto puro só chegava a 4,53, uma passagem por dois centésimos.
+     Começa agora no violeta de identidade do Sistema (#a78bfa) → 6,05:1. */
+  background: linear-gradient(135deg, #a78bfa, #d8b4fe);
+  border: 0;
+  border-radius: var(--sys-radius-soft);
+  padding: 0 var(--sys-space-5);
+  min-height: var(--sys-touch-min);
+  box-shadow: 0 0 24px rgb(var(--sys-violet-rgb) / var(--sys-o-24));
+  transition:
+    box-shadow calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    transform calc(var(--sys-dur-instant) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.cc-act-go:hover,
+.cc-act-go:focus-visible {
+  box-shadow: 0 0 34px rgb(var(--sys-violet-rgb) / var(--sys-o-40));
+}
+
+/* --sys-rise: o que confirma, sobe. Direção como significado (gramática 9). */
+.cc-act-go:active {
+  transform: translateY(calc(var(--sys-rise) * -1px));
+}
+
+/* A fila é uma leitura, não um crachá. Diz que o visor mostra uma coisa e que
+   há mais — sem isso, mostrar uma só seria mentir por omissão. */
+.cc-act-queue {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: 0.04em;
+  color: var(--sys-ink-mut);
+}
+
+/* ── A fila e o horizonte ──────────────────────────────────────────────
+ * ORIGEM: R26, o trilho de leituras emparelhadas — rótulo à esquerda, medida à
+ * direita, separadas por espaço e um filete. Nunca por caixas.
+ */
+.cc-queue,
+.cc-horizon {
+  display: grid;
+  gap: var(--sys-space-5);
+  padding-top: var(--sys-space-5);
+  border-top: 1px solid var(--sys-seam);
+  margin-top: var(--sys-space-5);
+}
+
+.cc-block-h {
+  margin: 0 0 var(--sys-space-3);
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.cc-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+
+.cc-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sys-space-5);
+  padding: var(--sys-space-2) 0 var(--sys-space-2) var(--sys-space-4);
+  /* o filete é a relação ao domínio — a mesma língua das linhas de missão */
+  border-left: 2px solid color-mix(in oklab, var(--cc-area, var(--sys-seam)) 45%, transparent);
+}
+
+/* Uma contagem não é um item: não tem domínio, não se abre, não se executa. */
+.cc-row[data-quiet='true'] {
+  border-left-color: transparent;
+}
+
+.cc-row[data-quiet='true'] .cc-row-t {
+  color: var(--sys-ink-mut);
+  font-size: var(--sys-step--1);
+}
+
+.cc-row + .cc-row {
+  border-top: 1px solid var(--sys-seam);
+}
+
+.cc-row-t {
+  color: var(--sys-ink-mut);
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-tight);
+  min-width: 0;
+}
+
+.cc-row-r {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: 0.04em;
+  color: var(--sys-ink-mut);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.cc-row[data-late='true'] { border-left-color: color-mix(in oklab, var(--sys-danger) 70%, transparent); }
+.cc-row[data-late='true'] .cc-row-r { color: #fca5a5; }
+
+/* ── A decisão ─────────────────────────────────────────────────────────
+ * Item 7 do diagnóstico: "o Summer Arc parece provisório ou placeholder". Era
+ * um título, uma descrição e três botões a flutuar à direita de uma linha de
+ * texto, dentro do painel do mundo. Aqui passa a ter cabeçalho, evidência e
+ * três saídas alinhadas — a forma de uma decisão registada, não de uma maqueta.
+ */
+.cc-decision .cc-dec-t {
+  margin: 0;
+  font-size: var(--sys-step-1);
+  font-weight: var(--sys-weight-medium);
+  color: var(--sys-ink);
+}
+
+.cc-decision .cc-dec-d {
+  margin: var(--sys-space-1) 0 var(--sys-space-4);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  line-height: var(--sys-leading-normal);
+  max-width: 56ch;
+}
+
+.cc-dec-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sys-space-3);
+}
+
+/* ═══ COLUNA DO ESTADO ═════════════════════════════════════════════════ */
+
+/* ── O Operador ────────────────────────────────────────────────────────
+ * Item 4 do diagnóstico: "o perfil ainda se aproxima de uma ficha RPG".
+ * ANTI-REFERÊNCIA assumida: S16 (`01-shell-navigation/sistema/f7298…jpg`) — a
+ * folha de STATISTICS com barras azuis, medidores de "crit chance" e moldura
+ * ornamentada. Comparada lado a lado com o herói antigo, a diferença era o
+ * tema, não a estrutura: retrato grande + nome grande + números soltos +
+ * crachá.
+ *
+ * O que muda: a identidade encolhe para um cabeçalho e as leituras descem para
+ * um trilho. O sigilo continua a ser o retrato — mas 76px, não 104, porque
+ * numa zona onde a ação domina o rosto do Operador não pode ser o maior
+ * objeto.
+ */
+.cc-operator {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sys-space-5);
+}
+
+.sys-zone[data-zone='core'] .cc-operator .avatar-ring {
+  width: 76px;
+  height: 76px;
+  flex: 0 0 auto;
+}
+
+.sys-zone[data-zone='core'] .cc-operator .avatar-ring svg {
+  width: 76px;
+  height: 76px;
+}
+
+.sys-zone[data-zone='core'] .cc-operator .avatar {
+  width: 66px;
+  height: 66px;
+}
+
+.sys-zone[data-zone='core'] .cc-operator .nm {
+  font-size: clamp(1.3rem, 1.8vw, 1.75rem);
+  line-height: var(--sys-leading-tight);
+}
+
+.sys-zone[data-zone='core'] .cc-operator .rankgauge {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.sys-zone[data-zone='core'] .cc-operator .rankbadge {
+  width: 3.4rem;
+  height: 3.4rem;
+}
+
+/* ── O trilho de leituras ──────────────────────────────────────────────
+ * Item 5 do diagnóstico: "quatro zeros parecem loading ou ausência de dados".
+ * Duas causas, e nenhuma se resolvia com estilo:
+ *   1. números grandes sem unidade nem contexto — "23" não diz nada;
+ *   2. zero renderizado como zero, quando o que existe é ausência de registo.
+ *
+ * A correção estrutural está no Hero.jsx (travessão + unidade). Aqui fica a
+ * forma: rótulo mono minúsculo por cima, valor por baixo, quatro colunas
+ * separadas por um filete. ORIGEM: R26 — as métricas aos pares.
+ */
+.cc-readings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0;
+  margin: var(--sys-space-6) 0 0;
+  padding-top: var(--sys-space-5);
+  border-top: 1px solid var(--sys-seam);
+}
+
+.cc-read {
+  display: grid;
+  gap: var(--sys-space-1);
+  padding: 0 var(--sys-space-4);
+}
+
+.cc-read:first-child { padding-left: 0; }
+
+.cc-read + .cc-read {
+  border-left: 1px solid var(--sys-seam);
+}
+
+.cc-read dt {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+  /* dois rótulos de larguras diferentes desalinhavam os valores por baixo */
+  line-height: var(--sys-leading-tight);
+}
+
+.cc-read dd {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sys-space-2);
+}
+
+/* Rajdhani está RESERVADO a grandezas e identidade — é exatamente o que estes
+   quatro números são, e é o único sítio da coluna onde a display entra. */
+.cc-read-v {
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-3);
+  font-weight: var(--sys-weight-bold);
+  line-height: 1;
+  color: var(--sys-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.cc-read-u {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}
+
+/* Os `.mini` da decisão ficam calados: o portador da luz desta zona é o botão
+   da Próxima Ação, e são as duas únicas coisas clicáveis à vista. Se ambos
+   acendessem, a lei "um portador por estado" estaria quebrada — e a decisão
+   passaria a competir com a ação, que é precisamente o que a precedência
+   resolveu. */
+.sys-zone[data-zone='core'] .cc-dec-acts .mini {
+  min-height: 36px;
+}
+
+/* Os `.mini` desta zona vinham do HUD a 26px de altura. WCAG 2.2 AA pede 24, e
+   26 passa — mas por dois pixéis, e num botão que confirma um pilar do dia. 32
+   é o mínimo que se defende sem recompor os painéis. */
+.sys-zone[data-zone='core'] .mini {
+  min-height: 32px;
+}
+
+/* ── A saudação ────────────────────────────────────────────────────────
+ * Fica, e fica pequena. É a primeira coisa que se lê e não é a mais
+ * importante — o contrário do que o tamanho dizia antes.
+ */
+.sys-zone[data-zone='core'] .greet {
+  margin-bottom: var(--sys-space-5);
+}
+
+.sys-zone[data-zone='core'] .greet-h {
+  font-size: var(--sys-step-1);
+}
+
+.sys-zone[data-zone='core'] .greet-q {
+  max-width: 56ch;
+}
+
+/* ── O mundo ───────────────────────────────────────────────────────────
+ * O painel perdeu a proposta de arco (foi para a coluna da ação). O que fica é
+ * estado, e estado alinha com o trilho de leituras que tem por cima.
+ */
+.sys-zone[data-zone='core'] #world {
+  margin-top: var(--sys-space-5);
+  padding-top: var(--sys-space-5);
+  border-top: 1px solid var(--sys-seam);
+  gap: var(--sys-space-4) !important;
+}
+
+/* O sussurro do dia era o último contentor com moldura da zona: borda
+   tracejada, fundo violeta próprio e hover que acendia a borda. Passa à mesma
+   língua das outras linhas — filete à esquerda, sem caixa. A afordância não se
+   perde: o botão "Feito" continua lá, e é ele que diz que há aqui uma ação.
+   (A regra das molduras poupa os CAMPOS de entrada, não os contentores.) */
+.sys-instrumental .whisper {
+  border: 0;
+  border-left: 2px solid rgb(var(--sys-violet-rgb) / var(--sys-o-24));
+  background: none;
+  padding: var(--sys-space-2) 0 var(--sys-space-2) var(--sys-space-4);
+}
+
+.sys-instrumental .whisper:hover {
+  border-left-color: rgb(var(--sys-violet-rgb) / var(--sys-o-62));
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+}
+
+/* ── Mobile ────────────────────────────────────────────────────────────
+ * Uma coluna, e a ordem inverte-se: a AÇÃO primeiro. Em desktop o olhar
+ * percorre as duas colunas de uma vez; num telemóvel, o que estiver em baixo é
+ * o que não se vê. A pergunta "o que faço agora" não pode exigir scroll.
+ */
+@media (max-width: 900px) {
+  .sys-zone[data-zone='core'] .sys-group[data-group='accao'] { order: -1; }
+
+  .cc-act {
+    padding: var(--sys-space-5) var(--sys-space-4) var(--sys-space-5) var(--sys-space-4);
+  }
+
+  .cc-act-title { max-width: none; }
+
+  .cc-act-head { flex-wrap: wrap; }
+
+  /* Quatro leituras a 358px dão colunas de 80px e rótulos partidos ao meio.
+     Duas por linha, com o filete a separar só as vizinhas. */
+  .cc-readings { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: var(--sys-space-5); }
+  .cc-read { padding-left: var(--sys-space-4); }
+  .cc-read:nth-child(odd) { padding-left: 0; }
+  .cc-read:nth-child(odd) { border-left: 0; }
+
+  .cc-row { flex-wrap: wrap; gap: 2px var(--sys-space-4); }
+  .cc-row-r { text-align: left; }
+}

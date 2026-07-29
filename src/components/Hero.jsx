@@ -48,10 +48,14 @@ export default function Hero({ S }) {
     }
     lastRankL = r.l;
     if (window.setNum) {
+      // Missão 26 · Fase 5 — a mola só assume quando HÁ valor. Com zero, o
+      // setNum escrevia "0" por cima do travessão que o JSX rendeu, e quatro
+      // zeros alinhados numa conta nova leem-se como ecrã a carregar, não como
+      // "ainda não começaste". O travessão diz ausência; o zero diz medição.
       window.setNum('lvl', lvl);
-      window.setNum('txp', txpRaw, (v) => Math.round(v).toLocaleString('pt-PT'));
-      window.setNum('qd', qd);
-      window.setNum('bstk', bstk);
+      if (txpRaw > 0) window.setNum('txp', txpRaw, (v) => Math.round(v).toLocaleString('pt-PT'));
+      if (qd > 0) window.setNum('qd', qd);
+      if (bstk > 0) window.setNum('bstk', bstk);
     }
     // A barra `oxp` deixou de existir: a fração do rank passou para o anel do
     // manómetro, e mostrar o mesmo número duas vezes no mesmo cartão era ruído.
@@ -63,9 +67,25 @@ export default function Hero({ S }) {
     }
   });
 
+  // Missão 26 · Fase 5 — cada leitura tem uma UNIDADE ou um contexto. "23" não
+  // diz nada; "23 dias" diz. E um valor a zero mostra-se como travessão: a
+  // ausência de registo e a medição de zero são coisas diferentes, e o Sistema
+  // não pode fazer passar uma pela outra.
+  const dash = (v) => (v > 0 ? null : '—');
+
   return (
     <div className="panel reveal">
-      <div className="hero">
+      {/* ── Operador ───────────────────────────────────────────────────────
+          Missão 26 · Fase 5. Deixa de ser um cartão de personagem — retrato
+          grande, nome grande, quatro números soltos e um crachá no canto — e
+          passa a um cabeçalho de identidade com um trilho de leituras por
+          baixo. Anti-referência assumida: S16 (`01-shell/f7298…jpg`), a folha
+          de estatísticas de RPG com barras azuis e moldura ornamentada. É
+          exatamente o que a missão proíbe, e era o que este cartão estava a
+          um passo de ser.
+          ORIGEM do trilho: R26 — leituras emparelhadas, rótulo mono minúsculo,
+          separadas por espaço e um filete, nunca por caixas. */}
+      <div className="hero cc-operator">
         <div className="avatar-ring">
           <svg width="104" height="104" viewBox="0 0 104 104">
             <circle cx="52" cy="52" r="46" fill="none" stroke="rgba(255,255,255,.06)" strokeWidth="5" />
@@ -79,12 +99,6 @@ export default function Hero({ S }) {
         <div className="hid">
           <div className="nm">Daniel</div>
           <div className="ti" id="title">{title}</div>
-          <div className="hmeta">
-            <div className="st"><span className="n" id="lvl">{lvl}</span><span className="l">Nível</span></div>
-            <div className="st"><span className="n" id="txp">{txp}</span><span className="l">XP total</span></div>
-            <div className="st"><span className="n" id="bstk">{bstk}</span><span className="l">Melhor streak</span></div>
-            <div className="st"><span className="n" id="qd">{qd}</span><span className="l">Missões</span></div>
-          </div>
         </div>
         {/* Missão 26 · Fase E — o rank passa a manómetro (origem: R25).
             A letra ao centro diz QUAL; o anel à volta diz QUANTO falta para o
@@ -110,6 +124,28 @@ export default function Hero({ S }) {
           <div className="rl" id="rank-prog-lbl">{progLbl}</div>
         </div>
       </div>
+
+      <dl className="cc-readings">
+        <div className="cc-read">
+          <dt>Nível</dt>
+          <dd><span className="cc-read-v" id="lvl">{lvl}</span></dd>
+        </div>
+        <div className="cc-read">
+          <dt>XP acumulado</dt>
+          <dd><span className="cc-read-v" id="txp">{dash(txpRaw) ?? txp}</span></dd>
+        </div>
+        <div className="cc-read">
+          <dt>Melhor streak</dt>
+          <dd>
+            <span className="cc-read-v" id="bstk">{dash(bstk) ?? bstk}</span>
+            {bstk > 0 && <span className="cc-read-u">{bstk === 1 ? 'dia' : 'dias'}</span>}
+          </dd>
+        </div>
+        <div className="cc-read">
+          <dt>Missões erguidas</dt>
+          <dd><span className="cc-read-v" id="qd">{dash(qd) ?? qd}</span></dd>
+        </div>
+      </dl>
     </div>
   );
 }

@@ -11,7 +11,6 @@
 import type { ComponentType } from 'react';
 
 import Greet from '../components/Greet.jsx';
-import DeadlineBanner from '../components/DeadlineBanner.jsx';
 import Hero from '../components/Hero.jsx';
 import World from '../components/World.jsx';
 import RadarNews from '../components/RadarNews.jsx';
@@ -31,6 +30,21 @@ import OracleReport from '../components/OracleReport.jsx';
 import Conselho from '../components/Conselho.jsx';
 import KnowledgeMap from '../components/KnowledgeMap.jsx';
 import Debuffs from '../components/Debuffs.jsx';
+import NextAction from './core/NextAction';
+import CoreQueue from './core/CoreQueue';
+import CoreHorizon from './core/CoreHorizon';
+
+/* O `DeadlineBanner` saiu do registo na Fase 5 e o componente NÃO foi apagado.
+ *
+ * Porquê saiu: era uma faixa vermelha à largura toda, a coisa mais brilhante do
+ * Núcleo, e não era acionável — anunciava "URGENTE" e deixava o Operador a
+ * procurar onde resolver. A informação que ela dava está inteira noutros dois
+ * sítios, e agora com verbo: as missões urgentes tornaram-se a Próxima Ação; os
+ * eventos a ≤7 dias tornaram-se a secção "Horizonte" do CoreQueue.
+ *
+ * Porquê não foi apagado: continua a ser usado pelo HUD sem `?shell=`, que é o
+ * que serve produção. Apagá-lo partia a frontend que está em `main`.
+ */
 
 export type ZoneId =
   | 'core'
@@ -87,6 +101,16 @@ export interface Zone {
   /** Uma linha que diz o que a zona É. Aparece ao entrar, não permanentemente. */
   purpose: string;
   density: ZoneDensity;
+  /**
+   * Razão entre as colunas, só em zonas `instrument`. Ausente = o padrão
+   * (1.55fr / 1fr), que serve as zonas onde a coluna principal é a lista longa.
+   *
+   * Existe porque o Núcleo inverte a relação: ali a coluna de apoio é que
+   * carrega a ação dominante, e o retrato do Operador não pode ser a coisa mais
+   * larga do ecrã. É um DADO de composição — a alternativa era uma condição por
+   * nome de zona no CSS, que é precisamente o que este registo evita.
+   */
+  columns?: string;
   groups: ZoneGroup[];
 }
 
@@ -95,8 +119,24 @@ export const ZONES: Zone[] = [
     id: 'core',
     name: 'Núcleo',
     purpose: 'O estado do Operador e a próxima ação.',
-    density: 'reading',
-    groups: [{ id: 'estado', weight: 'main', panels: [Greet, DeadlineBanner, Hero, World] }],
+    // Missão 26 · Fase 5 — o Núcleo deixa de ser uma coluna de leitura.
+    //
+    // Como `reading`, os quatro painéis empilhavam-se numa faixa e a metade
+    // direita do ecrã ficava sem função — item 1 do diagnóstico. A zona não é
+    // prosa: é um instrumento com duas naturezas de informação, e a estrutura
+    // tem de o dizer.
+    //
+    //   ESTADO (esquerda)  — quem é o Operador e em que mundo está. Lê-se.
+    //   AÇÃO   (direita)   — o que fazer agora e o que espera. Executa-se.
+    //
+    // A razão de colunas está invertida face às outras zonas instrumentais: a
+    // ação é mais larga do que o estado, porque é ela que domina.
+    density: 'instrument',
+    columns: 'minmax(0, 1fr) minmax(0, 1.25fr)',
+    groups: [
+      { id: 'estado', name: 'Estado', weight: 'main', panels: [Greet, Hero, World, CoreHorizon] },
+      { id: 'accao', name: 'Ação', weight: 'side', panels: [NextAction, CoreQueue] },
+    ],
   },
   {
     id: 'radar',

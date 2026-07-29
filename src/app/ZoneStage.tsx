@@ -35,7 +35,7 @@ export default function ZoneStage({ active, S }: Props) {
   return (
     <div className="sys-stage" data-active={active}>
       {ZONES.map((z) => (
-        <ZonePane key={z.id} zoneId={z.id} zoneName={z.name} density={z.density} isActive={z.id === active}>
+        <ZonePane key={z.id} zoneId={z.id} zoneName={z.name} density={z.density} columns={z.columns} isActive={z.id === active}>
           {/* Os grupos vêm do registo. A composição é decidida por CSS a partir
               de data-density e data-weight — nunca por verificações do nome da
               zona espalhadas pelo JSX. */}
@@ -65,12 +65,14 @@ function ZonePane({
   zoneId,
   zoneName,
   density,
+  columns,
   isActive,
   children,
 }: {
   zoneId: ZoneId;
   zoneName: string;
   density: string;
+  columns?: string;
   isActive: boolean;
   children: React.ReactNode;
 }) {
@@ -98,6 +100,10 @@ function ZonePane({
       aria-hidden={isActive ? undefined : true}
       role="region"
       aria-label={zoneName}
+      /* A razão de colunas vem do registo e entra como custom property. O CSS
+         lê `var(--sys-zone-cols, <padrão>)` — sem isto, inverter a composição
+         do Núcleo exigia uma regra por nome de zona. */
+      style={columns ? ({ '--sys-zone-cols': columns } as React.CSSProperties) : undefined}
     >
       <div className="sys-zone-scroll">
         <div className="sys-zone-body">{children}</div>

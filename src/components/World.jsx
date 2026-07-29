@@ -7,7 +7,9 @@ import { seasonArcNow, seasonBounds, vitals, whisperToday, xpMult, doubleXPActiv
 // arco sazonal (propor/ativo), eventos do dia (Double XP/Rainy/Heat/Recovery),
 // sussurro do dia, sinais vitais e a sugestão de Recovery. FX (toasts) deferido.
 export default function World({ S }) {
-  const { arcAccept, arcLater, arcIgnore, claimWhisper, startRecovery } = useStore();
+  // arcAccept/arcLater/arcIgnore saíram daqui na Fase 5 — a decisão do arco
+  // vive agora no CoreQueue. Ver o comentário no ramo `proposing`.
+  const { claimWhisper, startRecovery } = useStore();
   const a = seasonArcNow(), b = seasonBounds(a), v = vitals(S);
   const wa = S.worldArc;
   const proposing = !wa || wa.id !== a.id || (wa.status === 'later' && wa.snooze !== today());
@@ -30,16 +32,21 @@ export default function World({ S }) {
       </>
     );
   } else if (proposing) {
-    head = (
-      <div className="w-head">
-        <div><div className="at">🌍 O mundo mudou — {a.name} disponível</div><div className="as">{a.desc} · Boss final: {a.boss}</div></div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button className="mini" onClick={() => arcAccept()}>Aceitar arco (+15 Mente)</button>
-          <button className="mini" onClick={() => arcLater()}>Mais tarde</button>
-          <button className="mini" onClick={() => arcIgnore()}>Ignorar</button>
-        </div>
-      </div>
-    );
+    // Missão 26 · Fase 5 — A PROPOSTA SAIU DAQUI.
+    //
+    // Estava um título, uma descrição e três botões a flutuar à direita de uma
+    // linha de texto. Lia-se como maqueta por acabar, e era o item 7 do
+    // diagnóstico do Daniel ("o Summer Arc parece provisório").
+    //
+    // Uma decisão por tomar é matéria de Command Core — é literalmente a
+    // prioridade 4 da Próxima Ação. Passou para a coluna da direita
+    // (`CoreQueue`, secção "Decisão"), onde tem cabeçalho, evidência e as três
+    // saídas. Aqui não fica nada: repetir seria dar dois sítios para a mesma
+    // decisão, e dois sítios são dois estados possíveis para uma verdade só.
+    //
+    // O painel do mundo mantém o que é ESTADO — clima, eventos, sussurro,
+    // sinais vitais. O que exige resposta mudou de coluna, não desapareceu.
+    head = null;
   } else {
     head = <div className="w-head"><div className="as">Sem arco ativo. O mundo volta a sussurrar na próxima estação — ou aceita este nas definições do destino (recarrega amanhã).</div></div>;
   }

@@ -25,6 +25,7 @@ import './shell.css';
 import './nav/orbit.css';
 import SyncState from './SyncState';
 import './instrumental.css';
+import './core/command-core.css';
 
 interface Props {
   S: Record<string, unknown>;

@@ -1,0 +1,222 @@
+/* RADAR — campo de sinais.
+ * Missão 26 · Fase 6E.
+ *
+ * O trilho temporal é a estrutura: os dias descem pela esquerda como marcas de
+ * varrimento, e os sinais vivem à direita de cada marca. É o que transforma
+ * uma lista numa leitura de instrumento — vê-se de relance em que dias houve
+ * atividade e em quais não houve.
+ */
+
+.rdf { display: grid; gap: var(--sys-space-6); }
+
+.rdf-head {
+  display: grid;
+  gap: var(--sys-space-3);
+  padding-bottom: var(--sys-space-4);
+  border-bottom: 1px solid var(--sys-seam);
+}
+
+.rdf-h {
+  display: flex;
+  align-items: center;
+  gap: var(--sys-space-3);
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+/* O ponto de estado. É o único elemento animado desta zona, e só no estado
+   `scanning` — que corresponde a uma gravação REAL em curso, não a um
+   temporizador decorativo. `data-ambient` para o regime `calm` o desligar. */
+.rdf-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-24));
+  flex: 0 0 auto;
+}
+.rdf-dot[data-state='live'],
+.rdf-dot[data-state='quiet'] { background: var(--em); box-shadow: 0 0 8px color-mix(in oklab, var(--em) 60%, transparent); }
+.rdf-dot[data-state='error'] { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+@keyframes rdf-scan { 0%,100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.15); } }
+.rdf-dot[data-state='scanning'] {
+  background: var(--sys-violet);
+  animation: rdf-scan var(--sys-cycle-attend) var(--sys-ease-breath) infinite;
+}
+
+.rdf-stats { max-width: 46rem; }
+.rdf-hi { color: var(--sys-alert); }
+
+.rdf-msg {
+  margin: 0;
+  font-size: var(--sys-step-1);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink);
+  max-width: 62ch;
+}
+
+/* ── O trilho temporal ─────────────────────────────────────────────────── */
+.rdf-rail { display: grid; gap: var(--sys-space-6); }
+
+.rdf-day {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: var(--sys-space-5);
+  align-items: start;
+}
+
+/* A marca de varrimento: o dia, a contagem, e o filete que os liga aos sinais
+   daquele dia. Sem isto seria uma lista com cabeçalhos. */
+.rdf-mark {
+  display: grid;
+  gap: 2px;
+  padding-right: var(--sys-space-4);
+  border-right: 1px solid var(--sys-seam);
+  text-align: right;
+  position: sticky;
+  top: var(--sys-space-4);
+}
+
+.rdf-mark-l {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink);
+}
+.rdf-mark-n {
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-2);
+  font-weight: var(--sys-weight-bold);
+  line-height: 1;
+  color: var(--sys-ink-mut);
+}
+
+.rdf-sigs { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sys-space-4); }
+
+/* Sem caixa: um filete da cor da categoria. É o que distingue um artigo de
+   opinião de uma vaga sem lhes dar a mesma moldura. */
+.rdf-sig {
+  display: grid;
+  gap: var(--sys-space-2);
+  justify-items: start;
+  padding-left: var(--sys-space-4);
+  border-left: 2px solid color-mix(in oklab, var(--area) 50%, transparent);
+}
+
+/* Alto impacto é o portador da luz deste trilho — um só por sinal, e só
+   quando o domínio o diz. */
+.rdf-sig[data-high='true'] {
+  border-left-color: var(--sys-alert);
+  border-left-width: 3px;
+}
+
+.rdf-sig-h { display: flex; align-items: baseline; gap: var(--sys-space-3); flex-wrap: wrap; }
+
+/* O título é o alvo de toque do sinal. Sem `padding-block` fica com 19px de
+   altura — a altura da linha — e num telemóvel acerta-se por sorte. */
+.rdf-sig-t {
+  display: inline-block;
+  padding-block: 6px;
+  font-size: var(--sys-step-1);
+  line-height: var(--sys-leading-tight);
+  color: var(--sys-ink);
+  text-decoration: none;
+  max-width: 62ch;
+}
+a.rdf-sig-t { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgb(var(--sys-bone-rgb) / var(--sys-o-24)); }
+a.rdf-sig-t:hover, a.rdf-sig-t:focus-visible { text-decoration-color: var(--area); }
+
+.rdf-new {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-violet);
+}
+
+.rdf-sig-s { margin: 0; font-size: var(--sys-step-0); line-height: var(--sys-leading-normal); color: var(--sys-ink-mut); max-width: 66ch; }
+
+/* "Porque importa" é o que separa um radar de um agregador. Tem material
+   próprio para não se ler como mais uma linha de resumo. */
+.rdf-sig-r {
+  margin: 0;
+  padding-left: var(--sys-space-4);
+  border-left: 1px solid var(--sys-seam);
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink);
+  max-width: 66ch;
+}
+.rdf-sig-r span {
+  display: block;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.rdf-sig-m {
+  display: flex; flex-wrap: wrap; gap: var(--sys-space-2) 0;
+  font-family: var(--sys-type-data); font-size: var(--sys-step--1); color: var(--sys-ink-mut);
+}
+.rdf-sig-m span + span { padding-left: var(--sys-space-4); margin-left: var(--sys-space-4); border-left: 1px solid var(--sys-seam); }
+.rdf-high { color: var(--sys-alert); }
+
+.rdf-sig .mini { min-height: 36px; }
+
+/* ── O que está a ser vigiado ──────────────────────────────────────────
+ * A parte que torna o vazio operacional: um instrumento que não encontrou
+ * nada tem de dizer onde procurou.
+ */
+.rdf-watch {
+  padding-top: var(--sys-space-5);
+  border-top: 1px solid var(--sys-seam);
+  display: grid;
+  gap: var(--sys-space-3);
+}
+
+.rdf-wh {
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.rdf-watch ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sys-space-2) 0; }
+.rdf-watch li {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  padding: 0 var(--sys-space-4);
+  border-left: 2px solid color-mix(in oklab, var(--area) 60%, transparent);
+}
+
+.rdf-note {
+  margin: 0;
+  font-size: var(--sys-step--1);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink-mut);
+  max-width: 68ch;
+}
+
+@media (max-width: 900px) {
+  /* O eixo temporal passa a cabeçalho: 7rem de trilho num ecrã de 358 come
+     um quinto da largura e os sinais deixam de caber. */
+  .rdf-day { grid-template-columns: minmax(0, 1fr); gap: var(--sys-space-3); }
+  .rdf-mark {
+    position: static;
+    display: flex; align-items: baseline; gap: var(--sys-space-3);
+    text-align: left; padding-right: 0; padding-bottom: var(--sys-space-2);
+    border-right: 0; border-bottom: 1px solid var(--sys-seam);
+  }
+  .rdf-mark-n { font-size: var(--sys-step-1); }
+  .rdf-sig-m span + span { padding-left: var(--sys-space-3); margin-left: var(--sys-space-3); }
+}

@@ -13,7 +13,8 @@ import type { ComponentType } from 'react';
 import Greet from '../components/Greet.jsx';
 import Hero from '../components/Hero.jsx';
 import World from '../components/World.jsx';
-import RadarNews from '../components/RadarNews.jsx';
+/* O RadarNews saiu do registo na Fase 6E e o componente fica: serve o HUD sem
+ * ?shell=, que e o que esta em producao. */
 import Attributes from '../components/Attributes.jsx';
 import Radar from '../components/Radar.jsx';
 import Constellations from '../components/Constellations.jsx';
@@ -42,6 +43,7 @@ import CoreOracle from './core/CoreOracle';
 import { ReflectionNow, ReflectionPatterns, ReflectionMemory } from './reflection/Reflection';
 import BodySpace from './body/BodySpace';
 import Universe from './universe/Universe';
+import RadarField from './radar/RadarField';
 
 /* O `DeadlineBanner` saiu do registo na Fase 5 e o componente NÃO foi apagado.
  *
@@ -155,7 +157,7 @@ export const ZONES: Zone[] = [
     name: 'Radar',
     purpose: 'Sinais, oportunidades e o mundo filtrado para ti.',
     density: 'instrument',
-    groups: [{ id: 'sinais', weight: 'full', panels: [RadarNews] }],
+    groups: [{ id: 'sinais', weight: 'full', panels: [RadarField] }],
   },
   {
     id: 'operations',

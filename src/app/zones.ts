@@ -27,7 +27,9 @@ import Recall from '../components/Recall.jsx';
  * importados pelo `BodySpace`, que os monta dentro do subespaço, e continuam a
  * servir o HUD sem `?shell=`, que é o que está em produção. */
 import Calendar from '../components/Calendar.jsx';
-import OracleReport from '../components/OracleReport.jsx';
+/* O `OracleReport` saiu do registo na Fase 6B e o componente fica — serve o
+ * HUD sem `?shell=`, que é o que está em produção. */
+import OracleReportLayered from './oracle/OracleReportLayered';
 import Conselho from '../components/Conselho.jsx';
 import KnowledgeMap from '../components/KnowledgeMap.jsx';
 /* O `Debuffs` saiu do registo na Fase 8 e o componente NÃO foi apagado —
@@ -200,7 +202,10 @@ export const ZONES: Zone[] = [
     density: 'reading',
     // Mapa de Conhecimento aqui e não no Universo: tem expressão visual
     // cósmica, mas a função principal é interpretar e orientar.
-    groups: [{ id: 'leitura', weight: 'main', panels: [OracleReport, Conselho, KnowledgeMap] }],
+    // Missão 26 · Fase 6B — o relatório passa à apresentação por camadas.
+    // O `OracleReport` original fica: serve o HUD sem `?shell=`, que é o que
+    // está em produção, e nenhum campo foi removido dele.
+    groups: [{ id: 'leitura', weight: 'main', panels: [OracleReportLayered, Conselho, KnowledgeMap] }],
   },
   {
     id: 'reflection',

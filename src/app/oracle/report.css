@@ -1,0 +1,264 @@
+/* RELATÓRIO DO ORÁCULO — a forma.
+ * Missão 26 · Fase 6B.
+ *
+ * A regra que governa tudo aqui: NEM TUDO TEM A MESMA MEDIDA. Era esse o
+ * defeito — catorze campos com a mesma largura, a mesma cor e a mesma
+ * densidade. Prosa longa mantém medida de leitura; leituras de instrumento
+ * usam a largura toda; a voz do Oráculo tem material próprio.
+ */
+
+.or { display: grid; gap: var(--sys-space-5); }
+
+.or-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sys-space-4);
+  padding-bottom: var(--sys-space-3);
+  border-bottom: 1px solid var(--sys-seam);
+}
+
+.or-h {
+  display: flex;
+  align-items: center;
+  gap: var(--sys-space-3);
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.or-h .sys-oracle-sigil { width: 34px; height: 12px; flex: 0 0 auto; }
+
+.or-date {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}
+
+/* ── 1 · Resumo ────────────────────────────────────────────────────────
+ * O único bloco em corpo grande, e a única coisa que se lê se só se ler uma.
+ * 60–75 caracteres por linha, que é a medida de prosa que a fase pede.
+ */
+.or-summary {
+  margin: 0;
+  font-size: var(--sys-step-2);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink);
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+
+/* O maior risco tem cor de estado e um filete — não uma caixa vermelha à
+   largura toda, que foi o erro que o Command Core corrigiu na faixa de prazos. */
+.or-alert {
+  margin: 0;
+  padding-left: var(--sys-space-4);
+  border-left: 2px solid var(--sys-danger);
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: #fca5a5;
+  max-width: 68ch;
+}
+
+.or-alert-l {
+  display: block;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+  margin-bottom: var(--sys-space-1);
+}
+
+.or-sec { display: grid; gap: var(--sys-space-3); }
+
+.or-sh {
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+  padding-top: var(--sys-space-4);
+  border-top: 1px solid var(--sys-seam);
+}
+
+/* ── 2 · Sinais ────────────────────────────────────────────────────────
+ * Domínio, frase e prova. A frase mantém medida de leitura; a prova é um
+ * trilho de leituras (origem R26), alinhado à direita em ecrã largo.
+ */
+.or-signals { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sys-space-4); }
+
+.or-signals li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sys-space-2) var(--sys-space-6);
+  align-items: start;
+  padding-left: var(--sys-space-4);
+  border-left: 2px solid rgb(var(--sys-violet-rgb) / var(--sys-o-24));
+}
+
+.or-sig-d {
+  grid-column: 1 / -1;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.or-sig-t {
+  margin: 0;
+  grid-column: 1;
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink);
+  max-width: 62ch;
+}
+
+.or-sig-ev { grid-column: 2; display: flex; gap: 0; margin: 0; }
+.or-sig-ev > div { padding: 0 var(--sys-space-4); text-align: right; }
+.or-sig-ev > div + div { border-left: 1px solid var(--sys-seam); }
+.or-sig-ev > div:last-child { padding-right: 0; }
+
+.or-sig-ev dt {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+  white-space: nowrap;
+}
+
+.or-sig-ev dd {
+  margin: var(--sys-space-1) 0 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step-0);
+  color: var(--sys-ink);
+  white-space: nowrap;
+}
+
+.or-sig-note {
+  margin: 0;
+  padding-left: var(--sys-space-4);
+  border-left: 1px solid var(--sys-seam);
+  font-size: var(--sys-step--1);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink-mut);
+  max-width: 66ch;
+}
+
+/* ── 3 · Interpretação ─────────────────────────────────────────────────
+ * Material do Oráculo — o mesmo filete magenta da voz no Command Core e na
+ * Reflexão. É o que diz, sem legenda, que aqui não se está a medir nada.
+ */
+.or-interp { padding-left: var(--sys-space-4); border-left: 2px solid rgb(var(--sys-magenta-rgb) / var(--sys-o-40)); }
+.or-interp .or-sh { border-top: 0; padding-top: 0; }
+
+.or-int {
+  margin: 0;
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink);
+  max-width: 66ch;
+}
+
+.or-int-l {
+  display: block;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+/* ── 4/5 · Propostas e missões ─────────────────────────────────────────── */
+.or-props { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sys-space-4); }
+
+.or-props li {
+  display: grid;
+  gap: var(--sys-space-2);
+  justify-items: start;
+  padding-left: var(--sys-space-4);
+  border-left: 2px solid var(--sys-seam);
+}
+
+/* Aceitar uma missão cria trabalho real na lista-mestra. O `.mini` do HUD vem
+   a 26px, e um botão com consequência não pode ser o mais pequeno do ecrã. */
+.or-props .mini { min-height: 36px; }
+
+.or-prop-t { margin: 0; font-size: var(--sys-step-1); color: var(--sys-ink); max-width: 62ch; line-height: var(--sys-leading-tight); }
+.or-prop-w { margin: 0; font-size: var(--sys-step-0); color: var(--sys-ink-mut); max-width: 66ch; line-height: var(--sys-leading-normal); }
+
+/* ── 6 · Recursos ──────────────────────────────────────────────────────── */
+.or-res { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sys-space-3); }
+.or-res li { display: grid; gap: 2px; }
+.or-res a { color: var(--sys-ink); text-decoration: underline; text-underline-offset: 3px; font-size: var(--sys-step-0); }
+.or-res a:hover, .or-res a:focus-visible { color: var(--sys-violet); }
+.or-res-w { font-size: var(--sys-step--1); color: var(--sys-ink-mut); max-width: 66ch; }
+.or-res-s { font-family: var(--sys-type-data); font-size: var(--sys-step--1); color: var(--sys-ink-mut); }
+
+/* ── 7 · Análise completa ──────────────────────────────────────────────
+ * Recolhida por omissão, e o botão diz quantos campos existem — sem esse
+ * número, "ver análise completa" é uma promessa sem tamanho.
+ */
+.or-full-t {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--sys-seam);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--sys-space-3);
+  padding: var(--sys-space-3) 0;
+  min-height: var(--sys-touch-min);
+  cursor: pointer;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: 0.04em;
+  color: var(--sys-ink-mut);
+  text-align: left;
+}
+.or-full-t:hover, .or-full-t:focus-visible { color: var(--sys-ink); }
+.or-full .or-sh { display: none; }
+.or-full-n { margin-left: auto; color: var(--sys-ink-mut); }
+
+.or-raw { margin: 0; display: grid; gap: var(--sys-space-4); }
+.or-raw > div { display: grid; gap: var(--sys-space-1); }
+
+.or-raw dt {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.or-raw dd {
+  margin: 0;
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink-mut);
+  max-width: 74ch;
+  /* preserva as quebras das listas sem interpretar uma única tag */
+  white-space: pre-line;
+}
+
+.or-empty { font-size: var(--sys-step-0); color: var(--sys-ink-mut); }
+.or-empty p { margin: 0; max-width: 62ch; line-height: var(--sys-leading-normal); }
+
+@media (max-width: 900px) {
+  /* Prova por baixo da frase: em coluna estreita, duas colunas dariam 140px
+     para a frase e 140px para os números, e nenhuma se lia. */
+  .or-signals li { grid-template-columns: minmax(0, 1fr); }
+  .or-sig-ev { grid-column: 1; }
+  .or-sig-ev > div { padding-left: 0; padding-right: var(--sys-space-4); text-align: left; }
+  .or-sig-ev > div + div { padding-left: var(--sys-space-4); }
+  .or-summary { font-size: var(--sys-step-1); }
+}

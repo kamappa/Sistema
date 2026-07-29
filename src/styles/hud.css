@@ -237,7 +237,18 @@
   @keyframes rise{to{opacity:1;transform:none}}
   .reveal.io{animation-play-state:paused}
   .reveal.io.in{animation-play-state:running}
-  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+  /* REDUCED MOTION — a guarda estava a falhar, e falhava desde o Vanilla.
+     `*` NÃO seleciona pseudo-elementos. Todas as animações decorativas do HUD
+     vivem em `::before`/`::after` — ringpulse no anel do avatar, tipglow na
+     ponta das barras, cornerbreath no canto dos painéis, menteDrift e
+     vincTwinkle nos domínios — e nenhuma parava. Medido com
+     `prefers-reduced-motion: reduce` emulado: 12 animações a correr, todas em
+     pseudo-elementos, com a media query a dar `matches: true`.
+     Um utilizador que pede menos movimento continuava a ter o ecrã a pulsar. */
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+  }
 
   /* conquistas */
   .ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px}

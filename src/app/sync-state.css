@@ -8,7 +8,10 @@
   font-family: var(--sys-type-data);
   font-size: var(--sys-step--1);
   letter-spacing: var(--sys-track-label);
-  color: var(--sys-ink-far);
+  /* era `--sys-ink-far` (3,23:1 a 13px). Mesma causa das outras falhas
+     apanhadas na Fase 5: aquele tom não serve texto. E este texto diz onde os
+     dados do Daniel estão guardados — não é o candidato a ser ilegível. */
+  color: var(--sys-ink-mut);
   white-space: nowrap;
 }
 
@@ -71,4 +74,28 @@
   bottom: var(--sys-space-4);
   z-index: var(--sys-z-nav);
   pointer-events: none;
+}
+
+/* ── Mobile: o canto inferior direito já está ocupado ──────────────────
+ * Missão 26 · Fase 5. Defeito medido a 390×844 e a 768×1024: em ecrã estreito
+ * a órbita passa a faixa de comando INFERIOR, e o slot de sincronização ficava
+ * fixo por cima dela. Resultado: "só neste dispositivo" a atravessar os nomes
+ * das seis zonas, com as duas coisas ilegíveis.
+ *
+ * O estado de gravação sobe para cima da faixa do Oráculo, que é a última
+ * linha antes da navegação. Continua no mesmo sítio do desenho — junto ao
+ * rodapé do sistema — sem disputar pixéis com um controlo.
+ */
+@media (max-width: 900px) {
+  /* Deixa de ser um flutuante: passa a uma LINHA da grelha da shell, entre o
+     palco e a faixa do Oráculo. Um elemento fixo num ecrã estreito não tem
+     espaço vazio onde assentar — flutue onde flutuar, tapa texto. Em fluxo,
+     empurra em vez de tapar; e quando o estado é `ok` a linha mede zero,
+     porque o `.sys-sync[data-sync='ok']` já se cala. */
+  .sys-sync-slot {
+    position: static;
+    grid-area: sync;
+    text-align: right;
+    padding: 0 var(--sys-space-4) var(--sys-space-2);
+  }
 }

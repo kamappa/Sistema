@@ -51,7 +51,9 @@
   max-width: 1680px;
   margin-inline: auto;
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  /* O padrão serve as zonas em que a coluna principal é a lista longa. O
+     Núcleo inverte-o pelo registo (`zones.ts`, campo `columns`). */
+  grid-template-columns: var(--sys-zone-cols, minmax(0, 1.55fr) minmax(0, 1fr));
   gap: var(--sys-space-6) var(--sys-space-7);
   align-items: start;
 }
@@ -109,7 +111,15 @@
   font-weight: var(--sys-weight-regular);
   letter-spacing: var(--sys-track-label);
   text-transform: uppercase;
-  color: var(--sys-ink-far);
+  /* FALHA DE CONTRASTE, apanhada na Fase 5 e ANTERIOR a ela: estava em
+     `--sys-ink-far` (bone a 40%), que sobre o vazio dá 3,23:1 a 13px, contra
+     um mínimo de 4,5. A auditoria da Fase J deu "396 elementos, zero falhas" —
+     e esta classe já lá estava, em Operações e no Universo. A conclusão é que
+     essa auditoria não mediu a composição de opacidades sobre o fundo, e por
+     isso passou por cima do único tom que a produz. Fica registado: o número
+     "zero falhas" era otimista, não falso — o método é que era.
+     `--sys-ink-far` deixa de servir texto: passa a ser tom de filete. */
+  color: var(--sys-ink-mut);
 }
 
 .sys-instrumental .sys-group .sys-slot + .sys-slot { margin-top: var(--sys-space-6); }
@@ -253,10 +263,12 @@
  */
 @media (max-width: 900px) {
   .sys-instrumental {
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    /* a linha `sync` mede zero quando não há nada a dizer — ver sync-state.css */
+    grid-template-rows: auto minmax(0, 1fr) auto auto auto;
     grid-template-areas:
       'core'
       'stage'
+      'sync'
       'oracle'
       'orbit';
   }
@@ -1305,39 +1317,10 @@ body:has(.sys-instrumental) .toast.pen {
 .sys-instrumental .panel:where([data-lit], :focus-within),
 .sys-instrumental .sys-zone-body:not(:has(.panel:focus-within))
   > .sys-group:first-child .panel {
-  /* A luz tem de desvanecer em TODOS os lados. A primeira tentativa usava
-     The AT command has been deprecated. Please use schtasks.exe instead.
-
-Invalid command.
-
-The AT command schedules commands and programs to run on a computer at      
-a specified time and date. The Schedule service must be running to use      
-the AT command.
-                                                           
-AT [\computername] [ [id] [/DELETE] | /DELETE [/YES]]                    
-AT [\computername] time [/INTERACTIVE]
-    [ /EVERY:date[,...] | /NEXT:date[,...]] "command"
-
-\computername     Specifies a remote computer. Commands are scheduled on the
-                   local computer if this parameter is omitted.             
-id                 Is an identification number assigned to a scheduled      
-                   command.                                                 
-/delete            Cancels a scheduled command. If id is omitted, all the
-                   scheduled commands on the computer are canceled.
-/yes               Used with cancel all jobs command when no further
-                   confirmation is desired.
-time               Specifies the time when command is to run.
-/interactive       Allows the job to interact with the desktop of the user   
-                   who is logged on at the time the job runs.
-/every:date[,...]  Runs the command on each specified day(s) of the week or
-                   month. If date is omitted, the current day of the month
-                   is assumed.                                              
-/next:date[,...]   Runs the specified command on the next occurrence of the
-                   day (for example, next Thursday).  If date is omitted, the
-                   current day of the month is assumed.
-"command"          Is the Windows NT command, or batch program to be run., que desvanece para baixo e deixa aresta dura em cima e nos
-     lados — continuava a desenhar um retangulo, so com o fundo mais suave.
-     Elipse ao centro com queda longa: nao ha bordo nenhum onde a luz acabe. */
+  /* A luz tem de desvanecer em TODOS os lados. A primeira tentativa usava um
+     gradiente linear, que desvanece para baixo e deixa aresta dura em cima e
+     nos lados — continuava a desenhar um retângulo, só com o fundo mais suave.
+     Elipse ao centro com queda longa: não há bordo nenhum onde a luz acabe. */
   background: radial-gradient(
     ellipse 85% 130% at 50% 30%,
     rgb(var(--sys-violet-rgb) / var(--sys-o-14)) 0%,
@@ -1410,10 +1393,10 @@ time               Specifies the time when command is to run.
 .sys-instrumental .sys-zone[data-active='true']::before {
   content: '';
   position: absolute;
-  /* A luz tem de MORRER DENTRO da caixa. A primeira versao usava
-      e ainda tinha opacidade ao chegar aos limites do
-     elemento — cortava em aresta nos quatro lados e desenhava outra caixa, que
-     e exactamente o defeito que isto vinha corrigir.
+  /* A luz tem de MORRER DENTRO da caixa. A primeira versão usava uma elipse
+     tão larga como o elemento e ainda tinha opacidade ao chegar aos limites
+     dele — cortava em aresta nos quatro lados e desenhava outra caixa, que
+     é exactamente o defeito que isto vinha corrigir.
      Agora a elipse e mais pequena que a caixa e chega a transparente aos 70%:
      nao ha bordo porque a luz ja acabou antes de a caixa acabar. */
   inset: 0 0 auto 0;

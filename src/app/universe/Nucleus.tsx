@@ -3,9 +3,17 @@
  *
  * ╔══════════════════════════════════════════════════════════════════════╗
  * ║  ORIGEM: R14 (`07-core-level-events/aproximacao ao nucleo.mp4`) para  ║
- * ║  a matéria; R23 (galáxia violeta, terceira passagem) para a ideia de  ║
- * ║  que a rotação de um corpo real NÃO é uniforme.                      ║
+ * ║  a matéria. A rotação diferencial vem de uma imagem de galáxia        ║
+ * ║  espiral violeta que o Daniel enviou no chat — NÃO está catalogada    ║
+ * ║  e não tem número de referência.                                      ║
  * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * CORREÇÃO DE UMA ATRIBUIÇÃO FALSA MINHA. Escrevi aqui "R23" para a imagem da
+ * galáxia. R23 é `03-universe · primavera`, um vídeo de 15s do catálogo, e não
+ * tem nada a ver. Pôr um número de referência numa imagem que veio do chat é
+ * inventar uma proveniência — exatamente o que a regra "nunca fingir que uma
+ * referência foi vista" proíbe. A imagem existe e foi vista; o que não existe
+ * é o número.
  *
  * O VEREDICTO QUE ISTO RESPONDE: "o Núcleo parece uma estrela normal". Estava
  * certo. A montagem anterior era um só feixe a respirar — bonito, e inerte:

@@ -230,3 +230,44 @@ uma imagem.
 **Porque importa:** fica registado que aquela decisão **não tem referência
 visual**. Se um dia aparecer o vídeo, a decisão é revisitável com base nova.
 Uma decisão sem origem declarada é uma decisão que ninguém pode contestar.
+
+## 12. Uma cerimónia de cada vez, e cede quem não tem substituto
+
+**Observado em:** o ARISE por cima do céu, numa folha de contacto do Universo.
+
+Dois dos doze frames da sequência de evidência eram só a palavra ARISE por cima
+de um escurecimento a 60%. Por baixo estava a partícula a atravessar o campo, a
+estrela a nascer e a energia a convergir — exatamente o que o Universo existe
+para mostrar.
+
+**A regra não é "menos cerimónias".** É que quando duas anunciam o mesmo facto,
+cede a que tem **substituto** no sítio onde o Operador está. A conclusão de
+missão tem um substituto local e melhor, porque diz qual domínio recebeu o quê.
+Uma conquista **não tem**: o satélite dela é um ponto de 4px no bordo, e por
+isso a cerimónia global fica.
+
+**Corolário, e já custou uma regressão:** um facto = um canal de anúncio. As
+palavras vêm da fila; a reação do mundo fica onde estava.
+
+**Reduced motion:** irrelevante — a regra é de atenção, não de movimento.
+
+## 13. Quem tem profundidade não anima; quem anima não tem profundidade
+
+**Observado em:** três defeitos da mesma família, todos medidos.
+
+Um `@keyframes` que anima `transform` **substitui** o transform do elemento. A
+deriva da poeira estava a apagar o `translateZ(-1400px)` que lhe dava
+profundidade: a camada aparecia como `matrix()` 2D e o cursor não a movia. E uma
+transform aplicada a conteúdo **dentro** de um SVG não é composta — repinta o
+desenho inteiro a cada frame, o que pôs a chegada ao Núcleo a 50ms.
+
+**A regra:** a camada carrega a profundidade e fica quieta; os filhos derivam.
+Num espaço com perspetiva isto não é arrumação — é a diferença entre haver
+espaço e haver uma imagem que se mexe.
+
+**Corolário de método:** a perspetiva entra na conta da escala. Uma camada a
+−520px com a câmara a +780 é ampliada 1100/(1100−260) = 1,31.
+
+**Reduced motion:** a profundidade sobrevive inteira; é a deriva que para. É
+mais um argumento para a separação.
+

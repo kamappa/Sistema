@@ -20,7 +20,10 @@ Duas classes de coluna, que não se confundem:
 **Confiança** — `alta` (vista e inequívoca), `média` (vista, leitura discutível),
 `nenhuma` (não vista).
 
-Nesta data: **7 analisadas · 41 inventariadas · 2 inválidas.**
+Nesta data: **9 analisadas · 39 inventariadas · 2 inválidas.**
+Atualizado a 2026-07-30 com R13 e R14, abertas para a reconstrução do Universo.
+Nota de contagem: R12 e R14 são o mesmo ficheiro por hash, tal como R22 e R23 —
+abrir R14 fecha R12 na prática, mas a contagem segue os identificadores.
 
 ## Papéis
 
@@ -152,6 +155,39 @@ cinematográfico impossível de usar" que a missão proíbe.
 
 ---
 
+### R13 · `07-core-level-events` · MATERIAL + STRUCTURE
+500×281 · 72 fr · ~33 fps · confiança **alta** · aberta 2026-07-30
+
+**Factual:** corpo orbital com anéis concêntricos inclinados em 3D, rastos de
+partículas, satélites e rótulos de HUD ligados por linhas-guia.
+
+**Extrair:** a profundidade não vem de sombra — vem de **anéis vistos de um
+ângulo**. Um plano inclinado dá o chão da cena sem nada mais.
+**Rejeitar:** o ciano, os rótulos de HUD de filme, o texto de telemetria falso
+e a marca de água.
+**Aplicação:** os três anéis do Universo, a 60° — cos(60°) = 0,5, que é a
+proporção 2:1 da elipse onde os domínios assentam. Com 72° o plano dizia uma
+inclinação e os corpos diziam outra, e o olho lê isso como erro.
+**Prioridade:** alta. **Risco:** médio — é a referência mais próxima do painel
+de nave espacial. Salva-se porque só se usou a geometria.
+
+### R14 · `07-core-level-events/aproximacao ao nucleo.mp4` · MOTION + MATERIAL
+720×1280 · 20,04 s · 30 fps · confiança **alta** · aberta 2026-07-30
+
+**Factual:** centro de luz branco-violeta com centenas de filamentos finos a
+irradiar, cada um terminado numa partícula brilhante. O conjunto respira. Não há
+contorno em lado nenhum — o que define a forma é a densidade de linhas.
+
+**Extrair:** o núcleo é **matéria**, não um círculo; a densidade é que faz a
+massa; cada filamento acaba num ponto de luz — é isso que separa um feixe vivo
+de um sunburst desenhado.
+**Rejeitar:** o bloom branco a 100% (o Sistema tem sempre texto por cima —
+gramática 4) e a explosão constante: ali é um plano isolado, aqui é uma
+presença, e uma presença que explode sem parar é um alarme.
+**Aplicação:** o Núcleo. O número de filamentos e o raio vêm de `coreMass`, que
+vem do nível global real — não há um estado "bonito por defeito".
+**Prioridade:** máxima. **Risco:** baixo — a paleta já é a do Sistema.
+
 ## Inventariadas — medidas, por interpretar
 
 Todas têm 12 frames e contact sheet em `98-extracted-frames/`. Confiança
@@ -168,8 +204,8 @@ Todas têm 12 frames e contact sheet em `98-extracted-frames/`. Confiança
 | R09 | 04-panels · icon | 760×508 | 11,17 s | 30 | IDENTITY |
 | R10 | 04-panels · icone.mp4 | 720×1280 | 5,00 s | 60 | IDENTITY |
 | R12 | 07-core · núcleo | 720×1280 | 20,04 s | 30 | MOTION ⧉ |
-| R13 | 07-core · núcleo | 500×281 | 72 fr | ~33 | MATERIAL |
-| R14 | 07-core · aproximação ao núcleo | 720×1280 | 20,04 s | 30 | MOTION ⧉ |
+| R13 | 07-core · núcleo | 500×281 | 72 fr | ~33 | MATERIAL — **ABERTA 2026-07-30** |
+| R14 | 07-core · aproximação ao núcleo | 720×1280 | 20,04 s | 30 | MOTION ⧉ — **ABERTA 2026-07-30** |
 | R16 | 02-oracle | 720×1280 | 29,21 s | 30 | LIGHT |
 | R18 | 02-oracle · oracle.gif | 500×375 | 63 fr | 24 | LIGHT |
 | R20 | 03-universe · outono | 1280×720 | 14,95 s | 29,97 | MATERIAL |

@@ -585,3 +585,123 @@ dizer que não ficou guardado e um botão para repetir.
 
 **Escala autorizada pela raridade:** é a única superfície do produto que pode
 ser cena em vez de instrumento, e só porque acontece uma vez por estação.
+
+### 2026-07-30 · Universo — a câmara é o estado, o gesto é um desvio
+
+O problema que isto resolve, e é o mais difícil da zona: uma máquina de estados
+e uma câmara manual querem os dois mandar na mesma `transform`.
+
+**Decisão.** O estado manda na **escala**; o gesto produz um **desvio** que se
+soma. `translate3d(calc(cam-x + free-x), …)`, num sítio só. Não são duas
+camadas — se fossem, o parallax das camadas profundas aplicava-se a uma e não
+à outra, e olhar à volta deixava de parecer espaço.
+
+**Consequências, as duas deliberadas.** Arrastar nunca troca de escala: olhar à
+volta não é viajar. E a roda **acumula** desvio em z e, ao passar um limiar,
+**compromete** uma transição e volta a zero — o gesto é contínuo, o destino é
+discreto, e a passagem tem um sítio definido em vez de duas máquinas a lutar.
+
+**O gesto não escolhe destinos.** Pergunta "mais fundo" ou "recua"; quem resolve
+é o reducer, que é quem sabe onde estamos. Uma roda que soubesse escolher
+domínios era uma segunda máquina de estados escondida num handler.
+
+**A roda exige Ctrl/⌘.** Não é timidez: a cena ocupa 558px de um contentor com
+2620px de conteúdo por baixo, e capturar a roda prendia lá quem passasse o rato.
+Convenção de mapa embebido, pela razão exata que a criou.
+
+**Os limites são calculados.** 200×60 no largo, 90×34 no estreito, derivados da
+folga real entre o domínio mais exterior e o bordo. A primeira escolha (260×150)
+tornava o domínio do topo inalcançável — clipado pelo `overflow:hidden`.
+
+---
+
+### 2026-07-30 · Uma cerimónia de cada vez, e quem cede é quem não tem substituto
+
+O ARISE escurece o ecrã inteiro a 60% durante 2,65s. No Universo isso caía por
+cima do momento que o Universo existe para mostrar.
+
+**Decisão.** A cerimónia global cede o palco quando a zona ativa encena a sua.
+O Universo marca `data-sky-live` no `<html>`; o `cineArise` lê e cala-se.
+
+**O critério não é "no Universo não há cerimónias".** É **haver substituto**. A
+conclusão de missão tem um substituto local e melhor — diz qual domínio recebeu
+o quê, coisa que a palavra ARISE nunca soube dizer. Uma **conquista** não tem:
+o satélite dela é um ponto de 4px no bordo do enquadramento, e por isso a
+cerimónia global fica.
+
+**Corolário que já custou uma regressão:** um facto = um canal de anúncio. Ao
+ligar o evento de rank à fila, ficaram dois — o SYSTEM EVENT e o toast antigo do
+`rankCeremony`, sobrepostos. É a avaria que a fila foi criada para resolver na
+Fase 6A. As **palavras** vêm da fila; a **reação** (Bus, emblema, poeira) fica
+onde estava.
+
+---
+
+### 2026-07-30 · O registo ganha domínio — e o que isso NÃO passa a saber
+
+**Decisão de dados, tomada pelo Daniel** depois de o custo ter sido apresentado
+duas vezes. `plog` ganha um quarto argumento opcional `attr`.
+
+**O que passa a ser possível:** ver o que está a alimentar o **nível em curso**
+de um domínio. É a única parte ainda em formação, a única que pode recuar, e a
+única sobre a qual há decisão a tomar hoje.
+
+**O que continua impossível, e tem de estar escrito onde alguém o leia antes de
+tentar:** "que evidência fez a sétima estrela de Saber". Os níveis vêm de XP
+acumulado ao longo de meses e o registo guarda **catorze entradas**. Nenhum
+campo novo muda isso — a informação nunca existiu. Uma vista que o afirmasse
+estava a inventar.
+
+**As entradas antigas nunca terão dono.** O campo é aditivo. A leitura conta-as
+e declara-o por extenso, em vez de as esconder ou de lhes atribuir um domínio
+plausível. Um registo que aparecesse com menos linhas do que tem seria uma
+omissão silenciosa.
+
+**Um sítio ficou sem `attr` de propósito:** o título real. Não tem um domínio
+só, e inventar-lhe um era pior do que a ausência.
+
+---
+
+### 2026-07-30 · O Núcleo é a soma, por isso pode ser decomposto
+
+A chegada ao Núcleo era dramática e não pagava — um destino sem conteúdo é um
+ecrã de fim de nível.
+
+**Decisão.** `overallLevel` é literalmente a soma dos seis níveis menos cinco.
+O Núcleo **não é uma metáfora de progresso**: é a soma. Entrar nele passa a ser
+ver a conta — seis veios com a espessura da contribuição real, entrando pelo
+ângulo do respetivo domínio para a continuidade espacial ser real e não
+sugerida.
+
+**Verificação obrigatória para uma vista destas:** o *share* implícito na
+espessura desenhada tem de bater certo com o *share* real. Bate, até à quarta
+casa decimal nos seis.
+
+**O arco de rank não se desenha no último rank.** `max: 9999` é um sentinela de
+código. Uma barra a 0,4% seria o Sistema a afirmar que quase não há progresso
+quando o que não há é banda definida. Diz-se por extenso.
+
+---
+
+### 2026-07-30 · Regra de custo da cena 3D — quem tem profundidade não anima
+
+Três erros da mesma família, todos medidos, e a regra que fica.
+
+1. **Uma transform aplicada a conteúdo dentro de um SVG não é composta** —
+   obriga a repintar o desenho inteiro a cada frame. Pôs a chegada ao Núcleo a
+   50ms. As camadas do Núcleo passaram a `<svg>` próprios, e quem roda é o
+   elemento.
+2. **Um `@keyframes` que anima `transform` SUBSTITUI o transform do elemento.**
+   A deriva da poeira estava a apagar o `translateZ(-1400px)` e o desvio do
+   cursor: a camada aparecia como `matrix()` 2D. A deriva passou para filhos.
+3. **A perspetiva tem de entrar na conta da escala.** Uma camada a −520px com a
+   câmara a +780 é ampliada 1100/(1100−260) = 1,31, e ignorá-lo fez um desenho
+   de 620 unidades renderizar a 617px num quadro de 558.
+
+**A regra:** quem tem profundidade não anima, quem anima não tem profundidade.
+
+**E uma sobre método:** sem GPU esta zona media 33ms e concluí que a culpa era
+das camadas ambiente. A bissecção mostrou que desligar animações uma a uma não
+mudava nada e só esconder a cena devolvia os 16,7ms — o custo era **compor a
+subárvore 3D por software**. Com GPU: 8,3ms. Uma medição num ambiente que não é
+o do utilizador é um sintoma, não um diagnóstico.

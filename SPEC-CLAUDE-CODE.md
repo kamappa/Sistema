@@ -1857,7 +1857,13 @@ Corpo e Recuperação — `elementFromPoint` no centro do cartão devolvia
 `bs-r-meta`. A shell cria contexto de empilhamento e um filho não sai dele. Um
 evento invisível é indistinguível de um evento que não aconteceu.
 
-### Fase 6C · Universo — campo celeste (CONCLUÍDA 2026-07-30)
+### Fase 6C · Universo — campo celeste (SUPERADA 2026-07-30)
+
+> **Este registo descreve código que já não existe.** O `CelestialField` foi
+> removido na reconstrução do mesmo dia — ver *Fase 6C bis* mais abaixo. Fica
+> aqui porque é a origem das decisões que sobreviveram (a inversão, o raio
+> igual entre pares, a órbita externa) e porque apagar um estado anterior
+> apagava a razão de o seguinte existir.
 
 A inversão: o campo abre a zona, a lista de seis barras desce para instrumento
 secundário. Núcleo ao centro (tamanho pelo nível global, cor pelo rank), seis
@@ -1872,6 +1878,207 @@ hash do id — não classifico por domínio porque o `ACH` não guarda domínio.
 **Rótulo cortado do radar: FECHADO.** Defeito da Fase 0, herdado do Vanilla e
 presente em produção. A correção abre a janela do `viewBox` e não mexe na
 geometria, por isso não pode introduzir divergência de números.
+
+### Fase 6C bis · Universo — reconstrução em sete passagens (CONCLUÍDA 2026-07-30)
+
+O Daniel devolveu a primeira montagem com um veredicto que estava certo:
+"demasiado segura, demasiado contida e demasiado pouco transformadora". Era
+uma ilustração do estado, não um sítio onde se entra. A reconstrução aconteceu
+em sete passagens, cada uma com o seu commit.
+
+**Não foi um redesenho contínuo.** A composição foi aprovada ao fim da segunda
+passagem e não voltou a mexer-se; da terceira em diante o trabalho foi dar-lhe
+comportamento.
+
+#### 1 · Uma cena, três escalas (`dce18ee`)
+
+Deixa de haver vistas. Há **um** contexto 3D e uma câmara que se aproxima:
+`overview`, `domain` e `core` são a mesma realidade a aprofundar-se,
+interpolando uma `transform`. O Núcleo está **atrás** do plano dos domínios, por
+isso chegar lá é atravessar o céu — é isso que faz dele um destino e não um
+logótipo ao centro.
+
+Profundidades: poeira −1400, nebulosa −1000, **Núcleo −520**, anéis −120,
+territórios 0, satélites +90.
+
+Verdade dos dados: posições por hash FNV-1a, nunca `Math.random()` — a mesma
+evidência dá sempre o mesmo céu. Cada nível provado é uma estrela; o XP do
+nível em curso é uma estrela a formar-se, a única que pode recuar.
+
+Composição, tudo medido e não estimado:
+
+- domínios numa **elipse 2:1** (= cos 60°, a inclinação dos anéis) em vez de
+  círculo — 6 de 6 rótulos dentro do enquadramento, zero sobreposições;
+- o HUD passa a **coluna ao lado do visor**; em ecrã estreito a cena recua e
+  cada um fica com a sua faixa;
+- **máscara nos quatro bordos**: o céu deixa de acabar numa aresta;
+- camadas profundas com `inset` negativo — a nebulosa acabava a meio do céu
+  porque a perspetiva encolhe uma camada a −1000px para 52%. O fator é
+  1100/(1100+|z|);
+- **o rank deixa de pintar a matéria do Núcleo** (rank S punha-o dourado);
+- a leitura do Núcleo sai da cena para o HUD: à escala de chegada ficava fora.
+
+Os sigilos de conquista saem do céu — a 22px liam-se como autocolantes — e
+entram no painel Conquistas, onde têm tamanho. O emoji e o cadeado saem de lá.
+
+**Erro registado:** sem GPU a zona media 33ms e concluí que a culpa era das
+camadas ambiente. A bissecção mostrou que só esconder a cena inteira mudava
+alguma coisa — o custo era **compor a subárvore 3D por software**. Com GPU:
+8,3ms medianos.
+
+#### 2 · Vida, orientação e reação (`0a6de99`)
+
+- **Máquina de estados** (`universe-states.ts`) com transições declaradas numa
+  tabela, em vez de três flags soltas que davam oito combinações das quais
+  metade não fazia sentido.
+- **Ambiente medido, não afirmado:** em 3,2s mexeram-se as sete camadas
+  instrumentadas. Períodos 52/71/86/96/149/227s — nenhum múltiplo de outro, por
+  isso o conjunto nunca se repete numa sessão. Estrelas cintilam 1 em 4.
+- **Núcleo vivo:** três conchas de filamentos com rotação diferencial em
+  sentidos opostos, matéria em órbita, ejeções raras, quatro estados. Cada
+  camada é um `<svg>` próprio e quem roda é o **elemento** — animar um `<g>`
+  dentro de um SVG repinta o desenho inteiro, e foi isso que pôs a chegada a
+  50ms na passagem anterior.
+- **Gravidade do cursor:** duas custom properties escritas num rAF, com
+  inércia, deslocamento por profundidade. O React não participa.
+- **Assinaturas:** seis domínios que só se distinguissem pela cor eram seis
+  etiquetas. Ofício alinha, Saber ramifica, Corpo pulsa, Mente converge,
+  Vínculos aproxima e liga, Disciplina sincroniza. Verificado como seis
+  desenhos genuinamente diferentes.
+- **Protoestrela** em quatro fases (poeira → difusa → a condensar → quase
+  formada), existente mesmo a 0% — a diferença entre "não comecei" e "estou a
+  meio" era invisível.
+- **Evento em sete tempos**, provado por medição: a partícula foi amostrada em
+  (1008,127) → (877,301) → (862,321), monótona até ao destino.
+- **Pausa:** zona inativa ou tab escondida → 43 animações em `paused`.
+
+**Dois defeitos apanhados:** um `@keyframes` que anima `transform` **substitui**
+o transform do elemento — a deriva da poeira estava a apagar o
+`translateZ(-1400px)` e a gravidade do cursor. E no mobile o rótulo de Mente
+ficava **por baixo** do título do HUD: `elementFromPoint` no centro do alvo
+devolvia `.us-hud-t`, ou seja o domínio existia e não se podia tocar.
+
+#### 3 · A escala 4 — dentro do Núcleo (`b518c1f`)
+
+Chegar ao Núcleo era dramático e não pagava. A resposta estava na aritmética do
+próprio motor: `overallLevel` é a soma dos seis níveis menos cinco, portanto o
+Núcleo **é** a soma e pode ser decomposto.
+
+Seis veios entram no corpo pelo ângulo do respetivo domínio. A espessura é a
+contribuição, verificada: o *share* implícito bate certo com o real até à
+quarta casa decimal nos seis, e os números desenhados somam 69 = a soma dos
+níveis no estado.
+
+O arco de rank fecha à volta — **mas no rank S não há arco** e a leitura diz
+porquê: o último rank tem `max: 9999`, que é um sentinela de código, e uma
+barra a 0,4% seria o Sistema a afirmar que quase não há progresso quando o que
+não há é banda definida.
+
+**Três erros de escala meus**, corrigidos e registados no código: faltava-me o
+fator da **perspetiva** (1,31 à chegada) na conta da escala; os rótulos estavam
+em cima dos veios; e centrado, o desenho ficava por cima da coluna de leitura.
+
+#### 4 · O rank passa a existir (`f328baf`)
+
+`kind: 'rank'` estava declarado na fila desde a Fase 6A e **nunca foi emitido
+por ninguém**. `addXp` passa a comparar `rankOf(overallLevel)` antes e depois. A
+descida também se anuncia, como aviso.
+
+`RANK_EVENT` é a única transição que ignora onde o Operador estava: sai-se
+sempre para a vista geral, porque é de lá que se vê que o mundo ficou maior — a
+lógica do NASA Eyes, referência dada pelo Daniel.
+
+Cerimónia medida frame a frame: escala 1,00 → 0,26 → **0,18 (o silêncio)** →
+1,35 → 1,55 → 1,13 → OVERVIEW.
+
+**Bug:** o Universo lia só a cabeça da fila. A fila é do *anúncio* e ordena
+causa antes de consequência, por isso a missão fica à frente e segura o lugar 7
+segundos. Reagir ao mundo e anunciar ao Operador são coisas diferentes.
+
+**Afirmação minha corrigida:** escrevi que "a massa nova fica" apontando para o
+`scale(1.12)` final. Não fica — medido, o corpo volta a 0,985. O que fica é
+`coreMass = nívelGlobal/40`, que subiu.
+
+#### 5 · Câmara manual (`c42367f`)
+
+O estado manda na **escala**; o gesto produz um **desvio** somado por cima. Duas
+consequências deliberadas: arrastar nunca troca de escala, e a roda acumula
+desvio em z e **compromete** uma transição ao passar um limiar. O gesto é
+contínuo, o destino é discreto.
+
+**Três defeitos:** os limites eram escolhidos e não calculados (com 260×150 o
+domínio do topo ficava clipado e inalcançável); a pinça não tinha trava de
+compromisso e um gesto atravessava duas escalas; e a roda **prendia a página** —
+a cena ocupa 558px de um contentor com 2620px de conteúdo por baixo. Passa a
+exigir Ctrl/⌘, como qualquer mapa embebido.
+
+#### 6 · Uma cerimónia de cada vez (`28464db`)
+
+O ARISE escurece o ecrã a 60% durante 2,65s e caía por cima do momento que o
+Universo existe para mostrar. Cede o palco quando o Universo está ativo
+(`data-sky-live` no `<html>`), e **só onde há substituto**: no Núcleo aparecem
+278 frames de "A R I S E"; no Universo, zero.
+
+As conquistas **não** cedem, pela mesma razão pela outra ponta: uma conquista é
+um facto que o céu não mostra de forma legível — o satélite dela é um ponto de
+4px no bordo.
+
+**Regressão minha, do commit anterior:** ao ligar `kind: 'rank'` à fila, o rank
+passou a ser anunciado por dois sistemas ao mesmo tempo — o SYSTEM EVENT e o
+toast antigo do `rankCeremony`. É a avaria que a fila foi criada para resolver
+na Fase 6A. O toast saiu; a reação ficou.
+
+#### 7 · A escala 3 — o que alimenta o domínio (`5f9a6ca`)
+
+**Decisão de dados tomada pelo Daniel** (concordância dada por "continua",
+depois de o custo ter sido apresentado duas vezes).
+
+`plog` ganha um quarto argumento opcional `attr`. Doze dos treze sítios passam
+o domínio; o título real fica sem, porque não tem um domínio só.
+
+O que esta vista **não pode ser**: "que evidência fez a sétima estrela de
+Saber". Não é sabível — os níveis vêm de XP acumulado ao longo de meses e o
+registo guarda catorze entradas. O que é sabível é o que alimenta o **nível em
+curso**, que é a única parte em formação e a única sobre a qual há decisão a
+tomar hoje.
+
+As entradas antigas ficam sem `attr` para sempre e a leitura **conta-as e
+declara-o**. `EVIDENCE_FOCUS` não muda a escala da câmara: o que há para revelar
+é texto, e o texto vive no instrumento.
+
+#### Estado verificado no fim das sete passagens
+
+| | |
+|---|---|
+| Custo (GPU), repouso e hover | 8,3 ms medianos · p95 8,5 |
+| Contraste | 115 elementos · 0 falhas AA · 0 alvos pequenos |
+| Reduced motion | 0 animações; câmara continua a chegar; assinaturas continuam desenhadas |
+| Enquadramento | 6/6 domínios · 0 sobreposições · desktop e mobile |
+| Evidência real | 75 → 76 estrelas, nos dois tamanhos |
+| Interior do Núcleo | 494×494 em 1338×558; conta 69 = 69 |
+| Consola | 0 erros |
+
+#### O que fica declarado como não existente
+
+- **Que evidência fez cada estrela já provada.** Não é sabível e não passará a
+  ser; ver a passagem 7.
+- **Requisitos de evidência por rank.** O domínio tem um só critério e é
+  aritmético — já estava dito na Fase 6D e continua.
+- **Atribuição das entradas de registo anteriores a 2026-07-30.** O campo é
+  novo; essas entradas não têm dono e a leitura di-lo.
+
+#### Correção de proveniência
+
+Atribuí a **R23** uma imagem de galáxia espiral violeta que o Daniel enviou no
+chat. R23 é `03-universe · primavera`, um vídeo de 15s do catálogo, e não tem
+nada a ver. A imagem existe e foi vista; o número é que não existia. Corrigido
+no cabeçalho de `Nucleus.tsx` — pôr um número de referência numa imagem que veio
+do chat é inventar uma proveniência.
+
+Referências do catálogo efetivamente usadas nesta reconstrução: **R14** (feixe
+de filamentos branco-violeta, densidade em vez de contorno, ponta luminosa em
+cada filamento — rejeitado o bloom a 100%) e **R13** (anéis inclinados como
+fonte de profundidade — rejeitado o HUD ciano e a marca de água).
 
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 

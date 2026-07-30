@@ -2310,6 +2310,70 @@ aviso — de S08 com todos os rótulos a dizer "Thema", S16 com WISDOM repetido,
 S09 com agentes inventados).
 
 Zero alterações a código.
+### Fase 7Z · Oráculo com sessão real — três defeitos (CONCLUÍDA 2026-07-30)
+
+Uma das duas perguntas autorizadas foi enviada, marcada como teste para não
+poluir o histórico do Daniel com uma pergunta que não é dele. **A segunda não
+foi gasta**, e a razão está abaixo.
+
+#### 1 · A resposta ficava PRESA com a tab em segundo plano
+
+`OrcBubble` escreve a resposta letra a letra com `setTimeout`. Com a tab oculta,
+**a escrita parou de vez**: medido, o texto ficou em `"O Oráculo "` e não cresceu
+um único carácter em quatro segundos. Não é atraso — é parada.
+
+Consequência real: quem mudasse de tab a meio de uma resposta voltava e
+encontrava uma frase cortada, **sem forma de saber que faltava texto**. A
+resposta completa tinha 254 caracteres; ele veria 10.
+
+Corrigido: a tab esconder-se passa a valer "mostra tudo já". A animação é
+enfeite; a resposta é informação, e informação não pode ficar presa pelo
+enfeite. Verificado na conta real com a tab ainda oculta: 254 caracteres,
+completos.
+
+#### 2 · O `setTimeout` não era cancelado no cleanup
+
+Só o listener saía. Se `content` ou `live` mudassem a meio, ficavam duas
+máquinas de escrever no mesmo nó. Corrigido, e o desmonte deixa o texto
+completo em vez de um pedaço.
+
+#### 3 · A conversa não era anunciada
+
+Verificado: **a zona Oráculo não tinha nenhuma live region.** A resposta
+aparecia sem nada avisar quem usa leitor de ecrã. O `#oc-log` passou a
+`aria-live="polite"` com `aria-atomic="false"` — uma resposta é para ler quando
+der, não para interromper.
+
+#### O que a pergunta revelou, e não era técnico
+
+**O Oráculo está sem saldo de API.** A resposta foi:
+
+> O Oráculo não respondeu (Error: {"type":"invalid_request_error","message":"Your
+> credit balance is too low to access the Anthropic API…"}). A mensagem não contou
+> para o limite — tenta outra vez.
+
+**O caminho de erro está estruturalmente CERTO** e isso é a boa notícia: a quota
+não foi consumida (`oracleChat.count: 0` e o contador ficou em 12/12), a pergunta
+saiu do histórico da API, e o Sistema disse que falhou em vez de fingir.
+
+**A redação estava errada, em dois pontos.** Despejava JSON cru com texto de
+faturação de terceiros — não é o Sistema a falar, é a API a falar por ele. E
+"tenta outra vez" era um **conselho errado**: repetir não resolve falta de saldo,
+e mandar alguém repetir o que não pode funcionar é o Sistema a fingir que sabe o
+que se passa.
+
+Corrigido: distingue-se agora o que o Operador **pode** resolver (falha
+momentânea) do que **não pode** (saldo, credencial), e a causa técnica vai para
+a consola em vez do ecrã.
+
+**A segunda pergunta não foi gasta** porque ia dar o mesmo erro. Gastar uma
+mensagem para reproduzir um erro já reproduzido não valida nada.
+
+#### O que continua por validar, e agora depende de saldo
+
+LISTENING, THINKING até ao fim com resposta real, RESEARCHING, INSIGHT e
+CONSELHO com contexto **não podem ser validados sem saldo de API**. O caminho de
+erro está validado; o caminho de sucesso não.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗
@@ -2330,20 +2394,21 @@ faltar qualquer um destes:
 | Performance mobile | **FECHADO** com ressalvas medidas |
 | Validação do Oráculo | **PARCIAL** — o que precisa de sessão fica por fazer |
 | Auditoria com dados reais | **FECHADA** — executada read-only; 3 defeitos, 1 da primeira lei |
-| Estados do Oráculo com sessão | **ABERTO** — precisa do Daniel ao ecrã |
+| Oráculo · caminho de erro | **FECHADO** — validado com sessão real; 3 defeitos corrigidos |
+| Oráculo · caminho de sucesso | **BLOQUEADO** — sem saldo de API, não é validável |
 
 O plano da auditoria está em
 `docs/design-references/mission-26/AUDITORIA-CONTA-REAL.md` e inclui as páginas
 a abrir, o que observar, as ações proibidas, os riscos, a política de
 screenshots e a lista do que precisa de sanitização.
 
-**Sobra um gate:** os estados do Oráculo que exigem sessão e resposta real —
-LISTENING, THINKING do princípio ao fim, RESEARCHING, INSIGHT, WARNING, CONSELHO
-com resposta, e o War Room com o painel aberto. As duas perguntas autorizadas
-continuam por gastar, e de propósito: o valor delas é visual e tem de ser visto
-pelo Daniel no ecrã dele.
+**Sobra um gate, e não é de implementação:** LISTENING, THINKING até ao fim,
+RESEARCHING, INSIGHT e CONSELHO com resposta real **não são validáveis sem saldo
+de API**. O caminho de erro está validado e correto; o de sucesso está bloqueado
+por uma condição externa ao código.
 
-**Enquanto esse gate não fechar, a classificação é A e não B.**
+**Enquanto esse gate não fechar, a classificação é A e não B** — e fechá-lo
+depende de repor saldo na conta que serve o Oráculo, não de escrever código.
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 
 Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,

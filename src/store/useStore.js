@@ -663,7 +663,38 @@ export const useStore = create((set, get) => ({
       const j = await r.json().catch(() => ({}));
       if (r.ok && j.reply) { ok = true; set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: j.reply, role: 'assistant' }] }); if (window.Bus) window.Bus.emit('oracle:spoke'); }
       else if (j.error === 'limite') { ok = true; set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: 'O Oráculo confirma: as 12 mensagens de hoje esgotaram. Guarda a pergunta — amanhã o Conselho volta a reunir.', role: null }] }); }
-      else { set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: 'O Oráculo não respondeu (' + (j.error || ('HTTP ' + r.status)) + '). A mensagem não contou para o limite — tenta outra vez.', role: null }] }); }
+      else {
+        /* ── O ERRO É DO SISTEMA A FALAR, NÃO DA API ──
+         * Apanhado na auditoria à conta real, 2026-07-30. O Operador viu isto:
+         *
+         *   O Oráculo não respondeu (Error: {"type":"invalid_request_error",
+         *   "message":"Your credit balance is too low to access the Anthropic
+         *   API. Please go to Plans & Billing to upgrade or purchase
+         *   credits."}). A mensagem não contou para o limite — tenta outra vez.
+         *
+         * Dois problemas, e o segundo é pior do que o primeiro:
+         *
+         * 1 · JSON cru da API no ecrã, com texto de faturação de terceiros.
+         *     Não é o Sistema a falar; é a API a falar por ele.
+         * 2 · "tenta outra vez" era um CONSELHO ERRADO. Tentar outra vez não
+         *     resolve falta de saldo nem credencial inválida — e mandar alguém
+         *     repetir uma coisa que não pode funcionar é o Sistema a fingir que
+         *     sabe o que se passa quando não sabe.
+         *
+         * Agora distingue-se o que o Operador PODE resolver do que não pode, e
+         * a causa técnica fica na consola para quem a for buscar — não no ecrã
+         * de quem só quer uma resposta. */
+        const cru = String(j.error || ('HTTP ' + r.status));
+        const semSaldo = /credit balance|insufficient|quota|billing/i.test(cru);
+        const semCredencial = /api[_ -]?key|unauthor|forbidden|401|403|authentication/i.test(cru);
+        const conteudo = semSaldo
+          ? 'O Oráculo está sem saldo de API. Não é um erro teu e repetir não resolve — o saldo tem de ser reposto na conta que serve o Oráculo. A mensagem não contou para o limite.'
+          : semCredencial
+            ? 'O Oráculo não tem credencial válida para responder. Repetir não resolve; é preciso rever a configuração da função. A mensagem não contou para o limite.'
+            : 'O Oráculo não respondeu. Pode ter sido momentâneo — a mensagem não contou para o limite, e podes tentar outra vez.';
+        if (typeof console !== 'undefined') console.warn('[oraculo] falha na resposta:', cru);
+        set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: conteudo, role: null }] });
+      }
     } catch (e) {
       set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: 'Sem ligação ao Oráculo — verifica a rede. A mensagem não contou para o limite.', role: null }] });
     }

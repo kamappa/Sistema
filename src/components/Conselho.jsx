@@ -15,23 +15,62 @@ const rmOn = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // bolha da resposta do Oráculo com máquina de escrever (conselho.js:58-70):
 // escreve de uma vez com reduced-motion, saltável com clique; só a resposta
 // mais recente escreve (as antigas ficam estáticas). Scroll segue o texto.
+/* A máquina de escrever da resposta do Oráculo.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  A ANIMAÇÃO É ENFEITE; A RESPOSTA É INFORMAÇÃO. Uma informação NUNCA  ║
+ * ║  pode ficar presa por causa do enfeite.                              ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * DOIS DEFEITOS APANHADOS NA AUDITORIA À CONTA REAL, 2026-07-30.
+ *
+ * 1 · A ESCRITA PARAVA DE VEZ COM A TAB EM SEGUNDO PLANO. Medido: com
+ *     `document.visibilityState === 'hidden'`, o texto ficou em "O Oráculo " e
+ *     não cresceu um único carácter em quatro segundos. O Chrome estrangula
+ *     `setTimeout` em tabs ocultas — e aqui não é atraso, é parada. Quem
+ *     mudasse de tab a meio de uma resposta voltava e encontrava uma frase
+ *     cortada, sem forma de saber que faltava texto.
+ *     Correção: assim que a tab fica oculta, escreve-se o texto INTEIRO. Quando
+ *     ele voltar, a resposta está lá completa — que é o que ele quer.
+ *
+ * 2 · O `setTimeout` NÃO ERA CANCELADO no cleanup. Só o listener saía. Se
+ *     `content` ou `live` mudassem a meio, ficavam duas máquinas de escrever a
+ *     escrever no mesmo nó.
+ *
+ * E a resposta passou a ser ANUNCIADA: sem `aria-live`, o texto do Oráculo
+ * aparecia sem nada avisar quem usa leitor de ecrã. `polite` e não `assertive`
+ * — a resposta é para ler quando der, não para interromper. */
 function OrcBubble({ content, live, logRef }) {
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current; if (!el) return;
-    if (!live || rmOn()) { el.textContent = content; return; }
-    let i = 0, fast = false; const skip = () => { fast = true; };
+    const tudo = () => { el.textContent = content; if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; };
+    if (!live || rmOn() || document.hidden) { tudo(); return; }
+
+    let i = 0, fast = false, timer = 0;
+    const skip = () => { fast = true; };
+    // A tab esconder-se conta como "mostra tudo já", pela razão do cabeçalho.
+    const aoEsconder = () => { if (document.hidden) { fast = true; } };
     document.addEventListener('click', skip, { once: true });
+    document.addEventListener('visibilitychange', aoEsconder);
+
     const ms = Math.max(6, Math.min(18, 2600 / Math.max(1, content.length)));
     el.textContent = '';
     (function step() {
-      if (fast || i >= content.length) { el.textContent = content; if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; return; }
+      if (fast || i >= content.length) { tudo(); return; }
       el.textContent = content.slice(0, ++i);
       if (i % 12 === 0 && logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
-      setTimeout(step, ms);
+      timer = window.setTimeout(step, ms);
     })();
-    return () => document.removeEventListener('click', skip);
-  }, [content, live]);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('click', skip);
+      document.removeEventListener('visibilitychange', aoEsconder);
+      // Quem desmonta a meio deixa o texto completo, não um pedaço.
+      el.textContent = content;
+    };
+  }, [content, live, logRef]);
   return <div className="oc-msg oc-orc" ref={ref}>{content}</div>;
 }
 
@@ -66,7 +105,12 @@ export default function Conselho() {
   return (
     <div className="panel reveal" style={{ animationDelay: '.095s' }} ref={panelRef}>
       <div className="ptitle"><b>Oráculo · Conselho</b> · conselheiro estratégico <span className="oc-quota" id="oc-quota">{user ? (left > 0 ? left + '/12 hoje' : 'limite de hoje atingido') : ''}</span></div>
-      <div id="oc-log" className="oc-log" ref={logRef}>
+      {/* M26·F7Z — a conversa passa a ser anunciada. Sem `aria-live`, a
+          resposta do Oráculo aparecia sem nada avisar quem usa leitor de ecrã:
+          verificado na conta real, a zona não tinha nenhuma live region.
+          `polite` porque uma resposta é para ler quando der, não para
+          interromper o que se está a fazer. */}
+      <div id="oc-log" className="oc-log" ref={logRef} aria-live="polite" aria-atomic="false">
         {!user ? (
           <div className="up-empty">Entra com a tua conta para falares com o Oráculo.</div>
         ) : (!ocMsgs.length && !ocBusy) ? (

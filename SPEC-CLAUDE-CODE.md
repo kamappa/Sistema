@@ -2605,6 +2605,69 @@ corretos (normal corre, `calm` sem animação, `paused` congelado, reduced motio
 ausente). Mobile 390×844: 12 das 24 partículas, pela mesma regra que a fase já
 tinha para a atmosfera. Auditoria AA da zona: 64 elementos, zero falhas. Zero
 erros de consola nas quatro estações.
+### Fase 7Z · A constelação forma-se por ordem (CONCLUÍDA 2026-07-30)
+
+A última dívida nomeada da família das estações. R22 estava analisada desde o
+fecho da biblioteca com uma aplicação por fazer registada por escrito: *"a
+formação de uma constelação de domínio — hoje as estrelas aparecem todas de uma
+vez"*.
+
+#### O que a sequência diz, e por que não é um efeito de entrada
+
+Cada estrela é **um nível que foi provado**. Acendê-las por ordem — nível 1
+primeiro, depois o 2, e a protoestrela por último porque é a única que ainda não
+aconteceu — repõe a **história do domínio**. É a leitura literal de R22: o ramo
+não aparece florido, floresce, e a ordem é legível.
+
+Um céu que aparece inteiro de uma vez diz que estava sempre ali. Um céu que se
+acumula diz que foi construído, e essa é a diferença entre progressão por
+acumulação e progressão por preenchimento.
+
+#### Dispara na entrada na zona, e só aí
+
+`live` também cai quando a tab se esconde. Repor a formação ao voltar de outro
+separador mentiria duas vezes: dizia que aquilo tinha acabado de acontecer, e
+obrigava a ver a mesma cerimónia por se ter ido buscar café. O guarda é um
+`useRef` e o sinal é o `data-active` da zona, não o `live`.
+
+#### A colisão que teve de ser resolvida
+
+`.us-star[data-tw="true"]` já corria `us-twinkle` **infinita** sobre `opacity`.
+Duas animações a disputar a mesma propriedade e ganha a última da lista — a
+estrela cintilava para dentro em vez de nascer. A regra da formação vence por
+especificidade (dois atributos e duas classes contra uma classe e um atributo), e
+o resultado é também o correto: **uma estrela a nascer não cintila**, porque
+ainda não é estável, e é isso que o estado tem de dizer.
+
+#### Medido, e a medição é que distingue sequência de fade
+
+Opacidade média por faixa de nível, amostrada por `requestAnimationFrame` a
+partir do frame do clique:
+
+| t | níveis ≤4 (24 estrelas) | níveis 5–12 (35) | níveis >12 (10) |
+|---|---|---|---|
+| 185 ms | 0 | 0 | 0 |
+| 307 ms | 0.177 | 0.057 | 0 |
+| 626 ms | 0.784 | 0.072 | 0 |
+| 1033 ms | 0.999 | 0.895 | 0.189 |
+| 1507 ms | 1 | 0.967 | 0.899 |
+| 2107 ms | 1 | 0.967 | 0.914 — `feito` |
+
+A ordem é monótona nas três faixas. Se fosse um fade global, as três colunas
+subiam juntas — e não subiriam a 0.177 / 0.057 / 0 no mesmo instante.
+
+Depois de `feito`: 22 estrelas voltam a `us-twinkle`, as outras 47 ficam sem
+animação, exatamente como antes. Voltar à zona **não repete** (verificado:
+`feito` a 250 ms da segunda entrada). Zero erros de consola. 69 estrelas.
+
+#### Reduced motion mantém a constelação, ao contrário da matéria sazonal
+
+Decisão inversa à da camada da estação, tomada no mesmo dia, e a diferença é o
+que sobra **parado**. Partículas imóveis não são queda nenhuma — o significado
+estava todo no movimento, e por isso a camada sai. Uma constelação imóvel **é a
+constelação**: o estado final carrega a informação toda, e só se perde a
+encenação de como lá chegou. Verificado: com `prefers-reduced-motion`, o estado
+fica em `feito` e as estrelas estão à opacidade plena desde o primeiro frame.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

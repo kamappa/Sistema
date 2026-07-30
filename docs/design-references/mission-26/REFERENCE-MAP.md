@@ -465,11 +465,18 @@ que mostra *tempo biológico*.
 **Rejeitar:** o realismo botânico; o escurecimento final, que é fim de clipe e
 não fim de arco.
 **Risco de imitação:** baixo.
-**APLICADA EM PARTE** (2026-07-30, Fase 7Z): o arco Bloom, matéria `abertura` —
-é a única matéria da camada com atraso **positivo** e proporcional ao índice,
-precisamente porque aqui a ordem é o conteúdo. Fica por aplicar a formação de uma
-constelação de domínio: as estrelas continuam a aparecer todas de uma vez.
-**Estado:** aplicada em parte.
+**APLICADA, nos dois sítios** (2026-07-30, Fase 7Z):
+
+1. o arco Bloom, matéria `abertura` — é a única matéria da camada sazonal com
+   atraso **positivo** e proporcional ao índice, precisamente porque aqui a ordem
+   é o conteúdo;
+2. a **formação da constelação** no Universo: as estrelas de um domínio acendem
+   por ordem de nível, e a protoestrela por último porque é a única que ainda não
+   aconteceu. Deixaram de aparecer todas de uma vez.
+
+A segunda é a aplicação mais profunda da referência: não é a sequência como
+efeito, é a sequência como a história do domínio a ser reposta.
+**Estado:** aplicada.
 
 ### R23 · `03-universe-materials/primavera` · DUPLICADA
 720×1280 · 15,07 s · 30 fps

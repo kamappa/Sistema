@@ -313,6 +313,27 @@
   from { opacity: calc(0.28 + var(--l) * 0.5); }
   to   { opacity: calc(0.45 + var(--l) * 0.55); }
 }
+/* ── A CONSTELAÇÃO FORMA-SE POR ORDEM ──────────────────────────────────
+ * ORIGEM R22: a floração acontece em sequência e a ordem é legível.
+ *
+ * A regra tem de VENCER a do twinkle, e vence por especificidade: aqui são
+ * dois atributos e duas classes contra uma classe e um atributo. Não é
+ * subtileza gratuita — se a cintilação sobrevivesse à formação, as duas
+ * animavam `opacity` ao mesmo tempo e a última da lista ganhava. Uma estrela
+ * a nascer não cintila: ainda não é estável, e é isso que o estado diz.
+ *
+ * Só `opacity` e `transform`, que é o que compõe sem repintar. E `both`,
+ * porque sem ele as estrelas com atraso apareceriam a 100% antes da vez —
+ * exactamente o defeito que a sequência vem corrigir.
+ */
+.us[data-revelacao='a-nascer'] .us-star {
+  animation: us-nasce 620ms var(--sys-ease-gravity) calc(var(--ordem, 1) * 46ms) both;
+}
+@keyframes us-nasce {
+  from { opacity: 0; transform: scale(0.15); }
+  to   { opacity: calc(0.35 + var(--l) * 0.65); transform: scale(1); }
+}
+
 /* Com o domínio aceso, as estrelas DELE ganham definição — é a resposta mais
    direta ao "as estrelas próximas deveriam reagir". */
 .us-terr[data-lit='true'] .us-star { opacity: calc(0.62 + var(--l) * 0.38); }

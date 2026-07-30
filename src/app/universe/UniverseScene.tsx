@@ -161,6 +161,12 @@ function useWide(): boolean {
 
 /** As quatro fases ditas por extenso. O visual comunica de relance; isto é o
  *  equivalente textual, e existe porque matéria não é uma legenda. */
+/* Duração total da formação. 25 estrelas × 46 ms + a última a acender = ~1.9 s.
+ * Curta de propósito: é uma frase de abertura, não uma cerimónia — as
+ * cerimónias do Sistema são raras e reservadas a eventos, e entrar numa zona
+ * não é um evento. */
+const REVELACAO_MS = 1900;
+
 const PROTO_LABEL: Record<string, string> = {
   dust: 'ainda sem formação em curso',
   proto: 'protoestrela difusa',
@@ -213,6 +219,46 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
       obs.observe(zone, { attributes: true, attributeFilter: ['data-active'] });
     }
     return () => { document.removeEventListener('visibilitychange', check); obs?.disconnect(); };
+  }, []);
+
+  /* ── A CONSTELAÇÃO FORMA-SE POR ORDEM ────────────────────────────────
+   * ORIGEM R22: um ramo de cerejeira em time-lapse. Os botões abrem em
+   * SEQUÊNCIA e a ordem é legível — o ramo não aparece florido, floresce.
+   * A referência estava analisada desde a Fase 7Z e por aplicar.
+   *
+   * Aqui a sequência não é um efeito de entrada: é a HISTÓRIA do domínio a
+   * ser reposta. Cada estrela é um nível que foi provado, e acendê-las por
+   * ordem diz que a constelação foi acumulada — nível 1 primeiro, depois o 2,
+   * e a protoestrela por último, porque é a única que ainda não aconteceu.
+   * Um céu que aparece inteiro de uma vez diz que estava sempre ali.
+   *
+   * DISPARA NA ENTRADA NA ZONA, e só aí. `live` também cai quando a tab se
+   * esconde, e repor a formação ao voltar de outro separador seria mentir
+   * duas vezes: dizer que aquilo acabou de acontecer, e obrigar a ver a mesma
+   * cerimónia por ter ido buscar café. */
+  const [revelacao, setRevelacao] = useState<'oculto' | 'a-nascer' | 'feito'>('feito');
+  const jaRevelou = useRef(false);
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const zone = el.closest('.sys-zone') as HTMLElement | null;
+    const activa = () => !zone || zone.dataset.active !== 'false';
+    let t = 0;
+    const correr = () => {
+      if (!activa() || jaRevelou.current) return;
+      jaRevelou.current = true;
+      /* Reduced motion salta a sequência e mostra o céu formado. É o inverso
+         da decisão da matéria sazonal, e a diferença é o que sobra parado:
+         partículas imóveis não são queda nenhuma, mas uma constelação imóvel
+         É a constelação. O estado final aqui carrega a informação toda. */
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) { setRevelacao('feito'); return; }
+      setRevelacao('a-nascer');
+      t = window.setTimeout(() => setRevelacao('feito'), REVELACAO_MS);
+    };
+    correr();
+    let obs: MutationObserver | null = null;
+    if (zone) { obs = new MutationObserver(correr); obs.observe(zone, { attributes: true, attributeFilter: ['data-active'] }); }
+    return () => { window.clearTimeout(t); obs?.disconnect(); };
   }, []);
 
   /* ── GRAVIDADE LOCAL ─────────────────────────────────────────────────
@@ -420,6 +466,7 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
       data-state={m.state}
       data-scale={scale}
       data-live={live ? 'true' : 'false'}
+      data-revelacao={revelacao}
     >
       <div
         className="us-scene"
@@ -514,6 +561,11 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
                         ['--l' as string]: st.light.toFixed(2),
                         ['--d' as string]: (st.z * 5.4).toFixed(2) + 's',
                         ['--dur' as string]: (4 + st.z * 5).toFixed(1) + 's',
+                        /* A ordem É o nível. Não é o índice do array por
+                           acaso: o array já vem por nível, e amarrar a
+                           sequência ao nível deixa-a correta mesmo que a
+                           ordem de leitura mude um dia. */
+                        ['--ordem' as string]: Math.min(st.level, 25),
                       }}
                       title={st.forming
                         ? `${t.name} — nível ${st.level} a formar-se (${Math.round(st.light * 100)}%)`

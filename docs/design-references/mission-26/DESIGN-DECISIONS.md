@@ -965,3 +965,32 @@ nunca se apresenta: passa **atrás** do vidro dos painéis, com a mesma lógica 
 que o céu já passava. Uma camada de partículas por cima da interface seria
 confete gerado por AI — que foi literalmente o que a primeira versão parecia.
 
+### 2026-07-30 · Fase 7Z — a constelação acumula-se em vez de aparecer
+
+R22 tinha uma aplicação registada e por fazer. Fica fechada.
+
+**A regra que decidiu o desenho:** a sequência tem de significar alguma coisa, ou
+é uma animação de entrada — e a lei diz que nenhuma animação é decorativa. Aqui
+significa: cada estrela é um nível provado, e a ordem de acendimento é a ordem em
+que foram provados. O que se vê não é o céu a aparecer; é o céu a ser
+**reconstruído pela sua própria história**.
+
+É por isso que a protoestrela acende **por último**: é a única que ainda não
+aconteceu. Se acendesse com as outras, a sequência dizia uma coisa falsa sobre a
+única estrela do céu que ainda pode recuar.
+
+**A escolha de amarrar a ordem ao NÍVEL e não ao índice do array.** Hoje são a
+mesma coisa. Se um dia a ordem de leitura mudar, a sequência continua correta —
+e uma sequência que depende de um detalhe de implementação para dizer a verdade
+não é uma sequência, é uma coincidência.
+
+**1.9 s no total, e é curto de propósito.** É uma frase de abertura, não uma
+cerimónia. As cerimónias do Sistema são raras e reservadas a eventos; entrar numa
+zona não é um evento, e o Operador entra no Universo muitas vezes.
+
+**A decisão inversa à da matéria sazonal, no mesmo dia.** Em reduced motion, a
+matéria SAI e a constelação FICA. Não é incoerência — é a mesma pergunta aplicada
+duas vezes: *o que é que sobra quando isto pára?* Partículas paradas não são
+queda; uma constelação parada é a constelação. Quando o estado final carrega a
+informação, ela fica; quando o significado estava todo no movimento, sai.
+

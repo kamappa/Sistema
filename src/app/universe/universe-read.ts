@@ -38,6 +38,29 @@ function hash(s: string): number {
 /** 0–1 a partir de uma semente textual. */
 const rnd = (s: string) => (hash(s) % 100000) / 100000;
 
+/* ── PROTOESTRELA ──────────────────────────────────────────────────────
+ * O XP do nível em curso deixa de ser só um número por baixo de uma barra e
+ * passa a ser matéria em formação. As fronteiras são as que o Daniel fechou:
+ *
+ *   dust        0%       poeira quase invisível — existe potencial, não corpo
+ *   proto       1–40%    protoestrela difusa, sem forma definida
+ *   coalescing  40–80%   corpo mais coeso, já com centro
+ *   unstable    80–99%   quase formada, e a instabilidade lê-se no ritmo
+ *   (100% → deixa de ser proto: é uma estrela consolidada)
+ *
+ * Isto não finge precisão científica. Finge menos do que uma barra: uma barra
+ * a 32% e uma barra a 78% são a mesma imagem com comprimentos diferentes, e
+ * estas quatro fases são estados visualmente distintos.
+ */
+export type ProtoStage = 'dust' | 'proto' | 'coalescing' | 'unstable';
+
+export function protoStage(frac: number): ProtoStage {
+  if (frac < 0.01) return 'dust';
+  if (frac < 0.4) return 'proto';
+  if (frac < 0.8) return 'coalescing';
+  return 'unstable';
+}
+
 export interface Star {
   id: string;
   /** Coordenadas locais dentro do território do domínio, −1 a 1. */
@@ -52,6 +75,9 @@ export interface Star {
   level: number;
   /** A estrela do nível em curso — a única que ainda pode recuar. */
   forming: boolean;
+  /** Fase de formação. Só a estrela em formação a tem.
+   *  A barra de XP diz 19/60 e não diz nada ao olho; a matéria diz. */
+  stage?: ProtoStage;
   /** Cintila? Determinístico, ~1 em 4.
    *  Num céu real quase nenhuma estrela cintila de forma percetível, e 76
    *  animações simultâneas custam 76 camadas de composição por nada. */
@@ -132,9 +158,12 @@ export function readScene(S: Record<string, any> | null): SceneRead | null {
         tw: rnd(seed + ':t') < 0.26,
       });
     }
-    // A estrela em formação: existe sempre que há XP no nível em curso, e o
-    // brilho é a fração. Aparece perto do bordo — é a mais nova.
-    if (frac > 0.02) {
+    /* A protoestrela existe SEMPRE, mesmo a 0 XP — e existir a zero é a parte
+       importante. Um domínio sem progresso recente mostrava-se idêntico a um
+       domínio a 39%, e a diferença entre "não comecei" e "estou a meio" é a
+       informação mais acionável do céu. A zero é poeira: comunica potencial,
+       não avaria. */
+    {
       const seed = a.id + ':forming';
       const ang = rnd(seed + ':a') * Math.PI * 2;
       stars.push({
@@ -143,12 +172,13 @@ export function readScene(S: Record<string, any> | null): SceneRead | null {
         y: Math.sin(ang) * 0.96,
         z: 0.15,
         light: frac,
-        size: 1.2 + frac * 1.4,
+        size: 1.2 + frac * 1.6,
         level: s.level + 1,
         forming: true,
         // A que está a nascer cintila SEMPRE: é a única instável, e o
         // movimento é o que diz isso sem uma legenda.
         tw: true,
+        stage: protoStage(frac),
       });
     }
 

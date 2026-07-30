@@ -1,151 +1,210 @@
-/* O NÚCLEO — feixe de filamentos.
- * Missão 26 · Fase 6C, segunda passagem.
+/* O NÚCLEO — matéria com camadas.
+ * Missão 26 · Fase 6C, terceira passagem (VIDA).
  *
  * ╔══════════════════════════════════════════════════════════════════════╗
- * ║  ORIGEM: R14 (`07-core-level-events/aproximacao ao nucleo.mp4`),      ║
- * ║  aberta e vista frame a frame nesta passagem.                        ║
+ * ║  ORIGEM: R14 (`07-core-level-events/aproximacao ao nucleo.mp4`) para  ║
+ * ║  a matéria; R23 (galáxia violeta, terceira passagem) para a ideia de  ║
+ * ║  que a rotação de um corpo real NÃO é uniforme.                      ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  *
- * O QUE A REFERÊNCIA É: um centro de luz branco-violeta com centenas de
- * filamentos finos a irradiar, cada um terminado numa partícula brilhante. O
- * conjunto respira. Não há contorno em lado nenhum — o que define a forma é a
- * densidade de linhas, não uma borda.
+ * O VEREDICTO QUE ISTO RESPONDE: "o Núcleo parece uma estrela normal". Estava
+ * certo. A montagem anterior era um só feixe a respirar — bonito, e inerte:
+ * uma forma que pulsa é um ícone com uma animação, não um corpo.
  *
- * EXTRAÍDO:
- *   · o núcleo é MATÉRIA, não um círculo. A luz vem de dentro;
- *   · os filamentos são muitos e finos — a densidade é que faz a massa;
- *   · cada filamento acaba num ponto brilhante: é isso que o torna vivo em
- *     vez de um sunburst gráfico;
- *   · duas populações de comprimento, como nas estrelas do céu do Sistema.
+ * O QUE FAZ UM CORPO PARECER UM CORPO:
  *
- * REJEITADO:
- *   · o bloom branco a 100% — o Sistema tem sempre texto por cima
- *     (gramática 4: o valor de referência é o CONTRASTE relativo, não o
- *     brilho absoluto);
- *   · a explosão constante. Ali é um plano isolado; aqui é uma presença, e
- *     uma presença que explode sem parar é um alarme.
+ *   1. CAMADAS QUE NÃO SE MOVEM JUNTAS. Numa galáxia o interior roda mais
+ *      depressa do que o exterior — é isso que faz os braços curvarem-se. Três
+ *      conchas de filamentos, a velocidades e sentidos diferentes, dão a mesma
+ *      leitura: o olho não consegue prever a forma seguinte, e o que não é
+ *      previsível lê-se como matéria em vez de gráfico.
+ *   2. MATÉRIA A CAIR. Partículas em órbita, mais depressa perto.
+ *   3. EJEÇÕES OCASIONAIS. Raras e curtas. É o que separa "vivo" de "a fazer
+ *      espetáculo": um corpo que ejeta sem parar é um alarme.
+ *   4. UMA SUPERFÍCIE QUE RESPIRA, e não uma forma que escala.
  *
- * O QUE O TORNA VERDADEIRO: o número de filamentos e o raio vêm de
- * `coreMass`, que vem do nível global real. Um Sistema no princípio tem um
- * núcleo pequeno e esparso; não há um estado "bonito por defeito".
+ * ARQUITETURA, e a razão dela é medida: cada camada é um `<svg>` PRÓPRIO,
+ * posicionado por cima dos outros, e quem roda é o elemento. Animar um `<g>`
+ * dentro de um SVG obriga o motor a repintar o desenho inteiro a cada frame —
+ * na passagem anterior isso pôs a chegada a 50ms. Um elemento inteiro com
+ * `transform` é promovível e composto, e três rotações passam a custar o que
+ * custaria uma.
+ *
+ * ESTADOS — e cada um tem de significar alguma coisa que já aconteceu:
+ *   REST         repouso
+ *   ATTUNEMENT   um domínio está em foco: o Núcleo afina-se pela cor dele
+ *   ABSORBING    energia a chegar de evidência real
+ *   RANK_UP      contração e expansão; o corpo ficou maior para sempre
  */
 
+export type CoreState = 'REST' | 'ATTUNEMENT' | 'ABSORBING' | 'RANK_UP';
+
 interface Props {
-  /** 0–1, derivado do nível global. */
+  /** 0–1, derivado do nível global real. */
   mass: number;
-  /** Cor do rank. */
+  /** Cor do rank. Assina o limite; não pinta a matéria. */
   color: string;
   /** 0–1: quanto o Núcleo está em foco. Governa detalhe e brilho. */
   focus: number;
-  /** Um pulso de energia acabou de chegar — vindo de um domínio. */
-  pulse?: string | null;
+  state: CoreState;
+  /** Cor do domínio em causa, em ATTUNEMENT ou ABSORBING. */
+  attune?: string | null;
+  /** Ângulo (graus) de onde vem a energia ou o foco. O corpo orienta-se. */
+  fromAngle?: number;
   size?: number;
 }
 
 const BASE = 26;
-
-/* A COR DO NÚCLEO NÃO É A COR DO RANK.
- *
- * A primeira montagem passava `rank.color` para tudo. No rank S isso dá um
- * núcleo dourado — e um núcleo dourado com raios lê-se como um sol de clip
- * art, exatamente o "neon barato" que a direção visual proíbe. A referência
- * R14 é branco-violeta, e o violeta é a cor-mãe do Sistema.
- *
- * Resolução: a MATÉRIA é sempre branco-violeta; o rank aparece no halo
- * exterior e nas pontas, que é onde uma cor se lê como pertença sem tomar
- * conta da forma. O rank continua legível — está escrito por extenso na
- * leitura, que é onde um dado deve estar. */
 const MATTER = '#c4b5fd';
 const MATTER_DEEP = '#7c3aed';
 
-export default function Nucleus({ mass, color, focus, pulse, size = 320 }: Props) {
-  /* Duas populações, como nas estrelas: poucos filamentos francos, muitos
-   * ténues. A primeira montagem tinha os ténues a 0.15 de opacidade efetiva —
-   * invisíveis — e o resultado eram treze raios isolados: um asterisco, não
-   * matéria. Aqui a população densa é que faz o corpo, e os francos são
-   * pontuação. */
-  const n = Math.round(90 + mass * 130);
-  const core = BASE + mass * 22;
+/** Uma concha de filamentos. `seed` desloca a distribuição para as três não
+ *  serem a mesma imagem rodada — isso via-se, e via-se como truque. */
+function shell(n: number, r0: number, r1: number, seed: number, focus: number) {
+  return Array.from({ length: n }, (_, i) => {
+    const a = ((i + seed * 0.37) / n) * Math.PI * 2 + ((i * 2654435761 + seed * 7919) % 1000) / 1000 * 0.13;
+    const strong = (i + seed) % 9 === 0;
+    const len = r0 + (r1 - r0) * (0.35 + ((i * 31 + seed * 17) % 100) / 100 * 0.65) * (0.75 + focus * 0.45);
+    return {
+      i,
+      x1: 160 + Math.cos(a) * r0 * 0.62,
+      y1: 160 + Math.sin(a) * r0 * 0.62,
+      x2: 160 + Math.cos(a) * len,
+      y2: 160 + Math.sin(a) * len,
+      strong,
+    };
+  });
+}
 
-  const fil = Array.from({ length: n }, (_, i) => {
-    // O desvio irregular impede o padrão de leque que um passo constante dá.
-    const a = (i / n) * Math.PI * 2 + ((i * 2654435761) % 1000) / 1000 * 0.11;
-    const strong = i % 9 === 0;
-    const len = core + (strong ? 40 + (i % 5) * 12 : 14 + (i % 13) * 4) * (0.7 + focus * 0.6);
-    const x1 = 160 + Math.cos(a) * core * 0.55;
-    const y1 = 160 + Math.sin(a) * core * 0.55;
-    const x2 = 160 + Math.cos(a) * len;
-    const y2 = 160 + Math.sin(a) * len;
-    return { a, x1, y1, x2, y2, strong, i };
+export default function Nucleus({
+  mass, color, focus, state, attune, fromAngle = 0, size = 340,
+}: Props) {
+  const core = BASE + mass * 22;
+  // Três conchas. A de dentro é densa e curta; a de fora é esparsa e longa —
+  // é essa diferença de densidade com o raio que faz o corpo ter dentro.
+  const shells = [
+    { fil: shell(Math.round(46 + mass * 44), core, core + 26 + mass * 14, 1, focus), w: 0.42, o: 0.34 },
+    { fil: shell(Math.round(34 + mass * 34), core * 1.1, core + 54 + mass * 26, 2, focus), w: 0.55, o: 0.26 },
+    { fil: shell(Math.round(20 + mass * 22), core * 1.2, core + 96 + mass * 40, 3, focus), w: 0.75, o: 0.2 },
+  ];
+
+  // Matéria em órbita. Poucas e desiguais: um anel regular de pontos é um
+  // spinner de loading, e um spinner diz "espera", não "existo".
+  const orbit = Array.from({ length: 14 }, (_, i) => {
+    const a = (i / 14) * Math.PI * 2 + ((i * 2654435761) % 1000) / 1000 * 0.4;
+    const r = core * (1.7 + ((i * 37) % 100) / 100 * 1.5);
+    return { i, x: 160 + Math.cos(a) * r, y: 160 + Math.sin(a) * r, s: 0.7 + ((i * 53) % 100) / 100 * 1.1 };
   });
 
+  const tint = attune || MATTER;
+
   return (
-    <svg
-      viewBox="0 0 320 320"
-      width={size}
-      height={size}
+    <div
       className="nuc"
-      data-pulse={pulse ? 'true' : 'false'}
-      style={{ ['--nuc' as string]: color, ['--nuc-focus' as string]: focus.toFixed(3) }}
+      data-state={state}
+      style={{
+        width: size, height: size,
+        ['--nuc' as string]: color,
+        ['--nuc-tint' as string]: tint,
+        ['--nuc-from' as string]: fromAngle + 'deg',
+        ['--nuc-focus' as string]: focus.toFixed(3),
+      }}
       role="img"
       aria-label={`Núcleo do Sistema, massa ${Math.round(mass * 100)}%`}
     >
-      <defs>
-        <radialGradient id="nuc-core">
-          <stop offset="0" stopColor="#fff" stopOpacity={0.7 + focus * 0.3} />
-          <stop offset="0.28" stopColor={MATTER} stopOpacity="0.8" />
-          <stop offset="0.62" stopColor={MATTER_DEEP} stopOpacity="0.3" />
-          <stop offset="1" stopColor={MATTER_DEEP} stopOpacity="0" />
-        </radialGradient>
-        {/* O halo. O rank aparece aqui, e SÓ na borda mais exterior.
-            Ao meio, como estava, um rank dourado punha uma mancha castanha de
-            350px à volta do Núcleo — vista num screenshot à escala de chegada.
-            Uma cor de estado não pode sujar a matéria; pode assinar o limite
-            dela. */}
-        <radialGradient id="nuc-halo">
-          <stop offset="0" stopColor={MATTER_DEEP} stopOpacity="0.36" />
-          <stop offset="0.5" stopColor={MATTER_DEEP} stopOpacity="0.14" />
-          <stop offset="0.82" stopColor={color} stopOpacity="0.07" />
-          <stop offset="1" stopColor={color} stopOpacity="0" />
-        </radialGradient>
-      </defs>
+      {/* O halo. Estático e largo: é o que faz a luz existir contra o vazio
+          (gramática 6), e uma coisa que define o vazio não pode piscar. */}
+      <svg className="nuc-l nuc-halo" viewBox="0 0 320 320" aria-hidden="true">
+        <defs>
+          <radialGradient id="nuc-g-halo">
+            <stop offset="0" stopColor={MATTER_DEEP} stopOpacity="0.36" />
+            <stop offset="0.5" stopColor={MATTER_DEEP} stopOpacity="0.14" />
+            {/* O rank só assina o limite. Ao meio punha uma mancha castanha. */}
+            <stop offset="0.82" stopColor={color} stopOpacity="0.07" />
+            <stop offset="1" stopColor={color} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle cx="160" cy="160" r={core * 3.4} fill="url(#nuc-g-halo)" opacity={0.5 + focus * 0.5} />
+      </svg>
 
-      {/* O halo: o que faz a luz existir é a ausência de luz à volta dela
-          (gramática 6). O halo é largo e ténue, nunca um anel. */}
-      <circle cx="160" cy="160" r={core * 3.4} fill="url(#nuc-halo)" opacity={0.5 + focus * 0.5} />
+      {/* AFINAÇÃO: quando um domínio está em foco, uma parte da superfície
+          orienta-se para ele. Não é o Núcleo a mudar de cor — é uma zona dele
+          a responder, que é o que um corpo faz quando algo o puxa. */}
+      <svg className="nuc-l nuc-attune" viewBox="0 0 320 320" aria-hidden="true">
+        <defs>
+          {/* 0,26 e um raio curto. A 0,5 e com raio 0,55 isto pintava metade
+              do Núcleo da cor do domínio, e o corpo passava a ler-se como um
+              balão cor-de-rosa em vez de matéria a responder a uma atração.
+              A afinação tem de ser uma ZONA da superfície, não uma demão. */}
+          <radialGradient id="nuc-g-attune" cx="0.5" cy="0.18" r="0.4">
+            <stop offset="0" stopColor={tint} stopOpacity="0.26" />
+            <stop offset="1" stopColor={tint} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle cx="160" cy="160" r={core * 1.9} fill="url(#nuc-g-attune)" />
+      </svg>
 
-      {/* Os filamentos. Finos e muitos — a densidade é que faz a massa, e é
-          por isso que a opacidade dos ténues nunca desce ao ponto de os
-          apagar: apagados, sobram só os francos e o resultado é um asterisco. */}
-      <g className="nuc-fils" stroke={MATTER} fill="none" strokeLinecap="round">
-        {fil.map((f) => (
-          <line
-            key={f.i}
-            x1={f.x1} y1={f.y1} x2={f.x2} y2={f.y2}
-            strokeWidth={f.strong ? 0.9 : 0.5}
-            opacity={(f.strong ? 0.5 : 0.3) * (0.62 + focus * 0.38)}
-          />
-        ))}
-      </g>
+      {/* As três conchas. Cada uma é um elemento próprio e roda sozinha. */}
+      {shells.map((sh, k) => (
+        <svg key={k} className={`nuc-l nuc-shell nuc-shell-${k}`} viewBox="0 0 320 320" aria-hidden="true">
+          <g stroke={MATTER} fill="none" strokeLinecap="round">
+            {sh.fil.map((f) => (
+              <line key={f.i} x1={f.x1} y1={f.y1} x2={f.x2} y2={f.y2}
+                strokeWidth={f.strong ? sh.w * 1.9 : sh.w}
+                opacity={(f.strong ? sh.o * 2 : sh.o) * (0.62 + focus * 0.38)} />
+            ))}
+          </g>
+          {/* As pontas, só na concha exterior: é lá que se leem. Na referência
+              cada filamento acaba num ponto de luz, e é isso que separa um
+              feixe vivo de um sunburst desenhado. */}
+          {k === 2 && (
+            <g fill="#fff">
+              {sh.fil.filter((f) => f.strong).map((f) => (
+                <circle key={'t' + f.i} cx={f.x2} cy={f.y2} r={0.7 + focus * 0.7} opacity={0.4 + focus * 0.4} />
+              ))}
+            </g>
+          )}
+        </svg>
+      ))}
 
-      {/* As pontas. É isto que separa um feixe vivo de um sunburst desenhado —
-          na referência, cada filamento acaba num ponto de luz. */}
-      <g className="nuc-tips" fill="#fff">
-        {fil.filter((f) => f.strong).map((f) => (
-          <circle key={'t' + f.i} cx={f.x2} cy={f.y2} r={0.7 + focus * 0.7} opacity={0.4 + focus * 0.45} />
-        ))}
-      </g>
+      {/* Matéria em órbita. */}
+      <svg className="nuc-l nuc-orbit" viewBox="0 0 320 320" aria-hidden="true">
+        <g fill={MATTER}>
+          {orbit.map((p) => (
+            <circle key={p.i} cx={p.x} cy={p.y} r={p.s} opacity={0.3 + focus * 0.5} />
+          ))}
+        </g>
+      </svg>
 
-      {/* O corpo. Sem contorno, sem borda: só matéria a apagar-se para fora. */}
-      <circle cx="160" cy="160" r={core} fill="url(#nuc-core)" className="nuc-body" />
+      {/* Ejeções. Três, com atrasos longos e desiguais, para nunca coincidirem
+          e para nunca se apanhar o ciclo. */}
+      <svg className="nuc-l nuc-ejecta" viewBox="0 0 320 320" aria-hidden="true">
+        <g stroke={MATTER} strokeLinecap="round" fill="none">
+          <line className="nuc-ej nuc-ej-0" x1="160" y1="160" x2="160" y2="60" strokeWidth="1.4" />
+          <line className="nuc-ej nuc-ej-1" x1="160" y1="160" x2="248" y2="212" strokeWidth="1.1" />
+          <line className="nuc-ej nuc-ej-2" x1="160" y1="160" x2="76" y2="196" strokeWidth="1.2" />
+        </g>
+      </svg>
 
-      {/* O pulso: um anel que CONVERGE de fora para dentro quando chega
-          energia (R15, gramática 1 — a energia vem do ambiente para o centro).
-          Existe só enquanto o pulso dura. */}
-      {pulse && (
-        <circle className="nuc-pulse" cx="160" cy="160" r="140" fill="none"
-          stroke={pulse} strokeWidth="2" />
-      )}
-    </svg>
+      {/* O corpo. Sem contorno, sem borda: matéria a apagar-se para fora. */}
+      <svg className="nuc-l nuc-body" viewBox="0 0 320 320" aria-hidden="true">
+        <defs>
+          <radialGradient id="nuc-g-core">
+            <stop offset="0" stopColor="#fff" stopOpacity={0.7 + focus * 0.3} />
+            <stop offset="0.28" stopColor={MATTER} stopOpacity="0.8" />
+            <stop offset="0.62" stopColor={MATTER_DEEP} stopOpacity="0.3" />
+            <stop offset="1" stopColor={MATTER_DEEP} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <circle cx="160" cy="160" r={core} fill="url(#nuc-g-core)" />
+      </svg>
+
+      {/* O anel de absorção: CONVERGE de fora para dentro. A energia vem do
+          mundo para o centro (R15, gramática 1) — nunca ao contrário, que é o
+          gesto do confetti e diz exatamente o oposto. */}
+      <svg className="nuc-l nuc-absorb" viewBox="0 0 320 320" aria-hidden="true">
+        <circle cx="160" cy="160" r="140" fill="none" stroke={tint} strokeWidth="2" />
+      </svg>
+    </div>
   );
 }

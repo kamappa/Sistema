@@ -1,33 +1,43 @@
 /* UNIVERSO — a cena.
- * Missão 26 · Fase 6C, segunda passagem.
+ * Missão 26 · Fase 6C, terceira passagem (VIDA).
  *
  * Um só contexto 3D. A câmara é `--cam-x/y/z` no `.us-scene`; as camadas estão
- * a `translateZ` diferentes e ganham parallax pela divisão perspética. Só se
- * anima `transform` e `opacity` — nada de `filter` em área grande, que é
- * condição do projeto.
+ * a `translateZ` diferentes e ganham parallax pela divisão perspética.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  REGRA DE CUSTO: só se anima `transform` e `opacity`, e só em        ║
+ * ║  elementos promovíveis. Uma transform aplicada a conteúdo DENTRO de  ║
+ * ║  um SVG não é composta — obriga a repintar o desenho inteiro a cada  ║
+ * ║  frame. Foi medido: pôs a chegada ao Núcleo a 50ms.                  ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  REGRA DE ATENÇÃO: um movimento dominante de cada vez. O Núcleo é o  ║
+ * ║  dominante em repouso; tudo o resto só prova que o espaço continua   ║
+ * ║  vivo. Nada aqui pode competir com a leitura.                        ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
  */
 
 .us {
   position: relative;
   width: 100%;
-  /* Altura fixa e generosa: o céu precisa de espaço, e um espaço que se
-     ajusta ao conteúdo nunca parece espaço. */
   height: clamp(420px, 62vh, 680px);
   overflow: hidden;
   perspective: 1100px;
   perspective-origin: 50% 50%;
-  /* O vazio é o que faz a luz existir (gramática 6). */
   background: radial-gradient(ellipse 120% 90% at 50% 44%, #070612 0%, #04030a 70%);
   isolation: isolate;
 
+  /* Gravidade do cursor. Escritas por um rAF no componente; a zero enquanto
+     ninguém toca. Declaradas aqui para o CSS ter sempre um valor. */
+  --px: 0;
+  --py: 0;
+
   /* ── O CÉU NÃO TEM ARESTA ──
    * Com `overflow:hidden` e um fundo próprio, a cena acabava num retângulo
-   * visível a meio da página — uma ilustração emoldurada, que é precisamente
-   * o diagnóstico que esta passagem existe para desfazer. A máscara desvanece
-   * os quatro bordos: o espaço continua para lá do enquadramento, e é o
-   * enquadramento que é arbitrário, não o espaço.
-   *
-   * Máscara e não gradiente por cima: um véu opaco tinha de acertar na cor da
+   * visível a meio da página. A máscara desvanece os quatro bordos: o espaço
+   * continua para lá do enquadramento, e é o enquadramento que é arbitrário.
+   * Máscara e não véu por cima: um véu opaco tinha de acertar na cor da
    * página, e a página tem gradiente. */
   -webkit-mask-image:
     linear-gradient(to bottom, transparent 0, #000 7%, #000 93%, transparent 100%),
@@ -39,6 +49,16 @@
   mask-composite: intersect;
 }
 
+/* ── PAUSA ─────────────────────────────────────────────────────────────
+ * Zona inativa ou tab escondida. Um mundo que continua a gastar bateria numa
+ * tab que ninguém está a ver não é "vivo" — é uma fuga. `animation-play-state`
+ * e não `animation: none`: ao voltar, o ciclo retoma onde estava em vez de
+ * saltar para o princípio, e um salto seria visível.
+ */
+.us[data-live='false'] *,
+.us[data-live='false'] *::before,
+.us[data-live='false'] *::after { animation-play-state: paused !important; }
+
 .us-scene {
   position: absolute;
   inset: 0;
@@ -47,9 +67,6 @@
   /* A viagem. Longa e com gravidade (R15): acumula, não salta. É o que faz a
      passagem entre escalas parecer deslocação e não corte. */
   transition: transform 1400ms var(--sys-ease-gravity);
-  /* Promoção explícita. Foi medido: sem isto, o desktop a 1440×900 ficava em
-     33ms de frame mediano e a chegada em 50ms, porque as camadas em 3D não
-     eram promovidas sozinhas e cada frame repintava a área toda. */
   will-change: transform;
 }
 
@@ -63,92 +80,149 @@
 }
 
 /* ── Profundidade ──────────────────────────────────────────────────────
- * A ordem é o que faz o Núcleo ser um destino: está ATRÁS do plano dos
- * territórios, por isso viajar até ele ATRAVESSA esse plano.
- */
-/* ── PORQUÊ OS `inset` NEGATIVOS ──
- * Uma camada empurrada para trás aparece MENOR: a `perspective` divide por
- * (p − z). A `inset: 0` de uma camada a −1400px cobre só 44% do enquadramento,
- * e via-se a aresta dela — a nebulosa acabava numa linha reta a meio do céu,
- * o que num screenshot parecia um retângulo cinzento sem dono.
+ * A ordem é o que faz o Núcleo ser um destino: está atrás do plano dos
+ * territórios, por isso viajar até ele atravessa esse plano.
  *
- * O fator é 1100 / (1100 + |z|), e o `inset` é o que falta para chegar a 1.
- */
-.us-dust       { transform: translateZ(-1400px); inset: -64%; }   /* ×2,27 */
-.us-neb        { transform: translateZ(-1000px); inset: -46%; }   /* ×1,91 */
-.us-core-layer { transform: translate(var(--cx, 0), var(--cy, 0)) translateZ(-520px); }
-.us-rings      { transform: translateZ(-120px); inset: -6%; }   /* ×1,11 */
-.us-terr-layer { transform: translateZ(0); }
-.us-sats       { transform: translateZ(90px); }
-
-/* ── Poeira: ESTÁTICA. Nebulosa: respira. ──────────────────────────────
+ *   −1400  poeira · −1000 nebulosa · −520 NÚCLEO · −120 anéis · 0 territórios
  *
- * O QUE FOI MEDIDO, e a correção de um engano meu que vale a pena ficar
- * escrito. Em Chrome headless com `--disable-gpu` esta zona dava 33ms de frame
- * mediano, contra 16,7ms da zona Núcleo no mesmo tamanho de janela. Concluí
- * que o custo eram estas duas camadas — para cobrirem o enquadramento apesar
- * da perspetiva medem 3050×1272 e 1953×815 — e desliguei ambas.
+ * OS `inset` NEGATIVOS: uma camada empurrada para trás aparece MENOR, porque a
+ * perspetiva divide por (p − z). Com `inset: 0`, a camada a −1400px cobria 44%
+ * do enquadramento e via-se a aresta dela — a nebulosa acabava numa linha reta
+ * a meio do céu, o que num screenshot parecia um bloco cinzento sem dono. O
+ * fator é 1100/(1100+|z|).
  *
- * Estava errado. A bissecção mostrou que desligar as animações uma a uma não
- * mudava nada, e só esconder a cena inteira devolvia os 16,7ms: o custo era
- * COMPOR a subárvore 3D por software, não animá-la. Com GPU, que é o caminho
- * real, a mesma cena mede 8,3ms medianos e 8,5ms no p95 — em repouso, em
- * viagem e na chegada.
- *
- * O que fica de cada lado:
- *   · a nebulosa volta a respirar. É o ambiente dominante da zona, e a lei diz
- *     que o mundo existe mesmo quando o Operador para;
- *   · a poeira fica quieta. 14px de deriva em 44 segundos não se apanham a
- *     mexer, e esta é a maior camada da cena — não vale um ciclo permanente
- *     para dizer nada. Continua a dar parallax, que era a função real dela, e
- *     o parallax acontece quando a câmara viaja.
+ * A GRAVIDADE DO CURSOR entra aqui, e POR PROFUNDIDADE: o fundo desloca-se
+ * muito, o plano dos domínios quase nada. É a mesma física do parallax da
+ * viagem, e é isso que faz o gesto parecer espaço em vez de um efeito de rato.
  */
 .us-dust {
-  background-image:
-    radial-gradient(1.4px 1.4px at 12% 22%, rgb(233 231 242 / .55), transparent 60%),
-    radial-gradient(1px 1px at 34% 68%, rgb(233 231 242 / .35), transparent 60%),
-    radial-gradient(1.6px 1.6px at 61% 14%, rgb(233 231 242 / .6), transparent 60%),
-    radial-gradient(1px 1px at 78% 52%, rgb(233 231 242 / .3), transparent 60%),
-    radial-gradient(1.2px 1.2px at 88% 80%, rgb(233 231 242 / .45), transparent 60%),
-    radial-gradient(1px 1px at 24% 88%, rgb(233 231 242 / .28), transparent 60%),
-    radial-gradient(1px 1px at 52% 40%, rgb(233 231 242 / .22), transparent 60%);
-  background-size: 100% 100%;
+  transform: translate3d(calc(var(--px) * -34px), calc(var(--py) * -22px), -1400px);
+  inset: -64%;   /* ×2,27 */
+}
+.us-neb {
+  transform: translate3d(calc(var(--px) * -24px), calc(var(--py) * -16px), -1000px);
+  inset: -46%;   /* ×1,91 */
+}
+.us-rings {
+  transform: translate3d(calc(var(--px) * -5px), calc(var(--py) * -3px), -120px);
+  inset: -6%;    /* ×1,11 */
+}
+.us-terr-layer { transform: translateZ(0); }
+.us-evidence   { transform: translateZ(10px); }
+.us-sats {
+  transform: translate3d(calc(var(--px) * 7px), calc(var(--py) * 5px), 90px);
 }
 
-/* ── Nebulosa ── O ambiente dominante da zona. */
-.us-neb {
+/* ── Poeira ────────────────────────────────────────────────────────────
+ * Três populações a velocidades diferentes DENTRO da própria camada — o que
+ * dá parallax mesmo com a câmara parada. Deriva longa (94s a 152s) porque o
+ * objetivo não é ver a poeira a andar; é nunca a ver duas vezes no mesmo sítio.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  A DERIVA VIVE NOS FILHOS, NUNCA NA CAMADA. Um `@keyframes` que anima ║
+ * ║  `transform` SUBSTITUI o transform do elemento — e o da camada é o    ║
+ * ║  que lhe dá profundidade e resposta ao cursor.                        ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * Foi medido: com a animação na camada, ela aparecia como `matrix(...)` 2D,
+ * sem Z nenhum, e o ponteiro não a movia um píxel. Regra geral desta cena —
+ * quem tem profundidade não anima, quem anima não tem profundidade.
+ */
+.us-dust > span {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.us-dust-a {
+  background-image:
+    radial-gradient(1.6px 1.6px at 61% 14%, rgb(233 231 242 / .6), transparent 60%),
+    radial-gradient(1.4px 1.4px at 12% 22%, rgb(233 231 242 / .55), transparent 60%),
+    radial-gradient(1.2px 1.2px at 88% 80%, rgb(233 231 242 / .45), transparent 60%);
+  animation: us-drift-a 118s linear infinite alternate;
+}
+.us-dust-b {
+  background-image:
+    radial-gradient(1px 1px at 34% 68%, rgb(233 231 242 / .34), transparent 60%),
+    radial-gradient(1px 1px at 78% 52%, rgb(233 231 242 / .3), transparent 60%),
+    radial-gradient(1px 1px at 24% 88%, rgb(233 231 242 / .28), transparent 60%),
+    radial-gradient(1px 1px at 52% 40%, rgb(233 231 242 / .22), transparent 60%);
+  animation: us-drift-b 152s linear infinite alternate;
+}
+.us-dust-c {
+  background-image:
+    radial-gradient(.8px .8px at 44% 12%, rgb(233 231 242 / .2), transparent 60%),
+    radial-gradient(.8px .8px at 68% 92%, rgb(233 231 242 / .18), transparent 60%),
+    radial-gradient(.8px .8px at 8% 56%, rgb(233 231 242 / .16), transparent 60%);
+  animation: us-drift-c 94s linear infinite alternate;
+}
+@keyframes us-drift-a { from { transform: translate3d(-18px, 4px, 0); } to { transform: translate3d(18px, -4px, 0); } }
+@keyframes us-drift-b { from { transform: translate3d(12px, -7px, 0); } to { transform: translate3d(-12px, 7px, 0); } }
+@keyframes us-drift-c { from { transform: translate3d(-7px, -3px, 0); } to { transform: translate3d(9px, 5px, 0); } }
+
+/* ── Nebulosa ── o ambiente dominante do fundo. Muito lenta. ───────────── */
+/* Mesma regra da poeira: quem tem profundidade não anima. O gradiente vive só
+   no pseudo-elemento, que é quem respira — pô-lo também na camada pintava-o
+   duas vezes para o mesmo resultado. */
+.us-neb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background:
     radial-gradient(ellipse 60% 42% at 32% 38%, rgb(var(--sys-violet-rgb) / .16), transparent 68%),
     radial-gradient(ellipse 48% 38% at 70% 62%, rgb(var(--sys-magenta-rgb) / .10), transparent 66%),
     radial-gradient(ellipse 70% 30% at 50% 88%, rgb(var(--sys-azure-rgb) / .22), transparent 70%);
-  animation: us-neb 38s var(--sys-ease-breath) infinite alternate;
+  animation: us-neb 76s var(--sys-ease-breath) infinite alternate;
   will-change: transform, opacity;
 }
 @keyframes us-neb {
-  from { transform: translateZ(-1000px) scale(1); opacity: .8; }
-  to   { transform: translateZ(-1000px) scale(1.08); opacity: 1; }
+  from { transform: scale(1) rotate(0deg); opacity: .5; }
+  to   { transform: scale(1.09) rotate(2.4deg); opacity: .9; }
 }
 
 /* ── Anéis orbitais ────────────────────────────────────────────────────
  * ORIGEM R13: a profundidade não vem de sombra, vem de anéis vistos de um
  * ângulo. Rejeitado da mesma referência: o ciano, os rótulos de HUD de filme
  * e a marca de água.
+ *
+ * 60° e não 72°: cos(60°) = 0,5, que é exatamente a proporção 2:1 da elipse
+ * onde os domínios assentam. Com 72° o plano dizia uma inclinação e os corpos
+ * diziam outra, e o olho lê essa discordância como erro.
+ *
+ * Respiram em 52s, 71s e 86s — períodos que não são múltiplos uns dos outros,
+ * por isso o conjunto nunca se repete dentro de uma sessão. Loops
+ * sincronizados leem-se como mecanismo; desencontrados leem-se como sistema.
  */
 .us-rings span {
   position: absolute;
   top: 50%; left: 50%;
   border: 1px solid rgb(var(--sys-bone-rgb) / var(--sys-o-08));
   border-radius: 50%;
-  /* 60° e não 72°: cos(60°) = 0,5, que é exatamente a proporção 2:1 da elipse
-     onde os domínios assentam. Com 72° o plano dizia uma inclinação e os
-     corpos diziam outra, e o olho lê essa discordância como erro. */
   transform: translate(calc(-50% + var(--cx, 0)), calc(-50% + var(--cy, 0))) rotateX(60deg);
+  will-change: transform;
+  transition: border-color var(--sys-dur-calm) var(--sys-ease-out), opacity var(--sys-dur-calm) var(--sys-ease-out);
 }
-/* Diâmetros casados com os raios reais: 760 = 2 × R_X, e o de fora com os
-   satélites. Um anel que não passa por nada é decoração. */
-.us-rings span:nth-child(1) { width: 380px; height: 380px; }
-.us-rings span:nth-child(2) { width: 760px; height: 760px; border-style: dashed; opacity: .7; }
-.us-rings span:nth-child(3) { width: 1200px; height: 1200px; opacity: .55; }
+/* Diâmetros casados com os raios reais: 760 = 2 × R_X. Um anel que não passa
+   por nada é decoração. */
+.us-rings span:nth-child(1) { width: 380px; height: 380px; animation: us-ring-a 52s var(--sys-ease-breath) infinite alternate; }
+.us-rings span:nth-child(2) { width: 760px; height: 760px; border-style: dashed; opacity: .7; animation: us-ring-b 71s var(--sys-ease-breath) infinite alternate; }
+.us-rings span:nth-child(3) { width: 1200px; height: 1200px; opacity: .55; animation: us-ring-c 86s var(--sys-ease-breath) infinite alternate; }
+@keyframes us-ring-a {
+  from { transform: translate(calc(-50% + var(--cx, 0)), calc(-50% + var(--cy, 0))) rotateX(60deg) rotate(0deg) scale(1); }
+  to   { transform: translate(calc(-50% + var(--cx, 0)), calc(-50% + var(--cy, 0))) rotateX(58deg) rotate(9deg) scale(1.014); }
+}
+@keyframes us-ring-b {
+  from { transform: translate(calc(-50% + var(--cx, 0)), calc(-50% + var(--cy, 0))) rotateX(60deg) rotate(0deg) scale(1.012); }
+  to   { transform: translate(calc(-50% + var(--cx, 0)), calc(-50% + var(--cy, 0))) rotateX(62deg) rotate(-7deg) scale(1); }
+}
+@keyframes us-ring-c {
+  from { transform: translate(calc(-50% + var(--cx, 0)), calc(-50% + var(--cy, 0))) rotateX(61deg) rotate(0deg) scale(1); }
+  to   { transform: translate(calc(-50% + var(--cx, 0)), calc(-50% + var(--cy, 0))) rotateX(59deg) rotate(5deg) scale(1.008); }
+}
+/* Em hover, a órbita do plano ganha definição: o anel reage também. */
+.us[data-state='DOMAIN_HOVER'] .us-rings span:nth-child(2) {
+  border-color: rgb(var(--sys-bone-rgb) / var(--sys-o-16));
+  opacity: 1;
+}
 
 /* ── Territórios ───────────────────────────────────────────────────────── */
 .us-terr {
@@ -158,11 +232,22 @@
   transform: translate(var(--tx), var(--ty));
   transform-style: preserve-3d;
   pointer-events: auto;
-  transition: opacity calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out);
+  transition:
+    opacity calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out),
+    transform calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
 }
 
-/* Fora de foco recua, não desaparece: recuar não é esconder. */
-.us-terr[data-dim='true'] { opacity: 0.34; }
+/* ACESO: o domínio APROXIMA-SE — um `translateZ` real, não um `scale`.
+   Aproximar-se num espaço 3D é vir para a frente; escalar é crescer no sítio,
+   e o olho distingue as duas coisas mesmo sem as saber nomear. */
+.us-terr[data-lit='true'] { transform: translate(var(--tx), var(--ty)) translateZ(58px); }
+
+/* Fora de foco RECUA, não desaparece. 0,44 e não 0,2: um domínio apagado
+   parece `disabled`, e nenhum domínio aqui está desativado. */
+.us-terr[data-dim='true'] {
+  opacity: 0.44;
+  transform: translate(var(--tx), var(--ty)) translateZ(-26px);
+}
 
 .us-field {
   position: absolute;
@@ -170,16 +255,15 @@
   width: var(--field); height: var(--field);
   margin: calc(var(--field) / -2) 0 0 calc(var(--field) / -2);
   border-radius: 50%;
-  /* Ténue de propósito. A primeira montagem tinha 26% e o resultado eram seis
-     nuvens de cor a competir com as estrelas — e as estrelas é que são a
-     evidência. O campo situa o domínio; não é o domínio. */
+  /* Ténue de propósito: a 26% eram seis nuvens de cor a competir com as
+     estrelas, e as estrelas é que são a evidência. */
   background: radial-gradient(circle, color-mix(in oklab, var(--dom) 14%, transparent) 0%,
                                       color-mix(in oklab, var(--dom) 5%, transparent) 42%,
                                       transparent 70%);
   pointer-events: none;
   transition: transform calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
 }
-.us-terr[data-sel='true'] .us-field { transform: scale(1.14); }
+.us-terr[data-lit='true'] .us-field { transform: scale(1.16); }
 
 .us-stars { position: absolute; inset: 0; pointer-events: none; }
 
@@ -193,21 +277,54 @@
   background: #fff;
   opacity: calc(0.35 + var(--l) * 0.65);
   box-shadow: 0 0 calc(var(--s) * 3) color-mix(in oklab, var(--dom) 80%, #fff);
+  transition: opacity var(--sys-dur-calm) var(--sys-ease-out);
 }
-/* Cintilam ~1 em 4, e a escolha é determinística (vem do read model). Animar
-   as 76 custava 76 camadas de composição para dizer o mesmo, e num céu real
-   quase nenhuma estrela cintila de forma percetível. */
+/* Cintilam ~1 em 4, escolhidas deterministicamente no read model. NUNCA todas
+   juntas: as durações vão de 4s a 9s e o atraso é o `z` da estrela, por isso
+   não há dois ciclos em fase. Um céu que pisca em uníssono é uma árvore de
+   Natal, e além disso animar as 76 custava 76 camadas de composição. */
 .us-star[data-tw='true'] {
-  animation: us-twinkle 5.5s var(--sys-ease-breath) infinite alternate;
+  animation: us-twinkle var(--dur, 5.5s) var(--sys-ease-breath) infinite alternate;
   animation-delay: var(--d);
 }
-@keyframes us-twinkle { from { opacity: calc(0.28 + var(--l) * 0.5); } to { opacity: calc(0.45 + var(--l) * 0.55); } }
+@keyframes us-twinkle {
+  from { opacity: calc(0.28 + var(--l) * 0.5); }
+  to   { opacity: calc(0.45 + var(--l) * 0.55); }
+}
+/* Com o domínio aceso, as estrelas DELE ganham definição — é a resposta mais
+   direta ao "as estrelas próximas deveriam reagir". */
+.us-terr[data-lit='true'] .us-star { opacity: calc(0.62 + var(--l) * 0.38); }
 
-/* A estrela em formação: menor, mais fria, e a pulsar mais depressa. É a
-   única coisa do céu que ainda pode recuar, e tem de se distinguir. */
-.us-star[data-forming='true'] {
-  background: color-mix(in oklab, var(--dom) 70%, #fff);
-  animation-duration: 2.4s;
+/* ── PROTOESTRELA ──────────────────────────────────────────────────────
+ * As quatro fases do XP do nível em curso. Não é a mesma estrela mais ou menos
+ * brilhante — são quatro estados visualmente distintos, porque uma barra a 32%
+ * e uma barra a 78% são a mesma imagem com comprimentos diferentes.
+ */
+.us-star[data-forming='true'] { background: color-mix(in oklab, var(--dom) 70%, #fff); }
+
+/* dust — potencial, não corpo. Difusa, sem centro. Comunica "ainda não
+   começou", que é diferente de "não existe" e de "está a meio". */
+.us-star[data-stage='dust'] {
+  background: none;
+  box-shadow: 0 0 10px 3px color-mix(in oklab, var(--dom) 22%, transparent);
+  opacity: .5;
+  animation: none;
+}
+/* proto — matéria a juntar-se, ainda sem forma definida. */
+.us-star[data-stage='proto'] {
+  box-shadow: 0 0 9px 2px color-mix(in oklab, var(--dom) 42%, transparent);
+  animation-duration: 3.4s;
+}
+/* coalescing — já tem centro. */
+.us-star[data-stage='coalescing'] {
+  box-shadow: 0 0 calc(var(--s) * 4) color-mix(in oklab, var(--dom) 70%, #fff);
+  animation-duration: 2.6s;
+}
+/* unstable — quase formada, e o ritmo rápido é o que diz "instável". */
+.us-star[data-stage='unstable'] {
+  background: #fff;
+  box-shadow: 0 0 calc(var(--s) * 5) color-mix(in oklab, var(--dom) 85%, #fff);
+  animation-duration: 1.5s;
 }
 
 .us-terr-hit {
@@ -234,6 +351,7 @@
   text-transform: uppercase;
   color: var(--sys-ink-mut);
   text-shadow: 0 0 12px var(--sys-void);
+  transition: color var(--sys-dur-calm) var(--sys-ease-out);
 }
 .us-terr-l {
   font-family: var(--sys-type-display);
@@ -243,36 +361,168 @@
   color: var(--sys-ink);
   text-shadow: 0 0 14px var(--sys-void);
 }
-.us-terr[data-sel='true'] .us-terr-n { color: var(--dom); }
+.us-terr[data-lit='true'] .us-terr-n { color: var(--dom); }
 .us-terr-hit:focus-visible { outline: 2px solid var(--sys-ink); outline-offset: 4px; border-radius: 4px; }
 
-/* ── O UNIVERSO REAGE ──────────────────────────────────────────────────
- * Quando chega evidência: o campo acende, e um traço de energia parte do
- * território na direção do Núcleo. Converge para dentro (R15, gramática 1) —
- * nunca para fora, que é o gesto do confetti e diz o contrário.
+/* ── ASSINATURAS DE DOMÍNIO ────────────────────────────────────────────
+ * Cada uma corre UMA vez e assenta: despertar é um arco, não um ciclo. O
+ * componente só existe enquanto o domínio está aceso, por isso a animação
+ * recomeça a cada despertar sem precisar de ser reiniciada à mão.
  */
-@keyframes us-fed {
-  0%   { transform: scale(1); }
-  18%  { transform: scale(1.5); }
-  100% { transform: scale(1.14); }
+.us-sig {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 240px; height: 240px;
+  margin: -120px 0 0 -120px;
+  pointer-events: none;
+  overflow: visible;
+  animation: us-sig-in 900ms var(--sys-ease-out) both;
 }
-.us-terr[data-fed='true'] .us-field {
-  animation: us-fed 2.4s var(--sys-ease-gravity) both;
+@keyframes us-sig-in { from { opacity: 0; } to { opacity: .85; } }
+@keyframes sig-draw { to { stroke-dashoffset: 0; } }
+
+/* OFÍCIO — ALINHAMENTO. Cada segmento roda do seu ângulo disperso para a
+   tangente do anel, em cascata. O que era disperso passa a ser estrutura. */
+.sig-seg {
+  transform-origin: var(--o);
+  transform: rotate(var(--from));
+  animation: sig-align 900ms var(--sys-ease-gravity) both;
+  animation-delay: calc(var(--i) * 42ms);
+}
+@keyframes sig-align { to { transform: rotate(var(--to)); } }
+.sig-frame { stroke-dasharray: 390; stroke-dashoffset: 390; animation: sig-draw 1200ms var(--sys-ease-out) 300ms both; }
+
+/* SABER — RAMIFICAÇÃO. Os troncos crescem, e só depois os ramos. */
+.sig-branch, .sig-twig {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: sig-draw 620ms var(--sys-ease-out) both;
+}
+.sig-branch { animation-delay: calc(var(--i) * 70ms); }
+.sig-twig   { animation-delay: calc(340ms + var(--i) * 46ms); }
+
+/* CORPO — PULSO. Três anéis em série, a expandir e a apagar. Um corpo responde
+   com impulso, não com brilho. */
+.sig-pulse {
+  transform-origin: 120px 120px;
+  animation: sig-pulse 1500ms var(--sys-ease-gravity) both;
+  animation-delay: calc(var(--i) * 230ms);
+}
+@keyframes sig-pulse {
+  0%   { transform: scale(.28); opacity: 0; }
+  22%  { opacity: .9; }
+  100% { transform: scale(2.7); opacity: 0; }
 }
 
-/* Uma estrela nova a nascer: aparece grande e assenta. O delta que fica é a
-   estrela; isto é só o anúncio de que ela chegou. */
+/* MENTE — CONVERGÊNCIA. O oposto exato do pulso de Corpo, e é de propósito:
+   são os dois domínios que mais facilmente se confundiriam. */
+.sig-conv {
+  stroke-dasharray: 90; stroke-dashoffset: 90;
+  animation: sig-draw 780ms var(--sys-ease-contract) both;
+  animation-delay: calc(var(--i) * 34ms);
+}
+.sig-focus { transform-origin: 120px 120px; animation: sig-focus 700ms var(--sys-ease-gravity) 620ms both; }
+@keyframes sig-focus {
+  from { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.5); opacity: 1; }
+  to   { transform: scale(1); opacity: .9; }
+}
+
+/* VÍNCULOS — LIGAÇÃO. Os pontos aproximam-se PRIMEIRO; a linha vem depois. A
+   ordem é o argumento: a ligação é consequência da aproximação. */
+.sig-node {
+  transform: translate(var(--fx), var(--fy));
+  animation: sig-approach 780ms var(--sys-ease-gravity) both;
+  animation-delay: calc(var(--i) * 60ms);
+}
+@keyframes sig-approach { to { transform: translate(0, 0); } }
+.sig-link {
+  stroke-dasharray: 160; stroke-dashoffset: 160;
+  animation: sig-draw 520ms var(--sys-ease-out) both;
+  animation-delay: calc(700ms + var(--i) * 52ms);
+}
+
+/* DISCIPLINA — SINCRONIZAÇÃO. Cada barra começa na sua fase e todas acabam na
+   mesma. Disciplina não é intensidade; é o mesmo gesto repetido. */
+.sig-tick {
+  transform-origin: 120px 120px;
+  animation: sig-sync 1600ms var(--sys-ease-breath) both;
+  animation-delay: calc(var(--phase) * -1);
+}
+@keyframes sig-sync {
+  0%   { transform: scale(.86); opacity: .35; }
+  55%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: .8; }
+}
+
+/* ── O UNIVERSO REAGE A EVIDÊNCIA REAL ─────────────────────────────────
+ * Sete tempos, e a ORDEM é o argumento:
+ *   1  a partícula nasce FORA do campo         (nada nasce do nada)
+ *   2  atravessa                               (houve um percurso)
+ *   3  entra no domínio certo                  (foi ali que aconteceu)
+ *   4  a estrela acende                        (o delta que fica)
+ *   5  o domínio pulsa                         (o campo reconhece)
+ *   6  a energia converge para o Núcleo        (gramática 1)
+ *   7  fica um rasto que se apaga              (memória curta do caminho)
+ *
+ * Os atrasos encadeiam-se: 0ms · 1400ms · 2200ms. Nada celebra antes de a
+ * energia lá estar — pôr o efeito à frente da causa seria o Sistema a mentir
+ * sobre uma sequência que ele próprio está a mostrar.
+ */
+.us-evidence { pointer-events: none; }
+.us-part, .us-trail { position: absolute; top: 50%; left: 50%; }
+
+.us-part {
+  width: 5px; height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 16px 4px var(--dom), 0 0 5px 1px #fff;
+  animation: us-part 1400ms var(--sys-ease-gravity) both;
+}
+@keyframes us-part {
+  0%   { transform: translate3d(var(--sx), var(--sy), 0) scale(.4); opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translate3d(var(--ex), var(--ey), 0) scale(1.9); opacity: 0; }
+}
+
+/* O rasto: nasce com a partícula e apaga-se depois dela. Dura mais do que o
+   trajeto de propósito — é memória, não é o movimento. */
+.us-trail {
+  width: 420px; height: 1px;
+  transform-origin: 0 50%;
+  rotate: var(--rot);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--dom) 60%, transparent));
+  animation: us-trail 2600ms var(--sys-ease-out) both;
+}
+@keyframes us-trail {
+  0%   { opacity: 0; transform: translate(var(--ex), var(--ey)) scaleX(0); }
+  30%  { opacity: .5; transform: translate(var(--ex), var(--ey)) scaleX(1); }
+  100% { opacity: 0; transform: translate(var(--ex), var(--ey)) scaleX(1); }
+}
+
+/* 5 · o campo reconhece a chegada */
+@keyframes us-fed {
+  0%   { transform: scale(1); }
+  18%  { transform: scale(1.55); }
+  100% { transform: scale(1.16); }
+}
+.us-terr[data-fed='true'] .us-field { animation: us-fed 1400ms var(--sys-ease-gravity) 1400ms both; }
+
+/* 4 · a estrela nova aparece grande e assenta. O delta que fica é ela; isto é
+   só o anúncio de que chegou. */
 @keyframes us-born {
-  0%   { transform: scale(3.4); opacity: 0; }
+  0%   { transform: scale(4); opacity: 0; }
   30%  { opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
 .us-terr[data-fed='true'] .us-star:last-child {
-  animation: us-born 1200ms var(--sys-ease-gravity) both, us-twinkle 2.4s var(--sys-ease-breath) 1200ms infinite alternate;
+  animation: us-born 1100ms var(--sys-ease-gravity) 1400ms both;
 }
 
-/* O fluxo até ao Núcleo. Um traço que parte do território e se apaga na
-   direção do centro — a energia vai para dentro. */
+/* 6 · o fluxo até ao Núcleo. Parte do território DEPOIS de a estrela nascer e
+   apaga-se na direção do centro: a energia vai para dentro. */
 @keyframes us-flow {
   0%   { transform: translate(-50%, -50%) scaleX(0); opacity: 0; }
   25%  { opacity: 1; }
@@ -284,14 +534,17 @@
   width: 300px; height: 1px;
   transform-origin: 100% 50%;
   background: linear-gradient(90deg, transparent, var(--dom));
-  /* aponta para o centro da cena: o território está em (tx,ty), e o centro
-     está na direção oposta */
   rotate: var(--rot);
-  animation: us-flow 1600ms var(--sys-ease-contract) both;
+  animation: us-flow 1400ms var(--sys-ease-contract) 2200ms both;
   pointer-events: none;
 }
 
-/* ── Satélites ─────────────────────────────────────────────────────────── */
+/* ── Satélites ─────────────────────────────────────────────────────────
+ * Um satélite provado é um corpo luminoso. Uma versão anterior desenhava aqui
+ * o sigilo da conquista; à escala da vista geral ninguém lia a forma e oito
+ * glifos dourados nos bordos liam-se como autocolantes. O sigilo não se
+ * perdeu — passou para o painel Conquistas, onde tem tamanho para ser lido.
+ */
 .us-sat {
   position: absolute;
   top: 50%; left: 50%;
@@ -300,79 +553,143 @@
   transform: translate(var(--tx), var(--ty));
   background: rgb(var(--sys-bone-rgb) / var(--sys-o-24));
 }
-/* Provado: um corpo luminoso na órbita externa.
- *
- * A montagem anterior desenhava aqui o sigilo da conquista. À escala da vista
- * geral ninguém conseguia ler a forma, e oito glifos dourados espalhados pelos
- * bordos liam-se como autocolantes — decoração, que é o que a lei do projeto
- * proíbe. O sigilo não foi deitado fora: passou para o painel Conquistas, na
- * mesma zona, onde tem tamanho para ser lido.
- *
- * Aqui um satélite é o que deve ser à distância a que está: um ponto de luz. */
 .us-sat[data-on='true'] {
   width: 4px; height: 4px;
   background: #fff;
   box-shadow: 0 0 10px var(--gold), 0 0 3px var(--gold);
 }
 
-/* ── O Núcleo ──────────────────────────────────────────────────────────── */
+/* ── O NÚCLEO ──────────────────────────────────────────────────────────
+ * Cada camada é um elemento próprio, e quem se move é o ELEMENTO. Ver o
+ * cabeçalho: animar um `<g>` dentro do SVG repinta o desenho inteiro.
+ *
+ * A rotação é DIFERENCIAL — velocidades e sentidos diferentes por camada. É o
+ * que faz um corpo parecer um corpo: o olho não consegue prever a forma
+ * seguinte, e o que não é previsível lê-se como matéria em vez de gráfico.
+ * 96s, 149s e 227s: nenhum é múltiplo de outro, por isso o conjunto nunca se
+ * repete dentro de uma sessão.
+ */
 .us-core-layer {
   pointer-events: none;
+  transform: translate(var(--cx, 0), var(--cy, 0))
+             translate3d(calc(var(--px) * -9px), calc(var(--py) * -6px), -520px);
   transition: transform 1400ms var(--sys-ease-gravity);
   will-change: transform;
 }
+/* A perspetiva sozinha fá-lo crescer ~2,5× da vista geral até à chegada. Não
+   chega para uma chegada: acumula-se uma escala própria, e o resultado é
+   ~4,7×. É o único sítio do produto onde a escala é o argumento. */
+.us[data-scale='domain'] .us-core-layer {
+  transform: translate(var(--cx, 0), var(--cy, 0))
+             translate3d(calc(var(--px) * -9px), calc(var(--py) * -6px), -520px) scale(1.25);
+}
+.us[data-scale='core'] .us-core-layer {
+  transform: translate(var(--cx, 0), var(--cy, 0))
+             translate3d(calc(var(--px) * -9px), calc(var(--py) * -6px), -520px) scale(1.9);
+}
 
-/* A perspetiva sozinha faz o Nucleo crescer ~2,5x da vista geral ate a
-   chegada. Nao chega para uma chegada: acumula-se uma escala propria, e o
-   resultado e ~4,7x. E o unico sitio do produto onde a escala e o argumento. */
-.us[data-cam="domain"] .us-core-layer { transform: translate(var(--cx, 0), var(--cy, 0)) translateZ(-520px) scale(1.25); }
-.us[data-cam="core"] .us-core-layer { transform: translate(var(--cx, 0), var(--cy, 0)) translateZ(-520px) scale(1.9); }
+.nuc { position: relative; display: block; }
+.nuc-l {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+  will-change: transform;
+}
 
-.nuc { display: block; overflow: visible; will-change: transform; }
+@keyframes nuc-spin   { to { transform: rotate(360deg); } }
+@keyframes nuc-spin-r { to { transform: rotate(-360deg); } }
 
-/* ── A RESPIRAÇÃO DO NÚCLEO, e porque está aqui e não lá dentro ──
- * A montagem anterior animava `.nuc-body` e `.nuc-fils` — dois `<g>` DENTRO
- * do SVG, em contrafase. Ficava bem e custava caro: uma transform aplicada a
- * conteúdo interno de um SVG não é composta, e o motor repinta o desenho
- * inteiro a cada frame. À escala de chegada o desenho tem 846px de lado, e a
- * medição deu 50ms por frame — 20 FPS no momento mais importante da zona.
- *
- * Agora quem respira é o elemento `<svg>`, que é promovível e composto. A
- * contrafase perdeu-se; o que a substitui é a densidade, que era de qualquer
- * forma o que dava a sensação de matéria. Trocar 220 filamentos por dois
- * ritmos teria sido a troca errada.
- *
- * Lenta — é presença, não evento. */
-@keyframes nuc-breathe { from { transform: scale(0.99); } to { transform: scale(1.025); } }
-.nuc { animation: nuc-breathe var(--sys-cycle-ambient) var(--sys-ease-breath) infinite alternate; }
+.nuc-shell-0 { animation: nuc-spin    96s linear infinite; }
+.nuc-shell-1 { animation: nuc-spin-r 149s linear infinite; }
+.nuc-shell-2 { animation: nuc-spin   227s linear infinite; }
+.nuc-orbit   { animation: nuc-spin    61s linear infinite; }
 
-/* O pulso de chegada: um anel que CONVERGE para o centro. */
-/* Anima transform, nunca a geometria `r`: animar `r` obriga o motor a
-   recalcular o path a cada frame, e a regra do projeto e transform+opacity. */
-@keyframes nuc-pulse {
+/* A respiração do corpo. É a animação DOMINANTE da zona em repouso, e a única
+   que se apanha a olho — todo o resto só prova que o espaço continua vivo. */
+@keyframes nuc-breathe { from { transform: scale(.985); } to { transform: scale(1.03); } }
+.nuc-body { animation: nuc-breathe var(--sys-cycle-ambient) var(--sys-ease-breath) infinite alternate; }
+
+/* AFINAÇÃO: uma zona da superfície orienta-se para o domínio em foco. Não é o
+   Núcleo a mudar de cor — é uma parte dele a responder, que é o que um corpo
+   faz quando algo o puxa. */
+.nuc-attune {
+  opacity: 0;
+  transform: rotate(var(--nuc-from));
+  transition: opacity 700ms var(--sys-ease-out);
+}
+.nuc[data-state='ATTUNEMENT'] .nuc-attune,
+.nuc[data-state='ABSORBING'] .nuc-attune { opacity: 1; }
+
+/* EJEÇÕES: raras, curtas, desencontradas. É o que separa "vivo" de "a fazer
+   espetáculo" — um corpo que ejeta sem parar é um alarme. O ciclo longo vive
+   no keyframe (mais de 90% do tempo em repouso), o que é mais barato do que um
+   `setTimeout` a montar e desmontar elementos. */
+.nuc-ej { transform-origin: 160px 160px; opacity: 0; }
+.nuc-ej-0 { animation: nuc-eject-a 23s linear infinite; }
+.nuc-ej-1 { animation: nuc-eject-b 31s linear infinite; }
+.nuc-ej-2 { animation: nuc-eject-c 43s linear infinite; }
+@keyframes nuc-eject-a {
+  0%, 88%, 100% { opacity: 0; transform: scale(.2); }
+  91%           { opacity: .8; transform: scale(1); }
+  97%           { opacity: 0; transform: scale(1.25); }
+}
+@keyframes nuc-eject-b {
+  0%, 42%, 100% { opacity: 0; transform: scale(.2); }
+  46%           { opacity: .6; transform: scale(1); }
+  53%           { opacity: 0; transform: scale(1.2); }
+}
+@keyframes nuc-eject-c {
+  0%, 66%, 100% { opacity: 0; transform: scale(.2); }
+  70%           { opacity: .55; transform: scale(1); }
+  77%           { opacity: 0; transform: scale(1.18); }
+}
+
+/* ABSORÇÃO: o anel converge de fora para dentro e as conchas aceleram. A
+   aceleração é a parte que se sente sem se ver — o corpo reagiu. Atrasada
+   1400ms: só absorve depois de a partícula ter chegado ao domínio. */
+.nuc-absorb { opacity: 0; transform-origin: 160px 160px; }
+.nuc[data-state='ABSORBING'] .nuc-absorb { animation: nuc-absorb 1600ms var(--sys-ease-contract) 2200ms both; }
+@keyframes nuc-absorb {
   0%   { transform: scale(1.05); opacity: 0; }
   20%  { opacity: .9; }
-  100% { transform: scale(0.2); opacity: 0; }
+  100% { transform: scale(.2); opacity: 0; }
 }
-.nuc-pulse { transform-origin: 160px 160px; animation: nuc-pulse 1800ms var(--sys-ease-contract) both; }
+.nuc[data-state='ABSORBING'] .nuc-shell-0 { animation-duration: 26s; }
+.nuc[data-state='ABSORBING'] .nuc-shell-1 { animation-duration: 41s; }
+.nuc[data-state='ABSORBING'] .nuc-orbit   { animation-duration: 17s; }
+.nuc[data-state='ABSORBING'] .nuc-body    { animation: nuc-absorb-body 1800ms var(--sys-ease-gravity) 2200ms both; }
+@keyframes nuc-absorb-body {
+  0% { transform: scale(1); } 40% { transform: scale(.94); } 62% { transform: scale(1.12); } 100% { transform: scale(1); }
+}
 
+/* RANK_UP: contração quase completa, silêncio, expansão.
+   NOTA DE ESTADO, e fica escrita porque a lei é não fingir: este estado está
+   DESENHADO E NÃO É DISPARADO por nada. A fila tem `kind: 'rank'` mas sem
+   domínio, e ligá-lo exige decidir o que acontece à câmara quando o sistema
+   inteiro cresce — a referência do NASA Eyes afasta a câmara para enquadrar a
+   nova escala, e isso é uma decisão de produto, não uma linha de CSS. Fica
+   inalcançável e declarado; não é um placeholder a fingir que está quase. */
+.nuc[data-state='RANK_UP'] .nuc-body { animation: nuc-rank 2600ms var(--sys-ease-gravity) both; }
+@keyframes nuc-rank {
+  0% { transform: scale(1); } 30% { transform: scale(.2); } 38% { transform: scale(.2); }
+  62% { transform: scale(1.5); } 100% { transform: scale(1.12); }
+}
 
 /* ── O HUD ─────────────────────────────────────────────────────────────
- * Fora da cena e fixo. A cena é o visor; isto é o trilho (R26). Fica num
- * canto para não tapar o céu.
+ * Fora da cena e fixo. A cena é o visor; isto é o trilho (R26).
  */
-/* O véu ATRÁS da coluna do HUD. Existe porque a poeira e os satélites passam
-   por trás do texto e tiram-lhe contraste; não existe para tapar domínios —
-   esses foram deslocados para fora da coluna, que é a correção verdadeira.
-   Gradiente e não caixa: uma caixa devolvia a moldura que a máscara tirou. */
+/* O véu ATRÁS da coluna. Existe porque a poeira e os satélites passam por trás
+   do texto e tiram-lhe contraste; não existe para tapar domínios — esses foram
+   deslocados para fora da coluna, que é a correção verdadeira. */
 .us::after {
   content: '';
   position: absolute;
   inset: 0 auto 0 0;
-  width: 34%;
+  width: 30%;
   pointer-events: none;
   background: linear-gradient(to right,
-    rgb(4 3 10 / .8) 0%, rgb(4 3 10 / .5) 44%, transparent 100%);
+    rgb(4 3 10 / .8) 0%, rgb(4 3 10 / .48) 46%, transparent 100%);
   z-index: 1;
 }
 
@@ -382,7 +699,9 @@
   left: var(--sys-space-6, 40px);
   top: 50%;
   transform: translateY(-50%);
-  width: min(28rem, 34vw);
+  /* 24rem e não 28: a 28 a leitura "NÍVEL GLOBAL" encostava ao rótulo de
+     Vínculos, que fica a 470px do bordo esquerdo. Medido num screenshot. */
+  width: min(24rem, 30vw);
   display: grid;
   gap: var(--sys-space-2);
   align-content: center;
@@ -398,7 +717,6 @@
   line-height: 1;
   color: var(--sys-ink);
 }
-
 .us-hud-s {
   margin: 0;
   font-size: var(--sys-step-0);
@@ -409,17 +727,19 @@
      tira-lhe o contraste */
   text-shadow: 0 0 16px var(--sys-void), 0 0 6px var(--sys-void);
 }
+.us-hud-brief {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+}
 
-/* As leituras do HUD numa coluna estreita. Sem isto, "NÍVEL GLOBAL" e
-   "180 / 280 XP" partiam a meio de uma palavra e de um número — e um número
-   partido lê-se como dois números. */
+/* As leituras numa coluna estreita. Sem isto, "NÍVEL GLOBAL" e "180 / 280 XP"
+   partiam a meio de uma palavra e de um número — e um número partido lê-se
+   como dois números. */
 .us-hud .rf-debrief {
-  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(6.6rem, 1fr));
   gap: var(--sys-space-3) var(--sys-space-4);
 }
-/* O céu passa por trás destas leituras — à escala de chegada, um filamento do
-   Núcleo atravessa "NÍVEL GLOBAL". A sombra é o que garante que o texto ganha
-   sempre, seja o que for que lhe passe por baixo. */
 .us-hud .rf-debrief dt,
 .us-hud .rf-debrief dd {
   white-space: nowrap;
@@ -437,62 +757,9 @@
   text-shadow: 0 0 12px var(--sys-void);
 }
 
-/* ── Reduced motion ────────────────────────────────────────────────────
- * A CÂMARA CONTINUA A MOVER-SE — o que desaparece é o trajeto. A exploração
- * é informação (onde estás), e tirá-la seria tirar a funcionalidade a quem
- * pediu menos movimento, não o enfeite.
- */
-@media (prefers-reduced-motion: reduce) {
-  .us-scene { transition: none; }
-  .us-neb, .us-star, .nuc, .nuc-pulse,
-  .us-terr[data-fed='true'] .us-field, .us-terr[data-fed='true'] .us-star:last-child, .us-flow {
-    animation: none !important;
-  }
-  /* O território alimentado continua a distinguir-se: fica maior e aceso, que
-     é o estado final da animação. O anúncio sobrevive sem o movimento. */
-  .us-terr[data-fed='true'] .us-field { transform: scale(1.14); }
-}
-
-@media (max-width: 1100px) {
-  /* ── O CÉU E O TEXTO DEIXAM DE DISPUTAR O MESMO ESPAÇO ──
-   * Abaixo desta largura a coluna lateral não cabe. A saída óbvia — pôr o
-   * texto por cima do céu com um véu — foi tentada e medida: um dos seis
-   * rótulos ficava fora do enquadramento e dois ficavam mais apagados que os
-   * outros. Um véu que apaga dados é uma avaria, não uma composição.
-   *
-   * Aqui a cena RECUA: `bottom: 170px` encolhe a caixa transformada, e com
-   * ela o centro da elipse. O céu passa a ocupar a faixa de cima inteira e o
-   * HUD a de baixo — dois territórios, zero sobreposição. */
-  .us { height: 560px; }
-  .us-scene { bottom: 170px; }
-  .us-hud {
-    left: var(--sys-space-4); right: var(--sys-space-4);
-    top: auto; bottom: var(--sys-space-4); transform: none;
-    width: auto; max-width: 40rem;
-  }
-  /* Sem sobreposição, o véu deixa de ter função. Fica só uma separação ténue
-     entre o céu e a leitura, que é uma aresta suave e não uma linha. */
-  .us::after {
-    inset: auto 0 0 0; width: auto; height: 210px;
-    background: linear-gradient(to top, rgb(4 3 10 / .96) 0%, rgb(4 3 10 / .8) 40%, transparent 100%);
-  }
-  /* O céu volta ao centro e sobe: quem o faz é o componente (`useWide`), não
-     este bloco. O deslocamento entra na câmara e nas posições ao mesmo tempo,
-     e duplicá-lo aqui garantia que um dia os dois se desalinhavam. */
-}
-
-@media (max-width: 900px) {
-  .us { perspective: 800px; }
-  .us-hud-t { font-size: var(--sys-step-2); }
-  .us-hud-s { font-size: var(--sys-step--1); max-width: none; }
-  .us-terr-hit { min-width: 92px; }
-  .us-terr-l { font-size: var(--sys-step-1); }
-}
-
 /* ── O painel deixa de ser painel ──────────────────────────────────────
  * Um céu dentro de um cartão com borda, padding e o tique de canto do HUD
- * volta a ser uma ilustração emoldurada — exatamente o que esta passagem
- * existe para desfazer. O Universo é full-bleed dentro do seu grupo.
+ * volta a ser uma ilustração emoldurada.
  */
 .panel.uni-field {
   padding: 0;
@@ -505,19 +772,79 @@
 .panel.uni-field::after { display: none; }
 .panel.uni-field:hover { box-shadow: none; transform: none; }
 
-/* Os satélites provados: o sigilo determinístico (cada conquista tem uma forma
-   sua, gerada do id) em vez de um ponto genérico. */
-.us-sat-on {
-  width: 22px; height: 22px;
-  background: none;
-  box-shadow: none;
-  display: grid;
-  place-items: center;
-  transform: translate(calc(var(--tx) - 11px), calc(var(--ty) - 11px));
-  opacity: .85;
+/* ── REDUCED MOTION ────────────────────────────────────────────────────
+ * A CÂMARA CONTINUA A MUDAR DE SÍTIO — o que desaparece é o trajeto. Onde
+ * estás é informação, e tirá-la seria retirar funcionalidade a quem pediu
+ * menos movimento, não o enfeite.
+ *
+ * As ASSINATURAS também sobrevivem: cada uma tem um estado final desenhado, e
+ * a estrutura de Ofício continua a distinguir-se da ramificação de Saber
+ * paradas. É a FORMA que carrega a identidade; o movimento só a conta melhor.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .us-scene, .us-terr, .us-field, .us-core-layer, .us-rings span { transition: none; }
+  .us *, .us *::before, .us *::after { animation: none !important; }
+
+  /* Estados finais, para que nada fique a meio de uma animação que não vem. */
+  .us-terr[data-fed='true'] .us-field { transform: scale(1.35); }
+  .us-sig { opacity: .85; }
+  .sig-seg { transform: rotate(var(--to)); }
+  .sig-frame, .sig-branch, .sig-twig, .sig-conv, .sig-link { stroke-dashoffset: 0; }
+  .sig-node { transform: translate(0, 0); }
+  .sig-focus, .sig-tick { opacity: .9; }
+  /* O pulso de Corpo não tem forma final útil — três anéis parados uns por
+     cima dos outros não dizem "impulso". Fica um só, à escala do gesto. */
+  .sig-pulse { opacity: 0; }
+  .sig-pulse:first-child { opacity: .8; transform: scale(1.7); }
+  /* A partícula não viaja; a estrela nova aparece na mesma, sem trajeto, e o
+     fluxo fica desenhado como linha estática. */
+  .us-part, .us-trail { display: none; }
+  .us-flow { opacity: .5; transform: translate(-50%, -50%) scaleX(1); }
+  .nuc-attune { transition: none; }
+  .nuc-ej { opacity: 0; }
+}
+
+@media (max-width: 1100px) {
+  /* ── O CÉU E O TEXTO DEIXAM DE DISPUTAR O MESMO ESPAÇO ──
+   * A saída óbvia — pôr o texto por cima do céu com um véu — foi tentada e
+   * medida: um dos seis rótulos ficava fora do enquadramento e dois ficavam
+   * mais apagados que os outros. Aqui a cena RECUA: `bottom: 170px` encolhe a
+   * caixa transformada e, com ela, o centro da elipse. */
+  /* A ALTURA RESERVADA É A ALTURA REAL DO HUD, e a diferença não era estética.
+     Com `bottom: 170px` o rótulo de Mente ficava por baixo do título do HUD —
+     `elementFromPoint` no centro do alvo devolvia `.us-hud-t`, ou seja, o
+     domínio existia e NÃO SE PODIA TOCAR. O HUD mede 232px no estado mais
+     alto; reservam-se 270 para o estado com botões. */
+  .us { height: 660px; }
+  .us-scene { bottom: 270px; }
+  .us-hud {
+    left: var(--sys-space-4); right: var(--sys-space-4);
+    top: auto; bottom: var(--sys-space-4); transform: none;
+    width: auto; max-width: 40rem;
+  }
+  .us::after {
+    inset: auto 0 0 0; width: auto; height: 280px;
+    background: linear-gradient(to top, rgb(4 3 10 / .96) 0%, rgb(4 3 10 / .8) 40%, transparent 100%);
+  }
 }
 
 @media (max-width: 900px) {
-  .us-sat-on svg { width: 16px; height: 16px; }
+  .us { perspective: 800px; }
+  .us-hud-t { font-size: var(--sys-step-2); }
+  .us-hud-s { font-size: var(--sys-step--1); max-width: none; }
+  /* 78 e não 92: a folga horizontal entre domínios vizinhos no estreito é de
+     113px, e uma etiqueta de 104 não cabia lá sem tocar na do lado. Continua
+     acima do mínimo de alvo tátil porque a altura é 64. */
+  .us-terr-hit { min-width: 78px; padding: var(--sys-space-2); }
+  .us-terr-l { font-size: var(--sys-step-1); }
   .us-rings span:nth-child(3) { display: none; }
+  /* Menos matéria em ecrã pequeno: a assinatura tem de caber no território sem
+     se sobrepor ao vizinho. */
+  .us-sig { width: 150px; height: 150px; margin: -75px 0 0 -75px; }
+}
+
+/* Ponteiro grosseiro: não há hover. O despertar acontece na mesma — por toque
+   e por foco de teclado — só que sem depender de um cursor que não existe. */
+@media (hover: none) {
+  .us-terr[data-lit='true'] { transform: translate(var(--tx), var(--ty)) translateZ(34px); }
 }

@@ -1,51 +1,76 @@
-/* Oráculo · War Room — coordenação. Missão 26 · Fase 2.
+/* Oráculo · War Room — coordenação.
+ * Missão 26 · Fase 2, reescrita na Fase 6B.
  *
  * ╔══════════════════════════════════════════════════════════════════════╗
- * ║  TUDO AQUI É MAQUETA E DIZ QUE É.                                     ║
+ * ║  DOIS ESTADOS, E A DIFERENÇA ENTRE ELES É A PARTE HONESTA:           ║
+ * ║                                                                       ║
+ * ║  LIGADO     lê estado real, e cada número traz de onde veio.         ║
+ * ║  NÃO EXISTE o subsistema não foi construído. Não é uma maqueta à     ║
+ * ║             espera de cabo — é uma coisa que ainda não há.           ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  *
- * Uma sala de guerra com projetos, agentes, riscos e Money Machine inventados
- * seria a violação mais direta possível da lei do projeto. Por isso cada bloco
- * carrega o rótulo `MAQUETA — DADOS AINDA NÃO LIGADOS`, e os campos estão
- * VAZIOS em vez de preenchidos com números plausíveis. Um traço não mente; um
- * "3 agentes ativos" mentiria.
+ * A versão anterior punha "MAQUETA — DADOS AINDA NÃO LIGADOS" nos quatro
+ * blocos. Para Projetos e Riscos isso era verdade. Para Agentes e Money
+ * Machine era falso: não há registry, não há pipeline, não há nada por ligar.
+ * Dizer "ainda não ligado" sobre uma coisa que não existe é mentir por
+ * implicatura — e é a mesma classe de erro que a Fase I apanhou quando um
+ * `catch` vazio fazia uma falha de rede passar por "não há notícias".
  *
- * Nada de agentes, Money Machine ou execução nesta fase — só a moldura.
+ * Nenhum campo inventa um número. Onde não há valor, há travessão.
  */
 
-const BLOCKS = [
-  { id: 'projects', name: 'Projetos', fields: ['Ativo', 'Bloqueado', 'Próxima entrega'] },
-  { id: 'agents', name: 'Agentes', fields: ['Registados', 'Em execução', 'Kill switch'] },
-  { id: 'risks', name: 'Riscos', fields: ['Abertos', 'Aceites', 'Em escalada'] },
-  { id: 'money', name: 'Money Machine', fields: ['Pipeline', 'Drafts', 'Por aprovar'] },
-];
+import { useStore } from '../../store/useStore.js';
+import { readWarRoom } from './warRoomRead';
 
 export default function OracleWarRoom() {
+  const S = useStore((s: { S: Record<string, any> | null }) => s.S);
+  const blocks = readWarRoom(S);
+
+  const live = blocks.filter((b) => b.state === 'live');
+  const absent = blocks.filter((b) => b.state === 'absent');
+
   return (
     <div className="sys-warroom">
       <div className="sys-warroom-grid">
-        {BLOCKS.map((b) => (
-          <section key={b.id} className="sys-warroom-block">
+        {live.map((b) => (
+          <section key={b.id} className="sys-warroom-block" data-state="live">
             <header className="sys-warroom-head">
               <h3 className="sys-warroom-name">{b.name}</h3>
-              <span className="sys-mock-tag">MAQUETA — DADOS AINDA NÃO LIGADOS</span>
             </header>
             <dl className="sys-warroom-fields">
-              {b.fields.map((f) => (
-                <div key={f} className="sys-warroom-field">
-                  <dt>{f}</dt>
-                  {/* Vazio de propósito. Nenhum valor inventado. */}
-                  <dd aria-label="sem dados">—</dd>
+              {b.fields?.map((f) => (
+                <div key={f.label} className="sys-warroom-field" data-tone={f.tone}>
+                  <dt>{f.label}</dt>
+                  <dd>{f.value}</dd>
+                  {/* A origem de cada número. Sem ela seria um sinal, e a lei
+                      diz que o Sistema mostra provas. */}
+                  {f.from && <p className="sys-warroom-from">{f.from}</p>}
                 </div>
               ))}
             </dl>
           </section>
         ))}
       </div>
+
+      {absent.length > 0 && (
+        <section className="sys-warroom-absent" aria-label="Subsistemas por construir">
+          <h3 className="sys-warroom-ah">Ainda não existe</h3>
+          <ul>
+            {absent.map((b) => (
+              <li key={b.id}>
+                <p className="sys-warroom-an">{b.name}</p>
+                <p className="sys-warroom-am">{b.missing}</p>
+                {b.rule && <p className="sys-warroom-ar">{b.rule}</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <p className="sys-warroom-note">
-        A War Room é moldura. Os dados ligam-se quando o programa Oracle
-        Intelligence &amp; Governance abrir — ver
-        <code> docs/oracle-governance/17_PHASED_ROADMAP.md</code>.
+        Estes dois não são maquetas à espera de ligação: são subsistemas por
+        construir. Abrem com o programa Oracle Intelligence &amp; Governance —
+        ver <code>docs/oracle-governance/17_PHASED_ROADMAP.md</code>.
       </p>
     </div>
   );

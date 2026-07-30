@@ -158,34 +158,104 @@
   color: var(--sys-ink);
 }
 
-/* O rótulo de maqueta tem de ser impossível de ignorar. */
+/* `.sys-mock-tag` foi retirado da War Room na Fase 6B. O rótulo dizia
+   "MAQUETA — DADOS AINDA NÃO LIGADOS" nos quatro blocos, e para dois deles
+   isso era falso: não há nada por ligar, há subsistemas por construir. A
+   distinção passou a ser estrutural (`data-state`), não uma etiqueta. */
 .sys-mock-tag {
   justify-self: start;
   font-family: var(--sys-type-data);
-  font-size: 0.625rem;
+  font-size: var(--sys-step--1);
   letter-spacing: var(--sys-track-label);
   color: var(--sys-alert);
   border: 1px dashed rgb(var(--sys-alert-rgb) / var(--sys-o-40));
   padding: 2px var(--sys-space-2);
 }
 
-.sys-warroom-fields { margin: 0; display: grid; gap: var(--sys-space-2); }
+.sys-warroom-fields { margin: 0; display: grid; gap: var(--sys-space-4); }
 
-.sys-warroom-field {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--sys-space-3);
+/* Rótulo em cima, valor por baixo, origem por baixo do valor. A versão antiga
+   punha rótulo e valor lado a lado em mono — cabia, mas não havia sítio para a
+   PROVA, e um número sem origem é um sinal. */
+.sys-warroom-field { display: grid; gap: 2px; }
+
+.sys-warroom-field dt {
   font-family: var(--sys-type-data);
   font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
 }
 
-.sys-warroom-field dt { color: var(--sys-ink-far); }
-.sys-warroom-field dd { margin: 0; color: var(--sys-ink-far); }
+.sys-warroom-field dd {
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step-1);
+  color: var(--sys-ink);
+}
+
+.sys-warroom-field[data-tone='alert'] dd { color: #fca5a5; }
+.sys-warroom-field[data-tone='good'] dd { color: var(--em); }
+
+.sys-warroom-from {
+  margin: 0;
+  font-size: var(--sys-step--1);
+  line-height: var(--sys-leading-tight);
+  color: var(--sys-ink-mut);
+  max-width: 40ch;
+}
+
+/* ── Os que ainda não existem ──────────────────────────────────────────
+ * Bloco próprio, com cabeçalho. Não é uma nota de rodapé: saber que um
+ * subsistema não foi construído é informação de coordenação, e é a diferença
+ * entre "está avariado" e "ainda não há".
+ */
+.sys-warroom-absent {
+  margin-top: var(--sys-space-6);
+  padding-top: var(--sys-space-5);
+  border-top: 1px solid var(--sys-seam);
+  display: grid;
+  gap: var(--sys-space-3);
+}
+
+.sys-warroom-ah {
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+}
+
+.sys-warroom-absent ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sys-space-4); }
+
+.sys-warroom-absent li {
+  display: grid;
+  gap: var(--sys-space-1);
+  padding-left: var(--sys-space-4);
+  /* Filete tracejado: a mesma linguagem que os degraus futuros da Escada de
+     Ascensão. Existe, vê-se, e ainda não está construído. */
+  border-left: 2px dashed rgb(var(--sys-bone-rgb) / var(--sys-o-24));
+}
+
+.sys-warroom-an { margin: 0; font-size: var(--sys-step-1); color: var(--sys-ink); }
+.sys-warroom-am { margin: 0; font-size: var(--sys-step-0); color: var(--sys-ink-mut); max-width: 62ch; line-height: var(--sys-leading-normal); }
+.sys-warroom-ar {
+  margin: var(--sys-space-1) 0 0;
+  font-size: var(--sys-step--1);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink-mut);
+  max-width: 66ch;
+  padding-left: var(--sys-space-3);
+  border-left: 1px solid var(--sys-seam);
+}
 
 .sys-warroom-note {
-  margin-top: var(--sys-space-6);
-  color: var(--sys-ink-far);
+  margin-top: var(--sys-space-5);
+  color: var(--sys-ink-mut);
   font-size: var(--sys-step--1);
+  line-height: var(--sys-leading-normal);
   max-width: var(--sys-measure);
 }
 

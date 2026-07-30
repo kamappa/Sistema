@@ -2216,30 +2216,6 @@ para cancelar nem para falhar.
 
 Zoom 200% e mobile: as sondas correram, mas os estados que interessava ver a
 200% são os que precisam de sessão. Fica por fazer.
-### Fase 7Z · Referências animadas — fechadas (CONCLUÍDA 2026-07-30)
-
-As trinta animadas (R01–R30) estão TODAS abertas. Contagem: **30 abertas · 18
-por abrir · 2 inválidas**, total 50. As 18 por abrir são todas estáticas e
-ficam registadas como não vistas — nenhum ficheiro conta como visto sem ter
-sido aberto, e a contagem di-lo em vez de o esconder.
-
-Repartição das 30: 15 analisadas, 8 parcialmente úteis, 4 anti-referências, 1
-rejeitada, 2 duplicadas por hash (R12=R14, R22=R23, não reabertas).
-
-Quatro anti-referências, e duas estão arquivadas exatamente onde alguém as vai
-procurar: R16 é **um olho** na pasta do Oráculo, R09 é uma **moldura com neon
-roxo** na pasta de identidade. Daí a gramática 14 nova — uma anti-referência
-tem de ser marcada no sítio onde está, não só numa lista à parte.
-
-A gramática 11 foi corrigida: dizia que a referência da transição "não existe".
-Estava certa quanto a não haver vídeo e incompleta quanto à conclusão — R27 é
-uma imagem, foi aberta, e tem conteúdo utilizável na paleta exata do Sistema.
-
-Nota de método registada no mapa: as folhas por CATEGORIA estão incompletas (a
-de universe mostra 3 frames para 27 ficheiros). A triagem útil é a folha de
-contacto individual de cada referência.
-
-Zero alterações a código — condição explícita do Daniel.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

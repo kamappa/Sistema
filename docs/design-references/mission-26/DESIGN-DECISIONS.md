@@ -744,3 +744,47 @@ produzido pela **cerimónia** e não por `arcState()`: o que fica guardado é
 **Como se destranca, quando o domínio souber:** mover o membro de
 `ArcGatedState` para `ArcState`. O compilador aponta então todos os sítios que
 precisam de saber lidar com ele — que é exatamente o efeito que se quer.
+
+### 2026-07-30 · Fase 7Z — Pavimento Pélvico: um sítio, um modelo
+
+**Decisão formal do Daniel.** Kegel é um **tipo de exercício dentro de
+Pavimento Pélvico**. Não é módulo independente, não é sessão de calistenia, e
+não é fonte automática de XP enquanto a regra de domínio não existir.
+
+**A duplicação era visível e medida.** "Pavimento Pélvico" aparecia **duas
+vezes** no mesmo subespaço: como quinta linha do formulário de treino — ao lado
+de Empurrar, Puxar, Pernas e Core, com oito passos de progressão e XP próprio —
+e como rotina guiada em Corpo e Recuperação, com zero XP. Dois modelos
+diferentes para a mesma coisa, a um ecrã de distância.
+
+**O que saiu:** a linha do formulário rápido. Verificado: de 2 ocorrências para
+1, e o formulário passa a ter só as quatro linhas de calistenia.
+
+**O que NÃO saiu, e é deliberado:** `S.training.prog.kegel` e o `lines.kegel`
+das sessões já registadas continuam no estado, tal como estão. São dados de
+treinos que aconteceram mesmo. Verificado antes e depois: `progKegel: 1` nos
+dois. **Zero alterações a schema** — o que saiu foi a entrada de dados nova, não
+o registo do que passou. `finishTraining` continua a receber o campo, para não
+se mudar a assinatura do domínio por causa de uma linha de interface.
+
+**A taxonomia passou para os dados.** Cada exercício declara o seu `kind`, em
+vez de a estrutura viver só num documento — uma decisão de taxonomia num `.md`
+perde-se à próxima pessoa que acrescenta um exercício.
+
+**O relaxamento passou a exercício.** Já estava no conteúdo — "o relaxamento
+entre repetições conta tanto como a contração", "um músculo que nunca solta não
+fica mais forte, fica tenso" — mas vivia como **ressalva dentro de outros
+exercícios**, e uma coisa que só aparece como aviso não se treina. Não é
+conteúdo novo: é a mesma orientação das mesmas fontes (NTH), reorganizada para
+ser praticável.
+
+**Um tipo NÃO foi criado, e a razão fica escrita.** A estrutura aprovada lista
+"coordenação respiratória" como quinto tipo. Não existe como exercício separado
+porque as fontes tratam a respiração como **técnica que atravessa todos os
+exercícios**, não como exercício autónomo — está em todas as fases (`breath`) e
+na primeira ressalva da rotina. Inventar um exercício de respiração sem fonte
+que o descreva como tal seria conteúdo de saúde inventado, e a regra da Fase 7
+proíbe-o. Se aparecer fonte, o tipo já existe em `PelvicKind` à espera.
+
+**Nenhum XP novo.** A rotina regista conclusão, consistência e histórico em
+`S.bodyRoutines`, com XP zero — como já era antes desta decisão.

@@ -85,9 +85,29 @@ export interface Phase {
   amount: number;
 }
 
+/* ── A TAXONOMIA APROVADA — Fase 7Z ────────────────────────────────────
+ * Kegel é um TIPO DE EXERCÍCIO dentro de Pavimento Pélvico; não é um módulo,
+ * não é uma sessão de calistenia, e não é uma fonte de XP.
+ *
+ * O campo existe para a estrutura estar nos DADOS e não só num documento: uma
+ * decisão de taxonomia que vive num .md volta a perder-se à próxima pessoa que
+ * acrescentar um exercício.
+ *
+ * NOTA HONESTA sobre `respiratoria`: a estrutura aprovada lista "coordenação
+ * respiratória" como quinto tipo. Não existe como exercício separado, e não o
+ * inventei — as fontes (CUH, NTH) tratam a respiração como TÉCNICA que
+ * atravessa todos os exercícios, não como exercício autónomo. Está presente em
+ * todas as fases (`breath`) e na primeira ressalva da rotina. Criar um
+ * exercício "respiração" sem fonte que o descreva como tal seria conteúdo de
+ * saúde inventado — a regra da Fase 7 proíbe-o. */
+export type PelvicKind = 'controlada' | 'relaxamento' | 'rapida' | 'sustentada' | 'respiratoria';
+
 export interface Exercise {
   id: string;
   name: string;
+  /** Tipo dentro da taxonomia de Pavimento Pélvico. Ausente nas outras
+   *  rotinas, que têm taxonomia própria. */
+  kind?: PelvicKind;
   /** O que este exercício serve. Sem promessas. */
   goal: string;
   /** Como se faz, em passos curtos. */
@@ -142,6 +162,7 @@ export const PELVIC: Routine = {
     {
       id: 'identify',
       name: 'Encontrar o músculo',
+      kind: 'controlada',
       goal: 'Saber o que estás a contrair antes de treinar. Um treino no músculo errado não treina nada.',
       how: [
         'Sentado numa cadeira firme, pés no chão, pernas ligeiramente afastadas.',
@@ -163,7 +184,8 @@ export const PELVIC: Routine = {
     },
     {
       id: 'slow',
-      name: 'Contração lenta',
+      name: 'Contração sustentada',
+      kind: 'sustentada',
       goal: 'Resistência. É a contração que sustenta ao longo do tempo.',
       how: [
         'Contrai e eleva com firmeza.',
@@ -185,8 +207,41 @@ export const PELVIC: Routine = {
       figure: 'pelvis',
     },
     {
+      /* ── RELAXAMENTO, como exercício e não como pausa ──
+       * A estrutura aprovada lista o relaxamento como tipo próprio, e tinha
+       * razão de ser: o conteúdo já dizia "o relaxamento entre repetições conta
+       * tanto como a contração" e "um músculo que nunca solta não fica mais
+       * forte — fica tenso", mas isso vivia como RESSALVA dentro de outros
+       * exercícios. Uma coisa que só aparece como aviso não se treina.
+       *
+       * Não é conteúdo novo: é a mesma orientação das mesmas fontes,
+       * reorganizada para ser praticável. Nenhuma afirmação nova de saúde foi
+       * acrescentada — se fosse preciso uma, tinha de vir com fonte aberta. */
+      id: 'relax',
+      name: 'Relaxamento completo',
+      kind: 'relaxamento',
+      goal: 'Soltar por inteiro. Um pavimento pélvico que está sempre meio contraído não é um pavimento forte — é um pavimento tenso, e a tensão dá os mesmos sintomas que a fraqueza.',
+      how: [
+        'Sem contrair nada, repara na zona entre o ânus e a base do pénis.',
+        'Deixa-a descer e alargar, como se cedesse ao peso.',
+        'Respira normalmente; a barriga move-se, o pavimento não resiste.',
+        'Se sentires que continua a segurar, não forces o relaxamento — dá-lhe tempo.',
+      ],
+      phases: [
+        { label: 'Solta e deixa descer', secs: 6, breath: 'normal', amount: 0 },
+        { label: 'Continua sem contrair', secs: 6, breath: 'normal', amount: 0 },
+      ],
+      reps: 3,
+      sets: 1,
+      mistake: 'Tratar isto como descanso entre séries. É o exercício, e é o que falta na maioria dos treinos.',
+      stop: 'Se a sensação de tensão não passar depois do treino, procura avaliação — pode ser hipertonia e não fraqueza.',
+      sourceId: 'nth-pelvic',
+      figure: 'pelvis',
+    },
+    {
       id: 'fast',
       name: 'Contração rápida',
+      kind: 'rapida',
       goal: 'Resposta. É a contração que reage a um esforço súbito — tossir, levantar peso.',
       how: [
         'Contrai com força e solta imediatamente.',

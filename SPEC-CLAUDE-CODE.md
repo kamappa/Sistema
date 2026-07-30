@@ -2096,6 +2096,21 @@ interface e não estado de ciclo de vida; e ficou escrito que `accepted`, embora
 disponível, é produzido pela cerimónia e não por `arcState()` — o que se
 persiste é `status: 'active'`.
 
+### Fase 7Z · Pavimento Pélvico — um sítio, um modelo (CONCLUÍDA 2026-07-30)
+
+Decisão formal implementada. "Pavimento Pélvico" aparecia **duas vezes** no
+mesmo subespaço — quinta linha do formulário de treino com progressão e XP, e
+rotina guiada sem XP. Saiu a linha do formulário: verificado, de 2 ocorrências
+para 1.
+
+Dados preservados: `S.training.prog.kegel` e o `lines.kegel` histórico ficam
+intactos (`progKegel: 1` antes e depois). Zero alterações a schema.
+
+A taxonomia passou para os dados (`PelvicKind`), o relaxamento passou de
+ressalva a exercício, e "coordenação respiratória" **não** foi criada: as fontes
+tratam-na como técnica transversal, não como exercício, e inventá-la era
+conteúdo de saúde sem fonte.
+
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 
 Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore.js';
-import { TLINES, KLINE, PROG } from '../state/config.js';
-import { consecTrained, weekSessions, kegelDaysAtStep, trAdvice } from '../state/training.js';
+import { TLINES, PROG } from '../state/config.js';
+import { consecTrained, weekSessions, trAdvice } from '../state/training.js';
 
 // Treino (calistenia) — Missão 25 · Fase 8. Markup de legacy/index.html + o
 // render de treino.js:62-91. Os inputs são estado controlado (React) em vez do
@@ -13,7 +13,6 @@ const feelOpts = [['f', 'Fácil'], ['ok', 'OK'], ['d', 'Difícil']];
 export default function Training({ S }) {
   const { finishTraining } = useStore();
   const [lines, setLines] = useState(() => Object.fromEntries(TLINES.map((L) => [L.id, { reps: '', feel: 'ok' }])));
-  const [kegel, setKegel] = useState({ done: false, feel: 'ok' });
   const [extra, setExtra] = useState(false);
   const [notes, setNotes] = useState('');
   // Missão 26 · Fase 4. Qual linha está aberta para registo. SÓ tem efeito em
@@ -24,12 +23,14 @@ export default function Training({ S }) {
   const [verConselho, setVerConselho] = useState(false);
 
   const setLine = (id, k, v) => setLines((s) => ({ ...s, [id]: { ...s[id], [k]: v } }));
-  function finish() { finishTraining({ lines, kegel, extra, notes }); }
+  // `kegel: { done: false }` continua a ser enviado porque `finishTraining`
+  // espera o campo — mas nunca mais vem preenchido daqui. Manter a forma do
+  // payload evita alterar a assinatura do domínio para tirar uma linha da UI.
+  function finish() { finishTraining({ lines, kegel: { done: false }, extra, notes }); }
   const toggle = (id) => setAberta((a) => (a === id ? null : id));
 
   const consec = consecTrained(S);
   const hist = S.training.sessions.slice(-4).reverse();
-  const ki = S.training.prog.kegel, ks = PROG.kegel[ki];
 
   return (
     <div className="panel reveal" style={{ animationDelay: '.26s' }}>
@@ -67,21 +68,24 @@ export default function Training({ S }) {
               </div>
             );
           })}
-          <div className="trl" data-open={aberta === 'kegel' || kegel.done} style={{ borderLeft: `2px solid ${KLINE.c}` }}>
-            <div className="trl-h" onClick={() => toggle('kegel')} role="button" tabIndex={0}
-                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle('kegel'); } }}>
-              <span style={{ color: KLINE.c }}>{KLINE.n}</span><span className="trl-step">Passo {ki + 1}/{PROG.kegel.length}</span>
-            </div>
-            <div className="trl-ex">{ks.n} · {ks.cyc} ciclos</div>
-            <div className="trl-t">10–15 min · rápidas = 1s/1s · Evolui com 3 dias no alvo ({Math.min(kegelDaysAtStep(S, ki), 3)}/3)</div>
-            <div className="trl-in" style={{ alignItems: 'center' }}>
-              <label className="tr-x"><input type="checkbox" id="tr-kegel-done" checked={kegel.done} onChange={(e) => setKegel((k) => ({ ...k, done: e.target.checked }))} /> Sessão feita</label>
-              <select id="tr-kegel-feel" value={kegel.feel} onChange={(e) => setKegel((k) => ({ ...k, feel: e.target.value }))}>
-                {feelOpts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
-            </div>
-            <div className="trl-t" style={{ marginTop: 6 }}>Respiração normal — se abdominais, glúteos ou coxas contraem, está errado. Diário vale mais que intenso.</div>
-          </div>
+          {/* ── PAVIMENTO PÉLVICO SAIU DAQUI — Fase 7Z, decisão do Daniel ──
+              Estava aqui como QUINTA LINHA DE CALISTENIA, com passos de
+              progressão e XP próprios, ao lado de Empurrar/Puxar/Pernas/Core.
+              E estava também, no mesmo subespaço, como rotina guiada em Corpo e
+              Recuperação. O Operador via "Pavimento Pélvico" duas vezes, com
+              dois modelos diferentes: um com XP e progressão automática, outro
+              sem XP nenhum.
+
+              A decisão formal: Kegel é um TIPO DE EXERCÍCIO dentro de Pavimento
+              Pélvico. Não é módulo independente, não é sessão de calistenia, e
+              não é fonte automática de XP enquanto a regra de domínio não
+              existir.
+
+              O QUE NÃO FOI TOCADO, e é deliberado: `S.training.prog.kegel` e o
+              `lines.kegel` das sessões já registadas continuam no estado, tal
+              como estão. São dados legítimos de treinos que aconteceram mesmo.
+              Zero alterações a schema; o que saiu foi a entrada de dados nova,
+              não o registo do que passou. */}
         </div>
         <div className="addq" style={{ alignItems: 'center' }}>
           <label className="tr-x"><input type="checkbox" id="tr-extra" checked={extra} onChange={(e) => setExtra(e.target.checked)} /> Volume extra (senti facilidade)</label>

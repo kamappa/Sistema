@@ -994,3 +994,36 @@ duas vezes: *o que é que sobra quando isto pára?* Partículas paradas não sã
 queda; uma constelação parada é a constelação. Quando o estado final carrega a
 informação, ela fica; quando o significado estava todo no movimento, sai.
 
+### 2026-07-30 · Fase 7Z — o cancelamento do Oráculo, e a honestidade do que ele faz
+
+A auditoria registou "não há cancelamento" como **ausência e não avaria**. Ao ir
+ler a autoridade do Oráculo antes de mexer, apareceu que não era nem uma coisa
+nem outra: é um **requisito escrito em três sítios** — Constituição §24,
+`14_UI_UX_AND_PRESENCE` e a lista de gates do `18_ACCEPTANCE_GATES`. Estava a
+faltar, não a ser dispensável.
+
+**A decisão de conteúdo é sobre o que a mensagem admite.** Cancelar aborta o
+`fetch` do browser; não pára a Edge Function nem a chamada à API, que pode
+continuar e custar. O caminho fácil era escrever "pergunta cancelada" e deixar
+ficar. A mensagem diz que a espera parou ali e que a chamada pode ter continuado
+e ter tido custo — porque um cancelamento que dá a entender que desfaz o pedido é
+o Sistema a mentir sobre a sua própria capacidade.
+
+**Onde o botão vive** foi escolha, não arrumação: dentro da barra de espera e não
+na barra de envio. É a saída do sítio onde se está preso, e tem de estar onde os
+olhos já estão. Sai quando a espera sai — um Cancelar sempre visível diria que há
+sempre alguma coisa a decorrer.
+
+**O defeito que só o rato encontrou.** Enviar com o rato deixa o foco no botão
+Enviar; esse botão fica `disabled` e leva o foco consigo para o `<body>`. A
+partir daí não havia teclado nenhum. O meu primeiro teste usava `.click()` por
+script, que não move o foco, e passava — **um teste que não mexe no foco não pode
+encontrar um defeito de foco.** A regra que ficou: ao entrar na espera, mexer no
+foco só quando ele já se perdeu; quem enviou com Enter fica onde está.
+
+**E um segundo defeito, este de direção.** Pus `opacity: .72` para o botão ser
+discreto e isso levou-o a 4.0:1, abaixo de AA. O número apanhou-o, mas a escolha
+já estava errada antes: **a única saída de um estado que bloqueia não se esbate.**
+A contenção de um controlo vem de ele ser pequeno e de só existir quando é
+preciso, nunca de ser difícil de ler.
+

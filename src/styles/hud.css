@@ -685,6 +685,20 @@
   .oc-think .dot{width:6px;height:6px;border-radius:50%;background:#a78bfa;animation:ocPulse 1.3s ease-in-out infinite}
   @keyframes ocPulse{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
   @media (prefers-reduced-motion: reduce){.oc-think .dot{animation:none;opacity:.7}}
+  /* CANCELAR (M26·F7Z) — vive dentro do estado de espera, nao na barra de
+     envio: e a saida do sitio onde se esta preso, e tem de estar onde os
+     olhos ja estao. Discreto por defeito, franco no foco e no hover: cancelar
+     nao e a acao que se quer convidar, e a que tem de estar la quando se
+     precisa. Alvo minimo de 32px em altura de toque. */
+  /* DEFEITO MEU, medido e nao visto: a primeira versao tinha opacity:.72 para
+     o botao ser discreto. O violeta #a78bfa a 72% sobre o painel da 4.0:1 —
+     ABAIXO de AA. E a escolha estava errada antes de ser um numero: este e o
+     unico caminho para fora de um estado que bloqueia, e esbatar a saida e o
+     tipo de decisao decorativa que a direcao proibe. A contencao vem de ser
+     pequeno e de so existir durante a espera, nao de ser dificil de ler. */
+  .oc-cancel{margin-left:6px;font-style:normal;min-height:26px}
+  .oc-cancel:hover,.oc-cancel:focus-visible{border-color:#a78bfa}
+  @media (pointer:coarse){.oc-cancel{min-height:32px;padding-inline:12px}}
   .oc-row{display:flex;gap:8px;align-items:stretch}
   .oc-row textarea{flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--ink);font-family:var(--body);font-size:13px;padding:9px 11px;outline:none;resize:none;transition:.15s}
   .oc-row textarea:focus{border-color:#a78bfa}

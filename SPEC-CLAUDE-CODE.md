@@ -2668,6 +2668,87 @@ estava todo no movimento, e por isso a camada sai. Uma constelação imóvel **�
 constelação**: o estado final carrega a informação toda, e só se perde a
 encenação de como lá chegou. Verificado: com `prefers-reduced-motion`, o estado
 fica em `feito` e as estrelas estão à opacidade plena desde o primeiro frame.
+### Fase 7Z · O Oráculo passa a ter cancelamento (CONCLUÍDA 2026-07-30)
+
+**Não é funcionalidade nova.** É um requisito documentado que faltava, e está
+escrito em três sítios da autoridade do Oráculo:
+
+- `SYSTEM-ORACLE-CONSTITUTION`, §24 — a lista do que a automação **não pode
+  remover** inclui *"possibilidade de cancelamento"*;
+- `docs/oracle-governance/14_UI_UX_AND_PRESENCE` — *"Quando pensa: ... permitir
+  cancelar"*;
+- `docs/oracle-governance/18_ACCEPTANCE_GATES` — *"cancelamento"* é gate.
+
+A auditoria de hoje tinha registado a ausência: Escape durante o THINKING não
+interrompia e não havia botão em lado nenhum.
+
+#### O que faz, e o que NÃO faz
+
+Aborta o `fetch` do browser com um `AbortController`. **Não pára a chamada do
+lado do servidor** — a Edge Function continua e a API pode continuar a ser
+cobrada. A mensagem no log diz isso por extenso:
+
+> *Cancelaste a pergunta. A espera parou aqui — mas a chamada pode ter continuado
+> do lado do Oráculo e ter tido custo na mesma. A mensagem não contou para o
+> limite.*
+
+Esconder isso seria dar a entender que cancelar desfaz o pedido. A quota local
+volta atrás porque mede **respostas recebidas**, e quem cancela não recebeu
+nenhuma — a mesma regra que já valia para a falha, e honesta desde que o custo
+não fique escondido.
+
+`AbortError` distingue-se de falha de rede. Confundi-las diria que houve avaria
+quando houve uma decisão.
+
+#### Dois defeitos meus, e o primeiro só apareceu por testar com o rato a sério
+
+**1 · O foco caía no vazio, no caminho mais comum de todos.** Quem envia com o
+rato deixa o foco no botão Enviar. Esse botão fica `disabled` durante a espera —
+e um elemento desativado **perde o foco, que cai para o `<body>`**. Medido:
+`document.activeElement` a `BODY`, e a partir daí o Escape não chegava ao painel.
+O cancelamento por teclado não existia exactamente onde mais faria falta.
+
+A primeira versão do teste usava `botão.click()` por script — que **não move o
+foco** — e dava verde. Só um `Input.dispatchMouseEvent` real reproduziu o
+defeito. Um teste que não mexe no foco não pode encontrar um defeito de foco.
+
+Corrigido: ao entrar na espera, o foco só se move **se já se tiver perdido**, e
+nesse caso vai para o Cancelar — a única ação disponível. Quem envia com Enter
+fica no campo, e aí não se toca: a auditoria anterior verificou de propósito que
+não há roubo de foco durante o THINKING.
+
+**2 · `opacity: .72` punha o botão abaixo de AA.** Pu-la para o botão ser
+discreto. O violeta `#a78bfa` a 72% sobre o painel dá **4.0:1**, abaixo dos 4.5
+exigidos. E a escolha estava errada antes de ser um número: este é o único
+caminho para fora de um estado que bloqueia, e esbater a saída é decoração. A
+contenção vem de o botão ser pequeno e só existir durante a espera.
+
+#### Verificado, e como
+
+Sessão **falsa** no `localStorage` de um perfil isolado (o token não autentica
+nada; serve só para o guarda `if (!user)` deixar passar) e o pedido **retido pelo
+CDP**, que nunca sai do browser — não chega ao Supabase nem à Anthropic e não
+custa nada. Correu a sério: a ação `sendConselho`, o `AbortController`, o `signal`
+no fetch, o ramo `AbortError`, a devolução da quota e a mensagem.
+
+| o que | resultado |
+|---|---|
+| envio com rato real → foco | `BUTTON.oc-cancel` (era `BODY`) |
+| envio por script/teclado → foco | `TEXTAREA#oc-in`, sem roubo |
+| cancelar pelo botão | `busy:false`, quota 11→12, foco volta ao campo |
+| Escape com foco FORA do painel | cancela; foco volta ao campo |
+| `cancelConselho()` fora da espera | `false` — a tecla não é nossa |
+| pergunta no histórico da API | `role` a `null`, como na falha |
+| alvo de toque | 74×26 no rato, 74×36 em ponteiro grosso |
+| pedidos que saíram do browser | zero |
+| erros de consola | zero |
+
+Contraste: o perfil computado do `.oc-cancel` — cor, opacidade, fundo, tamanho e
+peso — é **idêntico ao de 4 dos 5 outros `.mini`** do produto (o quinto é a
+variante `warm`). Não introduz par de cor novo, e por isso herda a auditoria AA
+que já correu. O painel do Conselho não fica visível na montagem headless sem
+sessão real, por isso **não há recorte de ecrã deste botão** — o que se afirma
+aqui é o que foi medido, não o que foi visto.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗
@@ -2690,7 +2771,7 @@ faltar qualquer um destes:
 | Auditoria com dados reais | **FECHADA** — executada read-only; 3 defeitos, 1 da primeira lei |
 | Oráculo · ciclo até ao erro | **FECHADO** — cronologia medida; 4 defeitos corrigidos |
 | Oráculo · INSIGHT (resposta real) | **BLOQUEADO** — só isto precisa de saldo |
-| Oráculo · cancelamento | **NÃO EXISTE** — ausência registada, não avaria |
+| Oráculo · cancelamento | **FECHADO** — implementado; era requisito da Constituição §24 e gate do doc 18 |
 
 O plano da auditoria está em
 `docs/design-references/mission-26/AUDITORIA-CONTA-REAL.md` e inclui as páginas

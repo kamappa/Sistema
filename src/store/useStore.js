@@ -641,6 +641,34 @@ export const useStore = create((set, get) => ({
   // falha NÃO consome quota nem envenena o histórico da API ("o sistema nunca
   // mente"). Teatro/typewriter = fx (deferido). ocMsgs guarda o log de exibição;
   // a história da API deriva das mensagens com role definido.
+  /* ── CANCELAR ─────────────────────────────────────────────────────────
+   * NÃO é funcionalidade nova. É um requisito documentado que faltava:
+   *
+   *   SYSTEM-ORACLE-CONSTITUTION, §24 — a lista do que a automação **não pode
+   *   remover** inclui "possibilidade de cancelamento";
+   *   14_UI_UX_AND_PRESENCE — "Quando pensa: ... permitir cancelar";
+   *   18_ACCEPTANCE_GATES — "cancelamento" é gate.
+   *
+   * A auditoria de 2026-07-30 registou a ausência: Escape durante o THINKING
+   * não interrompia, e não havia botão em lado nenhum.
+   *
+   * ── O QUE ISTO FAZ, E O QUE NÃO FAZ ──
+   * Aborta o `fetch` do browser. **Não pára a chamada do lado do servidor** — a
+   * Edge Function continua e a API pode continuar a ser cobrada. O Sistema
+   * nunca mente, por isso a mensagem no log diz isso por extenso em vez de dar
+   * a entender que cancelar desfaz o pedido.
+   *
+   * A quota local volta atrás porque a quota local mede RESPOSTAS RECEBIDAS, e
+   * quem cancela não recebeu nenhuma. É a mesma regra que já valia para a
+   * falha, e é honesta desde que o custo não seja escondido — e não é. */
+  ocAbort: null,
+  cancelConselho: () => {
+    const a = get().ocAbort;
+    if (!a) return false;
+    a.abort();
+    return true;
+  },
+
   sendConselho: async (text) => {
     if (get().ocBusy) return;
     const qtxt = (text || '').trim(); if (!qtxt) return;
@@ -650,7 +678,8 @@ export const useStore = create((set, get) => ({
     if (!S.oracleChat || S.oracleChat.d !== t) S.oracleChat = { d: t, count: 0 };
     S.oracleChat.count++;
     const userMsg = { cls: 'oc-user', content: qtxt, role: 'user' };
-    set({ ocMsgs: [...get().ocMsgs, userMsg], ocBusy: true, S: { ...S } }); get().save();
+    const abort = new AbortController();
+    set({ ocMsgs: [...get().ocMsgs, userMsg], ocBusy: true, ocAbort: abort, S: { ...S } }); get().save();
     const apiHist = get().ocMsgs.filter((m) => m.role).map((m) => ({ role: m.role, content: m.content })).slice(-8);
     let ok = false;
     try {
@@ -659,6 +688,7 @@ export const useStore = create((set, get) => ({
         method: 'POST',
         headers: { 'content-type': 'application/json', apikey: SUPABASE_ANON, authorization: 'Bearer ' + session.access_token },
         body: JSON.stringify({ messages: apiHist }),
+        signal: abort.signal,
       });
       const j = await r.json().catch(() => ({}));
       if (r.ok && j.reply) { ok = true; set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: j.reply, role: 'assistant' }] }); if (window.Bus) window.Bus.emit('oracle:spoke'); }
@@ -696,7 +726,12 @@ export const useStore = create((set, get) => ({
         set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: conteudo, role: null }] });
       }
     } catch (e) {
-      set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', content: 'Sem ligação ao Oráculo — verifica a rede. A mensagem não contou para o limite.', role: null }] });
+      /* Cancelar e falhar são coisas diferentes, e confundi-las seria dizer que
+         houve avaria quando houve uma decisão. O `AbortError` distingue-as. */
+      const cancelado = e && (e.name === 'AbortError' || abort.signal.aborted);
+      set({ ocMsgs: [...get().ocMsgs, { cls: 'oc-orc', role: null, content: cancelado
+        ? 'Cancelaste a pergunta. A espera parou aqui — mas a chamada pode ter continuado do lado do Oráculo e ter tido custo na mesma. A mensagem não contou para o limite.'
+        : 'Sem ligação ao Oráculo — verifica a rede. A mensagem não contou para o limite.' }] });
     }
     // o sistema nunca mente: chamada falhada devolve a quota e tira a pergunta do histórico da API
     if (!ok) {
@@ -704,7 +739,7 @@ export const useStore = create((set, get) => ({
       const msgs = get().ocMsgs.slice(); const uidx = msgs.map((m) => m.role).lastIndexOf('user'); if (uidx > -1) msgs[uidx] = { ...msgs[uidx], role: null };
       set({ ocMsgs: msgs, S: { ...S2 } }); get().save();
     }
-    set({ ocBusy: false });
+    set({ ocBusy: false, ocAbort: null });
     return {};
   },
 

@@ -75,7 +75,7 @@ function OrcBubble({ content, live, logRef }) {
 }
 
 export default function Conselho() {
-  const { user, ocMsgs, ocBusy, ocQuotaLeft, sendConselho, acceptConselhoMission } = useStore();
+  const { user, ocMsgs, ocBusy, ocQuotaLeft, sendConselho, cancelConselho, acceptConselhoMission } = useStore();
   const [text, setText] = useState('');
   const [accepted, setAccepted] = useState(() => new Set());
   const [thinkIdx, setThinkIdx] = useState(0);
@@ -98,6 +98,63 @@ export default function Conselho() {
   useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [ocMsgs.length, ocBusy]);
 
   function send() { const t = text.trim(); if (!t) return; setText(''); sendConselho(t); }
+
+  /* ── ESCAPE CANCELA, E SÓ ENQUANTO ESPERA ─────────────────────────────
+   * A auditoria de 2026-07-30 registou "não há cancelamento" como ausência.
+   * Escape é a tecla de sair, e uma espera sem saída é a definição de estar
+   * preso — com uma resposta longa deixa de ser defensável.
+   *
+   * O listener vive no PAINEL e não em `window`, e depende de `ocBusy`. É a
+   * lição direta do defeito do Universo, apanhado no mesmo dia: um Escape
+   * registado em `window` sem guarda consumia a tecla em todas as zonas.
+   * Fora da espera, esta tecla não é nossa. */
+  /* ── O FOCO NÃO PODE CAIR NO VAZIO ───────────────────────────────────
+   * DEFEITO MEU, apanhado ao verificar o cancelamento e não ao escrevê-lo.
+   *
+   * Quem envia com o RATO deixa o foco no botão Enviar. Esse botão fica
+   * `disabled` durante a espera — e um elemento desativado perde o foco, que
+   * cai para o `<body>`. Medido: `document.activeElement` a `BODY`. A partir
+   * daí o Escape não chega ao painel e o cancelamento por teclado não existe,
+   * exactamente no caminho mais comum de todos.
+   *
+   * Só se mexe no foco quando ele JÁ SE PERDEU. Quem envia com Enter fica no
+   * campo, e aí não se toca: a auditoria anterior verificou de propósito que
+   * não há roubo de foco durante o THINKING, e escrever a pergunta seguinte
+   * enquanto se espera é um comportamento a preservar. */
+  useEffect(() => {
+    if (!ocBusy) return;
+    const el = panelRef.current;
+    if (!el) return;
+    const a = document.activeElement;
+    const perdido = !a || a === document.body || a === document.documentElement || !el.contains(a);
+    if (!perdido) return;
+    const sair = el.querySelector('.oc-cancel');
+    if (sair) sair.focus();
+  }, [ocBusy]);
+
+  useEffect(() => {
+    if (!ocBusy) return;
+    const el = panelRef.current;
+    if (!el) return;
+    const aoTeclar = (e) => {
+      if (e.key !== 'Escape') return;
+      if (!cancelConselho()) return;
+      e.stopPropagation();
+      // O foco volta ao campo: cancelar é para voltar a perguntar, e deixar o
+      // foco no vazio obrigava a procurá-lo com o rato.
+      const campo = el.querySelector('#oc-in');
+      if (campo) campo.focus();
+    };
+    /* No DOCUMENTO e não no painel, e a razão é a mesma do defeito acima: o
+       foco pode estar legitimamente fora do painel (a barra do Oráculo, a
+       navegação) e a espera continua a ser a coisa que está a acontecer. O que
+       torna isto seguro não é o alvo do listener — é o `if (!ocBusy) return`
+       acima: fora da espera, este efeito nem chega a registar nada, e a tecla
+       volta a ser de quem a quiser. É a lição do Universo, que registava
+       Escape em `window` SEM guarda e a consumia em todas as zonas. */
+    document.addEventListener('keydown', aoTeclar);
+    return () => document.removeEventListener('keydown', aoTeclar);
+  }, [ocBusy, cancelConselho]);
   function accept(idx, mission) { acceptConselhoMission(mission); setAccepted((s) => new Set(s).add(idx)); }
 
   const lastOrc = ocMsgs.map((m) => m.cls).lastIndexOf('oc-orc');
@@ -129,7 +186,27 @@ export default function Conselho() {
           );
         })}
         {ocBusy && (
-          <div className="oc-think"><span className="dot"></span><span className="oc-think-t">{OC_THEATER[thinkIdx]}</span></div>
+          <div className="oc-think">
+            <span className="dot"></span>
+            <span className="oc-think-t">{OC_THEATER[thinkIdx]}</span>
+            {/* O botão vive DENTRO do estado de espera, e não na barra de
+                envio: é a saída do sítio onde se está preso, e tem de estar
+                onde os olhos já estão. Sai quando a espera sai — um botão de
+                cancelar sempre visível diria que há sempre algo a decorrer. */}
+            <button
+              type="button"
+              className="mini oc-cancel"
+              onClick={() => {
+                cancelConselho();
+                /* O botão desaparece com a espera. Sem isto o foco morre com
+                   ele — o mesmo defeito do Enviar, uma linha mais abaixo. */
+                const campo = panelRef.current && panelRef.current.querySelector('#oc-in');
+                if (campo) campo.focus();
+              }}
+            >
+              Cancelar
+            </button>
+          </div>
         )}
       </div>
       <div className="oc-row">

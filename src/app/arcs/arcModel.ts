@@ -21,27 +21,100 @@
  * end}` e nada mais. Isto NÃO inventa campos persistidos: tudo o que não está
  * guardado é derivado na leitura, e derivado da mesma forma em todo o lado.
  *
- * O QUE FICA POR FAZER, e fica dito: `milestone`, `climax` e `archived` são
- * estados do desenho aprovado que o domínio ainda não sabe produzir — não há
- * onde guardar um marco atingido. Aparecem no tipo porque a máquina de estados
- * é a aprovada, e `arcState()` nunca os devolve. Inventá-los aqui seria o
- * Sistema a mostrar um marco que ninguém atingiu.
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  CAPACIDADES — MISSÃO 26 · FASE 7Z, DECISÃO FORMAL DO DANIEL         ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * `milestone`, `climax` e `archived` fazem parte do desenho aprovado e o
+ * DOMÍNIO NÃO OS SABE PRODUZIR: não há onde guardar um marco atingido, um
+ * clímax não tem condição definida, e não existe arquivo de arcos passados.
+ *
+ * Até aqui isto era um COMENTÁRIO a dizer que `arcState()` nunca os devolvia.
+ * Um comentário não é uma garantia — bastava alguém escrever `return
+ * 'milestone'` e o compilador deixava. Agora:
+ *
+ *   · os três SAÍRAM da união `ArcState`. Devolvê-los deixou de compilar;
+ *   · vivem em `ArcGatedState`, um tipo que não é aceite em lado nenhum;
+ *   · `ARC_CAPABILITIES` diz por extenso o que não existe, congelado.
+ *
+ * A regra que acompanha a decisão: sem capacidade, NÃO renderizar controlos,
+ * NÃO mostrar placeholders, NÃO insinuar que está a ser ligado. Documentar que
+ * o domínio ainda não existe — que é o que este bloco faz.
+ *
+ * NOTA HONESTA sobre `preview`: era membro de `ArcState` e nunca foi produzido
+ * por `arcState()`. Não é um estado de ciclo de vida — é uma fase da interface,
+ * e o `ArcPreview` já tinha o seu próprio tipo `Stage` para isso. Saiu da união
+ * por não pertencer lá, não por estar bloqueado.
+ *
+ * NOTA HONESTA sobre `accepted`: está na lista de estados DISPONÍVEIS aprovada
+ * pelo Daniel, e é verdade que é alcançável — mas quem o produz é a cerimónia
+ * (`ArcPreview`, fase `forming`), não `arcState()`. O que fica guardado é
+ * `status: 'active'`, e por isso, à segunda leitura, um arco aceite lê-se como
+ * `active`. O estado existe no ciclo de vida; não existe no que é persistido.
  */
 
 import { SEASON_ARCS } from '../../state/config.js';
 import { seasonArcNow, seasonBounds } from '../../state/world.js';
 import { today, diffDays } from '../../state/dates.js';
 
+/** Os estados que o Sistema sabe produzir hoje. É a lista aprovada. */
 export type ArcState =
   | 'proposed'   // o mundo mudou e espera resposta
-  | 'preview'    // a proposta está aberta em profundidade
-  | 'accepted'   // aceite agora — o estado transitório da cerimónia
+  | 'accepted'   // aceite agora — transitório, produzido pela cerimónia
   | 'active'     // a decorrer
-  | 'milestone'  // POR IMPLEMENTAR no domínio — ver cabeçalho
-  | 'climax'     // POR IMPLEMENTAR no domínio
   | 'completed'  // o período acabou com o arco aceite
-  | 'archived'   // POR IMPLEMENTAR no domínio
   | 'declined';  // ignorado
+
+/** Os estados do desenho aprovado que o DOMÍNIO ainda não sabe produzir.
+ *
+ *  Este tipo existe para o desenho ficar registado e NÃO é aceite em lado
+ *  nenhum: não é parte de `ArcState`, nenhuma função o devolve e nenhum
+ *  componente o recebe. Se um dia o domínio ganhar marcos, o caminho é mover o
+ *  membro daqui para `ArcState` — e nessa altura o compilador vai apontar
+ *  todos os sítios que precisam de saber lidar com ele. */
+export type ArcGatedState = 'milestone' | 'climax' | 'archived';
+
+/* ── AS CAPACIDADES ────────────────────────────────────────────────────
+ * Congeladas. Não são configuração — são um retrato do que o domínio sabe
+ * fazer, e mudá-las em runtime seria fingir uma capacidade.
+ *
+ * Cada uma diz PORQUE não existe, porque "false" sozinho não distingue "ainda
+ * não fizemos" de "não há onde guardar". */
+export const ARC_CAPABILITIES = Object.freeze({
+  /** Marcos atingidos dentro de um arco. `S.worldArc` guarda
+   *  `{id, status, start, end}` — não há campo para marcos, nem regra que
+   *  defina o que é atingir um. */
+  milestones: false,
+  /** Momento de clímax do arco. Nenhuma condição definida no domínio. */
+  climax: false,
+  /** Arquivo de arcos passados. `S.worldArc` guarda UM arco; aceitar o
+   *  seguinte substitui o anterior. Não há histórico para arquivar. */
+  archive: false,
+} as const);
+
+export type ArcCapability = keyof typeof ARC_CAPABILITIES;
+
+/** Verdadeiro só quando o domínio sabe mesmo produzir aquilo.
+ *  Chamar isto antes de renderizar um controlo é a forma de a regra "sem
+ *  capacidade não há controlo" ser verificável em vez de acordada.
+ *
+ *  A leitura é feita pelo CONTRATO (`Record<ArcCapability, boolean>`) e não
+ *  pelos literais. O TypeScript, ao ver que os três valores são `false`,
+ *  estreitava o tipo e recusava a comparação como "sem sobreposição" — o que
+ *  é verdade hoje e deixaria de compilar no dia em que uma passasse a `true`.
+ *  Um guarda que só compila enquanto a resposta é sempre não é inútil. */
+export function hasArcCapability(c: ArcCapability): boolean {
+  const caps: Record<ArcCapability, boolean> = ARC_CAPABILITIES;
+  return caps[c];
+}
+
+/** Mapa do estado bloqueado para a capacidade que o destrancaria. Serve a
+ *  documentação e os testes; não serve para alcançar o estado. */
+export const ARC_GATED_BY: Readonly<Record<ArcGatedState, ArcCapability>> = Object.freeze({
+  milestone: 'milestones',
+  climax: 'climax',
+  archived: 'archive',
+});
 
 /** O motivo visual. É o que a Arc Layer usa para se pintar, e a única coisa
  *  que um arco novo precisa de declarar para existir visualmente. */

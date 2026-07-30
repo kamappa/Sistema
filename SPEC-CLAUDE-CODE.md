@@ -2080,6 +2080,22 @@ de filamentos branco-violeta, densidade em vez de contorno, ponta luminosa em
 cada filamento — rejeitado o bloom a 100%) e **R13** (anéis inclinados como
 fonte de profundidade — rejeitado o HUD ciano e a marca de água).
 
+### Fase 7Z · Capacidades de arco (CONCLUÍDA 2026-07-30)
+
+Decisão formal do Daniel implementada. `milestone`, `climax` e `archived`
+saíram da união `ArcState` e passaram a `ArcGatedState` — um tipo que nenhuma
+função devolve e nenhum componente recebe. **Devolver um deles deixou de
+compilar**, o que substitui um comentário por uma garantia.
+
+`ARC_CAPABILITIES` está congelado e cada entrada declara porque a capacidade
+não existe, e não apenas que não existe. Verificado por ausência: zero
+ocorrências dos três em `src/` fora do `arcModel.ts`.
+
+Duas correções que a revisão obrigou: `preview` saiu da união por ser fase de
+interface e não estado de ciclo de vida; e ficou escrito que `accepted`, embora
+disponível, é produzido pela cerimónia e não por `arcState()` — o que se
+persiste é `status: 'active'`.
+
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 
 Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,

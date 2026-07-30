@@ -705,3 +705,42 @@ das camadas ambiente. A bissecção mostrou que desligar animações uma a uma n
 mudava nada e só esconder a cena devolvia os 16,7ms — o custo era **compor a
 subárvore 3D por software**. Com GPU: 8,3ms. Uma medição num ambiente que não é
 o do utilizador é um sintoma, não um diagnóstico.
+
+### 2026-07-30 · Fase 7Z — capacidades de arco: um comentário não é uma garantia
+
+**Decisão formal do Daniel.** Estados utilizáveis: `proposed`, `accepted`,
+`active`, `completed`, `declined`. Declarados e indisponíveis: `milestone`,
+`climax`, `archived`.
+
+**O que estava errado antes.** Os três indisponíveis eram membros de `ArcState`
+com um comentário a dizer que `arcState()` nunca os devolvia. Isso é um acordo,
+não uma garantia: bastava alguém escrever `return 'milestone'` e o compilador
+deixava passar.
+
+**O que passou a ser.** Saíram da união. Vivem em `ArcGatedState`, um tipo que
+não é aceite em lado nenhum — nenhuma função o devolve, nenhum componente o
+recebe. Devolver um deles **deixou de compilar**. `ARC_CAPABILITIES` está
+congelado e cada entrada diz *porque* não existe, porque `false` sozinho não
+distingue "ainda não fizemos" de "não há onde guardar":
+
+- `milestones` — `S.worldArc` guarda `{id, status, start, end}`. Não há campo
+  para marcos nem regra que defina o que é atingir um.
+- `climax` — nenhuma condição definida no domínio.
+- `archive` — `S.worldArc` guarda **um** arco; aceitar o seguinte substitui o
+  anterior. Não há histórico para arquivar.
+
+**Verificado por ausência:** zero ocorrências de `milestone`, `climax` ou
+`archived` em todo o `src/` fora do próprio `arcModel.ts`. Não há controlos, não
+há placeholders, não há nada a insinuar que está a ser ligado.
+
+**Duas notas honestas que a decisão obrigou a escrever.** `preview` era membro
+de `ArcState` e nunca foi produzido — não é estado de ciclo de vida, é uma fase
+de interface, e o `ArcPreview` já tinha o seu `Stage`. Saiu por não pertencer,
+não por estar bloqueado. E `accepted`, embora aprovado como disponível, é
+produzido pela **cerimónia** e não por `arcState()`: o que fica guardado é
+`status: 'active'`, por isso à segunda leitura um arco aceite lê-se como
+`active`. O estado existe no ciclo de vida; não existe no que é persistido.
+
+**Como se destranca, quando o domínio souber:** mover o membro de
+`ArcGatedState` para `ArcState`. O compilador aponta então todos os sítios que
+precisam de saber lidar com ele — que é exatamente o efeito que se quer.

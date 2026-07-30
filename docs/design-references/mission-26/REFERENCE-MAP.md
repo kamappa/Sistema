@@ -20,10 +20,24 @@ Duas classes de coluna, que não se confundem:
 **Confiança** — `alta` (vista e inequívoca), `média` (vista, leitura discutível),
 `nenhuma` (não vista).
 
-Nesta data: **9 analisadas · 39 inventariadas · 2 inválidas.**
-Atualizado a 2026-07-30 com R13 e R14, abertas para a reconstrução do Universo.
-Nota de contagem: R12 e R14 são o mesmo ficheiro por hash, tal como R22 e R23 —
-abrir R14 fecha R12 na prática, mas a contagem segue os identificadores.
+Nesta data: **30 abertas · 18 por abrir · 2 inválidas** — total 50.
+
+Atualizado a 2026-07-30, Fase 7Z. **As 30 animadas (R01–R30) estão TODAS
+abertas.** Das 18 por abrir, todas são estáticas (S01–S20 menos as duas
+inválidas) — nenhuma foi vista, e por isso nenhuma tem interpretação escrita.
+
+Repartição das 30 animadas por estado:
+**analisadas 15** · **parcialmente úteis 8** · **anti-referências 4** ·
+**rejeitadas 1** · **duplicadas 2**.
+
+Nota de contagem: R12 e R14 são o mesmo ficheiro por hash, tal como R22 e R23.
+Os duplicados são registados como duplicados e não reabertos — abrir duas vezes
+o mesmo conteúdo para o contar como duas análises seria inflacionar o número.
+
+Nota de método, para quem vier a seguir: as folhas por CATEGORIA
+(`SHEET-0X-*.jpg`) estão incompletas — a de `03-universe-materials` mostra 3
+frames para 27 ficheiros, e a das estáticas mostra 8 de 20. A triagem foi feita
+pelas folhas de contacto INDIVIDUAIS, em `98-extracted-frames/<ID>/`.
 
 ## Papéis
 
@@ -188,6 +202,344 @@ presença, e uma presença que explode sem parar é um alarme.
 vem do nível global real — não há um estado "bonito por defeito".
 **Prioridade:** máxima. **Risco:** baixo — a paleta já é a do Sistema.
 
+## Analisadas na Fase 7Z — 2026-07-30
+
+As 21 animadas que faltavam. **Todas abertas** pela folha de contacto do próprio
+ficheiro, em `98-extracted-frames/<ID>/CONTACT-SHEET.jpg`; as folhas por
+categoria (`SHEET-0X`) estavam incompletas e não serviram de triagem — fica
+registado para quem confiar nelas a seguir.
+
+Confiança **alta** em todas, exceto onde dito.
+
+### R02 · `04-panels-instruments/chart` · INFORMATION — parcialmente útil
+736×414 · 5,01 s · 23,98 fps
+
+**Factual:** uma linha quebrada azul-neon a desenhar-se da esquerda para a
+direita, com um ponto luminoso na ponta que a puxa. Termina numa subida.
+
+**Extrair:** o ponto na ponta é o que faz a linha parecer **estar a acontecer**
+em vez de estar desenhada — a extremidade é o presente. E a linha desenha-se em
+vez de aparecer.
+**Rejeitar:** o azul-neon; a tendência sempre a subir, que é um gráfico a
+prometer em vez de a medir; o glow uniforme.
+**Risco de imitação:** médio — é o gráfico de dashboard genérico.
+**Aplicação possível:** a série datada de XP no interior do Núcleo, hoje ausente
+por falta de dois pontos em muitos casos. O ponto-presente na ponta resolveria a
+leitura sem barra.
+**Estado:** parcialmente útil.
+
+### R03 · `03-universe-materials/cometa e estrela` · MOTION — rejeitada
+740×560 · MP4
+
+**Factual:** NÃO é uma referência de produto — é um **tutorial de After
+Effects**. Os frames trazem os nomes dos passos sobrepostos ("Fractal Noise /
+Optical Flares", "Polar Coordinates", "CC Sphere Mesh Warp", "CC Radial Blur /
+Displacement Map / Wave Warp / S. Shake / Camera Lens Blur", "Final"). O
+resultado é um cometa branco de quatro pontas com cauda multicolor.
+
+**Extrair:** nada de utilizável. A forma final — estrela de quatro pontas com
+cauda — já existe no Sistema pelo sigilo e pelas estrelas do céu.
+**Rejeitar:** a cauda arco-íris, proibida por nome pela direção visual; e o
+próprio formato, que é pipeline e não referência.
+**Risco de imitação:** baixo, por ser inutilizável.
+**Estado:** rejeitada. Fica no inventário para ninguém a voltar a abrir à espera
+de uma referência.
+
+### R04 · `07-core-level-events/conquista` · MOTION + LIGHT — analisada
+MP4 · **das mais fortes por aplicar**
+
+**Factual:** uma **coluna de luz violeta entre dois anéis** — um em cima, um em
+baixo — com partículas a subir pelo eixo. Os anéis são concêntricos e têm contas
+discretas no bordo. Paleta violeta pura sobre preto.
+
+**Extrair:** a coluna vertical entre dois anéis como forma de dizer "**algo está
+a ser transferido**"; a passagem de difuso (partículas soltas) a discreto
+(contas alinhadas no anel) como marca de conclusão — mesmo princípio da
+gramática 5; a paleta, que já é a do Sistema sem correção nenhuma.
+**Rejeitar:** a leitura de "portal de videojogo" se a coluna for grossa e opaca;
+a duração longa — no produto isto tem de ser um arco de segundos.
+**Risco de imitação:** médio-alto. É bonito o suficiente para se usar sem
+motivo, e a lei diz que nenhuma animação é decorativa.
+**Aplicação possível:** a cerimónia de aceitação de arco, e a transferência de
+energia do domínio para o Núcleo — que hoje é uma linha fina e podia ser isto.
+Gramática 9: vertical é ascensão.
+**Estado:** analisada.
+
+### R05 · `07-core-level-events/conquista` · ANTI-REFERÊNCIA
+MP4
+
+**Factual:** uma **barra de progresso de MMO** com chama magenta a arder por
+cima, ornamento metálico nas pontas, sobre fundo cinzento.
+
+**Extrair:** só um princípio, e o Sistema já o aplica por outra via — uma
+medida pode ter matéria em vez de preenchimento.
+**Rejeitar:** tudo o resto. Ornamento metálico, moldura, chama constante e fundo
+cinzento, que viola a gramática 6 (luz sobre preto, nunca sobre cinzento). É o
+"gaming HUD" que a direção lista como a evitar.
+**Risco de imitação:** **máximo** se alguém a tomar por referência de progresso.
+**Estado:** anti-referência.
+
+### R06 · `03-universe-materials/constelação` · STRUCTURE + MATERIAL — analisada
+740×560 · 5,04 s · 24 fps
+
+**Factual:** sistema planetário estilizado visto de um ângulo baixo: órbitas
+elípticas concêntricas de espessuras diferentes, um centro de luz branco-azul
+que é um **domo de partículas** e não um disco, planetas com anéis. Ao longo da
+sequência a câmara sobe e o plano das órbitas abre.
+
+**Extrair:** confirma R13 por outra via — a profundidade vem do plano visto de
+ângulo. E acrescenta duas coisas: o centro é **volume de partículas**, não uma
+forma preenchida; e **abrir o plano** (subir a câmara) é uma forma de ganhar
+espaço sem mudar de sítio.
+**Rejeitar:** o azul-ciano; o realismo planetário, que puxa para a simulação
+astronómica em vez do símbolo.
+**Risco de imitação:** médio.
+**Aplicação possível:** os anéis do Universo já usam a inclinação. A abertura do
+plano é candidata à cerimónia de rank, onde hoje se usa escala.
+**Estado:** analisada.
+
+### R07 · `03-universe-materials/constelação` · MOTION — parcialmente útil
+499×281 · 93 fr · 50 fps
+
+**Factual:** um cometa branco a atravessar um campo de estrelas, com cauda azul
+larga e difusa. A cabeça é um ponto branco duro; a cauda perde-se.
+
+**Extrair:** a relação **cabeça dura / cauda difusa**. O que diz a direção do
+movimento não é a cauda, é o contraste entre um ponto nítido e um rasto que se
+desfaz. É exatamente a estrutura da partícula de evidência do Universo, e
+confirma-a a posteriori.
+**Rejeitar:** o azul saturado; a cauda larga, que a esta escala vira mancha.
+**Risco de imitação:** baixo.
+**Estado:** parcialmente útil — confirma uma decisão já tomada em vez de abrir
+uma nova.
+
+### R08 · `03-universe-materials/constelação` · STRUCTURE — anti-referência
+GIF, baixa resolução
+
+**Factual:** um **grafo de nós e arestas** denso, com rótulos de texto ilegíveis,
+um cursor circular ao centro e uma marca de água laranja no canto. Linhas a
+cruzarem-se em todas as direções.
+
+**Extrair:** nada que o Sistema deva usar. É a imagem que a `S09` já tinha
+levantado com dupla classificação.
+**Rejeitar:** a teia. Um grafo onde tudo liga a tudo não diz relação nenhuma —
+diz densidade. A gramática 8 (uma relação desenha-se com um arco) existe
+precisamente contra isto.
+**Risco de imitação:** **alto** — é a imagem que qualquer pessoa desenha quando
+lhe pedem "mapa de conhecimento", e o Sistema tem um Mapa de Conhecimento por
+fazer.
+**Estado:** anti-referência.
+
+### R09 · `04-panels-instruments/icon` · ANTI-REFERÊNCIA
+760×508 · 11,17 s · 30 fps
+
+**Factual:** uma **moldura ornamentada** com cantos barrocos e contorno neon
+roxo, com uma nebulosa cinzenta a mexer-se lá dentro, sobre fundo cinzento.
+
+**Rejeitar:** quatro proibições da direção visual numa só imagem — borda roxa
+em todos os componentes, moldura, neon barato e fundo cinzento.
+**Risco de imitação:** **máximo**, e agravado por estar arquivada em `icon`, o
+que sugere que alguém a considerou para identidade.
+**Estado:** anti-referência.
+
+### R10 · `04-panels-instruments/icone.mp4` · MATERIAL — parcialmente útil
+720×1280 · 5,00 s · 60 fps
+
+**Factual:** uma **chama violeta-azul** sobre preto puro, em loop. Núcleo branco,
+bordos violeta, línguas que sobem e se desfazem.
+
+**Extrair:** a estrutura de temperatura — branco no interior, cor no bordo,
+escuro no exterior. É a mesma que o Núcleo usa, e confirma-a. E a irregularidade:
+a chama nunca repete a forma, que é o que a faz parecer matéria.
+**Rejeitar:** a chama como ícone. Fogo é a metáfora errada para este produto —
+diz consumo, e o Sistema é acumulação.
+**Risco de imitação:** médio.
+**Estado:** parcialmente útil.
+
+### R12 · `07-core-level-events` · DUPLICADA
+720×1280 · 20,04 s · 30 fps
+
+**Duplicada por hash de R14**, já analisada. Não foi reaberta: são o mesmo
+ficheiro, e abrir duas vezes o mesmo conteúdo para o registar como duas
+referências seria inflacionar a contagem.
+**Estado:** duplicada (= R14).
+
+### R16 · `02-oracle-presence` · ANTI-REFERÊNCIA
+720×1280 · 29,21 s · 30 fps
+
+**Factual:** **um olho**. Íris azul-lavanda com pupila negra, dentro de uma forma
+de amêndoa que abre e fecha, sobre um fundo de caracteres de código.
+
+**Extrair:** só um gesto — a **lente que abre e fecha** como estado de atenção
+contra repouso. Isso já existe no sigilo do Oráculo por outra forma.
+**Rejeitar:** o olho, inteiro. Para um assistente, um olho diz **vigilância** e
+não conselho, e é a leitura que a Constituição do Oráculo mais tem a perder —
+está lá escrito que ele não pode ser um chatbot genérico nem imitar personagem
+protegida, e um olho que observa é Sauron ou HAL antes de ser qualquer outra
+coisa. O fundo de código é o cliché de "AI" que a direção proíbe.
+**Risco de imitação:** **máximo**, agravado por estar arquivada na pasta do
+Oráculo — quem lá for buscar uma referência encontra isto primeiro.
+**Estado:** anti-referência.
+
+### R18 · `02-oracle-presence/oracle.gif` · LIGHT — parcialmente útil
+500×375 · 63 fr · 24 fps
+
+**Factual:** uma **esfera de linhas de energia azul** sobre preto — fitas
+luminosas que envolvem um interior escuro, em rotação lenta. O centro é vazio,
+não brilhante.
+
+**Extrair:** **o centro vazio**. A presença é feita pela casca, não pelo miolo —
+e isso resolve o problema de uma esfera luminosa parecer um assistente genérico:
+o que se vê é uma superfície em movimento, não uma bola acesa.
+**Rejeitar:** o azul elétrico; a densidade das fitas, que a esta escala vira
+novelo.
+**Risco de imitação:** alto — esfera luminosa = "AI assistant", o mesmo risco já
+registado em R19.
+**Aplicação possível:** o Oráculo Ambient já usa respiração; o centro vazio é
+uma alternativa por explorar ao estado `thinking`.
+**Estado:** parcialmente útil.
+
+### R20 · `03-universe-materials/outono` · MATERIAL — parcialmente útil
+1280×720 · 14,95 s · 29,97 fps
+
+**Factual:** folhas de outono a cair, desfocadas em vários planos, sobre um fundo
+verde-acinzentado. Partículas pequenas entre as folhas.
+
+**Extrair:** o **parallax por desfoque** — três profundidades distinguidas só
+pela nitidez, sem mudar de tamanho. E a mistura de dois tamanhos de matéria
+(folhas grandes, partículas pequenas) na mesma queda.
+**Rejeitar:** o fundo verde-acinzentado (gramática 6) e o realismo fotográfico —
+o Sistema é simbólico, e uma folha fotográfica num céu de símbolos é uma colagem.
+**Risco de imitação:** baixo.
+**Aplicação possível:** o arco Harvest, se a camada sazonal ganhar matéria.
+**Estado:** parcialmente útil.
+
+### R21 · `03-universe-materials/primavera` · MATERIAL + INFORMATION — analisada
+720×1280 · 171,02 s · 30 fps · **das mais fortes por aplicar**
+
+**Factual:** flores de cerejeira sobre preto puro, com **caixas de deteção e
+valores de confiança sobrepostos** — retângulos brancos finos, linhas-guia entre
+pontos, e números como `0.90000004`, `0.7`, `1.2`. Matéria orgânica por baixo,
+instrumento analítico por cima. Nos bordos a matéria desfaz-se em partículas.
+
+**Extrair:** esta é a relação inteira do Sistema numa imagem — **o mundo é
+matéria, o instrumento mede-o**, e os dois coexistem sem que um vire decoração do
+outro. Caixas finas e brancas, linhas-guia entre pontos medidos, tipografia de
+dados pequena. A paleta magenta-violeta já é a certa.
+**Rejeitar:** os números como textura. `0.90000004` é ruído de vírgula flutuante
+a fingir precisão, e no Sistema um número que aparece tem de ser real —
+a lei "o Sistema mostra provas, não sinais".
+**Risco de imitação:** médio. O risco não é estético, é ético: copiar a
+*aparência* de medição sem medir nada é exatamente a mentira que o projeto
+proíbe.
+**Aplicação possível:** o arco Bloom; e a linguagem "instrumento sobre matéria"
+que a zona Universo já usa sem a ter nomeado.
+**Estado:** analisada.
+
+### R22 · `03-universe-materials/primavera` · MATERIAL — analisada
+720×1280 · 15,07 s · 30 fps
+
+**Factual:** um **ramo de cerejeira a florir em time-lapse** sobre preto puro. Os
+botões abrem em sequência de baixo para cima; no fim a imagem escurece.
+
+**Extrair:** **a floração como sequência e não como estado**. O ramo não aparece
+florido — floresce, e a ordem é legível. É o argumento visual para a progressão
+por acumulação em vez de por preenchimento, e a única referência da biblioteca
+que mostra *tempo biológico*.
+**Rejeitar:** o realismo botânico; o escurecimento final, que é fim de clipe e
+não fim de arco.
+**Risco de imitação:** baixo.
+**Aplicação possível:** o arco Bloom, e a formação de uma constelação de domínio
+— hoje as estrelas aparecem todas de uma vez.
+**Estado:** analisada.
+
+### R23 · `03-universe-materials/primavera` · DUPLICADA
+720×1280 · 15,07 s · 30 fps
+
+**Duplicada por hash de R22.** Não reaberta, pela mesma razão de R12.
+**Estado:** duplicada (= R22).
+
+### R24 · `04-panels-instruments/radar` · INFORMATION — analisada
+736×414 · 7,57 s · 30 fps
+
+**Factual:** duas partes. Primeiro, um **alvo circular de HUD** que se compõe por
+camadas — anéis concêntricos, arcos segmentados, contas, tracejados — a partir de
+um ponto. Depois, um **campo de arestas** azul com um clarão central.
+
+**Extrair:** a **composição por camadas a partir de um ponto**: o alvo não aparece
+feito, monta-se de dentro para fora, e cada camada acrescenta precisão. É uma
+forma de dizer "a focar" que não é um spinner.
+**Rejeitar:** tudo o resto — o ciano, os arcos segmentados de HUD de ficção
+científica, a barra diagonal de varrimento e o campo de arestas, que é o mesmo
+erro de R08.
+**Risco de imitação:** **alto**. O Radar do Sistema já esteve perto disto e foi
+salvo por passar o eixo para o tempo; esta referência puxa-o de volta.
+**Estado:** analisada, com a ressalva de que o valor está na *ordem de montagem*
+e não em nada do que se vê.
+
+### R27 · `01-shell-navigation/sistema` · LIGHT — analisada
+Imagem única (não é vídeo — ver gramática 11)
+
+**Factual:** uma **onda de luz violeta horizontal** sobre preto: camadas de véu
+sobrepostas, com uma zona central de linhas finas paralelas que dá textura. As
+extremidades desvanecem.
+
+**Extrair:** a paleta é exatamente a do Sistema, sem correção. E a estrutura da
+onda — véu largo por fora, **linhas discretas por dentro** — é a mesma passagem
+de difuso a discreto da gramática 5, mas em repouso em vez de em transição.
+**Rejeitar:** a moldura clara à volta, que é do ficheiro e não do conteúdo.
+**Risco de imitação:** baixo.
+**Nota de registo:** a gramática 11 diz que "a referência da transição entre
+zonas é um PNG estático — não existe". Estava certa quanto a não haver vídeo, e
+**incompleta**: a imagem existe e tem conteúdo utilizável. Corrigido lá.
+**Estado:** analisada.
+
+### R28 · `03-universe-materials/verão` · MATERIAL — parcialmente útil
+720×1280 · 8,83 s · 30 fps
+
+**Factual:** **reflexo do sol na água ao pôr-do-sol** — uma coluna vertical de luz
+dourada que se parte em centenas de lascas brilhantes sobre ondulação escura.
+
+**Extrair:** **uma fonte de luz vista através de matéria irregular vira muitos
+pontos**. É a explicação física do céu do Sistema: uma só origem, muitas
+estrelas. E a coluna vertical mantém-se legível apesar de ser feita de fragmentos
+soltos — coerência sem continuidade.
+**Rejeitar:** o dourado saturado; o realismo fotográfico.
+**Risco de imitação:** baixo.
+**Estado:** parcialmente útil.
+
+### R29 · `03-universe-materials/winter` · MATERIAL — parcialmente útil
+1024×576 · 14,40 s · 50 fps
+
+**Factual:** **flocos de neve brancos a cair sobre preto puro**, com densidade a
+aumentar ao longo do clipe. Tamanhos variados; alguns flocos são estrelas de seis
+pontas nítidas, a maioria são riscos.
+
+**Extrair:** as **duas populações** — poucos objetos definidos e muitos traços
+indistintos. É a distribuição que o céu do Sistema já usa nas estrelas e nos
+filamentos do Núcleo, e esta é a referência que a justifica. E a densidade a
+crescer como forma de dizer intensidade sem mudar nada mais.
+**Rejeitar:** a queda vertical constante, que num céu diz chuva e não espaço.
+**Risco de imitação:** baixo — o preto puro e o branco são a base do produto.
+**Estado:** parcialmente útil.
+
+### R30 · `03-universe-materials/winter` · MATERIAL — parcialmente útil
+600×338 · 35 fr · 7 fps
+
+**Factual:** macro de um **cristal de gelo** com profundidade de campo curta —
+o cristal nítido ao centro, bokeh azul e âmbar à volta. 7 fps: o movimento é
+quase uma sequência de fotografias.
+
+**Extrair:** **estrutura hexagonal cristalina** como forma de "consolidado" —
+o oposto exato do difuso. E o bokeh: luzes fora de foco são profundidade barata e
+legível.
+**Rejeitar:** o âmbar no bokeh, que suja a paleta; e os 7 fps, que no produto
+seriam lidos como falha.
+**Risco de imitação:** baixo.
+**Aplicação possível:** o arco Winter; e a forma cristalina como alternativa ao
+círculo para uma estrela consolidada.
+**Estado:** parcialmente útil.
+
 ## Inventariadas — medidas, por interpretar
 
 Todas têm 12 frames e contact sheet em `98-extracted-frames/`. Confiança
@@ -195,30 +547,9 @@ Todas têm 12 frames e contact sheet em `98-extracted-frames/`. Confiança
 
 | ID | Categoria | Resolução | Duração | FPS | Papel provável |
 |---|---|---|---|---|---|
-| R02 | 04-panels · chart | 736×414 | 5,01 s | 23,98 | INFORMATION |
-| R03 | 03-universe · cometa e estrela | 720×480 | 11,88 s | 25 | MOTION |
-| R04 | 07-core · conquista | 256×144 | 11,33 s | 30 | MOTION |
-| R05 | 07-core · conquista | 760×508 | 10,97 s | 30 | MOTION |
-| R06 | 03-universe · constelação | 740×560 | 5,04 s | 24 | STRUCTURE |
-| R07 | 03-universe · constelação | 499×281 | 93 fr | 50 | STRUCTURE |
-| R09 | 04-panels · icon | 760×508 | 11,17 s | 30 | IDENTITY |
-| R10 | 04-panels · icone.mp4 | 720×1280 | 5,00 s | 60 | IDENTITY |
-| R12 | 07-core · núcleo | 720×1280 | 20,04 s | 30 | MOTION ⧉ |
-| R13 | 07-core · núcleo | 500×281 | 72 fr | ~33 | MATERIAL — **ABERTA 2026-07-30** |
-| R14 | 07-core · aproximação ao núcleo | 720×1280 | 20,04 s | 30 | MOTION ⧉ — **ABERTA 2026-07-30** |
-| R16 | 02-oracle | 720×1280 | 29,21 s | 30 | LIGHT |
-| R18 | 02-oracle · oracle.gif | 500×375 | 63 fr | 24 | LIGHT |
-| R20 | 03-universe · outono | 1280×720 | 14,95 s | 29,97 | MATERIAL |
-| R21 | 03-universe · primavera | 720×1280 | 171,02 s | 30 | MATERIAL |
-| R22 | 03-universe · primavera | 720×1280 | 15,07 s | 30 | MATERIAL ⧉ |
-| R23 | 03-universe · primavera | 720×1280 | 15,07 s | 30 | MATERIAL ⧉ |
-| R24 | 04-panels · radar | 736×414 | 7,57 s | 30 | INFORMATION |
-| R28 | 03-universe · verão | 720×1280 | 8,83 s | 30 | MATERIAL |
-| R29 | 03-universe · winter | 1024×576 | 14,40 s | 50 | MATERIAL |
-| R30 | 03-universe · winter | 600×338 | 35 fr | 7 | MATERIAL |
-
-⧉ duplicado por hash: R12=R14, R22=R23.
-
+_As 21 animadas que estavam nesta tabela foram abertas e passaram para a secção
+"Analisadas na Fase 7Z", acima. A tabela de inventário animado deixou de existir
+porque deixou de ter linhas._
 ### Estáticas (20) — medidas, nenhuma aberta
 
 | ID | Categoria | Resolução | | ID | Categoria | Resolução |

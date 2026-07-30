@@ -2135,6 +2135,51 @@ de universe mostra 3 frames para 27 ficheiros). A triagem útil é a folha de
 contacto individual de cada referência.
 
 Zero alterações a código — condição explícita do Daniel.
+### Fase 7Z · Performance mobile — medida (CONCLUÍDA 2026-07-30)
+
+**O QUE ESTES NÚMEROS SÃO, e é a primeira coisa a dizer:** Chrome desktop a
+emular 390×844 com DPR 2. O CPU e a GPU são os desta máquina. Servem para
+comparar cenários entre si e para apanhar regressões — **não são FPS de
+dispositivo real** e não prometem 60 FPS ao Daniel num telemóvel.
+
+Duas passagens, e a distinção não é pedantismo: nesta missão já confundi as
+duas uma vez e cheguei a uma conclusão errada sobre a causa de um custo.
+
+| cenário | GPU (real) | sem GPU (limite inferior) |
+|---|---|---|
+| shell em repouso | 8,3 ms · p95 8,4 | 16,7 ms · p95 16,8 |
+| troca rápida de 4 zonas | 8,3 · p95 8,4 | 16,7 · p95 16,8 |
+| Universo overview | 8,3 · p95 8,4 | 16,7 · p95 16,7 |
+| Universo domínio | 8,3 · p95 8,4 | 16,7 · p95 16,7 |
+| Universo Núcleo (escala 4) | 8,3 · p95 8,4 | 16,7 · p95 16,7 |
+| Oráculo ambient | 8,3 · p95 8,4 | 16,7 · p95 16,7 |
+| Reflexão | 8,3 · p95 8,4 | 16,7 · p95 16,7 |
+
+**Zero frames acima de 33 ms e zero long tasks em todos os catorze cenários,
+nas duas passagens.** Memória: 23–27 MB de heap JS. Zero erros de consola.
+
+Sistemas ativos por cenário: 64 animações no shell, 102 no Universo em
+overview e domínio, 125 na chegada ao Núcleo (as camadas do interior). 11
+elementos com `filter`, **zero com `backdrop-filter`** — o que confirma que a
+proibição de `filter` em área grande está a ser respeitada.
+
+**DPR: o canvas NÃO segue o `devicePixelRatio` de 2.** Medido: o canvas
+principal tem backing store 390×844 para uma caixa CSS de 390×844 (DPR 1), e o
+das Constelações tem 513×588 para 342×392 (DPR ~1,5). Não sei dizer se é
+limitação deliberada ou omissão — está medido, não julgado, e fica como item
+para quem tocar no palco.
+
+**Tab escondida:** o Universo pausa (0 animações suas). As 64 do shell continuam
+com `playState: running`. Não é necessariamente uma fuga — o browser estrangula
+o render quando a tab está oculta — mas **não foi medido** se há trabalho real a
+acontecer, e por isso não é afirmado que não há.
+
+**NÃO MEDIDO, dito por extenso em vez de inferido:** tempo até interação (a
+sonda falhou e o valor saiu `null`); Conselho, War Room e Oráculo Thinking
+sob carga; tier lite; e o comportamento em hardware móvel verdadeiro.
+
+**Nenhuma otimização foi feita**, porque a medição não encontrou nada que a
+justificasse. Otimizar sem número é adivinhar.
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 
 Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,

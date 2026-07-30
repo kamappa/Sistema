@@ -130,3 +130,79 @@
     transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 0.9)) scaleX(0.82);
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+ * GRAMÁTICA 15 — A FORMA ANTES DA COR E DO RITMO. Missão 26 · Fase 7Z.
+ * Origem: S05. Ver o cabeçalho de OracleSigil.tsx para o raciocínio.
+ *
+ * Cada estado tem uma silhueta própria, e a prova é esta: apaga o ritmo
+ * (reduced motion) e a cor (escala de cinzentos) e os quatro continuam a
+ * distinguir-se.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* ── ATENTO · o nó ─────────────────────────────────────────────────────
+ * Um traço vertical onde os três filamentos se cruzam. Diz "há aqui alguma
+ * coisa" com um elemento, e é a marca mais barata que se lê a 64×20.
+ */
+.sys-oracle-sigil .sig-no {
+  fill: none;
+  stroke: rgb(var(--sys-violet-rgb) / var(--sys-o-88));
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+  /* Cresce com o número de sinais: um sinal é um risco curto, quatro é um nó
+     inteiro. A amplitude continua a informar — deixou é de estar sozinha. */
+  transform: scaleY(calc(0.45 + var(--sig-amp, 0) * 0.55));
+  animation: sys-sigil-no var(--sys-cycle-attend) var(--sys-ease-breath) infinite;
+}
+@keyframes sys-sigil-no {
+  0%, 100% { transform: scaleY(calc(0.45 + var(--sig-amp, 0) * 0.55)); }
+  50%      { transform: scaleY(calc(0.58 + var(--sig-amp, 0) * 0.62)); }
+}
+
+/* ── ALERTA · a quebra ─────────────────────────────────────────────────
+ * A linha portadora parte-se ao meio e ficam duas barras curtas a marcar o
+ * intervalo. Uma linha partida lê-se como interrupção em qualquer paleta,
+ * parada, e em escala de cinzentos. A cor magenta fica — deixou é de ser a
+ * única diferença entre isto e "tenho algo para ti".
+ */
+/* Partem-se os TRÊS, não só o portador. Medido numa folha em escala de
+   cinzentos: com só o `f2` partido, os outros dois continuavam contínuos por
+   cima e o intervalo não se via — a quebra existia no DOM e não na imagem.
+   Uma descontinuidade que não se vê não é uma descontinuidade.
+   Os desfasamentos diferentes fazem o intervalo abrir em três sítios próximos
+   em vez de um corte limpo, o que lê melhor a esta escala: parece a linha a
+   falhar, não a linha cortada com tesoura. */
+.sys-oracle-sigil[data-forma='alerta'] .fil {
+  stroke-dasharray: 26 12;
+}
+.sys-oracle-sigil[data-forma='alerta'] .f1 { stroke-dashoffset: -4; }
+.sys-oracle-sigil[data-forma='alerta'] .f2 { stroke-dashoffset: 0; }
+.sys-oracle-sigil[data-forma='alerta'] .f3 { stroke-dashoffset: 4; }
+.sys-oracle-sigil .sig-quebra {
+  fill: none;
+  stroke: rgb(var(--sys-magenta-rgb, 244 114 182) / var(--sys-o-88));
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* ── A PROCESSAR · a retração ──────────────────────────────────────────
+ * Os filamentos recolhem-se para o centro e as pontas esvaziam. É a mesma
+ * gramática da contração que já cá estava (R17), mas agora deixa marca na
+ * FORMA e não só no movimento: parado, o sigilo do "a processar" é mais curto
+ * do que os outros três, e isso vê-se.
+ */
+.sys-oracle-sigil[data-forma='processar'] .fil {
+  stroke-dasharray: 30 64;
+  stroke-dashoffset: -17;
+}
+
+/* ── A PROVA ───────────────────────────────────────────────────────────
+ * Em reduced motion tudo isto fica PARADO e os quatro estados continuam
+ * distintos: contínuo / com nó / partido / curto. É o argumento inteiro da
+ * gramática 15 — se aqui falhasse, a regra não valia nada.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sys-oracle-sigil .sig-no { animation: none; }
+}

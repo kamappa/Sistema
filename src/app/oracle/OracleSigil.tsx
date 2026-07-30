@@ -15,8 +15,32 @@
  * 7,2 s. Vários sinais → mais amplitude e ciclo de 3,4 s. Não existe um estado
  * "bonito por defeito": o repouso é o mínimo de movimento que ainda se vê.
  *
- * REDUCED MOTION: o ciclo pára, a amplitude fica. É informação — quem não pode
- * ver movimento continua a distinguir três sinais de nenhum.
+ * REDUCED MOTION: o ciclo pára, a forma fica. É informação — quem não pode ver
+ * movimento continua a distinguir os quatro estados.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  GRAMÁTICA 15 — A FORMA ANTES DA COR E DO RITMO. Fase 7Z.            ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * ORIGEM: S05, aberta na análise das referências. Mostra três estados
+ * cognitivos distinguidos por FORMA — ramificação, dois núcleos a puxar,
+ * dispersão — todos brancos sobre preto, sem cor e sem ritmo a ajudar.
+ *
+ * O QUE ISTO CORRIGE. Até aqui os quatro estados deste sigilo diferiam em
+ * amplitude, ritmo e cor. Cada um desses canais falha sozinho:
+ *   · o RITMO desaparece inteiro em `prefers-reduced-motion`;
+ *   · a COR falha para quem não distingue violeta de magenta — e era essa
+ *     exatamente a diferença entre "tenho algo" e "há um prazo vencido";
+ *   · a AMPLITUDE é um eixo só, e estava a carregar dois significados.
+ *
+ * Agora cada estado tem uma SILHUETA própria, legível parada e em cinzento:
+ *
+ *   repouso     ─  três ondas contínuas, amplitude mínima
+ *   atento      ┼  as ondas ganham um NÓ: um traço vertical onde se cruzam
+ *   alerta      ╌  o filamento portador PARTE-SE ao meio; fica um intervalo
+ *   a processar ▪  os filamentos RETRAEM-SE para o centro; as pontas esvaziam
+ *
+ * A cor e o ritmo continuam lá. Deixaram é de ser o único canal.
  */
 
 import './oracle-sigil.css';
@@ -45,9 +69,15 @@ export default function OracleSigil({
   // faixa de 20px de altura, e fingir que é seria precisão falsa.
   const amp = Math.min(signals, 4) / 4;
 
+  /* A precedência é a da urgência, e um estado de cada vez: processar tapa
+     tudo porque é o que está a acontecer AGORA; o alerta vem antes de "tenho
+     algo" porque um prazo vencido não espera. */
+  const forma = busy ? 'processar' : alert ? 'alerta' : signals > 0 ? 'atento' : 'repouso';
+
   return (
     <span
       className="sys-oracle-sigil"
+      data-forma={forma}
       data-attending={signals > 0 ? 'true' : 'false'}
       data-alert={alert ? 'true' : 'false'}
       data-busy={busy ? 'true' : 'false'}
@@ -65,6 +95,23 @@ export default function OracleSigil({
         <path className="fil f1" d="M0 10 Q 8 5 16 10 T 32 10 T 48 10 T 64 10" />
         <path className="fil f2" d="M0 10 Q 10 15 21 10 T 43 10 T 64 10" />
         <path className="fil f3" d="M0 10 Q 6 7 13 10 T 26 10 T 39 10 T 52 10 T 64 10" />
+
+        {/* O NÓ de "atento". Um traço vertical curto onde os filamentos se
+            cruzam — a marca mais barata que se lê a 64×20 sem cor nenhuma.
+            Só existe neste estado; não é um elemento escondido com opacidade
+            zero, porque um elemento invisível continua a custar layout. */}
+        {forma === 'atento' && <path className="sig-no" d="M32 4 L32 16" />}
+
+        {/* O SINAL DE ALERTA é uma DESCONTINUIDADE, não uma cor. Duas barras
+            curtas de cada lado do intervalo: a linha portadora parte-se, e uma
+            linha partida lê-se como interrupção em qualquer paleta e sem
+            movimento nenhum. */}
+        {forma === 'alerta' && (
+          <>
+            <path className="sig-quebra" d="M26 10 L28 10" />
+            <path className="sig-quebra" d="M36 10 L38 10" />
+          </>
+        )}
       </svg>
     </span>
   );

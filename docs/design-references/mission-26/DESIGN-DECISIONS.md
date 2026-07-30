@@ -882,3 +882,36 @@ Conhecimento. As duas estão agora marcadas no sítio onde estão.
 
 **Nenhum código foi alterado nesta análise.**
 
+### 2026-07-30 · Fase 7Z — o sigilo do Oráculo ganha quatro silhuetas
+
+**Primeira aplicação da gramática 15**, que saiu da análise das referências duas
+horas antes. É deliberado que a primeira seja aqui: o sigilo é a presença do
+Oráculo em três sítios do produto, e era o sítio onde o problema era pior.
+
+**O diagnóstico.** Quatro estados, três canais — amplitude, ritmo, cor — e todos
+frágeis. O pior era a cor: violeta contra magenta separava "tenho algo para ti"
+de "há um prazo vencido", e esse é precisamente o par que uma deuteranopia não
+distingue. Duas mensagens opostas no canal mais falível.
+
+**A escolha das formas** seguiu uma regra: cada uma tem de significar o que
+mostra, não ser um símbolo arbitrário.
+
+- **repouso** — linha contínua e quase plana. Sem sinais, não há onda.
+- **atento** — um **nó** onde os filamentos se cruzam. Há aqui alguma coisa, e
+  está num sítio. O nó cresce com o número de sinais, por isso a amplitude
+  continua a informar — deixou é de estar sozinha.
+- **alerta** — a linha **parte-se**. Uma interrupção é a única forma que diz
+  "isto não está a correr" sem recorrer a vermelho nem a piscar. E a
+  Constituição pede um moderador, não um alarme: uma quebra é séria e é calada.
+- **a processar** — os filamentos **retraem-se**. É a mesma gramática da
+  contração que já lá estava (R17), mas agora deixa marca na forma: parado, o
+  sigilo a processar é visivelmente mais curto do que os outros três.
+
+**O teste que decide, e devia ser rotina:** render os estados lado a lado em
+reduced motion e em escala de cinzentos. Se se confundirem assim, a distinção
+não existe — existe só enquanto tudo corre bem para quem está a olhar.
+
+Foi esse teste que apanhou a primeira versão do alerta: só o portador se partia,
+os outros dois passavam por cima, e o intervalo não se via na imagem apesar de
+existir no DOM.
+

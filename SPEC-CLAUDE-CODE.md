@@ -2432,6 +2432,45 @@ Botão `disabled` tomado por inerte; seletor a apanhar um `<svg>` filho; War Roo
 julgado não montado quando vive no painel lateral; e agora uma zona `inert`
 tomada por ativa. **Nos quatro assumi o contexto em vez de o verificar** — e nos
 quatro a verificação encontrou algo real que a suposição teria escondido.
+### Fase 7Z · Gramática 15 aplicada ao Oráculo (CONCLUÍDA 2026-07-30)
+
+A regra que a análise das referências produziu, aplicada ao sítio que mais
+precisava dela: **a forma antes da cor e do ritmo**. Origem S05.
+
+**O que estava errado.** Os quatro estados do sigilo diferiam em amplitude,
+ritmo e cor. Cada um desses canais falha sozinho: o ritmo desaparece inteiro em
+`prefers-reduced-motion`; a cor falha para quem não distingue violeta de
+magenta — e era essa exatamente a diferença entre "tenho algo" e "há um prazo
+vencido"; e a amplitude é um eixo só a carregar dois significados.
+
+**Cada estado passou a ter silhueta própria:**
+
+| estado | forma | como se lê parado |
+|---|---|---|
+| repouso | três ondas contínuas, amplitude mínima | linha quase plana |
+| atento | as ondas ganham um **nó** vertical onde se cruzam | onda com marca ao centro |
+| alerta | os três filamentos **partem-se** ao meio | linha interrompida |
+| a processar | os filamentos **retraem-se** para o centro | traço curto |
+
+A cor e o ritmo continuam lá. Deixaram é de ser o único canal.
+
+**A prova, e é o ponto todo:** renderizados lado a lado em
+`prefers-reduced-motion` **e** em escala de cinzentos — sem ritmo e sem cor — os
+quatro continuam inconfundíveis. Se aqui falhasse, a gramática 15 não valia nada.
+
+**Uma correção a meio, encontrada por olhar para a folha.** Na primeira versão
+só o filamento portador se partia no alerta; os outros dois passavam-lhe por
+cima e o intervalo **não se via**. A quebra existia no DOM e não na imagem — e
+uma descontinuidade que não se vê não é uma descontinuidade. Passaram a partir-se
+os três, com desfasamentos diferentes para o intervalo parecer a linha a falhar
+e não a linha cortada com tesoura.
+
+O nó e as barras de quebra **não existem** nos outros estados — não são elementos
+com opacidade zero. Um elemento invisível continua a custar layout, e a lei diz
+que nada se mostra sem estado real por trás.
+
+Verificado: 115 elementos sem falhas de contraste AA, três sigilos reais na
+aplicação com as animações a correr, zero erros de consola.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

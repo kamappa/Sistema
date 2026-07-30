@@ -30,18 +30,61 @@ export default function Calendar({ S }) {
   const tT = today();
   const okD = new Set((S.history || []).filter((h) => h.v > 0).map((h) => h.d));
 
+  /* Missão 26 · Fase 6F — OS ESTADOS DA CÉLULA.
+   *
+   * O que existia: `today` e `past-ok`. Clicar num dia mudava o campo de data
+   * do formulário e mais nada — não havia forma de ver qual estava escolhido,
+   * e a célula era um `<div>` com `onClick`: invisível ao teclado e sem estado
+   * para um leitor de ecrã.
+   *
+   * O que passa a existir, e nenhum depende só de cor:
+   *   hoje        · ponto interno (luz)
+   *   selecionado · contorno
+   *   evento      · marca inferior
+   *   prazo       · filete lateral; urgente muda a cor E a espessura
+   *   passado ok  · filete em baixo
+   *   fora do mês · sem célula, e fora da ordem de tabulação
+   *
+   * Hoje e selecionado são MARCAS DIFERENTES de propósito: podem coexistir no
+   * mesmo dia, e se fossem a mesma linguagem seria impossível saber qual é.
+   */
+  const deadlines = (S.objectives || []).filter((o) => o.status !== 'done' && o.deadline);
+
   const cells = [];
   WD.forEach((w) => cells.push(<div className="cal-wd" key={'wd' + w}>{w}</div>));
-  for (let i = 0; i < startDay; i++) cells.push(<div className="cal-cell empty" key={'e' + i} />);
+  for (let i = 0; i < startDay; i++) {
+    // Fora do mês: continua a ocupar a grelha (a 7×6 não se comprime) mas não
+    // é um alvo nem entra na tabulação.
+    cells.push(<div className="cal-cell empty" key={'e' + i} aria-hidden="true" />);
+  }
   for (let d = 1; d <= ndays; d++) {
     const ds = calY + '-' + String(calM + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
     const evs = S.events.filter((e) => e.date === ds);
+    const dls = deadlines.filter((o) => o.deadline === ds);
+    const urgent = dls.length > 0 && daysUntil(ds) <= 2;
+    const isToday = ds === tT;
+    const isSel = evDate === ds;
+    const label = [
+      new Date(ds).toLocaleDateString('pt-PT', { day: 'numeric', month: 'long' }),
+      isToday ? 'hoje' : null,
+      evs.length ? `${evs.length} ${evs.length === 1 ? 'evento' : 'eventos'}` : null,
+      dls.length ? `${dls.length} ${dls.length === 1 ? 'prazo' : 'prazos'}${urgent ? ' urgente' : ''}` : null,
+    ].filter(Boolean).join(', ');
+
     cells.push(
-      <div className={`cal-cell ${ds === tT ? 'today' : ''}${ds < tT && okD.has(ds) ? ' past-ok' : ''}`} key={ds} onClick={() => pickDay(ds)} title={evs.map((e) => e.title).join(', ')}>
-        <div className="cal-num">{d}</div>
-        <div className="cal-dots">{evs.slice(0, 4).map((e, i) => <span className="cal-dot" key={i} style={{ background: (EVT[e.type] || EVT.outro).c }} />)}</div>
-        {evs.length > 0 && <div className="cal-ev">{evs[0].title}</div>}
-      </div>
+      <button
+        type="button"
+        className={`cal-cell${isToday ? ' today' : ''}${isSel ? ' sel' : ''}${ds < tT && okD.has(ds) ? ' past-ok' : ''}${dls.length ? ' has-dl' : ''}${urgent ? ' dl-urgent' : ''}`}
+        key={ds}
+        onClick={() => pickDay(ds)}
+        aria-pressed={isSel}
+        aria-label={label}
+        title={[...evs.map((e) => e.title), ...dls.map((o) => '⚑ ' + o.title)].join(', ')}
+      >
+        <span className="cal-num">{d}</span>
+        <span className="cal-dots">{evs.slice(0, 4).map((e, i) => <span className="cal-dot" key={i} style={{ background: (EVT[e.type] || EVT.outro).c }} />)}</span>
+        {evs.length > 0 && <span className="cal-ev">{evs[0].title}</span>}
+      </button>
     );
   }
 

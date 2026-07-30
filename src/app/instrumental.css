@@ -1444,3 +1444,64 @@ body:has(.sys-instrumental) .toast.pen {
   display: grid;
   align-content: start;
 }
+
+/* ── CALENDÁRIO · os estados da célula ─────────────────────────────────
+ * Missão 26 · Fase 6F.
+ *
+ * O que faltava: um dia escolhido era indistinguível de qualquer outro, e
+ * "hoje" era o único estado com marca. Agora são seis, e cada um usa uma
+ * LINGUAGEM DIFERENTE — nenhum depende só de cor, e por isso podem coexistir
+ * na mesma célula sem se confundirem.
+ *
+ *   hoje         luz interna
+ *   selecionado  contorno
+ *   evento       marca inferior (os pontos que já existiam)
+ *   prazo        filete lateral
+ *   prazo urgente  o mesmo filete, mais grosso e na cor de alarme
+ *   passado ok   filete em baixo
+ */
+.sys-instrumental .cal-cell {
+  /* era um `div` com onClick: sem foco, sem semântica, sem teclado */
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  min-height: 44px;
+}
+
+.sys-instrumental .cal-cell.empty { cursor: default; }
+
+/* SELECIONADO — contorno. É a única marca que desenha o perímetro, e por isso
+   nunca se confunde com o "hoje", que é luz por dentro. */
+.sys-instrumental .cal-cell.sel {
+  box-shadow: inset 0 0 0 2px var(--sys-violet);
+}
+
+/* HOJE + SELECIONADO ao mesmo tempo: a luz fica, o contorno também. É o caso
+   que prova que as duas linguagens tinham de ser diferentes. */
+.sys-instrumental .cal-cell.today.sel {
+  box-shadow: inset 0 0 0 2px var(--sys-violet), var(--sys-glow-inner);
+}
+
+/* PRAZO — filete lateral. Não é um ponto, porque os pontos já são eventos. */
+.sys-instrumental .cal-cell.has-dl::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: color-mix(in oklab, var(--sys-alert) 70%, transparent);
+}
+
+/* URGENTE — mesma marca, mais peso e cor de alarme. A diferença lê-se sem
+   comparar com outra célula. */
+.sys-instrumental .cal-cell.dl-urgent::before {
+  width: 3px;
+  background: var(--sys-danger);
+}
+
+.sys-instrumental .cal-cell:focus-visible {
+  outline: 2px solid var(--sys-ink);
+  outline-offset: -2px;
+}

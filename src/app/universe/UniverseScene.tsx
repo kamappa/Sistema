@@ -356,6 +356,16 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
   useEffect(() => { freeApi.current?.reset(); }, [m.state, m.domain]);
 
   useEffect(() => {
+    /* ── O ESCAPE SÓ É NOSSO QUANDO A ZONA ESTÁ ATIVA ──
+     * Defeito meu, apanhado na auditoria à conta real. Este listener estava em
+     * `window` sem depender de `live`: o Universo consumia Escape em TODAS as
+     * zonas. Premir Escape no Oráculo recuava a câmara do Universo em silêncio,
+     * e o Operador só descobria ao lá voltar e encontrar-se noutro sítio sem
+     * saber porquê.
+     *
+     * Pior do que isso: Escape é a tecla de fechar, e uma zona que não está no
+     * ecrã não pode ficar com ela. */
+    if (!live) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return;
       // Escape CENTRA primeiro e só recua depois. Sem isto, quem arrastasse
@@ -366,7 +376,7 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [live]);
 
   if (!scene) return null;
 

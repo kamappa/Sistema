@@ -2374,6 +2374,64 @@ mensagem para reproduzir um erro já reproduzido não valida nada.
 LISTENING, THINKING até ao fim com resposta real, RESEARCHING, INSIGHT e
 CONSELHO com contexto **não podem ser validados sem saldo de API**. O caminho de
 erro está validado; o caminho de sucesso não.
+### Fase 7Z · Oráculo — o ciclo até ao erro, validado de graça (2026-07-30)
+
+**Correção de um fecho meu prematuro.** Escrevi que o gate do Oráculo precisava
+de saldo. Precisa **só para o INSIGHT**: uma chamada que falha **não consome
+créditos nem quota** — verificado, `oracleChat.count` ficou em 0 e o contador em
+12/12 após cinco tentativas. Todo o ciclo até ao erro é testável sem custo, e eu
+tinha-o testado uma vez e mal.
+
+#### A cronologia, amostrada a 120 ms
+
+| t | o que acontece |
+|---|---|
+| 0 ms | repouso: três sigilos `busy:false`, botão ativo, zero mensagens |
+| **127 ms** | THINKING entra — bolha do utilizador, sigilo a `busy:true`, `.oc-think` com "A consultar memórias…", botão `disabled`, moldura com `.oc-thinking` |
+| **2004 ms** | erro chega — THINKING sai, botão reativa, sigilo a `false`, `.oc-thinking` sai |
+
+THINKING entra em 127 ms e **não fica preso**. O botão fica `disabled` durante a
+espera, e uma segunda tentativa nesse intervalo **não passa** — verificado: duas
+perguntas enviadas, a terceira ficou no campo sem se perder. O campo continua
+editável durante a espera, e isso é deliberado: escrever a pergunta seguinte
+enquanto se espera é bom.
+
+#### Um defeito meu, e nasceu de um erro meu
+
+Testei o Escape e concluí "não cancela". Estava a testar **na zona errada** — o
+`data-active` estava no Universo, não no Oráculo, e o campo recusou foco porque
+a zona estava `inert`, que é o comportamento correto.
+
+Mas verificar isso destapou uma coisa real: **o `UniverseScene` registava o
+listener de Escape em `window` sem depender de `live`.** O Universo consumia
+Escape em todas as zonas. Premir Escape no Oráculo recuava a câmara do Universo
+em silêncio, e o Operador só descobria ao lá voltar e encontrar-se noutro sítio
+sem saber porquê. Pior: Escape é a tecla de fechar, e uma zona que não está no
+ecrã não pode ficar com ela.
+
+Corrigido com `if (!live) return`. Verificado: Escape no Oráculo deixa o Universo
+intacto (`OVERVIEW/system` antes e depois), e o Escape que centra a câmara
+continua a funcionar dentro do Universo.
+
+#### Com a zona ativa, o que está certo
+
+Foco vai para o campo e **mantém-se durante o THINKING** — não há roubo de foco.
+A ordem de tabulação põe o campo antes do botão. Dez elementos focáveis na zona.
+A quota fica em 0 depois de cinco falhas.
+
+#### O que NÃO existe, e é ausência e não avaria
+
+**Não há cancelamento.** Escape durante o THINKING não interrompe, e não há
+botão de cancelar em lado nenhum — procurado, zero. Com uma espera de 2 s isso é
+defensável; com uma resposta real e longa deixa de o ser. Fica registado como
+funcionalidade ausente.
+
+#### Este é o quarto falso positivo meu nesta série
+
+Botão `disabled` tomado por inerte; seletor a apanhar um `<svg>` filho; War Room
+julgado não montado quando vive no painel lateral; e agora uma zona `inert`
+tomada por ativa. **Nos quatro assumi o contexto em vez de o verificar** — e nos
+quatro a verificação encontrou algo real que a suposição teria escondido.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗
@@ -2394,8 +2452,9 @@ faltar qualquer um destes:
 | Performance mobile | **FECHADO** com ressalvas medidas |
 | Validação do Oráculo | **PARCIAL** — o que precisa de sessão fica por fazer |
 | Auditoria com dados reais | **FECHADA** — executada read-only; 3 defeitos, 1 da primeira lei |
-| Oráculo · caminho de erro | **FECHADO** — validado com sessão real; 3 defeitos corrigidos |
-| Oráculo · caminho de sucesso | **BLOQUEADO** — sem saldo de API, não é validável |
+| Oráculo · ciclo até ao erro | **FECHADO** — cronologia medida; 4 defeitos corrigidos |
+| Oráculo · INSIGHT (resposta real) | **BLOQUEADO** — só isto precisa de saldo |
+| Oráculo · cancelamento | **NÃO EXISTE** — ausência registada, não avaria |
 
 O plano da auditoria está em
 `docs/design-references/mission-26/AUDITORIA-CONTA-REAL.md` e inclui as páginas

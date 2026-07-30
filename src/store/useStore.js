@@ -182,7 +182,7 @@ export const useStore = create((set, get) => ({
       h.streak = (h.lastDone === yday()) ? h.streak + 1 : 1; h.lastDone = today();
       if (!S.streakPeak || h.streak > S.streakPeak.v) S.streakPeak = { v: h.streak, d: today(), h: h.name };
       const bonus = Math.min(h.streak, 10); const g = Math.round((h.xp + bonus) * xpMult(S, h.attr)); h.lastGain = g;
-      addXp(S, h.attr, g); plog(S, h.name, g);
+      addXp(S, h.attr, g); plog(S, h.name, g, h.attr);
       fx('floatXP', '+' + g + ' XP', AM[h.attr].color);                    // engine.js:74
       gained = g;
     } else {
@@ -276,7 +276,7 @@ export const useStore = create((set, get) => ({
     if (next === 'done') {
       const p = PRI[o.pri]; addXp(S, o.area, p.xp); o.doneDate = today();
       S.shadows.push({ id: 's' + Date.now(), ref: o.id, name: o.title, lvl: p.lvl, d: today() });
-      plog(S, '🗡 ARISE: ' + o.title, p.xp);
+      plog(S, '🗡 ARISE: ' + o.title, p.xp, o.area);
       fx('floatXP', '+' + p.xp + ' XP', AM[o.area].color);                           // objetivos.js:56
       fx('cineArise');                                                                // A R I S E cinematográfico
     }
@@ -320,7 +320,7 @@ export const useStore = create((set, get) => ({
     const gain = Math.round((8 + (grade === 'ok' ? 4 : 0)) * xpMult(S, 'saber'));
     addXp(S, 'saber', gain);
     const th = RECALL_THEMES[q.tema] || { label: q.tema };
-    plog(S, '📖 Revisão · ' + th.label, gain);
+    plog(S, '📖 Revisão · ' + th.label, gain, 'saber');
     if (S.recallToday.ids.every((qid) => qid in S.recallToday.results)) bumpStudyStreak(S);
     set({ S: { ...S } }); get().save();
     fx('floatXP', '+' + gain + ' XP', AM.saber.color);                                // recall.js:160
@@ -375,7 +375,7 @@ export const useStore = create((set, get) => ({
     const advXp = adv.length ? Math.round(30 * adv.length * xpMult(S, 'corpo') * fator) : 0;
     if (adv.length) { if (advXp) addXp(S, 'corpo', advXp); }
     S.training.sessions.push({ d: today(), lines, extra: extraOk, notes, adv: adv.length, xp: xp + advXp });
-    plog(S, '🏋️ Treino (' + logged + ' linhas' + (extraOk ? ' + extra' : '') + (nToday ? ' · ' + (nToday + 1) + 'ª sessão do dia' : '') + ')', xp + advXp);
+    plog(S, '🏋️ Treino (' + logged + ' linhas' + (extraOk ? ' + extra' : '') + (nToday ? ' · ' + (nToday + 1) + 'ª sessão do dia' : '') + ')', xp + advXp, 'corpo');
     // SYSTEM EVENT (M26·F7) — a sessão e a evolução de progressão são
     // acontecimentos do mundo, não avisos de formulário. Encenados antes do
     // `save()`, que é quem os publica. Os toasts que ficam nesta função são
@@ -427,12 +427,12 @@ export const useStore = create((set, get) => ({
     const res = { h };
     if (h >= 7.5 && h <= 9.5 && !L.rw && recent) {
       L.rw = true; addXp(S, 'corpo', 12); addXp(S, 'disciplina', 5);
-      plog(S, '😴 Noite no alvo (' + h + 'h)', 17);
+      plog(S, '😴 Noite no alvo (' + h + 'h)', 17, 'corpo');
       const so = S.oblig.find((x) => x.id === 'o_sono');
       if (dt === today() && so && so.lastDone !== today()) { so.undo = { streak: so.streak, lastDone: so.lastDone }; so.streak = (so.lastDone === yday()) ? so.streak + 1 : 1; so.lastDone = today(); so.lastGain = 0; }
       res.reward = 17; fx('floatXP', '+17 XP', '#34d399');                            // sono.js:18
-    } else if (!recent) { plog(S, '😴 Registo retroativo ' + dt + ' (' + h + 'h)', 0); res.retro = true; fx('toast', 'Registo retroativo', 'Guardado para análise. XP só em registos do próprio dia — anti-farm.', '#a78bfa'); }
-    else if (h < 7.5) { plog(S, '😴 Noite curta (' + h + 'h)', 0); res.short = true; fx('toast', 'Registado', 'Noite curta (' + h + 'h). Sem drama — o alvo de hoje é recuperar.', '#fb923c'); }
+    } else if (!recent) { plog(S, '😴 Registo retroativo ' + dt + ' (' + h + 'h)', 0, 'corpo'); res.retro = true; fx('toast', 'Registo retroativo', 'Guardado para análise. XP só em registos do próprio dia — anti-farm.', '#a78bfa'); }
+    else if (h < 7.5) { plog(S, '😴 Noite curta (' + h + 'h)', 0, 'corpo'); res.short = true; fx('toast', 'Registado', 'Noite curta (' + h + 'h). Sem drama — o alvo de hoje é recuperar.', '#fb923c'); }
     set({ S: { ...S } }); get().save();
     return res;
   },
@@ -466,7 +466,7 @@ export const useStore = create((set, get) => ({
     // 60 datas chegam para ler consistência de dois meses; guardar tudo faria
     // o estado crescer sem ninguém alguma vez o ler.
     S.bodyRoutines[id] = [...hist, today()].slice(-60);
-    plog(S, name + ' · rotina feita', 0);
+    plog(S, name + ' · rotina feita', 0, 'corpo');
     sysEvent({
       dedupe: 'body:' + id + ':' + today(),
       kind: 'habit',
@@ -487,7 +487,7 @@ export const useStore = create((set, get) => ({
     if (S.antidote[id] === today()) { fx('toast', 'Antídoto já usado hoje', '1× por estado e por dia. Se o estado voltou, desliga-o no cartão — sem XP repetido.', '#fb923c'); return { error: 'ja-usado' }; }
     S.antidote[id] = today();
     S.debuffs[id] = false; addXp(S, 'disciplina', 10);
-    plog(S, 'Antídoto: ' + DEBUFFS.find((d) => d.id === id).name, 10);
+    plog(S, 'Antídoto: ' + DEBUFFS.find((d) => d.id === id).name, 10, 'disciplina');
     set({ S: { ...S } }); get().save(); fx('toast', 'Antídoto aplicado', '+10 Disciplina · bem gerido', '#34d399'); return { ok: true };
   },
 
@@ -540,14 +540,14 @@ export const useStore = create((set, get) => ({
   claimWhisper: () => {
     const S = get().S; if (S.whisper[today()]) return; const w = whisperToday(S);
     S.whisper[today()] = true; const g = Math.round(w.xp * xpMult(S, w.attr));
-    addXp(S, w.attr, g); plog(S, '🌬 ' + w.t, g);
+    addXp(S, w.attr, g); plog(S, '🌬 ' + w.t, g, w.attr);
     set({ S: { ...S } }); get().save(); fx('floatXP', '+' + g + ' XP', AM[w.attr].color); // world.js:44
   },
 
   // startRecovery — porto de world.js:61-66. 2 dias sem penalizações.
   startRecovery: () => {
     const S = get().S; const d = new Date(); d.setDate(d.getDate() + 2);
-    S.recovery = { until: fmt(d) }; plog(S, '🌙 Recovery ativado (2 dias)', 0);
+    S.recovery = { until: fmt(d) }; plog(S, '🌙 Recovery ativado (2 dias)', 0, 'corpo');
     set({ S: { ...S } }); get().save();
     fx('toast', 'Recovery ativado', '2 dias sem penalizações. Dorme. Recupera. O rank não foge.', '#34d399'); // world.js:64
   },
@@ -562,7 +562,7 @@ export const useStore = create((set, get) => ({
       const tr = triage(q.t, b.end);
       S.objectives.push({ id: 'o' + Date.now() + '_' + i, title: q.t, area: q.area || tr.area || 'oficio', pri: q.pri || tr.imp, auto: true, deadline: b.end, status: 'pend', created: today(), tags: [a.name.split(' ')[0] + ' Arco', ...(tr.tags || [])], arc: a.id }); n++;
     });
-    addXp(S, 'mente', 15); plog(S, 'Arco aceite: ' + a.name, 15);
+    addXp(S, 'mente', 15); plog(S, 'Arco aceite: ' + a.name, 15, 'mente');
     // SYSTEM EVENT (M26·F7) — aceitar um arco é um acontecimento do mundo, não
     // um aviso de formulário. O toast antigo saía num `setTimeout(900)`, o que
     // tinha um defeito por trás: anunciava passados 900ms QUER a gravação

@@ -82,5 +82,26 @@ export function addXp(S, attr, amt, silent) {
   return ups;
 }
 
-export function plog(S, text, gain) { S.log.unshift({ text, gain, d: today() }); S.log = S.log.slice(0, 14); }
+/* M26·F6C — o registo passa a saber A QUE DOMÍNIO pertence.
+ *
+ * PORQUÊ, e o custo está declarado. O Universo consegue dizer "Saber tem 19
+ * estrelas" e não conseguia dizer "isto é o que está a alimentar Saber agora",
+ * porque o registo guardava texto, ganho e data e mais nada. Sem domínio, a
+ * evidência existia e não era atribuível.
+ *
+ * O QUE ISTO NÃO RESOLVE, e é importante não fingir que resolve: o registo
+ * guarda 14 entradas. Não dá — nem passará a dar — para saber que evidência fez
+ * a sétima estrela de Saber, porque os níveis vêm de XP acumulado ao longo de
+ * meses e o registo é uma janela curta. O que passa a dar é o que está a
+ * alimentar o NÍVEL EM CURSO, que é a única parte ainda em formação e a única
+ * sobre a qual há decisão a tomar.
+ *
+ * O campo é OPCIONAL e aditivo: as entradas antigas ficam sem `attr` para
+ * sempre, e a leitura diz isso por extenso em vez de as esconder ou de lhes
+ * inventar um dono. */
+export function plog(S, text, gain, attr) {
+  const e = { text, gain, d: today() };
+  if (attr) e.attr = attr;
+  S.log.unshift(e); S.log = S.log.slice(0, 14);
+}
 export function unlog(S, text, d) { const i = S.log.findIndex((e) => e.text === text && (!d || e.d === d)); if (i > -1) S.log.splice(i, 1); }

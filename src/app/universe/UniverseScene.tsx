@@ -42,6 +42,7 @@ import Nucleus, { type CoreState } from './Nucleus';
 import DomainSignature from './DomainSignature';
 import CoreInterior from './CoreInterior';
 import { readCore, type CoreRead } from './core-read';
+import { readEvidence, type EvidenceRead } from './evidence-read';
 import {
   type UniverseState, type UniverseCtx, canGo, scaleOf, litDomain,
 } from './universe-states';
@@ -71,6 +72,7 @@ type Action =
   | { t: 'settled' }
   | { t: 'event'; domain: string; color: string; kind: string }
   | { t: 'eventEnd' }
+  | { t: 'evidence' }
   | { t: 'rank'; texto: string; cor: string }
   | { t: 'rankEnd' };
 
@@ -102,12 +104,17 @@ function reducer(m: Model, a: Action): Model {
       return go(m, 'DOMAIN_HOVER', { domain: a.domain });
     case 'focus':
       return go(m, 'DOMAIN_FOCUS', { domain: a.domain });
+    case 'evidence':
+      return go(m, 'EVIDENCE_FOCUS');
     case 'core':
       return go(m, 'CORE_APPROACH');
     case 'arrive':
       return go(m, 'CORE_INSIDE');
     case 'back': {
       // Recuar é sempre um passo, nunca um salto para o princípio.
+      // Da evidência recua-se para o domínio, e isso é imediato: não houve
+      // viagem para desfazer, porque a evidência não mudou a escala.
+      if (m.state === 'EVIDENCE_FOCUS') return { ...m, prev: m.state, state: 'DOMAIN_FOCUS' };
       const toDomain = (m.state === 'CORE_INSIDE' || m.state === 'CORE_APPROACH') && m.domain;
       return go(m, 'RETURNING', { domain: toDomain ? m.domain : null });
     }
@@ -165,6 +172,10 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
   const scene: SceneRead | null = useMemo(() => readScene(S), [S]);
   const core: CoreRead | null = useMemo(() => readCore(S), [S]);
   const [m, dispatch] = useReducer(reducer, INIT);
+  const evidence: EvidenceRead | null = useMemo(
+    () => readEvidence(S, m.state === 'EVIDENCE_FOCUS' ? m.domain : null),
+    [S, m.state, m.domain],
+  );
   const wide = useWide();
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -616,9 +627,69 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
               <div><dt>Rank</dt><dd style={{ color: selT.rankColor }}>{selT.rankLetter}</dd></div>
             </dl>
             <div className="us-acts">
+              {/* A escala 3. Fica ao lado do Núcleo e não por baixo: são dois
+                  caminhos a partir do mesmo sítio, não um principal e um
+                  secundário. */}
+              <button className="mini" type="button" onClick={() => dispatch({ t: 'evidence' })}>
+                O que alimenta isto
+              </button>
               <button className="cc-act-go" type="button" onClick={() => dispatch({ t: 'core' })}>
                 Continuar até ao Núcleo
               </button>
+              <button className="mini" type="button" onClick={() => dispatch({ t: 'back' })}>Recuar</button>
+            </div>
+          </>
+        )}
+
+        {/* ── A ESCALA 3 ──
+            Uma LEITURA sobre o domínio onde já estamos, não outro sítio. A
+            câmara não se mexe de propósito: aproximar mais não revelaria nada,
+            porque o que há para revelar é texto, e o texto vive no instrumento
+            e não no céu. */}
+        {m.state === 'EVIDENCE_FOCUS' && evidence && (
+          <>
+            <p className="us-hud-t" style={{ color: evidence.color }}>{evidence.name}</p>
+            <p className="us-hud-brief">
+              Nível {evidence.level} a formar-se · {evidence.xp}/{evidence.xpNeed} XP
+            </p>
+
+            {evidence.linhas.length > 0 ? (
+              <ul className="us-ev">
+                {evidence.linhas.map((l, i) => (
+                  <li key={i}>
+                    <span className="us-ev-d">{l.data}</span>
+                    <span className="us-ev-t">{l.texto}</span>
+                    <span className="us-ev-g">{l.ganho > 0 ? '+' + l.ganho : '—'}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="us-hud-s">
+                Nada no registo recente pertence a {evidence.name}. Não quer dizer que não
+                tenhas feito nada — quer dizer que o que fizeste nas últimas catorze entradas
+                foi de outros domínios.
+              </p>
+            )}
+
+            {/* ── O QUE ESTA VISTA NÃO SABE, DITO POR EXTENSO ──
+                Sem isto, a soma da janela e o XP do nível parecem a mesma coisa
+                e não são; e as entradas anteriores ao campo de domínio
+                desapareciam sem ninguém saber que existiram. */}
+            <p className="us-ev-nota">
+              {evidence.linhas.length > 0
+                ? (evidence.linhas.length === 1
+                    ? `Esta linha soma ${evidence.somaJanela} XP. `
+                    : `Estas ${evidence.linhas.length} linhas somam ${evidence.somaJanela} XP. `)
+                : ''}
+              {`O registo guarda ${evidence.totalRegisto} entradas`}
+              {evidence.semAtribuicao > 0
+                ? `, e ${evidence.semAtribuicao} não têm domínio — são anteriores ao campo e não são atribuíveis a ninguém. `
+                : '. '}
+              Que evidência fez cada estrela já provada não é sabível: os níveis vêm de XP
+              acumulado ao longo de meses e esta janela tem catorze linhas.
+            </p>
+
+            <div className="us-acts">
               <button className="mini" type="button" onClick={() => dispatch({ t: 'back' })}>Recuar</button>
             </div>
           </>

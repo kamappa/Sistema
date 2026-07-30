@@ -1097,3 +1097,68 @@
   .ci-num { font-size: 50px; }
   .ci-lab { font-size: 32px; }
 }
+
+/* ── A ESCALA 3 — o registo que alimenta o nível em curso ──────────────
+ * Uma lista densa, monoespaçada nas colunas que se comparam (data e ganho) e
+ * humana na que se lê (o texto). É um registo, não um cartão: a informação
+ * está na sequência e nas somas, não em molduras.
+ */
+.us-ev {
+  list-style: none;
+  margin: var(--sys-space-2) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  /* O registo tem no máximo catorze linhas e a coluna é estreita; acima disto
+     rola dentro de si em vez de empurrar os botões para fora do enquadramento. */
+  max-height: 13rem;
+  overflow-y: auto;
+}
+.us-ev li {
+  display: grid;
+  grid-template-columns: 5.4rem 1fr auto;
+  gap: var(--sys-space-3);
+  align-items: baseline;
+  padding: 3px 0;
+  border-bottom: 1px solid rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+}
+.us-ev li:last-child { border-bottom: 0; }
+.us-ev-d {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--2, .72rem);
+  /* tabular: as datas alinham-se dígito a dígito e a coluna lê-se de uma vez */
+  font-variant-numeric: tabular-nums;
+  color: var(--sys-ink-mut);
+}
+.us-ev-t {
+  font-size: var(--sys-step--1);
+  line-height: var(--sys-leading-tight, 1.3);
+  color: var(--sys-ink);
+  /* uma entrada longa não pode empurrar a coluna do ganho para fora */
+  overflow-wrap: anywhere;
+}
+.us-ev-g {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-variant-numeric: tabular-nums;
+  color: var(--dom-ev, var(--sys-ink-mut));
+  white-space: nowrap;
+}
+
+/* A nota do que não é sabível. Menor do que o registo mas não apagada: é a
+   parte que impede a lista de ser lida como uma explicação completa. */
+.us-ev-nota {
+  margin: var(--sys-space-2) 0 0;
+  font-size: var(--sys-step--2, .72rem);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink-mut);
+  opacity: .82;
+  text-shadow: 0 0 12px var(--sys-void);
+}
+
+@media (max-width: 1100px) {
+  /* Na faixa de baixo há menos altura: o registo encolhe antes de os botões
+     saírem do enquadramento. */
+  .us-ev { max-height: 7.5rem; }
+  .us-ev li { grid-template-columns: 4.8rem 1fr auto; gap: var(--sys-space-2); }
+}

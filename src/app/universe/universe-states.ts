@@ -24,6 +24,7 @@ export type UniverseState =
   | 'OVERVIEW'        // repouso. O céu vive; nada pede atenção.
   | 'DOMAIN_HOVER'    // um domínio desperta sob o cursor, sem compromisso
   | 'DOMAIN_FOCUS'    // a câmara viajou até ao domínio
+  | 'EVIDENCE_FOCUS'  // dentro do domínio: o que está a alimentar o nível
   | 'CORE_APPROACH'   // a viajar para o Núcleo
   | 'CORE_INSIDE'     // chegada
   | 'PROGRESS_EVENT'  // evidência real a atravessar o campo
@@ -51,7 +52,10 @@ export interface UniverseCtx {
 const ALLOWED: Record<UniverseState, UniverseState[]> = {
   OVERVIEW:       ['DOMAIN_HOVER', 'DOMAIN_FOCUS', 'CORE_APPROACH', 'PROGRESS_EVENT', 'RANK_EVENT'],
   DOMAIN_HOVER:   ['OVERVIEW', 'DOMAIN_HOVER', 'DOMAIN_FOCUS', 'CORE_APPROACH', 'PROGRESS_EVENT', 'RANK_EVENT'],
-  DOMAIN_FOCUS:   ['CORE_APPROACH', 'DOMAIN_FOCUS', 'RETURNING', 'PROGRESS_EVENT', 'RANK_EVENT'],
+  DOMAIN_FOCUS:   ['EVIDENCE_FOCUS', 'CORE_APPROACH', 'DOMAIN_FOCUS', 'RETURNING', 'PROGRESS_EVENT', 'RANK_EVENT'],
+  // A evidência não leva ao Núcleo: é o fim do ramo. Quem quiser ir ao Núcleo
+  // recua um passo — e recuar um passo é para aqui que devolve.
+  EVIDENCE_FOCUS: ['DOMAIN_FOCUS', 'RETURNING', 'PROGRESS_EVENT', 'RANK_EVENT'],
   CORE_APPROACH:  ['CORE_INSIDE', 'RETURNING', 'PROGRESS_EVENT', 'RANK_EVENT'],
   CORE_INSIDE:    ['RETURNING', 'CORE_APPROACH', 'PROGRESS_EVENT', 'RANK_EVENT'],
   // Um evento de progresso devolve ao sítio de onde veio. Quem guarda esse
@@ -72,7 +76,11 @@ export function canGo(from: UniverseState, to: UniverseState): boolean {
 
 export function scaleOf(s: UniverseState, prev: UniverseState = 'OVERVIEW'): Scale {
   switch (s) {
-    case 'DOMAIN_FOCUS': return 'domain';
+    case 'DOMAIN_FOCUS':
+    // A escala não muda: a evidência é uma LEITURA sobre o domínio onde já
+    // estamos, não outro sítio. Aproximar mais a câmara não revelaria nada —
+    // o que revela é o texto, e o texto vive no instrumento.
+    case 'EVIDENCE_FOCUS': return 'domain';
     case 'CORE_APPROACH':
     case 'CORE_INSIDE': return 'core';
     // Um evento não muda a escala: a evidência chega ao sítio onde o Operador

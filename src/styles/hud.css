@@ -800,3 +800,9 @@
   .rd-vaga{border:1px solid rgba(52,211,153,.45)!important;background:rgba(52,211,153,.05);
     padding:9px 11px!important;margin:7px 0;
     clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+
+  /* M26·F7Z — a razão de o Oráculo não aceitar a pergunta, presa ao campo.
+     Ocupa a linha inteira por baixo do par campo+botão: é uma explicação, não
+     uma terceira coluna. */
+  .oc-row .oc-why{grid-column:1/-1;margin:6px 0 0;font-size:12px;line-height:1.45;
+    color:var(--mut);opacity:.9}

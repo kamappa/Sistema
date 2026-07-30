@@ -2180,6 +2180,42 @@ sob carga; tier lite; e o comportamento em hardware móvel verdadeiro.
 
 **Nenhuma otimização foi feita**, porque a medição não encontrou nada que a
 justificasse. Otimizar sem número é adivinhar.
+### Fase 7Z · Validação do Oráculo — parcial, e o que falta está dito (2026-07-30)
+
+**Um defeito real corrigido.** O campo de pergunta tinha só `placeholder` e
+nenhum nome acessível. Um placeholder não é um nome: em vários leitores de ecrã
+não é anunciado como o nome do campo, e desaparece à primeira letra — quem
+estiver a rever o que escreveu deixa de saber onde está. Passou a ter
+`aria-label`.
+
+E resolveu-se o que estava mais estranho à volta dele: sem sessão, o botão está
+corretamente `disabled` (verificado: `disabled: true`, opacidade 0,4, cursor
+`not-allowed`) mas o **campo aceitava texto**. Escrevia-se uma pergunta inteira
+num sítio de onde ela nunca ia sair, e a explicação vivia noutro bloco da
+página. Agora está presa ao campo por `aria-describedby`, e diz o que importa:
+*"o que escreveres aqui não é enviado nem guardado"*.
+
+**Dois falsos positivos meus, registados porque o método interessa.** A primeira
+sonda deu "o botão aceita clique e não faz nada" — era um botão `disabled`, que
+não dispara, e eu tinha assumido em vez de verificar o atributo. E deu "o sigilo
+não anima" — o seletor apanhou um `<svg>` filho em vez do `<span>`; há **quinze**
+elementos com `sigil` no nome e três é que são o sigilo. É o mesmo erro de
+seletor que já tinha cometido nesta missão.
+
+**Validado offline:** AMBIENT (sigilo presente, `sys-sigil-breath` a correr nos
+três), foco de teclado a percorrer a zona, Escape sem deixar foco preso, live
+region `polite` presente, zero erros de consola, 115 elementos sem falhas de
+contraste AA.
+
+**NÃO VALIDADO, e é a parte que precisa da conta real:** LISTENING, THINKING
+(início, fim em sucesso, fim em erro, não ficar preso, não reaparecer),
+RESEARCHING, INSIGHT, WARNING, CONSELHO com contexto, e o WAR ROOM — que offline
+nem sequer aparece, por estar atrás da sessão. Duas perguntas consecutivas,
+cancelamento e erro de rede também ficam por validar: sem sessão não há pedido
+para cancelar nem para falhar.
+
+Zoom 200% e mobile: as sondas correram, mas os estados que interessava ver a
+200% são os que precisam de sessão. Fica por fazer.
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 
 Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,

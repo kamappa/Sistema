@@ -89,9 +89,31 @@ export default function Conselho() {
         )}
       </div>
       <div className="oc-row">
-        <textarea id="oc-in" rows={2} maxLength={2000} placeholder="Pergunta ao Oráculo — decisões, dúvidas, rumo..." value={text}
+        {/* ── M26·F7Z — o campo passa a ter NOME e a dizer porque não dá ──
+            Tinha só `placeholder`. Um placeholder não é um nome acessível: em
+            vários leitores de ecrã não é anunciado como o nome do campo, e
+            desaparece assim que se escreve a primeira letra — quem estiver a
+            rever o que escreveu deixa de saber onde está.
+
+            E o `aria-describedby` resolve o outro problema, que era mais
+            estranho: sem sessão, o botão está corretamente `disabled` mas o
+            CAMPO aceitava texto. Escrevia-se uma pergunta inteira num sítio de
+            onde ela nunca ia sair, e a explicação estava noutro bloco da
+            página. Agora está presa ao campo. */}
+        <textarea
+          id="oc-in" rows={2} maxLength={2000}
+          aria-label="Pergunta ao Oráculo"
+          aria-describedby={!user ? 'oc-in-why' : (left <= 0 ? 'oc-in-why' : undefined)}
+          placeholder="Pergunta ao Oráculo — decisões, dúvidas, rumo..." value={text}
           onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} />
         <button className="btn" id="oc-send" disabled={!user || left <= 0 || ocBusy} onClick={send}>Enviar</button>
+        {(!user || left <= 0) && (
+          <p id="oc-in-why" className="oc-why">
+            {!user
+              ? 'Sem sessão iniciada, o Oráculo não recebe perguntas. O que escreveres aqui não é enviado nem guardado.'
+              : 'Chegaste ao limite de mensagens de hoje. O contador reinicia amanhã.'}
+          </p>
+        )}
       </div>
     </div>
   );

@@ -683,17 +683,70 @@
   0% { transform: scale(1); } 40% { transform: scale(.94); } 62% { transform: scale(1.12); } 100% { transform: scale(1); }
 }
 
-/* RANK_UP: contração quase completa, silêncio, expansão.
-   NOTA DE ESTADO, e fica escrita porque a lei é não fingir: este estado está
-   DESENHADO E NÃO É DISPARADO por nada. A fila tem `kind: 'rank'` mas sem
-   domínio, e ligá-lo exige decidir o que acontece à câmara quando o sistema
-   inteiro cresce — a referência do NASA Eyes afasta a câmara para enquadrar a
-   nova escala, e isso é uma decisão de produto, não uma linha de CSS. Fica
-   inalcançável e declarado; não é um placeholder a fingir que está quase. */
-.nuc[data-state='RANK_UP'] .nuc-body { animation: nuc-rank 2600ms var(--sys-ease-gravity) both; }
+/* ── RANK_UP — LIGADO ──────────────────────────────────────────────────
+ * Já esteve aqui uma nota a dizer que este estado estava desenhado e não era
+ * disparado por nada. Passou a ser: o motor compara `rankOf(overallLevel)`
+ * antes e depois de cada ganho de XP e emite `kind: 'rank'`. O facto já era
+ * derivável do estado; o que faltava era alguém compará-lo.
+ *
+ * A COREOGRAFIA, e cada tempo diz uma coisa:
+ *   contração quase total  ·  o corpo recolhe-se sobre si
+ *   silêncio               ·  o momento em que não acontece nada é o que faz
+ *                             a expansão significar alguma coisa
+ *   expansão               ·  passa do tamanho antigo, e não volta
+ *   assenta a 1,12         ·  o gesto acaba aqui — e este 1,12 NÃO fica.
+ *
+ * CORREÇÃO DE UMA AFIRMAÇÃO MINHA QUE ESTAVA ERRADA. Escrevi aqui que "a massa
+ * nova fica" a apontar para o 1,12, e não fica: assim que o estado sai de
+ * RANK_UP, a respiração retoma e o valor é descartado — foi medido, o corpo
+ * volta a 0,985.
+ *
+ * O QUE FICA MESMO, e é melhor do que um número de CSS: `coreMass` é
+ * `nivelGlobal / 40`, e o nível global subiu. O feixe passa a ter mais
+ * filamentos e mais raio porque o DADO mudou, não porque uma animação deixou
+ * um valor para trás. A permanência da gramática 2 vem do estado, que é onde
+ * tem de vir; a cerimónia só a anuncia.
+ *
+ * Ao mesmo tempo a câmara recua para a vista geral e os anéis abrem — é de lá
+ * que se vê que o sistema ficou maior, e a lógica é a do NASA Eyes, que se
+ * afasta sozinho quando o que tem de mostrar deixa de caber. */
+.nuc[data-state='RANK_UP'] .nuc-body { animation: nuc-rank 3400ms var(--sys-ease-gravity) 800ms both; }
 @keyframes nuc-rank {
-  0% { transform: scale(1); } 30% { transform: scale(.2); } 38% { transform: scale(.2); }
-  62% { transform: scale(1.5); } 100% { transform: scale(1.12); }
+  0%  { transform: scale(1); }
+  22% { transform: scale(.18); }
+  38% { transform: scale(.18); }   /* o silêncio */
+  70% { transform: scale(1.55); }
+  100% { transform: scale(1.12); }
+}
+/* O halo acompanha, mais lento: é a fronteira do corpo a ser reposicionada. */
+.nuc[data-state='RANK_UP'] .nuc-halo { animation: nuc-rank-halo 3600ms var(--sys-ease-gravity) 800ms both; }
+@keyframes nuc-rank-halo {
+  0% { transform: scale(1); opacity: 1; }
+  30% { transform: scale(.6); opacity: .4; }
+  75% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(1.18); opacity: 1; }
+}
+/* As conchas aceleram e voltam ao ritmo: o corpo foi sacudido. */
+.nuc[data-state='RANK_UP'] .nuc-shell-0 { animation-duration: 18s; }
+.nuc[data-state='RANK_UP'] .nuc-shell-1 { animation-duration: 27s; }
+.nuc[data-state='RANK_UP'] .nuc-shell-2 { animation-duration: 44s; }
+.nuc[data-state='RANK_UP'] .nuc-orbit   { animation-duration: 11s; }
+
+/* Os anéis ABREM. O mundo não ficou mais brilhante — ficou maior, e isso
+   diz-se com distância, não com luz.
+   A abertura é GESTO e reverte, e isso é correto: os anéis são o plano, não uma
+   medida de nada. O que fica é o que estava sempre a ser medido — o nível
+   global, o rank e a massa do feixe. */
+.us[data-state='RANK_EVENT'] .us-rings span {
+  animation: none;
+  transform: translate(calc(-50% + var(--cx, 0)), calc(-50% + var(--cy, 0))) rotateX(60deg) scale(1.22);
+  border-color: rgb(var(--sys-bone-rgb) / var(--sys-o-16));
+  transition: transform 2600ms var(--sys-ease-gravity) 900ms, border-color 1200ms var(--sys-ease-out);
+}
+/* E os territórios afastam-se com eles: as órbitas cresceram. */
+.us[data-state='RANK_EVENT'] .us-terr {
+  transform: translate(calc(var(--tx) * 1.1), calc(var(--ty) * 1.1));
+  transition: transform 2600ms var(--sys-ease-gravity) 900ms;
 }
 
 /* ── O HUD ─────────────────────────────────────────────────────────────
@@ -769,6 +822,31 @@
 .us-acts { display: flex; flex-wrap: wrap; gap: var(--sys-space-3); align-items: center; margin-top: var(--sys-space-2); }
 .us-acts .mini { min-height: 36px; }
 
+/* A leitura do rank. Ocupa a mesma faixa da nota de progresso mas não é uma
+   nota — é o assunto. Por isso tem o tamanho do título e não o do rodapé. */
+.us-rank-note {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  animation: us-rank-in 900ms var(--sys-ease-gravity) both;
+}
+.us-rank-k {
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-4);
+  font-weight: var(--sys-weight-bold);
+  line-height: 1;
+  letter-spacing: var(--sys-track-tight, 0);
+  color: var(--rk);
+  text-shadow: 0 0 22px var(--sys-void), 0 0 8px var(--sys-void);
+}
+.us-rank-s {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  text-shadow: 0 0 12px var(--sys-void);
+}
+@keyframes us-rank-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
 .us-pulse-note {
   margin: 0;
   font-family: var(--sys-type-data);
@@ -822,6 +900,13 @@
   .us-flow { opacity: .5; transform: translate(-50%, -50%) scaleX(1); }
   .nuc-attune { transition: none; }
   .nuc-ej { opacity: 0; }
+  /* O rank sem cerimónia: o corpo fica já no tamanho novo e os anéis já
+     abertos. O que se perde é o gesto; o facto — o mundo é maior — continua
+     desenhado, que é o que interessa. */
+  .nuc[data-state='RANK_UP'] .nuc-body { transform: scale(1.12); }
+  .nuc[data-state='RANK_UP'] .nuc-halo { transform: scale(1.18); }
+  .us[data-state='RANK_EVENT'] .us-rings span,
+  .us[data-state='RANK_EVENT'] .us-terr { transition: none; }
 }
 
 @media (max-width: 1100px) {

@@ -27,6 +27,7 @@ export type UniverseState =
   | 'CORE_APPROACH'   // a viajar para o Núcleo
   | 'CORE_INSIDE'     // chegada
   | 'PROGRESS_EVENT'  // evidência real a atravessar o campo
+  | 'RANK_EVENT'      // o sistema inteiro mudou de escala
   | 'RETURNING';      // a recuar; existe para o regresso não ser um corte
 
 /** Escala de câmara implicada por cada estado. Um estado não é uma vista — mas
@@ -48,15 +49,21 @@ export interface UniverseCtx {
  * perguntar "daqui consigo ir para onde?" e a resposta tem de estar num sítio.
  */
 const ALLOWED: Record<UniverseState, UniverseState[]> = {
-  OVERVIEW:       ['DOMAIN_HOVER', 'DOMAIN_FOCUS', 'CORE_APPROACH', 'PROGRESS_EVENT'],
-  DOMAIN_HOVER:   ['OVERVIEW', 'DOMAIN_HOVER', 'DOMAIN_FOCUS', 'CORE_APPROACH', 'PROGRESS_EVENT'],
-  DOMAIN_FOCUS:   ['CORE_APPROACH', 'DOMAIN_FOCUS', 'RETURNING', 'PROGRESS_EVENT'],
-  CORE_APPROACH:  ['CORE_INSIDE', 'RETURNING', 'PROGRESS_EVENT'],
-  CORE_INSIDE:    ['RETURNING', 'CORE_APPROACH', 'PROGRESS_EVENT'],
+  OVERVIEW:       ['DOMAIN_HOVER', 'DOMAIN_FOCUS', 'CORE_APPROACH', 'PROGRESS_EVENT', 'RANK_EVENT'],
+  DOMAIN_HOVER:   ['OVERVIEW', 'DOMAIN_HOVER', 'DOMAIN_FOCUS', 'CORE_APPROACH', 'PROGRESS_EVENT', 'RANK_EVENT'],
+  DOMAIN_FOCUS:   ['CORE_APPROACH', 'DOMAIN_FOCUS', 'RETURNING', 'PROGRESS_EVENT', 'RANK_EVENT'],
+  CORE_APPROACH:  ['CORE_INSIDE', 'RETURNING', 'PROGRESS_EVENT', 'RANK_EVENT'],
+  CORE_INSIDE:    ['RETURNING', 'CORE_APPROACH', 'PROGRESS_EVENT', 'RANK_EVENT'],
   // Um evento de progresso devolve ao sítio de onde veio. Quem guarda esse
   // sítio é o `prev` do reducer, não este mapa — aqui só se diz que é legal.
-  PROGRESS_EVENT: ['OVERVIEW', 'DOMAIN_HOVER', 'DOMAIN_FOCUS', 'CORE_INSIDE', 'CORE_APPROACH'],
-  RETURNING:      ['OVERVIEW', 'DOMAIN_FOCUS', 'DOMAIN_HOVER', 'PROGRESS_EVENT'],
+  PROGRESS_EVENT: ['OVERVIEW', 'DOMAIN_HOVER', 'DOMAIN_FOCUS', 'CORE_INSIDE', 'CORE_APPROACH', 'RANK_EVENT'],
+  // ── O RANK INTERROMPE TUDO E NÃO DEVOLVE A NADA ──
+  // É a única transição do sistema que ignora onde o Operador estava, e é de
+  // propósito: mudar de rank é o mundo inteiro mudar de escala, não uma coisa
+  // que acontece dentro de um domínio. Sai-se sempre para a vista geral,
+  // porque é de lá que se vê que ele ficou maior.
+  RANK_EVENT:     ['OVERVIEW'],
+  RETURNING:      ['OVERVIEW', 'DOMAIN_FOCUS', 'DOMAIN_HOVER', 'PROGRESS_EVENT', 'RANK_EVENT'],
 };
 
 export function canGo(from: UniverseState, to: UniverseState): boolean {
@@ -72,6 +79,11 @@ export function scaleOf(s: UniverseState, prev: UniverseState = 'OVERVIEW'): Sca
     // está. Arrastá-lo para a vista geral para lhe mostrar a estrela seria o
     // Sistema a decidir por ele onde deve estar a olhar.
     case 'PROGRESS_EVENT': return scaleOf(prev);
+    // O rank é a exceção, e a razão é a mesma pela outra ponta: aqui o que
+    // mudou NÃO cabe no enquadramento onde ele está. A câmara recua para
+    // mostrar o sistema inteiro — a mesma lógica do NASA Eyes, que se afasta
+    // sozinho quando a trajetória deixa de caber.
+    case 'RANK_EVENT': return 'system';
     default: return 'system';
   }
 }
@@ -82,6 +94,9 @@ export function scaleOf(s: UniverseState, prev: UniverseState = 'OVERVIEW'): Sca
  *  acende é Corpo. */
 export function litDomain(ctx: UniverseCtx): string | null {
   if (ctx.state === 'PROGRESS_EVENT' && ctx.event) return ctx.event.domain;
+  // Num evento de rank nenhum domínio se acende: o que mudou não foi de
+  // ninguém em particular, foi de todos.
+  if (ctx.state === 'RANK_EVENT') return null;
   return ctx.domain;
 }
 

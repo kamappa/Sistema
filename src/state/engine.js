@@ -1,4 +1,4 @@
-import { need, AM } from './config.js';
+import { need, AM, rankOf, overallLevel } from './config.js';
 import { today } from './dates.js';
 
 // Motor de XP — o núcleo auditado ("o sistema nunca mente"), portado linha a
@@ -10,6 +10,11 @@ import { today } from './dates.js';
 
 export function addXp(S, attr, amt, silent) {
   if (window.Bus) window.Bus.emit('xp:gain', { attr, amt }); // o mundo reage (M12·2B)
+  // M26·F6C — o rank ANTES da mutação. O rank global nunca teve anúncio: a
+  // fila declarava `kind: 'rank'` e ninguém o emitia, por isso o Sistema sabia
+  // que o Daniel tinha mudado de rank e não lho dizia. O facto já era derivável
+  // do estado; o que faltava era alguém compará-lo.
+  const rankAntes = rankOf(overallLevel(S)).l;
   const a = S.attrs[attr]; a.xp += amt; const ups = [];
   if (amt >= 0) { while (a.xp >= need(a.level)) { a.xp -= need(a.level); a.level++; ups.push(attr); } }
   else { while (a.xp < 0) { if (a.level <= 1) { a.xp = 0; break; } a.level--; a.xp += need(a.level); } }
@@ -45,6 +50,34 @@ export function addXp(S, attr, amt, silent) {
     );
     if (window.celebrate) window.celebrate(AM[ups[0]].color);
   }
+
+  // ── MUDANÇA DE RANK ──
+  // Depois dos level-ups, e é por isso que fica aqui em baixo: a fila ordena
+  // causa antes de consequência (`ORDER` em systemEvents), mas a ordem de
+  // EMISSÃO também tem de fazer sentido para quem lê o código.
+  //
+  // A descida também se anuncia, e como AVISO. Um Sistema que celebra a subida
+  // e cala a descida está a escolher o que conta — e a primeira lei é que ele
+  // nunca mente.
+  if (!silent && window.sysEvent) {
+    const rankDepois = rankOf(overallLevel(S));
+    if (rankDepois.l !== rankAntes) {
+      const subiu = overallLevel(S) > 0 && amt > 0;
+      window.sysEvent({
+        dedupe: 'rank:' + rankAntes + '>' + rankDepois.l + ':' + Math.round(S.totalXP),
+        kind: subiu ? 'rank' : 'warning',
+        title: subiu ? 'Rank alterado' : 'Rank perdido',
+        subject: rankAntes + ' → ' + rankDepois.l,
+        color: rankDepois.color,
+        readings: [
+          { label: 'Rank', value: rankDepois.l },
+          { label: 'Nível global', value: String(overallLevel(S)) },
+        ],
+        holdMs: 9000,
+      });
+    }
+  }
+
   if (amt > 0 && !silent && window.barBurst) window.barBurst(attr);
   return ups;
 }

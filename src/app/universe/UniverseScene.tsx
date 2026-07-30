@@ -69,12 +69,17 @@ type Action =
   | { t: 'back' }
   | { t: 'settled' }
   | { t: 'event'; domain: string; color: string; kind: string }
-  | { t: 'eventEnd' };
+  | { t: 'eventEnd' }
+  | { t: 'rank'; texto: string; cor: string }
+  | { t: 'rankEnd' };
 
 interface Model extends UniverseCtx {
   /** Para onde voltar quando um evento acaba, ou quando se recua. */
   prev: UniverseState;
   prevDomain: string | null;
+  /** "E → D". Vem do evento; a cena não o calcula, para não haver duas fontes
+   *  para o mesmo facto. */
+  rank: { texto: string; cor: string } | null;
 }
 
 function go(m: Model, state: UniverseState, patch: Partial<Model> = {}): Model {
@@ -111,6 +116,14 @@ function reducer(m: Model, a: Action): Model {
     }
     case 'event':
       return go(m, 'PROGRESS_EVENT', { event: { domain: a.domain, color: a.color, kind: a.kind } });
+    case 'rank':
+      // Um evento de rank cancela um de progresso a meio, e é correto: se os
+      // dois chegam juntos — que é o caso normal, porque é a missão que faz
+      // subir o rank — o que interessa é o maior.
+      return go(m, 'RANK_EVENT', { rank: { texto: a.texto, cor: a.cor }, event: null, domain: null });
+    case 'rankEnd':
+      if (m.state !== 'RANK_EVENT') return m;
+      return { ...m, prev: m.state, state: 'OVERVIEW', rank: null };
     case 'eventEnd': {
       if (m.state !== 'PROGRESS_EVENT') return m;
       // Volta exatamente ao sítio onde o Operador estava. A evidência
@@ -123,7 +136,7 @@ function reducer(m: Model, a: Action): Model {
   }
 }
 
-const INIT: Model = { state: 'OVERVIEW', domain: null, event: null, prev: 'OVERVIEW', prevDomain: null };
+const INIT: Model = { state: 'OVERVIEW', domain: null, event: null, prev: 'OVERVIEW', prevDomain: null, rank: null };
 
 function useWide(): boolean {
   const [wide, setWide] = useState(
@@ -224,15 +237,41 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
    * uma rotina que tenham domínio. Um level-up sem domínio não acende
    * território nenhum, e inventar um seria mentir. */
   useEffect(() => {
-    let last = '';
+    /* ── PORQUE SE VARRE A FILA INTEIRA E NÃO SÓ A CABEÇA ──
+     * A primeira montagem lia `q[0]`. Parecia bastar e não bastava: a fila é
+     * do ANÚNCIO e ordena causa antes de consequência, por isso a missão fica
+     * à frente e o rank fica atrás dela. Como a missão segura o lugar 7
+     * segundos, o rank só chegava à cabeça 7 segundos depois de ter
+     * acontecido — e, medido, nem lá chegava dentro da janela do teste.
+     *
+     * O Universo não é o anúncio. Reagir ao mundo e anunciar ao Operador são
+     * duas coisas diferentes, e a segunda não pode atrasar a primeira.
+     *
+     * O `seen` é limitado: sem limite, uma sessão longa acumulava uma chave
+     * por facto para sempre. 60 chaves cobrem qualquer rajada plausível. */
+    const seen = new Set<string>();
+    const marcar = (k: string) => {
+      seen.add(k);
+      if (seen.size > 60) seen.delete(seen.values().next().value as string);
+    };
     return subscribeSystemEvents((q) => {
-      const ev = q[0];
-      if (!ev || ev.dedupe === last) return;
-      if (ev.kind !== 'mission' && ev.kind !== 'pillar' && ev.kind !== 'habit') return;
-      const dom = ev.domain && AM[ev.domain] ? ev.domain : null;
-      if (!dom) return;
-      last = ev.dedupe;
-      dispatch({ t: 'event', domain: dom, color: AM[dom].color, kind: ev.kind });
+      // O RANK primeiro, esteja onde estiver na fila. Quando chegam juntos — e
+      // chegam, porque é a missão que faz subir o rank — quem manda é o
+      // acontecimento maior.
+      const rk = q.find((e) => e.kind === 'rank' && !seen.has(e.dedupe));
+      if (rk) {
+        marcar(rk.dedupe);
+        dispatch({ t: 'rank', texto: rk.subject, cor: rk.color || '#fbbf24' });
+        return;
+      }
+      const ev = q.find(
+        (e) => !seen.has(e.dedupe)
+          && (e.kind === 'mission' || e.kind === 'pillar' || e.kind === 'habit')
+          && e.domain && AM[e.domain],
+      );
+      if (!ev) return;
+      marcar(ev.dedupe);
+      dispatch({ t: 'event', domain: ev.domain!, color: AM[ev.domain!].color, kind: ev.kind });
     });
   }, []);
 
@@ -244,6 +283,15 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
     const t = window.setTimeout(() => dispatch({ t: 'eventEnd' }), 3400);
     return () => window.clearTimeout(t);
   }, [m.state, evDomain]);
+
+  /* A cerimónia de rank. 4,2s: 1,4s para a câmara recuar, 1,2s de contração e
+     silêncio, 1,6s de expansão e assentamento. É o evento mais longo do
+     produto, e é o único que merece sê-lo. */
+  useEffect(() => {
+    if (m.state !== 'RANK_EVENT') return;
+    const t = window.setTimeout(() => dispatch({ t: 'rankEnd' }), 4200);
+    return () => window.clearTimeout(t);
+  }, [m.state]);
 
   // A viagem ao Núcleo tem duas fases. Separá-las faz com que a leitura só
   // apareça quando ele já lá está — e é o que dá o instante de silêncio antes
@@ -291,7 +339,9 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
   })();
 
   const coreState: CoreState =
-    m.state === 'PROGRESS_EVENT' ? 'ABSORBING' : lit ? 'ATTUNEMENT' : 'REST';
+    m.state === 'RANK_EVENT' ? 'RANK_UP'
+      : m.state === 'PROGRESS_EVENT' ? 'ABSORBING'
+        : lit ? 'ATTUNEMENT' : 'REST';
 
   const showSky = m.state === 'OVERVIEW' || m.state === 'RETURNING'
     || (m.state === 'PROGRESS_EVENT' && scale === 'system' && !m.prevDomain);
@@ -578,6 +628,15 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
         {m.event && (
           <p className="us-pulse-note">
             {AM[m.event.domain]?.name} recebeu evidência nova. A energia está a convergir.
+          </p>
+        )}
+
+        {/* O rank substitui a leitura toda enquanto dura. Não é um aviso ao
+            lado do que estava — é o que está a acontecer. */}
+        {m.rank && (
+          <p className="us-rank-note" style={{ ['--rk' as string]: m.rank.cor }}>
+            <span className="us-rank-k">{m.rank.texto}</span>
+            <span className="us-rank-s">O sistema inteiro mudou de escala. A câmara recuou para o mostrar.</span>
           </p>
         )}
       </div>

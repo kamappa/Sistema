@@ -51,10 +51,12 @@ export default function CoreInterior({ core }: { core: CoreRead }) {
      não chegava a lado nenhum. Os números individuais não estão em mais sítio
      nenhum desta vista. */
   const descricao =
-    `Composição do Núcleo: ${core.somaNiveis} níveis provados no total. ` +
-    core.seams
-      .map((s) => `${s.name}, ${s.level} ${s.level === 1 ? 'nível' : 'níveis'}, ${Math.round(s.share * 100)} por cento`)
-      .join('. ') + '.';
+    `Composição do Núcleo: ${core.somaGanhos} ${core.somaGanhos === 1 ? 'nível ganho' : 'níveis ganhos'} no total. ` +
+    (core.somaGanhos === 0
+      ? 'Nenhum domínio subiu acima do ponto de partida — o Núcleo tem a massa mínima.'
+      : core.seams
+        .map((s) => `${s.name}, ${s.ganho} ${s.ganho === 1 ? 'nível' : 'níveis'}, ${Math.round(s.share * 100)} por cento`)
+        .join('. ') + '.');
 
   return (
     <svg className="ci" viewBox={`0 0 ${V} ${V}`} role="img" aria-label={descricao}>
@@ -85,7 +87,7 @@ export default function CoreInterior({ core }: { core: CoreRead }) {
         const y2 = C + Math.sin(a) * R_IN;
         // 2px no mínimo: um domínio a nível 1 tem de continuar visível, senão o
         // céu diz "não existes" a quem apenas começou.
-        const w = 2 + s.share * 46;
+        const w = 2 + s.share * 46;   // 2px de base: um domínio a zero continua visível
         const len = R_OUT - R_IN;
         // O rótulo fica para lá da ponta exterior do veio, alinhado pelo lado
         // de onde o veio vem: à direita do centro alinha à esquerda, e vice-
@@ -108,8 +110,11 @@ export default function CoreInterior({ core }: { core: CoreRead }) {
             />
             {/* A ponta onde o veio encosta ao corpo: é ali que a energia entra. */}
             <circle className="ci-tip" cx={x2} cy={y2} r={w * 0.55 + 2} fill={s.color} />
+            {/* O número é o GANHO, não o nível. Um veio de espessura mínima com
+                "1" ao lado dizia que o domínio contribuiu um nível quando
+                contribuiu zero — apanhado na auditoria à conta real. */}
             <text className="ci-num" x={lx} y={ly + dy} textAnchor={anchor} fill={s.color}>
-              {s.level}
+              {s.ganho}
             </text>
             <text className="ci-lab" x={lx} y={ly + dy + 22} textAnchor={anchor}>
               {s.name}

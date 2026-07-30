@@ -703,8 +703,9 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
                 tem de dizer que É uma conta — senão os seis veios voltam a ser
                 uma imagem bonita. */}
             <p className="us-hud-s">
-              Não é uma metáfora: {core.somaNiveis} níveis provados, menos cinco, dão o teu nível
-              global de {core.level}. Cada veio é a contribuição de um domínio, à escala.
+              {core.somaGanhos === 0
+                ? `Não é uma metáfora: os seis domínios estão no ponto de partida, por isso o Núcleo tem a massa mínima e o teu nível global é ${core.level}. Os veios ganham espessura quando um domínio sobe.`
+                : `Não é uma metáfora: ${core.somaGanhos} ${core.somaGanhos === 1 ? 'nível ganho' : 'níveis ganhos'} acima do ponto de partida, mais um de base, dão o teu nível global de ${core.level}. Cada veio é o que um domínio entregou, à escala.`}
             </p>
 
             <dl className="rf-debrief">

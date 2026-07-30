@@ -36,8 +36,11 @@ export interface Seam {
   /** Ângulo de entrada — o mesmo do território, para a continuidade espacial
    *  ser real: o veio vem de onde o domínio está. */
   angle: number;
-  /** Níveis que este domínio entrega. */
+  /** Nível atual do domínio. */
   level: number;
+  /** O que entrega ao Núcleo: `level − 1`. O nível 1 é o ponto de partida e
+   *  não é contribuição de ninguém. */
+  ganho: number;
   /** Fração da massa total. Governa a espessura. */
   share: number;
 }
@@ -63,10 +66,10 @@ export interface CoreRead {
   level: number;
   totalXP: number;
   seams: Seam[];
-  /** Soma dos níveis, ANTES do −5. É o número que os veios somam, e tem de
-   *  bater certo com o que se vê — por isso é exposto em vez de calculado
-   *  outra vez na vista. */
-  somaNiveis: number;
+  /** Soma dos GANHOS (níveis acima do ponto de partida). É o número que os
+   *  veios somam, e `somaGanhos + 1 === level` — a conta fecha e pode ser
+   *  verificada em vez de acreditada. */
+  somaGanhos: number;
   band: Band;
   growth: Growth | null;
   shadows: { n: number; forte: { name: string; lvl: number; d: string } | null };
@@ -77,17 +80,30 @@ export function readCore(S: Record<string, any> | null): CoreRead | null {
   if (!S) return null;
 
   const level = overallLevel(S);
-  const somaNiveis = ATTRS.reduce((n: number, a: any) => n + S.attrs[a.id].level, 0);
+
+  /* ── A CONTA CERTA, corrigida pela auditoria à conta real ──
+   * `overallLevel` é soma(níveis) − 5. Com seis domínios, isso é exatamente
+   * soma(nível − 1) + 1: cada domínio contribui o que GANHOU acima do ponto de
+   * partida, mais um de base.
+   *
+   * A montagem anterior dizia "X níveis provados" com X = soma(níveis), e numa
+   * conta nova isso eram 6 níveis provados que ninguém provou. A decomposição
+   * honesta é por `ganho`, e a soma dos ganhos mais um dá o nível global —
+   * verificável em vez de afirmado. */
+  const ganhos = ATTRS.map((a: any) => Math.max(0, S.attrs[a.id].level - 1));
+  const somaGanhos = ganhos.reduce((n: number, g: number) => n + g, 0);
 
   const seams: Seam[] = ATTRS.map((a: any, i: number) => {
     const lv = S.attrs[a.id].level;
+    const ganho = ganhos[i];
     return {
       id: a.id,
       name: a.name,
       color: a.color,
       angle: (i * 360) / ATTRS.length,
       level: lv,
-      share: somaNiveis > 0 ? lv / somaNiveis : 0,
+      ganho,
+      share: somaGanhos > 0 ? ganho / somaGanhos : 0,
     };
   });
 
@@ -131,7 +147,7 @@ export function readCore(S: Record<string, any> | null): CoreRead | null {
     level,
     totalXP: Math.round(S.totalXP ?? 0),
     seams,
-    somaNiveis,
+    somaGanhos,
     band,
     growth,
     shadows: { n: sh.length, forte: forte ? { name: forte.name, lvl: forte.lvl, d: forte.d } : null },

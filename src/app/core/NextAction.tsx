@@ -66,7 +66,11 @@ export default function NextAction({ S }: { S: Record<string, any> }) {
       {/* O motivo e a prova ficam juntos e por baixo: primeiro percebe-se O QUE
           é, depois PORQUE é esta. Ao contrário, o rótulo roubava a leitura. */}
       <p className="cc-act-why">
+        {/* M26·F7Z — apanhado na conta real: os dois span são inline e sem
+            separador liam-se colados, "Já começasteaberta há 24 dias". O ponto
+            médio é o separador que o resto do produto usa. */}
         <span className="cc-act-reason">{r.reason}</span>
+        <span className="cc-act-sep" aria-hidden="true"> · </span>
         <span className="cc-act-ev">{r.evidence}</span>
       </p>
 

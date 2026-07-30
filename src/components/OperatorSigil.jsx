@@ -66,7 +66,7 @@ export default function OperatorSigil({ S, size = 104 }) {
       </svg>
       <span className="sr-only">
         Sigilo do Operador: {ATTRS.map((a, i) => `${a.name} nível ${levels[i]}`).join(', ')}.
-        {bestStreak > 0 ? ` Maior streak: ${bestStreak} dias.` : ' Sem streak ativa.'}
+        {bestStreak > 0 ? ` Maior streak: ${bestStreak} ${bestStreak === 1 ? 'dia' : 'dias'}.` : ' Sem streak ativa.'}
       </span>
     </div>
   );

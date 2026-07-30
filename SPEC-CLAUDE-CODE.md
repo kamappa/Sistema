@@ -2216,6 +2216,75 @@ para cancelar nem para falhar.
 
 Zoom 200% e mobile: as sondas correram, mas os estados que interessava ver a
 200% são os que precisam de sessão. Fica por fazer.
+### Fase 7Z · Auditoria à conta real — executada, read-only (2026-07-30)
+
+Corrida no Chrome do Daniel, com a sessão real (`sync: ok`), em `localhost:5173`.
+**Zero escritas.** As zonas ficam todas montadas por desenho, e isso permitiu ler
+o Universo, o Núcleo e o Oráculo **sem um único clique** — nem sequer navegação.
+
+**A conta real é quase nova, e é isso que a torna valiosa:** os seis domínios a
+nível 1, 19 XP total, 11 objetivos, zero sombras, zero sessões de treino, zero
+títulos, `worldArc: null`. A minha semente tinha 12/19/8/14/5/11 e 48 210 XP. O
+estado inicial nunca tinha sido visto por nenhuma vista da Missão 26.
+
+#### O defeito da primeira lei
+
+**O céu afirmava "ESTRELAS: 6" numa conta onde nada foi provado.**
+
+`fresh.js` cria os seis domínios a nível 1 com 0 XP: o nível 1 é **dado**, não
+conquistado. Com `count = max(0, level)`, cada domínio gerava uma estrela
+consolidada de origem — seis provas que ninguém deu, contra a lei "nada nasce do
+nada: uma estrela tem de ter trigger, origem, data e evidência".
+
+**Contra a minha semente isto era invisível.** 69 níveis contra 63 ganhos não
+salta à vista. Numa conta nova, 6 contra 0 é a diferença entre "provaste seis
+coisas" e "ainda não provaste nada".
+
+Corrigido: `count = max(0, level − 1)`. A primeira estrela nasce ao chegar ao
+nível 2. Verificado na conta real: o HUD passou a dizer **0 estrelas**.
+
+**E a conta do Núcleo ficou melhor do que estava.** `overallLevel` é
+soma(níveis) − 5, que com seis domínios é exatamente soma(nível − 1) + 1: cada
+domínio entrega o que **ganhou** acima do ponto de partida, mais um de base. Os
+veios passaram a desenhar o ganho. Verificado com a semente rica: os seis ganhos
+somam 63, mais um dá 64, que é o nível global — a conta fecha, e a
+proporcionalidade das espessuras é exata.
+
+#### Dois defeitos de texto, só visíveis com dados reais
+
+- **"Maior streak: 1 dias"** — plural errado. Com a semente o streak nunca era 1.
+- **"Já começasteaberta há 24 dias"** — dois `<span>` inline sem separador.
+  Passou a "Já começaste · aberta há 24 dias".
+
+#### Três falsos positivos meus, registados porque o padrão importa
+
+1. "O botão Enviar aceita clique e não faz nada" — era um botão `disabled`, e eu
+   não tinha lido o atributo.
+2. "O sigilo do Oráculo não anima" — o seletor apanhou um `<svg>` filho. Há
+   quinze elementos com `sigil` no nome; três é que são o sigilo.
+3. "O War Room não está montado" — está, mas vive no painel lateral do Oráculo
+   (`OraclePresence`) e não numa zona. A minha sonda procurou nas zonas.
+
+O padrão é o mesmo nos três: **assumi onde a coisa estava em vez de verificar**.
+
+#### Confirmações
+
+- `logComDominio: 0` nas 14 entradas do registo real — exatamente o que a escala
+  3 prevê e declara por extenso. A forma é `{text, gain, d}`, que o read model lê.
+- `live: "false"` no Universo com a zona inativa: a pausa funciona com dados reais.
+- O campo do Oráculo tem `aria-label` e o botão está ativo **com** sessão
+  (`disabled: false`) — a correção de acessibilidade funciona nos dois estados.
+- Contador do Oráculo: 12/12 disponíveis hoje.
+
+#### O que a auditoria NÃO cobriu
+
+As **duas perguntas ao Oráculo autorizadas não foram gastas.** O valor delas é
+visual — ver THINKING começar, terminar e não ficar preso — e isso tem de ser
+visto pelo Daniel no ecrã dele, não medido por mim numa sonda. Ficam autorizadas
+e por usar.
+
+Por consequência continuam por validar: LISTENING, THINKING, RESEARCHING,
+INSIGHT, WARNING, CONSELHO com resposta real, e o War Room com o painel aberto.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

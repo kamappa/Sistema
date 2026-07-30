@@ -138,7 +138,22 @@ export function readScene(S: Record<string, any> | null): SceneRead | null {
     const frac = nd > 0 ? Math.min(1, s.xp / nd) : 0;
     const ar = rankOf(s.level);
 
-    const count = Math.min(MAX_STARS, Math.max(0, s.level));
+    /* ── O NÍVEL 1 NÃO É UMA ESTRELA ──
+     * Encontrado na auditoria à conta real, 2026-07-30, e é um defeito da
+     * PRIMEIRA LEI. `fresh.js` cria os seis domínios a nível 1 com 0 XP: o
+     * nível 1 é DADO, não conquistado. Com `Math.max(0, s.level)` o céu de uma
+     * conta nova mostrava SEIS estrelas e o HUD dizia "ESTRELAS: 6" — seis
+     * provas que ninguém deu.
+     *
+     * Contra a minha semente isto era invisível: 69 níveis contra 63 provados
+     * não salta à vista. Numa conta nova, 6 contra 0 é a diferença entre
+     * "provaste seis coisas" e "ainda não provaste nada", e a segunda é a
+     * verdade.
+     *
+     * A primeira estrela nasce ao chegar ao nível 2. É o que "nada nasce do
+     * nada" quer dizer: uma estrela tem de ter trigger, origem e evidência, e
+     * o ponto de partida não tem nenhum dos três. */
+    const count = Math.min(MAX_STARS, Math.max(0, s.level - 1));
     const stars: Star[] = [];
     for (let k = 0; k < count; k++) {
       const seed = a.id + ':' + k;

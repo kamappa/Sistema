@@ -210,6 +210,7 @@ export const useStore = create((set, get) => ({
         title: list === 'oblig' ? 'Pilar confirmado' : 'Registado',
         subject: h.name,
         color: AM[h.attr].color,
+        domain: h.attr,
         readings: [
           { label: AM[h.attr].name, value: '+' + gained + ' XP' },
           { label: 'Streak', value: h.streak + (h.streak === 1 ? ' dia' : ' dias') },
@@ -297,6 +298,7 @@ export const useStore = create((set, get) => ({
         title: 'Missão erguida',
         subject: o.title,
         color: AM[o.area] ? AM[o.area].color : undefined,
+        domain: AM[o.area] ? o.area : undefined,
         readings: [
           { label: AM[o.area] ? AM[o.area].name : 'XP', value: '+' + p.xp + ' XP' },
           { label: 'Sombra', value: 'Nv ' + p.lvl },
@@ -385,6 +387,7 @@ export const useStore = create((set, get) => ({
       title: 'Sessão registada',
       subject: logged + (logged === 1 ? ' linha' : ' linhas') + (extraOk ? ' + volume extra' : ''),
       color: AM.corpo.color,
+      domain: 'corpo',
       readings: [{ label: AM.corpo.name, value: (xp + advXp) > 0 ? '+' + (xp + advXp) + ' XP' : 'sem XP' }],
     });
     if (adv.length) {
@@ -470,6 +473,7 @@ export const useStore = create((set, get) => ({
       title: 'Rotina registada',
       subject: name,
       color: AM.corpo.color,
+      domain: 'corpo',
       readings: [{ label: 'Seguidas', value: String(bodyStreak(S.bodyRoutines[id])) }],
     });
     set({ S: { ...S } }); get().save();

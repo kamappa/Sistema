@@ -55,6 +55,9 @@ export interface SystemEvent {
   readings?: { label: string; value: string }[];
   /** Cor do domínio, quando o evento tem um. */
   color?: string;
+  /** Id do domínio (ATTRS). O Universo usa-o para saber QUAL território
+   *  recebeu a evidência — sem isto, o céu não sabia que algo aconteceu. */
+  domain?: string;
   /** Quanto tempo fica. Omisso = calculado do comprimento do texto. */
   holdMs?: number;
 }

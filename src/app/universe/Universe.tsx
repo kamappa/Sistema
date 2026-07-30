@@ -1,25 +1,30 @@
-/* UNIVERSO — o campo é a experiência; a lista é o instrumento.
- * Missão 26 · Fase 6C.
+/* UNIVERSO — o céu é a experiência; a lista é o instrumento.
+ * Missão 26 · Fase 6C, segunda passagem.
  *
- * O diagnóstico do Daniel: "a lista de seis atributos domina, o gráfico é
- * pequeno e parece um chart convencional, alguns rótulos estão cortados, pouca
- * relação entre atributos, evidência, títulos e conquistas".
+ * PRIMEIRA PASSAGEM (`CelestialField`, agora removido): um campo 2D com seis
+ * discos e um núcleo ao centro. Resolvia o diagnóstico de então — a lista
+ * dominava, o gráfico era pequeno — mas o veredicto seguinte foi mais duro e
+ * correto: demasiado seguro, demasiado contido, pouco transformador. Era uma
+ * ilustração do estado, não um sítio onde se entra.
  *
- * A inversão é essa: o campo celeste passa a abrir a zona, e a lista detalhada
- * desce para instrumento secundário. **A lista não foi apagada** — é onde
- * estão os números exatos, e um campo sem números seria bonito e inútil.
+ * O QUE MUDA, e não é aparência:
+ *   · deixa de haver vistas. Há UMA cena e uma câmara que se aproxima. O macro
+ *     e o micro são a mesma realidade a aprofundar-se, não dois ecrãs;
+ *   · o Núcleo está ao FUNDO, atrás do plano dos domínios. Chegar lá é
+ *     atravessar o céu — por isso é um destino, e não um logótipo ao centro;
+ *   · o Universo passa a saber que algo aconteceu: assina a fila de eventos e
+ *     reage à evidência acabada de provar, no território certo.
  *
- * O radar hexagonal também fica, como leitura secundária de EQUILÍBRIO. É a
- * única forma que mostra desequilíbrio de relance, e o campo — que usa raio
- * fixo de propósito — não mostra isso.
+ * A lista detalhada, o radar e a evidência continuam na zona, abaixo. Um céu
+ * sem números seria bonito e inútil, e a lei do projeto é mostrar provas.
  */
 
-import CelestialField from './CelestialField';
+import UniverseScene from './UniverseScene';
 
 export default function Universe({ S }: { S: Record<string, any> }) {
   return (
-    <section className="panel uni-field" aria-label="Campo celeste">
-      <CelestialField S={S} />
+    <section className="panel uni-field" aria-label="Universo">
+      <UniverseScene S={S} />
     </section>
   );
 }

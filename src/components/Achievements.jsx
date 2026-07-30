@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ACH } from '../state/config.js';
 import { useStore } from '../store/useStore.js';
+import AchievementSigil from '../app/universe/AchievementSigil';
 
 // primeira avaliação da sessão = baseline silencioso: marca como vistas as
 // conquistas JÁ desbloqueadas sem celebrar (senão, carregar um estado antigo
@@ -48,7 +49,15 @@ export default function Achievements({ S }) {
           const on = a.cond(S);
           return (
             <div className={`ach ${on ? 'on' : ''}`} key={a.id}>
-              <div className="ico">{on ? a.ico : '🔒'}</div>
+              {/* M26·F6C — o emoji sai daqui. Um cadeado 🔒 e um punhado de
+                  emojis são a assinatura de uma interface genérica, e a
+                  pergunta obrigatória do projeto é se isto parece um produto
+                  chamado Sistema. O sigilo é gerado do id da conquista: cada
+                  uma tem uma forma sua, sempre a mesma, e a bloqueada mostra
+                  o contorno vazio — vê-se que existe e que falta. */}
+              <div className="ico">
+                <AchievementSigil id={a.id} unlocked={on} size={34} title={a.name} />
+              </div>
               <div><div className="an2">{a.name}</div><div className="ad2">{on ? a.msg : 'Bloqueada'}</div></div>
             </div>
           );

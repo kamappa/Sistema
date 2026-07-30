@@ -1,0 +1,196 @@
+/* UNIVERSO — o read model do céu.
+ * Missão 26 · Fase 6C, segunda passagem.
+ *
+ * O ficheiro chama-se universe-read (com hifen) e nao universeScene porque o
+ * sistema de ficheiros do Windows nao distingue maiusculas: universeScene e
+ * UniverseScene seriam o mesmo caminho, o TypeScript recusa a compilacao e o
+ * Vite serve o modulo errado em silencio. Mesmo motivo de core/next-action.ts.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  CADA ESTRELA NASCE DE EVIDÊNCIA REAL, e a mesma evidência produz     ║
+ * ║  SEMPRE a mesma estrela — mesma posição, mesmo tamanho, mesmo brilho. ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * A posição vem de um hash do `domínio + índice`, não de `Math.random()`. É a
+ * diferença entre um céu e um protetor de ecrã: um céu que se reordena a cada
+ * render não é um registo de nada, e a lei do projeto diz que nada nasce do
+ * nada — uma estrela tem de ter origem, e a origem tem de se manter.
+ *
+ * O QUE VIRA ESTRELA, e porquê só isto:
+ *   · cada NÍVEL de um domínio = uma estrela consolidada. É a unidade de
+ *     progresso que o motor de XP reconhece, e é irreversível na prática;
+ *   · o XP do nível em curso = uma estrela A NASCER, com o brilho a crescer
+ *     com a fração. É a única que ainda pode recuar, e mostra-se como tal;
+ *   · cada TÍTULO provado e cada CONQUISTA = um corpo na órbita externa.
+ *
+ * Não há estrelas decorativas. O fundo tem poeira, e a poeira não conta nada —
+ * é ambiente, e está declarada como tal no componente.
+ */
+
+import { ATTRS, need, rankOf, overallLevel, TITLES_REAL, ACH } from '../../state/config.js';
+
+/** FNV-1a. Determinístico e estável entre sessões. */
+function hash(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+/** 0–1 a partir de uma semente textual. */
+const rnd = (s: string) => (hash(s) % 100000) / 100000;
+
+export interface Star {
+  id: string;
+  /** Coordenadas locais dentro do território do domínio, −1 a 1. */
+  x: number;
+  y: number;
+  /** Profundidade: 0 = perto, 1 = fundo. Alimenta o parallax. */
+  z: number;
+  /** 0–1. Estrela consolidada = 1; a nascer = a fração do nível. */
+  light: number;
+  size: number;
+  /** A que nível corresponde. É a prova: hover diz "nível 7 de Corpo". */
+  level: number;
+  /** A estrela do nível em curso — a única que ainda pode recuar. */
+  forming: boolean;
+  /** Cintila? Determinístico, ~1 em 4.
+   *  Num céu real quase nenhuma estrela cintila de forma percetível, e 76
+   *  animações simultâneas custam 76 camadas de composição por nada. */
+  tw: boolean;
+}
+
+export interface Territory {
+  id: string;
+  name: string;
+  sub: string;
+  color: string;
+  /** Posição do território no céu, em graus a partir do topo. */
+  angle: number;
+  level: number;
+  xp: number;
+  xpNeed: number;
+  frac: number;
+  rankLetter: string;
+  rankColor: string;
+  stars: Star[];
+  /** Quantas estrelas consolidadas. É o número que o domínio provou. */
+  proven: number;
+}
+
+export interface Satellite {
+  id: string;
+  name: string;
+  kind: 'title' | 'ach';
+  on: boolean;
+  angle: number;
+}
+
+export interface SceneRead {
+  territories: Territory[];
+  satellites: Satellite[];
+  level: number;
+  rank: { letter: string; color: string };
+  /** Total de estrelas consolidadas em todo o céu. */
+  totalStars: number;
+  /** Quanta massa o Núcleo tem, 0–1. Governa o tamanho do feixe. */
+  coreMass: number;
+}
+
+/** Teto de estrelas desenhadas por domínio. Acima disto o céu deixa de se ler
+ *  e o custo de render cresce sem informação nova — o número real continua a
+ *  aparecer na leitura, por isso nada se esconde. */
+const MAX_STARS = 24;
+
+export function readScene(S: Record<string, any> | null): SceneRead | null {
+  if (!S) return null;
+
+  const level = overallLevel(S);
+  const rank = rankOf(level);
+
+  const territories: Territory[] = ATTRS.map((a: any, i: number) => {
+    const s = S.attrs[a.id];
+    const nd = need(s.level);
+    const frac = nd > 0 ? Math.min(1, s.xp / nd) : 0;
+    const ar = rankOf(s.level);
+
+    const count = Math.min(MAX_STARS, Math.max(0, s.level));
+    const stars: Star[] = [];
+    for (let k = 0; k < count; k++) {
+      const seed = a.id + ':' + k;
+      // Distribuição em disco, não em quadrado: um território redondo lê-se
+      // como campo; um quadrado lê-se como caixa, e a missão proíbe caixas.
+      const ang = rnd(seed + ':a') * Math.PI * 2;
+      const rad = Math.sqrt(rnd(seed + ':r')) * 0.92;
+      stars.push({
+        id: seed,
+        x: Math.cos(ang) * rad,
+        y: Math.sin(ang) * rad,
+        z: rnd(seed + ':z'),
+        light: 1,
+        size: 1 + rnd(seed + ':s') * 1.6,
+        level: k + 1,
+        forming: false,
+        tw: rnd(seed + ':t') < 0.26,
+      });
+    }
+    // A estrela em formação: existe sempre que há XP no nível em curso, e o
+    // brilho é a fração. Aparece perto do bordo — é a mais nova.
+    if (frac > 0.02) {
+      const seed = a.id + ':forming';
+      const ang = rnd(seed + ':a') * Math.PI * 2;
+      stars.push({
+        id: seed,
+        x: Math.cos(ang) * 0.96,
+        y: Math.sin(ang) * 0.96,
+        z: 0.15,
+        light: frac,
+        size: 1.2 + frac * 1.4,
+        level: s.level + 1,
+        forming: true,
+        // A que está a nascer cintila SEMPRE: é a única instável, e o
+        // movimento é o que diz isso sem uma legenda.
+        tw: true,
+      });
+    }
+
+    return {
+      id: a.id,
+      name: a.name,
+      sub: a.sub,
+      color: a.color,
+      angle: (i * 360) / ATTRS.length,
+      level: s.level,
+      xp: s.xp,
+      xpNeed: nd,
+      frac,
+      rankLetter: ar.l,
+      rankColor: ar.color,
+      stars,
+      proven: count,
+    };
+  });
+
+  const unlocked = Object.keys(S.titleUnlocked ?? {});
+  const seen: string[] = S.seenAch ?? [];
+  const all = [
+    ...TITLES_REAL.map((t: any) => ({ kind: 'title' as const, id: t.id, name: t.name, on: unlocked.includes(t.id) })),
+    ...ACH.map((a: any) => ({ kind: 'ach' as const, id: a.id, name: a.name, on: seen.includes(a.id) })),
+  ];
+  const satellites: Satellite[] = all.map((o, i) => ({
+    ...o,
+    id: o.kind + ':' + o.id,
+    angle: (i * 360) / all.length,
+  }));
+
+  const totalStars = territories.reduce((n, t) => n + t.proven, 0);
+
+  return {
+    territories,
+    satellites,
+    level,
+    rank: { letter: rank.l, color: rank.color },
+    totalStars,
+    // O feixe do Núcleo cresce com o nível global, com saturação. Sem teto,
+    // um nível alto enchia o ecrã e deixava de haver céu.
+    coreMass: Math.min(1, level / 40),
+  };
+}

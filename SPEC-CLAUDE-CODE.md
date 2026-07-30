@@ -1921,6 +1921,26 @@ conteúdo real já montado por baixo, e uma vez por sessão. Bug apanhado: a mar
 de sessão era escrita no início do efeito e o StrictMode consumia-a no segundo
 mount — a sequência nunca chegava a ver-se.
 
+### War Room e presença do Oráculo (CONCLUÍDOS 2026-07-30)
+
+**War Room.** A correção mais importante foi um rótulo. A maqueta dizia "DADOS
+AINDA NÃO LIGADOS" nos quatro blocos; para Agentes e Money Machine isso era
+**falso** — não há registry, não há pipeline, não há nada por ligar. Dizer
+"ainda não ligado" sobre o que não existe é mentir por implicatura.
+
+Passam a existir dois estados estruturais: **ligado** (Operações, Sinais de
+risco, Mundo — cada número com a origem declarada) e **não existe** (Agentes,
+Money Machine — com a regra da Constituição que impede improvisá-los).
+
+Não inventei um registo de riscos: o bloco chama-se "Sinais de risco" porque é
+o que é — dois factos duros e um estimado. Chamar-lhe "Riscos · abertos /
+aceites / em escalada" seria inventar uma taxonomia que ninguém escreveu.
+
+**Presença do Oráculo · a processar.** Pedir um conselho deixava a faixa igual.
+Agora a onda deixa de respirar e passa a **contrair** (R17), com `ocBusy` real
+— e para quando a resposta chega. Sob `reduced-motion` fica contraída, para o
+estado continuar a distinguir-se.
+
 ### Fases 6 e 7 — o que fica em aberto
 
 A lista de implementação está fechada. O que resta são **duas decisões do
@@ -1937,7 +1957,6 @@ Daniel**, não trabalho por fazer:
 
 ### Por fazer
 
-- **War Room** ligado a dados;
 - **performance** nunca medida: bundle em 996 KB de JS, FPS em mobile e tempo de
   arranque por medir;
 - ~~contraste~~ **REABERTO e fechado outra vez a 2026-07-29**: a auditoria da

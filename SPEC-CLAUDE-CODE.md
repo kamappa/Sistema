@@ -1884,17 +1884,52 @@ Não inventei métricas: não há barra de confiança porque o domínio não gua
 confiança. A hora da próxima passagem é apresentada como **previsão**, com a
 ressalva escrita.
 
-### Por fazer da Fase 6/7 — NÃO COMEÇADO
+### Fase 6D · Escada de Ascensão (CONCLUÍDA 2026-07-30)
 
-Por ordem de dependência, não de valor:
+A letra de rank no topo era decoração; passa a porta. Escada **vertical**, lida
+de baixo para cima — gramática 9 (origem R11): a direção é o significado.
 
-1. **Escada de Ascensão** (6D);
-2. **Calendário** (6F) — today vs selected, e os restantes estados;
-3. **Entrada e transições de zona** (6G);
-4. **Estados de arco por implementar no domínio** — `milestone`, `climax` e
+**Não inventa requisitos.** O domínio tem um só critério de rank e é
+aritmético. A escada mostra degraus, níveis em falta e títulos por nível, e tem
+uma secção com cabeçalho a dizer por extenso o que **não está definido**
+(requisitos de evidência, benefícios, histórico de promoções). "O que puxa para
+cima" é derivado: `overallLevel` é a soma dos seis domínios, logo o que tem
+menos XP em falta é o mais barato de subir.
+
+Verificado a rank C e a rank S; Escape fecha e o foco **volta ao Núcleo**.
+
+### Fase 6F · Calendário — seis estados (CONCLUÍDA 2026-07-30)
+
+A célula passa de `<div onClick>` a `<button>` com `aria-pressed` e
+`aria-label` descritivo. Seis estados, cada um numa **linguagem diferente**
+para poderem coexistir: hoje é luz interna, selecionado é contorno, evento é
+marca inferior, prazo é filete lateral, urgente é o mesmo filete mais grosso e
+em alarme, passado cumprido é filete em baixo. Nenhum depende só de cor.
+
+### Fase 6G · Entrada e transições (CONCLUÍDA 2026-07-30)
+
+O fade de 180 ms — proibido por nome pela fase — passa a deslocamento com
+**direção**, tirada da posição relativa das duas zonas na órbita. 24 px, e não
+60: medi os dois e 60 dava sensação de carrossel. Assinatura curta por zona,
+sempre sobre a luz de palco e nunca sobre o conteúdo.
+
+**Sem remount, verificado e não assumido:** scroll de Operações em 240 antes e
+240 depois de ir ao Universo e voltar, com o canvas das Constelações intacto.
+
+A entrada **não é um splash**: `pointer-events: none` desde o primeiro frame, o
+conteúdo real já montado por baixo, e uma vez por sessão. Bug apanhado: a marca
+de sessão era escrita no início do efeito e o StrictMode consumia-a no segundo
+mount — a sequência nunca chegava a ver-se.
+
+### Fases 6 e 7 — o que fica em aberto
+
+A lista de implementação está fechada. O que resta são **duas decisões do
+Daniel**, não trabalho por fazer:
+
+1. **Estados de arco por implementar no domínio** — `milestone`, `climax` e
    `archived` estão declarados e inalcançáveis. Precisam de onde guardar um
    marco atingido, e isso é decisão de domínio;
-5. **Sobreposição entre o pilar `kegel` do Treino e a rotina guiada de
+2. **Sobreposição entre o pilar `kegel` do Treino e a rotina guiada de
    Pavimento Pélvico** — são dois registos para a mesma atividade: o primeiro
    move a progressão do domínio, o segundo escreve em `bodyRoutines` com XP
    zero. Não os fundi porque fundi-los muda o que "sessão de treino" significa,

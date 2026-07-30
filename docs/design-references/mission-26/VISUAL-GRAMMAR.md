@@ -298,3 +298,42 @@ está**, e não só numa lista à parte. Um ficheiro sem veredicto escrito é um
 convite.
 
 **Reduced motion:** irrelevante — é uma regra de arquivo, não de movimento.
+
+## 15. Um estado distingue-se pela FORMA antes de se distinguir pela cor ou pelo ritmo
+
+**Observado em:** S05.
+
+A referência mostra três estados cognitivos — PREDICTION, COGNITIVE
+MISALIGNMENT, MEMORY ECHO — e cada um é uma **forma diferente** de filamentos:
+ramificação aberta, dois núcleos a puxar em sentidos opostos, dispersão sem
+centro. Tudo branco sobre preto. Nenhuma cor, nenhum rótulo colorido, nenhuma
+velocidade diferente — e distinguem-se de relance.
+
+O Oráculo do Sistema distingue os seus estados por **intensidade e ritmo do
+mesmo sigilo**. Funciona, e é frágil: quem não vir o movimento não vê o estado,
+e em `prefers-reduced-motion` fica só a intensidade.
+
+**A regra:** a forma é o canal mais robusto. Cor pode falhar por daltonismo,
+ritmo falha em reduced motion, intensidade falha em ecrã claro. A forma
+sobrevive aos três.
+
+**Reduced motion:** é o argumento principal, não uma nota de pé de página.
+
+## 16. Uma maqueta com dados falsos não é uma referência — é um aviso
+
+**Observado em:** S08, S16, S09.
+
+Três das vinte estáticas são interfaces de demonstração que ninguém reviu. S08
+tem **todos** os rótulos a dizer "Thema" — o texto de exemplo do template. S16
+repete "WISDOM" e "CHARISMA" duas vezes, com valores diferentes. S09 inventa um
+diretório de agentes com nomes que não existem.
+
+Nenhuma delas é má por ser feia. São más porque **parecem dados e não são**, e
+quem as usar como referência importa esse hábito antes de importar o estilo.
+
+**A regra:** antes de extrair alguma coisa de uma referência de interface, ler
+o texto dela. Se o texto for falso, o resto também é decoração — e a lei do
+projeto é que o Sistema mostra provas, não sinais.
+
+**Reduced motion:** irrelevante — é uma regra de leitura, não de movimento.
+

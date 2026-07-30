@@ -837,3 +837,48 @@ mandou responder no fim:
 
 **Nenhum código foi alterado nesta análise**, e foi condição explícita: não
 mexer no produto só para poder dizer que todas as referências foram usadas.
+
+### 2026-07-30 · Fase 7Z — biblioteca de referências fechada: 50 de 50
+
+**Zero pendentes.** 30 animadas + 20 estáticas, todas abertas.
+
+**Correção de uma contagem minha.** Escrevi "30 abertas · 18 por abrir · 2
+inválidas". Era dupla contagem: as duas inválidas (R08, R27) são PNG com
+extensão `.gif` e já estavam dentro das 30. As estáticas eram 20.
+
+**O retrato da biblioteca, agora que está toda vista:** de 50 referências, **11
+são anti-referências** e 3 são rejeitadas. Quase 30% da biblioteca é material
+a evitar — e isso não é um defeito da biblioteca, é o valor dela: saber o que
+não fazer estava a custar zero e ninguém o tinha inventariado.
+
+**As três mais fortes por aplicar**, somando animadas e estáticas:
+
+- **S05** — três estados cognitivos, cada um com forma de filamentos própria,
+  branco sobre preto. É a resposta mais próxima que a biblioteca tem para o que
+  falta ao Oráculo, cujos estados hoje se distinguem por ritmo e intensidade do
+  mesmo sigilo. Deu a gramática 15.
+- **S01** — terreno de partículas, anel-portal, interface reduzida a dois
+  affordances, e itálico serif na palavra que carrega o significado. Candidata à
+  zona Reflexão, cujo nome a referência tem literalmente ("memory").
+- **R04** — coluna de luz entre dois anéis, já registada.
+
+**Duas paletas com hex reais e utilizáveis**, e é preciso dizer que são paletas
+e não direção visual: **S13** (outono, cinco hex terrosos) e **S20** (inverno,
+seis hex dessaturados, com `Pine #27363F` e `BERRY #6B212C` a funcionarem sobre
+preto). As de primavera e verão (S14, S17) são pastéis sobre branco — o oposto
+da direção, e ficam rejeitadas para uso direto.
+
+**Um extrato dentro de uma anti-referência**, que é o caso mais interessante:
+**S12** é um infográfico de HUD de ficção científica e é para rejeitar inteiro —
+menos uma coisa. Mostra N componentes, cada um com **ícone próprio**, ligados
+por linha-guia ao objeto central que compõem. É a estrutura do interior do
+Núcleo, e aponta a peça que lá falta: um ícone por domínio, que hoje não existe.
+
+**Onde as anti-referências estão arquivadas continua a ser o maior risco.** A
+gramática 14 nasceu de duas; agora são mais: **S15** (dashboard de big data)
+está em `01-shell-navigation`, a pasta da shell, e **S03** (árvore de talentos)
+está em `constelação`, onde alguém vai procurar referência para o Mapa de
+Conhecimento. As duas estão agora marcadas no sítio onde estão.
+
+**Nenhum código foi alterado nesta análise.**
+

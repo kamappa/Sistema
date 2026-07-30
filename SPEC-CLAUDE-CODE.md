@@ -2285,6 +2285,31 @@ e por usar.
 
 Por consequência continuam por validar: LISTENING, THINKING, RESEARCHING,
 INSIGHT, WARNING, CONSELHO com resposta real, e o War Room com o painel aberto.
+### Fase 7Z · Referências — biblioteca fechada, 50 de 50 (CONCLUÍDA 2026-07-30)
+
+**Zero pendentes.** 30 animadas (R01–R30) + 20 estáticas (S01–S20).
+
+Correção de uma contagem minha: "30 abertas · 18 por abrir · 2 inválidas" era
+dupla contagem — as duas inválidas já estavam dentro das 30, e as estáticas
+eram 20. O total sempre foi 50.
+
+Os IDs das estáticas foram determinados por **resolução + categoria**, com um
+leitor de cabeçalho JPEG/PNG. Zero duplicados por hash em toda a biblioteca.
+
+Estáticas: 6 analisadas · 5 parcialmente úteis · 7 anti-referências · 2
+rejeitadas. Duas das analisadas são **paletas** (S13, S20) e ficam classificadas
+como tal em vez de serem contadas como direção visual.
+
+**De 50 referências, 11 são anti-referências e 3 são rejeitadas** — quase 30%
+da biblioteca é material a evitar, e isso é o valor dela e não um defeito.
+
+Duas gramáticas novas: **15** (um estado distingue-se pela forma antes da cor ou
+do ritmo — de S05, e é o argumento mais forte contra o Oráculo distinguir
+estados só por ritmo) e **16** (uma maqueta com dados falsos não é referência, é
+aviso — de S08 com todos os rótulos a dizer "Thema", S16 com WISDOM repetido, e
+S09 com agentes inventados).
+
+Zero alterações a código.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗
@@ -2301,18 +2326,24 @@ faltar qualquer um destes:
 |---|---|
 | Decisões de domínio + `arcCapabilities` | **FECHADO** |
 | Pavimento Pélvico / Kegel | **FECHADO** |
-| Referências animadas (R01–R30) | **FECHADO** — 30 de 30 abertas |
-| Referências estáticas (18) | **ABERTO** — nenhuma vista |
+| Referências (50: 30 animadas + 20 estáticas) | **FECHADO** — zero pendentes |
 | Performance mobile | **FECHADO** com ressalvas medidas |
 | Validação do Oráculo | **PARCIAL** — o que precisa de sessão fica por fazer |
-| Auditoria com dados reais | **ABERTO** — plano escrito, espera o Daniel |
+| Auditoria com dados reais | **FECHADA** — executada read-only; 3 defeitos, 1 da primeira lei |
+| Estados do Oráculo com sessão | **ABERTO** — precisa do Daniel ao ecrã |
 
 O plano da auditoria está em
 `docs/design-references/mission-26/AUDITORIA-CONTA-REAL.md` e inclui as páginas
 a abrir, o que observar, as ações proibidas, os riscos, a política de
 screenshots e a lista do que precisa de sanitização.
 
-**Enquanto os dois gates abertos não fecharem, a classificação é A e não B.**
+**Sobra um gate:** os estados do Oráculo que exigem sessão e resposta real —
+LISTENING, THINKING do princípio ao fim, RESEARCHING, INSIGHT, WARNING, CONSELHO
+com resposta, e o War Room com o painel aberto. As duas perguntas autorizadas
+continuam por gastar, e de propósito: o valor delas é visual e tem de ser visto
+pelo Daniel no ecrã dele.
+
+**Enquanto esse gate não fechar, a classificação é A e não B.**
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 
 Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,

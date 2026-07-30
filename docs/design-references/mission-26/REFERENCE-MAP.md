@@ -20,15 +20,28 @@ Duas classes de coluna, que não se confundem:
 **Confiança** — `alta` (vista e inequívoca), `média` (vista, leitura discutível),
 `nenhuma` (não vista).
 
-Nesta data: **30 abertas · 18 por abrir · 2 inválidas** — total 50.
+Nesta data: **50 abertas · 0 por abrir** — total 50. **Zero pendentes.**
 
-Atualizado a 2026-07-30, Fase 7Z. **As 30 animadas (R01–R30) estão TODAS
-abertas.** Das 18 por abrir, todas são estáticas (S01–S20 menos as duas
-inválidas) — nenhuma foi vista, e por isso nenhuma tem interpretação escrita.
+CORREÇÃO DE UMA CONTAGEM MINHA. Escrevi antes "30 abertas · 18 por abrir · 2
+inválidas". Estava errada por dupla contagem: as duas "inválidas" (R08 e R27) são
+PNG com extensão `.gif` e **já estão dentro das 30 animadas** — foram abertas e
+classificadas como qualquer outra. As estáticas eram **20**, não 18. O total
+sempre foi 30 + 20 = 50.
 
-Repartição das 30 animadas por estado:
-**analisadas 15** · **parcialmente úteis 8** · **anti-referências 4** ·
-**rejeitadas 1** · **duplicadas 2**.
+Atualizado a 2026-07-30, Fase 7Z. **As 30 animadas (R01–R30) e as 20 estáticas
+(S01–S20) estão todas abertas.**
+
+Repartição das 30 animadas: **15 analisadas · 8 parcialmente úteis · 4
+anti-referências · 1 rejeitada · 2 duplicadas por hash**.
+
+Repartição das 20 estáticas: **6 analisadas · 5 parcialmente úteis · 7
+anti-referências · 2 rejeitadas**. Duas das analisadas são **paletas** e não
+referências de interface (S13, S20) — ficam classificadas como tal em vez de
+serem contadas como direção visual.
+
+**Os IDs das estáticas foram determinados por resolução + categoria**, com um
+leitor de cabeçalho JPEG/PNG, e não por suposição. Zero duplicados por hash em
+toda a biblioteca.
 
 Nota de contagem: R12 e R14 são o mesmo ficheiro por hash, tal como R22 e R23.
 Os duplicados são registados como duplicados e não reabertos — abrir duas vezes
@@ -550,20 +563,276 @@ Todas têm 12 frames e contact sheet em `98-extracted-frames/`. Confiança
 _As 21 animadas que estavam nesta tabela foram abertas e passaram para a secção
 "Analisadas na Fase 7Z", acima. A tabela de inventário animado deixou de existir
 porque deixou de ter linhas._
-### Estáticas (20) — medidas, nenhuma aberta
+## Estáticas — abertas na Fase 7Z, 2026-07-30
 
-| ID | Categoria | Resolução | | ID | Categoria | Resolução |
-|---|---|---|---|---|---|---|
-| S01 | 07-core · conquista | 1200×602 | | S11 | 04-panels · notificações | 1200×750 |
-| S02 | 03-universe | 1199×675 | | S12 | 07-core · núcleo | 1200×800 |
-| S03 | 03-universe | 1200×675 | | S13 | 03-universe · outono | 1080×1350 |
-| S04 | 03-universe | 736×736 | | S14 | 03-universe · primavera | 736×1104 |
-| S05 | 03-universe | 736×1104 | | S15 | 01-shell | 1199×675 |
-| S06 | 03-universe | 736×414 | | S16 | 01-shell | 736×1104 |
-| S07 | 03-universe · cons.jpg | 711×399 | | S17 | 03-universe · verão | 736×1104 |
-| S08 | 03-universe · constelacao.jpg | 735×441 | | S18 | 03-universe · verão | 736×1104 |
-| S09 | 03-universe · mapa de workflow | 1024×1024 | | S19 | 03-universe · verão | 500×282 |
-| S10 | 03-universe · universo.jpg | 736×414 | | S20 | 03-universe · winter | 735×934 |
+**Todas as 20 abertas.** O ID foi determinado por **resolução + categoria**, com um
+leitor de cabeçalho JPEG/PNG — não foi adivinhado. Zero duplicados por hash.
+
+Método: S01 e S12 abertas individualmente; as outras 18 em três folhas de
+contacto geradas com as imagens **inteiras e rotuladas com ID e caminho**, uma
+por célula. É abrir em grelha, não substituir abrir.
+
+### S01 · `07-core-level-events/conquista` · MATERIAL + IDENTITY — analisada
+1200×602 · **das mais fortes por aplicar**
+
+**Factual:** um terreno feito de partículas de luz âmbar e branca sobre preto
+puro — o horizonte é densidade, não geometria. Ao centro, um anel de partículas
+que se abre como portal. Interface reduzida a dois elementos: um `+` num círculo
+fino e um ícone de olho. Tipografia serif com a palavra que importa em itálico:
+"tell a *memory*", "see all *memories*".
+
+**Extrair:** matéria de partículas a formar **terreno** — profundidade sem
+geometria; o anel de partículas como portal e não como borda; a interface
+reduzida a dois affordances em toda a superfície; e o **itálico serif na palavra
+que carrega o significado**, que é premium e humano sem ser decorativo.
+**Rejeitar:** o âmbar como cor dominante; o terreno se for literal — uma paisagem
+num Sistema cujo mundo é céu é confusão de metáfora.
+**Risco de imitação:** baixo-médio.
+**Aplicação possível:** a zona **Reflexão** — o nome da referência é literalmente
+"memory". E o campo de partículas como terreno é candidato à escala macro do
+Universo.
+**Estado:** analisada.
+
+### S02 · `03-universe-materials/constelação` · STRUCTURE — parcialmente útil
+1199×675
+
+**Factual:** mapa estelar de videojogo. Sistemas ligados por linhas finas, cada
+um com ícone próprio e rótulo minúsculo; nebulosa de fundo; legenda no canto.
+
+**Extrair:** cada nó tem **ícone + rótulo micro + ligações**, e existe legenda —
+um mapa que se explica. **Rejeitar:** a densidade de rótulos ilegíveis e o
+multicolor por facção.
+**Risco:** médio. **Estado:** parcialmente útil.
+
+### S03 · `03-universe-materials/constelação` · ANTI-REFERÊNCIA
+1200×675
+
+**Factual:** árvore de talentos de videojogo. Nós em losango ligados por ramos de
+cores diferentes, tooltip "Range +2.3 Range Damage", "2 SKILL POINTS", "POWER
+20", e "WORK IN PROGRESS" no canto.
+
+**Rejeitar:** inteira. É a árvore de skills que o Sistema não é — o progresso
+aqui não se compra com pontos, prova-se com evidência. Extraível apenas o anel
+duplo no nó atual, que o Sistema já resolve de outra forma.
+**Risco:** **máximo**, e agravado por estar na pasta `constelação`, onde alguém
+vai procurar referência para o Mapa de Conhecimento.
+**Estado:** anti-referência.
+
+### S04 · `03-universe-materials/constelação` · ANTI-REFERÊNCIA
+736×736
+
+**Factual:** cúpula de HUD azul-ciano contendo uma galáxia, com painéis
+flutuantes ligados por hastes à volta.
+
+**Rejeitar:** o painel de nave espacial completo — ciano, cúpula, painéis
+flutuantes. A ideia de conter um mundo numa cúpula é sedutora e é o cliché.
+**Risco:** alto. **Estado:** anti-referência.
+
+### S05 · `03-universe-materials/constelação` · STRUCTURE + LIGHT — analisada
+736×1104 · **das mais fortes por aplicar**
+
+**Factual:** três estados de uma rede de filamentos brancos sobre preto, cada um
+com forma distinta e rótulo: **PREDICTION** (ramificação aberta), **COGNITIVE
+MISALIGNMENT** (dois núcleos a puxar em sentidos opostos), **MEMORY ECHO**
+(dispersão sem centro). Duas frases sóbrias: *"Your brain predicts before you
+see"* e *"Déjà vu occurs when familiarity is triggered without a real memory"*.
+
+**Extrair:** **um estado = uma forma de filamentos própria**, e a forma é
+suficiente para os distinguir sem cor. E o registo do texto: uma frase que
+**explica** em vez de um rótulo que nomeia.
+**Rejeitar:** nada de significativo. A paleta é branco sobre preto.
+**Risco:** baixo.
+**Aplicação possível:** os estados do Oráculo — hoje distinguem-se por
+intensidade e ritmo do mesmo sigilo, e esta referência mostra que podiam
+distinguir-se por **forma**. É a resposta mais próxima que a biblioteca tem para
+o que falta ao Oráculo.
+**Estado:** analisada.
+
+### S06 · `03-universe-materials/constelação` · STRUCTURE — analisada
+736×414
+
+**Factual:** órbitas elípticas desenhadas a **traço branco fino** sobre roxo
+escuro, vistas de ângulo, com sigilos/emblemas nos nós e um corpo com anel.
+
+**Extrair:** a órbita como **linha e não como preenchimento** — é o Universo do
+Sistema em versão traço, e confirma a decisão dos anéis a 60°. E os **sigilos nos
+nós** em vez de pontos: dá identidade a cada corpo.
+**Rejeitar:** os emblemas de estilo heráldico.
+**Risco:** baixo. **Estado:** analisada.
+
+### S07 · `03-universe-materials/constelação/cons.jpg` · MATERIAL — parcialmente útil
+711×399
+
+**Factual:** estrela de raios brancos densos com um **anel branco duro** em
+torno do centro, sobre uma maqueta de HUD "BIG DATA" com blocos laranja.
+
+**Extrair:** o anel duro em torno do feixe — dá-lhe **limite**, e um feixe sem
+limite lê-se como mancha. O Núcleo do Sistema não tem esse anel.
+**Rejeitar:** o laranja, o HUD e os números, que são preenchimento.
+**Risco:** médio. **Estado:** parcialmente útil.
+
+### S08 · `03-universe-materials/constelação/constelacao.jpg` · REJEITADA
+735×441
+
+**Factual:** grafo 3D de esferas cinzentas ligadas por linhas, com os rótulos
+todos a dizer **"Thema"** — placeholders que ninguém substituiu.
+
+**Extrair:** nada. **Rejeitar:** tudo. É um template de stock com o texto de
+exemplo por cima, e a lição é a do próprio ficheiro: uma maqueta com dados falsos
+não é uma referência de nada.
+**Risco:** baixo, por ser evidentemente um template.
+**Estado:** rejeitada.
+
+### S09 · `mapa de workflow seja constelacao seja agentes.jpg` · ANTI-REFERÊNCIA
+1024×1024 · já tinha secção própria no mapa; agora **aberta**
+
+**Factual:** maqueta de dashboard "AI Agent Directory" com grafo hexagonal roxo e
+nós de agentes nomeados — Synthetica, Cognito, Neuralis, Echo, Vanguard, Zenith.
+Barra lateral com AI Agents / Departments / Recent Activity / Settings.
+
+**Rejeitar:** inteira, e a razão é de governança e não de gosto. É o diretório de
+agentes AI genérico, com nomes inventados e uma taxonomia que não existe — e a
+Constituição do Oráculo proíbe conceder permissões a agentes sem registry e
+apresentar maqueta como real. Foi esta imagem que motivou o rótulo honesto do War
+Room ("não existe" em vez de "dados ainda não ligados").
+**Risco:** **máximo**. **Estado:** anti-referência.
+
+### S10 · `03-universe-materials/constelação/universo.jpg` · MATERIAL — parcialmente útil
+736×414
+
+**Factual:** nebulosa azul-cobalto densa com **estrelas de quatro pontas
+douradas** de raios finos e longos sobrepostas.
+
+**Extrair:** a estrela de quatro pontas com raios finos — uma forma de "brilho"
+que não é um círculo com halo, e que a esta escala continua legível.
+**Rejeitar:** o cobalto saturado e a densidade.
+**Risco:** baixo. **Estado:** parcialmente útil.
+
+### S11 · `04-panels-instruments/estado notificacoes` · ANTI-REFERÊNCIA
+1200×750
+
+**Factual:** menu radial de videojogo — orbe azul ao centro, oito botões
+circulares à volta (OPTIONS, ACCOUNT, MUSIC, MESSAGES, FRIENDS, CHAT, SOCIAL,
+CREDITS) e um "✕ CLOSE" em baixo.
+
+**Rejeitar:** o menu radial de jogo. A órbita instrumental do Sistema faz a mesma
+coisa com seis zonas e sem cromados, e esta referência serve para medir a
+distância entre as duas.
+**Risco:** alto — a semelhança estrutural com a órbita do Sistema torna fácil
+importar o resto.
+**Estado:** anti-referência.
+
+### S12 · `07-core-level-events/nucleo ou skill de universo` · ANTI-REFERÊNCIA com um extrato
+1200×800
+
+**Factual:** infográfico "SUPERFORCE / THE UNIFIED FIELD". Esfera de energia
+ciano ao centro; à esquerda quatro forças (GRAVITY, ELECTROMAGNETIC, STRONG
+NUCLEAR, WEAK NUCLEAR) com ícone circular próprio e **linha-guia até ao centro**;
+à direita painéis de telemetria (TIME, UNIFIED FIELD com gráfico, STATUS:
+MERGED/STABLE, TEMP ~10³² K).
+
+**Extrair, e é real:** **N componentes, cada um com ícone próprio, ligados por
+linha-guia ao objeto central que eles compõem.** É exatamente a estrutura do
+interior do Núcleo — e sugere a peça que lá falta: um **ícone por domínio**, que
+hoje não existe.
+**Rejeitar:** o ciano, a moldura de HUD, os painéis de telemetria decorativos, e
+o monoespaçado em maiúsculas em excesso — proibido por nome pela direção.
+**Risco:** alto. **Estado:** anti-referência com um extrato aproveitável.
+
+### S13 · `03-universe-materials/outono` · PALETA — utilizável
+1080×1350
+
+**Factual:** não é interface — é uma **paleta**. "Fall COLOR PALETTE" sobre
+fotografia de outono, com cinco hex: `#D1B27B` `#B88655` `#B3682D` `#9D3E13`
+`#6C3B1A`. Crédito a `shadesurfer.io`.
+
+**Utilizável:** os cinco hex, para a camada sazonal Harvest — que hoje tem duas
+cores. São terrosos e dessaturados, compatíveis com a direção.
+**Rejeitar:** a fotografia e o layout de Pinterest.
+**Estado:** analisada (como paleta, não como referência de interface).
+
+### S14 · `03-universe-materials/primavera` · PALETA — rejeitada
+736×1104
+
+**Factual:** "SPRING COLOR PALETTE", 16 pastéis nomeados sobre branco creme.
+
+**Rejeitar:** pastéis sobre branco são o oposto exato da direção — luz sobre
+preto, nunca o contrário. Os matizes podem informar o arco Bloom **se
+dessaturados e escurecidos**, mas nesse ponto já não são esta paleta.
+**Estado:** rejeitada para uso direto.
+
+### S15 · `01-shell-navigation/sistema` · ANTI-REFERÊNCIA
+1199×675
+
+**Factual:** dashboard de big data com globo 3D roxo ao centro, um número
+gigante (`1.812.020.001`), e mais de vinte painéis com donuts, sparklines e
+tabelas.
+
+**Rejeitar:** é o **dashboard AI/SaaS genérico** e a **grelha previsível de
+cartões** que a direção proíbe por nome, os dois na mesma imagem. Extraível:
+nada.
+**Risco:** **máximo**, e agravado por estar arquivada em `01-shell-navigation` —
+a pasta da shell.
+**Estado:** anti-referência.
+
+### S16 · `01-shell-navigation/sistema` · ANTI-REFERÊNCIA
+736×1104
+
+**Factual:** painel "STATISTICS" de RPG com moldura ornamentada, barras de
+atributos com percentagens e medidores circulares (CRIT CHANCE, EVASION), sobre
+uma biblioteca desfocada.
+
+**Rejeitar:** a ficha de personagem literal, a moldura, as barras.
+**E um achado que vale mais do que a rejeição:** a maqueta tem **"WISDOM" e
+"CHARISMA" repetidos duas vezes**, com valores diferentes. É uma interface de
+demonstração que ninguém reviu, e é o exemplo perfeito do que a lei "o Sistema
+mostra provas, não sinais" existe para impedir.
+**Risco:** alto. **Estado:** anti-referência.
+
+### S17 · `03-universe-materials/verão` · PALETA — rejeitada
+736×1104
+
+"SUMMER COLOR PALETTE", 16 pastéis nomeados sobre branco. Mesma natureza e mesma
+rejeição de S14.
+**Estado:** rejeitada para uso direto.
+
+### S18 · `03-universe-materials/verão` · ANTI-REFERÊNCIA
+736×1104
+
+**Factual:** duas espadas de luz dourada com ornamento e partículas, sobre fundo
+âmbar nebuloso.
+
+**Rejeitar:** a arma de fantasia. O Sistema não tem armas, e a espada é o cliché
+que a direção manda usar como **princípio** — ascensão, corte, decisão — e nunca
+literalmente. Extraível com muito cuidado: a lâmina como coluna vertical de luz
+com detalhe na base, que R04 já dá melhor e sem a espada.
+**Risco:** alto — é bonita, e a tentação é usá-la num rank-up.
+**Estado:** anti-referência.
+
+### S19 · `03-universe-materials/verão` · LIGHT — parcialmente útil
+500×282
+
+**Factual:** clarão azul-branco com raios de lente horizontais e bokeh.
+
+**Extrair:** o clarão como **marca de instante** — uma coisa que acontece e
+passa. **Rejeitar:** o azul e os raios de lente, que são efeito de câmara e não
+de matéria.
+**Risco:** médio. **Estado:** parcialmente útil.
+
+### S20 · `03-universe-materials/winter` · PALETA — utilizável
+735×934
+
+**Factual:** "WINTER palettes", seis faixas nomeadas com hex reais: Snowflake
+`#DCE0E8`, MIST `#8EA1AE`, Pine `#27363F`, BERRY `#6B212C`, Branch `#685652`,
+FROSTYSILVER `#BEB3AC`. Tipografia mista — script, serif e sans na mesma peça.
+
+**Utilizável:** os seis hex, para a camada sazonal Winter. São **dessaturados e
+escuros**, ao contrário das paletas de primavera e verão, e por isso compatíveis
+com a direção sem correção. `Pine #27363F` e `BERRY #6B212C` funcionam sobre
+preto.
+**Extrair também:** a mistura de três famílias tipográficas numa peça pequena sem
+parecer desarrumada — é o que a direção chama de premium e humano.
+**Estado:** analisada (paleta + tipografia).
 
 ---
 

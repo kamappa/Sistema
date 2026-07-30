@@ -64,14 +64,39 @@ function cineMoment(kicker, title, glow) {
   setTimeout(() => ov.remove(), 2650);
   return true;
 }
-function cineArise() { // A R I S E cinematográfico + pulse + dupla vaga
+/* A R I S E cinematográfico + pulse + dupla vaga.
+ *
+ * M26·F6C — CEDE O PALCO A QUEM TEM UMA CERIMÓNIA MELHOR.
+ * Este overlay escurece o ecrã inteiro a 60% durante 2,65s. No Universo isso
+ * cai exatamente por cima do momento que o Universo existe para mostrar: a
+ * partícula a atravessar o campo, a estrela a nascer, a energia a convergir
+ * para o Núcleo. Foi visto numa folha de contacto — dois dos doze frames da
+ * sequência de evidência eram só a palavra ARISE por cima do escuro.
+ *
+ * A regra é a mesma da fila de eventos: UMA cerimónia de cada vez. Quando a
+ * zona ativa encena a sua, esta cala-se. Não é perder o momento — é não o
+ * anunciar duas vezes, e a versão local diz QUAL domínio recebeu o quê, o que
+ * esta nunca soube dizer.
+ *
+ * A marca vem de quem sabe: o próprio Universo põe `data-sky-live` no <html>
+ * enquanto está ativo e visível. */
+function cineArise() {
+  if (document.documentElement.dataset.skyLive === 'true') return;
   if (!cineMoment('Sistema', 'A R I S E', 'rgba(139,92,246,.22)')) return;
   celebrate('#a78bfa');
   if (window.dustBurst) setTimeout(() => window.dustBurst('#a78bfa'), 350);
 }
+/* M26·F6C — O TOAST SAIU DAQUI, e foi um erro meu que ele tenha durado um
+ * commit. Ao ligar `kind: 'rank'` à fila de eventos, o rank passou a ser
+ * anunciado por dois sistemas ao mesmo tempo: o SYSTEM EVENT com a transição
+ * ("D → C", nível global, rank) e este toast com "⬆ Alcançaste o Rank D",
+ * sobrepostos no mesmo canto. É exatamente a avaria que a fila foi criada para
+ * resolver na Fase 6A, e eu reintroduzi-a.
+ *
+ * O que fica aqui é a REAÇÃO — o mundo a responder, o emblema a saltar, a
+ * poeira. As PALAVRAS vêm da fila, que é o canal único de anúncio. */
 function rankCeremony(r) { try {
   if (window.Bus) window.Bus.emit('rank:up', { rank: r.l, color: r.color }); // o mundo reage (M12·2B)
-  toast('RANK UP', '⬆ Alcançaste o Rank ' + r.l, r.color, false, true);
   celebrate(r.color);
   const rb = document.getElementById('rankbadge');
   if (rb) { rb.classList.remove('rankpop'); void rb.offsetWidth; rb.classList.add('rankpop'); }

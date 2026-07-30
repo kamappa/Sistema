@@ -179,6 +179,13 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
    * está ativa, ou a tab está escondida. (A terceira, reduced motion, é
    * tratada em CSS, onde pertence.) */
   const [live, setLive] = useState(true);
+  /* Enquanto o céu está vivo, ele é o palco. O ARISE global lê esta marca e
+     cala-se — ver `cineArise` em lib/fx.js. Uma cerimónia de cada vez. */
+  useEffect(() => {
+    const el = document.documentElement;
+    if (live) el.dataset.skyLive = 'true'; else delete el.dataset.skyLive;
+    return () => { delete el.dataset.skyLive; };
+  }, [live]);
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;

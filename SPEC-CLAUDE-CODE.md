@@ -2471,6 +2471,41 @@ que nada se mostra sem estado real por trás.
 
 Verificado: 115 elementos sem falhas de contraste AA, três sigilos reais na
 aplicação com as animações a correr, zero erros de consola.
+### Fase 7Z · Marcas de domínio no Núcleo (CONCLUÍDA 2026-07-30)
+
+O extrato do **S12** aplicado. Aquela referência é um infográfico de HUD de
+ficção científica para rejeitar inteiro — menos uma coisa: mostra N componentes,
+cada um com **ícone próprio**, ligados por linha-guia ao objeto central que
+compõem. É a estrutura do interior do Núcleo, e apontava a peça que lá faltava.
+
+**O ícone de um domínio é a assinatura dele, parada.** Não é vocabulário novo:
+cada domínio já tem uma assinatura de movimento que diz o que ele é, e a marca é
+o estado final dessa assinatura em 24×24. Ofício alinha, Saber ramifica, Corpo
+pulsa em anéis, Mente converge num foco, Vínculos une dois corpos, Disciplina
+repete o mesmo traço à mesma altura.
+
+A vantagem não é poupar trabalho — é **coerência**. Quem vir a assinatura no céu
+e a marca no Núcleo reconhece a mesma ideia nos dois sítios, e a segunda ensina
+a primeira. Seis ícones inventados dariam seis símbolos a decorar em vez de seis
+formas já aprendidas.
+
+É a **gramática 15 aplicada à identidade** e não ao estado: nenhuma das seis
+depende da cor do domínio para se ler.
+
+**Duas correções durante a implementação:**
+
+- `<foreignObject>` trocado por **`<svg>` aninhado**, que é o mecanismo próprio
+  do formato. Misturar HTML dentro de SVG traz problemas de escala e recorte que
+  não valia a pena herdar por um ícone de 24px.
+- A primeira montagem punha a marca **ao lado** do número, deslocada pelo
+  `anchor` — e as marcas ficaram **por cima** dos números: visto num screenshot,
+  o "11" de Ofício tinha três traços atravessados. Empilhar a marca acima do par
+  número/nome resolve sem depender de saber a largura do texto, que em SVG não
+  se sabe sem medir.
+
+Verificado: 494×494 no desktop e 305×305 no mobile, ambos dentro do
+enquadramento; a conta continua a fechar (63 ganhos + 1 = 64); 115 elementos sem
+falhas de contraste AA; zero erros de consola.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

@@ -26,6 +26,7 @@
  */
 
 import type { CoreRead } from './core-read';
+import DomainMark from './DomainMark';
 
 const V = 620;
 const C = 310;
@@ -119,6 +120,22 @@ export default function CoreInterior({ core }: { core: CoreRead }) {
             <text className="ci-lab" x={lx} y={ly + dy + 22} textAnchor={anchor}>
               {s.name}
             </text>
+            {/* A MARCA DO DOMÍNIO — extrato do S12, que mostra N componentes
+                com ícone próprio ligados ao objeto central que compõem. Fica do
+                lado de fora do rótulo, alinhada com ele: é a identidade do
+                veio, não uma decoração do número. */}
+            {/* ACIMA do par número/nome e centrada nele. A primeira montagem
+                punha-a ao lado, deslocada pelo `anchor`, e as marcas ficavam
+                POR CIMA dos números — visto num screenshot: o "11" de Ofício
+                tinha três traços atravessados. Empilhar resolve sem depender de
+                saber a largura do texto, que em SVG não se sabe sem medir. */}
+            <DomainMark
+              id={s.id}
+              color={s.color}
+              size={30}
+              x={lx - 15}
+              y={ly + dy - 62}
+            />
           </g>
         );
       })}

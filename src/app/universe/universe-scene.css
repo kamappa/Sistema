@@ -1162,3 +1162,13 @@
   .us-ev { max-height: 7.5rem; }
   .us-ev li { grid-template-columns: 4.8rem 1fr auto; gap: var(--sys-space-2); }
 }
+
+/* A marca do domínio no interior do Núcleo — extrato do S12.
+   Entra com o resto do veio e fica; não tem animação própria, porque uma
+   identidade não pisca. */
+.ci .dm {
+  opacity: 0;
+  animation: ci-num 500ms var(--sys-ease-out) both;
+  animation-delay: calc(1000ms + var(--i) * 130ms);
+}
+@media (prefers-reduced-motion: reduce) { .ci .dm { animation: none; opacity: 1; } }

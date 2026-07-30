@@ -583,10 +583,30 @@
   transform: translate(var(--cx, 0), var(--cy, 0))
              translate3d(calc(var(--px) * -9px), calc(var(--py) * -6px), -520px) scale(1.25);
 }
+/* À CHEGADA O NÚCLEO DESLOCA-SE PARA A DIREITA.
+ * A câmara centra-o, e centrado ele fica por cima da coluna de leitura: os
+ * rótulos de Vínculos e Disciplina, que ficam do lado esquerdo do interior,
+ * caíam em cima do texto do HUD — "0 deVÍNCULOS 5" num screenshot. O
+ * deslocamento tira o desenho de cima da coluna sem lhe mexer na escala.
+ * 110px chegam: os rótulos da esquerda passam a acabar a ~490 e a coluna
+ * acaba a 424. */
 .us[data-scale='core'] .us-core-layer {
-  transform: translate(var(--cx, 0), var(--cy, 0))
+  transform: translate(calc(var(--cx, 0) + var(--core-shift, 0px)),
+                       calc(var(--cy, 0) + var(--core-shift-y, 0px)))
              translate3d(calc(var(--px) * -9px), calc(var(--py) * -6px), -520px) scale(1.9);
 }
+.us { --core-shift: 0px; --core-shift-y: 0px; }
+@media (min-width: 1101px) { .us { --core-shift: 110px; } }
+
+/* ── O DESVIO VERTICAL NO ESTREITO ──
+ * A origem da perspetiva é o centro de `.us`, e no estreito `.us` tem 660 de
+ * altura enquanto a cena só ocupa os primeiros 390 — o centro da cena (366)
+ * NÃO é a origem da perspetiva (501). À chegada, um corpo no centro da cena é
+ * projetado para 501 + (366−501)×1,48 = 300, ou seja 45px acima do topo do
+ * enquadramento visível. Foi medido: a caixa do interior dava 126..475.
+ * Um translate de Δ na camada vale Δ×1,9×1,48 = 2,81Δ no ecrã, logo 24px
+ * repõem os ~66px que faltam. */
+@media (max-width: 1100px) { .us { --core-shift-y: 24px; } }
 
 .nuc { position: relative; display: block; }
 .nuc-l {
@@ -847,4 +867,114 @@
    e por foco de teclado — só que sem depender de um cursor que não existe. */
 @media (hover: none) {
   .us-terr[data-lit='true'] { transform: translate(var(--tx), var(--ty)) translateZ(34px); }
+}
+
+/* ── O INTERIOR DO NÚCLEO — escala 4 ───────────────────────────────────
+ * Seis veios com a espessura da contribuição real de cada domínio, entrando
+ * pelo ângulo do território respetivo. Não é uma ilustração da lei "toda a
+ * energia converge para o Núcleo" — é a conta dessa lei, desenhada.
+ *
+ * O SVG é maior do que o Núcleo (620 contra 340) de propósito: os veios têm de
+ * vir de FORA do corpo, senão nascem dentro dele e a entrega não se lê.
+ */
+.ci {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 620px; height: 620px;
+  margin: -310px 0 0 -310px;
+  overflow: visible;
+  pointer-events: none;
+  /* ── A CONTA DA ESCALA, e ela tem TRÊS fatores ──
+   * Falhei-a duas vezes por só contar dois. O desenho tem 620 unidades e
+   * multiplica-se por:
+   *     0,32   esta escala
+   *   × 1,9    a escala própria da camada do Núcleo à chegada
+   *   × 1,31   A PERSPETIVA — a camada está a −520px e a câmara a +780, logo
+   *            o net é +260 e o fator é 1100/(1100−260). Foi este que me
+   *            escapou: com 0,40 o desenho media 617px medidos num quadro de
+   *            558, e a ~1,0 efetivo em vez dos 0,76 que eu tinha calculado.
+   * Resultado: ~494px, com 32px de folga em cima e em baixo. */
+  transform: scale(0.32);
+  animation: ci-in 800ms var(--sys-ease-out) both;
+}
+@keyframes ci-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Os veios DESENHAM-SE, em cascata. Descobrir é um arco: acontece uma vez e
+   fica. Um interior que aparecesse feito não seria uma descoberta — seria uma
+   página que carregou. */
+.ci-vein {
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  opacity: .78;
+  animation: ci-draw 760ms var(--sys-ease-gravity) both;
+  animation-delay: calc(240ms + var(--i) * 130ms);
+}
+@keyframes ci-draw { to { stroke-dashoffset: 0; } }
+
+/* A ponta onde o veio encosta ao corpo: é ali que a energia entra, e por isso
+   só acende DEPOIS de o veio lá chegar. */
+.ci-tip {
+  opacity: 0;
+  animation: ci-tip 520ms var(--sys-ease-gravity) both;
+  animation-delay: calc(900ms + var(--i) * 130ms);
+}
+@keyframes ci-tip { from { opacity: 0; } to { opacity: .9; } }
+
+.ci-num, .ci-lab {
+  opacity: 0;
+  animation: ci-num 500ms var(--sys-ease-out) both;
+  animation-delay: calc(1000ms + var(--i) * 130ms);
+  /* Contra-escala do `scale(0.52)` da camada: sem isto o texto sairia a 52% do
+     tamanho pedido e ficava ilegível a esta distância. */
+  font-size: 30px;
+  paint-order: stroke;
+  stroke: var(--sys-void);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+.ci-num {
+  font-family: var(--sys-type-display);
+  font-weight: var(--sys-weight-bold);
+}
+.ci-lab {
+  font-family: var(--sys-type-data);
+  font-size: 19px;
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  fill: var(--sys-ink-mut);
+}
+@keyframes ci-num { from { opacity: 0; } to { opacity: 1; } }
+
+/* O arco de rank. Só existe quando a banda tem topo — ver `core-read.ts`. */
+.ci-band-bg, .ci-band {
+  fill: none;
+  stroke-width: 2;
+  transform: rotate(-90deg);
+  transform-origin: 310px 310px;
+}
+.ci-band-bg { stroke: rgb(var(--sys-bone-rgb) / var(--sys-o-08)); }
+.ci-band {
+  stroke-linecap: round;
+  animation: ci-band 1400ms var(--sys-ease-gravity) 600ms both;
+}
+/* Anima `stroke-dashoffset`, que é a exceção assumida à regra transform+opacity
+   desta cena: é UM elemento, uma vez, e não há outra forma de desenhar um arco
+   parcial sem recalcular geometria a cada frame. */
+@keyframes ci-band { from { stroke-dashoffset: 1860; } }
+
+@media (prefers-reduced-motion: reduce) {
+  /* O interior aparece feito. A informação é a conta, não a cascata. */
+  .ci, .ci-vein, .ci-tip, .ci-num, .ci-lab, .ci-band { animation: none !important; opacity: 1; }
+  .ci-vein { stroke-dashoffset: 0; }
+  .ci-tip { opacity: .9; }
+}
+
+@media (max-width: 1100px) {
+  /* Menos escala ainda: a caixa da cena no estreito tem 342 de largura. */
+  /* No estreito a perspetiva é 800 em vez de 1100, logo o fator é
+     800/(800−260) = 1,48 e o efetivo passa a escala × 2,81. Para ~349px numa
+     caixa de 342×390: 0,20. */
+  .ci { transform: scale(0.175); }
+  .ci-num { font-size: 50px; }
+  .ci-lab { font-size: 32px; }
 }

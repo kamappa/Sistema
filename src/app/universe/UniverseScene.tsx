@@ -40,6 +40,8 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { readScene, type SceneRead } from './universe-read';
 import Nucleus, { type CoreState } from './Nucleus';
 import DomainSignature from './DomainSignature';
+import CoreInterior from './CoreInterior';
+import { readCore, type CoreRead } from './core-read';
 import {
   type UniverseState, type UniverseCtx, canGo, scaleOf, litDomain,
 } from './universe-states';
@@ -147,6 +149,7 @@ const PROTO_LABEL: Record<string, string> = {
 
 export default function UniverseScene({ S }: { S: Record<string, any> }) {
   const scene: SceneRead | null = useMemo(() => readScene(S), [S]);
+  const core: CoreRead | null = useMemo(() => readCore(S), [S]);
   const [m, dispatch] = useReducer(reducer, INIT);
   const wide = useWide();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -334,6 +337,11 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
             fromAngle={litT ? litT.angle : 0}
             size={340}
           />
+          {/* ── A ESCALA 4 ──
+              Só existe quando se CHEGOU. Em CORE_APPROACH ainda não: a viagem
+              tem de ter um instante em que ainda não se sabe o que lá está,
+              senão a chegada não é uma chegada. */}
+          {core && m.state === 'CORE_INSIDE' && <CoreInterior core={core} />}
         </div>
 
         {/* Anéis inclinados — ORIGEM R13. A profundidade daquela referência não
@@ -518,19 +526,49 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
           </>
         )}
 
-        {showCore && (
+        {showCore && core && (
           <>
             <p className="us-hud-t">O Núcleo</p>
+            {/* A frase mudou porque a vista mudou. Antes dizia "tudo converge
+                aqui" e não mostrava nada; agora mostra a conta, e a leitura
+                tem de dizer que É uma conta — senão os seis veios voltam a ser
+                uma imagem bonita. */}
             <p className="us-hud-s">
-              Tudo o que provaste converge aqui. A massa do feixe é o teu nível global —
-              não há estado bonito por omissão: um Sistema no princípio tem um núcleo
-              pequeno, e este é o teu.
+              Não é uma metáfora: {core.somaNiveis} níveis provados, menos cinco, dão o teu nível
+              global de {core.level}. Cada veio é a contribuição de um domínio, à escala.
             </p>
+
             <dl className="rf-debrief">
-              <div><dt>Rank</dt><dd style={{ color: scene.rank.color }}>{scene.rank.letter}</dd></div>
-              <div><dt>Nível global</dt><dd>{scene.level}</dd></div>
-              <div><dt>Convergem</dt><dd>{scene.totalStars}</dd></div>
+              <div><dt>Rank</dt><dd style={{ color: core.band.color }}>{core.band.letter}</dd></div>
+              <div><dt>Nível global</dt><dd>{core.level}</dd></div>
+              <div><dt>XP acumulado</dt><dd>{core.totalXP.toLocaleString('pt-PT')}</dd></div>
             </dl>
+
+            {/* A banda de rank. Quando não há seguinte, diz-se — não se desenha
+                uma barra contra um limite que é um sentinela de código. */}
+            <p className="us-hud-brief">
+              {core.band.next
+                ? `Faltam ${core.band.next.falta} ${core.band.next.falta === 1 ? 'nível' : 'níveis'} para o rank ${core.band.next.letter}.`
+                : 'Último rank definido. Não existe banda seguinte no motor — o Núcleo continua a crescer, o rank não.'}
+            </p>
+
+            {/* O crescimento, se houver série datada. Sem dois pontos não há
+                tendência, e desenhar uma seria inventá-la. */}
+            {core.growth && (
+              <p className="us-hud-brief">
+                +{core.growth.ganho.toLocaleString('pt-PT')} XP desde {core.growth.desde},
+                em {core.growth.pts.length} registos datados.
+              </p>
+            )}
+
+            <p className="us-hud-brief">
+              {core.shadows.n > 0
+                ? `${core.shadows.n} ${core.shadows.n === 1 ? 'sombra erguida' : 'sombras erguidas'}${core.shadows.forte ? ` · a mais forte é ${core.shadows.forte.name} (Nv ${core.shadows.forte.lvl})` : ''}.`
+                : 'Nenhuma sombra erguida ainda — cada missão concluída deixa uma aqui.'}
+              {' '}
+              {core.titulos.provados} de {core.titulos.total} títulos provados.
+            </p>
+
             <div className="us-acts">
               <button className="mini" type="button" onClick={() => dispatch({ t: 'back' })}>Recuar</button>
             </div>

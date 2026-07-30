@@ -788,3 +788,52 @@ proíbe-o. Se aparecer fonte, o tipo já existe em `PelvicKind` à espera.
 
 **Nenhum XP novo.** A rotina regista conclusão, consistência e histórico em
 `S.bodyRoutines`, com XP zero — como já era antes desta decisão.
+
+### 2026-07-30 · Fase 7Z — fecho das referências animadas
+
+**As trinta animadas (R01–R30) estão todas abertas.** Restam 18 estáticas, que
+não foram vistas e por isso não têm interpretação escrita — a regra é que nenhum
+ficheiro conta como visto sem ter sido aberto, e a contagem di-lo em vez de o
+esconder.
+
+**Repartição:** 15 analisadas, 8 parcialmente úteis, 4 anti-referências, 1
+rejeitada, 2 duplicadas por hash.
+
+**As duas mais fortes por aplicar**, nomeadas para não se perderem:
+
+- **R04** — coluna de luz violeta entre dois anéis, com partículas a subir e o
+  bordo a passar de difuso a discreto. Paleta já certa, sem correção. Candidata
+  à cerimónia de arco e à transferência de energia para o Núcleo, que hoje é uma
+  linha fina de 300px.
+- **R21** — flores sobre preto com caixas de deteção e valores de confiança
+  sobrepostos. É a relação inteira do Sistema numa imagem: o mundo é matéria, o
+  instrumento mede-o, e nenhum dos dois vira decoração do outro. Com uma
+  ressalva ética escrita no mapa — copiar a *aparência* de medição sem medir
+  nada é exatamente a mentira que o projeto proíbe.
+
+**Uma referência que muda uma decisão já tomada:** R06 mostra que **abrir o
+plano** (subir a câmara até as órbitas deixarem de ser elipses achatadas) é uma
+forma de ganhar espaço sem mudar de sítio. A cerimónia de rank usa hoje escala
+para dizer "o mundo ficou maior"; abrir o plano diz o mesmo com geometria em vez
+de com tamanho, e é mais difícil de confundir com um zoom.
+
+**Partes do Sistema que não refletem a biblioteca** — a pergunta que o Daniel
+mandou responder no fim:
+
+1. **O Mapa de Conhecimento**, por fazer. R08 mostra exatamente o que ele NÃO
+   pode ser — uma teia onde tudo liga a tudo, que não diz relação nenhuma, diz
+   densidade. E não há na biblioteca uma única referência do que ele DEVE ser.
+   É uma lacuna de referência, não de implementação: começar a desenhá-lo hoje
+   seria decidir sem base.
+2. **A camada sazonal.** R20, R22, R28, R29 e R30 são cinco tipos de matéria de
+   estação — folhas com parallax por desfoque, floração em sequência, luz partida
+   na água, duas populações de neve, cristal hexagonal. O Arc Engine usa, por
+   estação, um par de cores e um `flow`. A biblioteca é muito mais rica do que o
+   produto.
+3. **A formação de uma constelação.** R22 mostra floração em sequência, de baixo
+   para cima, legível na ordem. No Universo as estrelas de um domínio aparecem
+   todas de uma vez — o céu tem *tempo acumulado* mas não tem *tempo a
+   acontecer*, exceto no evento de evidência.
+
+**Nenhum código foi alterado nesta análise**, e foi condição explícita: não
+mexer no produto só para poder dizer que todas as referências foram usadas.

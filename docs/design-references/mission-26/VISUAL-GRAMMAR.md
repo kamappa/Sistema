@@ -227,6 +227,14 @@ A referência da transição entre zonas é um PNG estático — não existe. A
 transição da Fase C foi construída a partir dos princípios 1, 3 e 9, e não de
 uma imagem.
 
+**CORREÇÃO, 2026-07-30.** Este princípio estava certo quanto ao facto (R27 não é
+vídeo) e **incompleto** quanto à conclusão. A imagem foi finalmente aberta na
+Fase 7Z e tem conteúdo utilizável: uma onda de luz violeta com véu largo por
+fora e linhas discretas por dentro, na paleta exata do Sistema. Não havia
+movimento para observar; havia matéria, e ninguém tinha olhado. O princípio
+mantém-se — a decisão foi mesmo tomada sem referência — mas "não existe" era
+demasiado forte: o que não existia era a sequência.
+
 **Porque importa:** fica registado que aquela decisão **não tem referência
 visual**. Se um dia aparecer o vídeo, a decisão é revisitável com base nova.
 Uma decisão sem origem declarada é uma decisão que ninguém pode contestar.
@@ -271,3 +279,22 @@ espaço e haver uma imagem que se mexe.
 **Reduced motion:** a profundidade sobrevive inteira; é a deriva que para. É
 mais um argumento para a separação.
 
+## 14. Uma anti-referência arquivada na pasta certa é mais perigosa que uma má ideia
+
+**Observado em:** R16 na pasta `02-oracle-presence`, R09 na pasta `icon`.
+
+Das trinta referências animadas, quatro são anti-referências — e as duas piores
+não estão numa pasta de rejeitados: estão arquivadas exatamente onde alguém as
+vai procurar. R16 é **um olho** guardado na pasta do Oráculo; R09 é uma **moldura
+ornamentada com neon roxo** guardada na pasta de identidade.
+
+O risco não é o conteúdo. É a **localização**: quem for buscar "uma referência
+para o Oráculo" encontra um olho primeiro, e um olho, para um assistente, diz
+vigilância e não conselho — é Sauron ou HAL antes de ser qualquer outra coisa, e
+a Constituição do Oráculo tem exatamente essa leitura a perder.
+
+**A regra:** uma anti-referência tem de ser marcada como tal **no sítio onde
+está**, e não só numa lista à parte. Um ficheiro sem veredicto escrito é um
+convite.
+
+**Reduced motion:** irrelevante — é uma regra de arquivo, não de movimento.

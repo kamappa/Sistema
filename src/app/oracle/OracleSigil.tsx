@@ -24,11 +24,22 @@ import './oracle-sigil.css';
 export default function OracleSigil({
   signals,
   alert = false,
+  busy = false,
 }: {
   /** número de sinais reais. 0 = o Oráculo não tem nada a dizer. */
   signals: number;
   /** algum dos sinais é um alerta (prazo vencido). */
   alert?: boolean;
+  /** O Oráculo está mesmo a processar (`ocBusy` do store). Missão 26 · 6B.
+   *
+   *  ORIGEM: R17 — anéis a CONTRAIR, e a passagem de difuso a discreto como
+   *  sinal de conclusão. É o indicador de progresso que não é barra nem
+   *  spinner, e a fase proíbe o spinner genérico por nome.
+   *
+   *  O que o distingue de "tenho algo para dizer": a onda deixa de respirar
+   *  (que é um ciclo simétrico, presença) e passa a contrair de fora para
+   *  dentro (que é assimétrico, e por isso lê-se como processo em curso). */
+  busy?: boolean;
 }) {
   // A amplitude satura aos 4. A diferença entre 4 e 9 sinais não é legível numa
   // faixa de 20px de altura, e fingir que é seria precisão falsa.
@@ -39,6 +50,7 @@ export default function OracleSigil({
       className="sys-oracle-sigil"
       data-attending={signals > 0 ? 'true' : 'false'}
       data-alert={alert ? 'true' : 'false'}
+      data-busy={busy ? 'true' : 'false'}
       style={{ ['--sig-amp' as string]: amp.toFixed(3) }}
       aria-hidden="true"
     >

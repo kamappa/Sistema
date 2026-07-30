@@ -30,6 +30,11 @@ export default function OracleAmbient({ onInvoke }: { onInvoke: () => void }) {
   const report = useStore((s: { report: unknown }) => s.report);
   const S = useStore((s: { S: Record<string, any> | null }) => s.S);
   const fetchErr = useStore((s: { fetchErr: string | null }) => s.fetchErr);
+  // Missão 26 · 6B — o Oráculo passa a MOSTRAR que está a pensar. Antes, pedir
+  // um conselho deixava a faixa exactamente igual: a única prova de que algo
+  // estava a acontecer vivia dentro do painel aberto, e quem o fechasse ficava
+  // sem saber se tinha perguntado.
+  const busy = useStore((s: { ocBusy: boolean }) => s.ocBusy);
 
   const signals = collectSignals({ radar, report, S });
 
@@ -59,8 +64,13 @@ export default function OracleAmbient({ onInvoke }: { onInvoke: () => void }) {
       <OracleSigil
         signals={signals.length}
         alert={signals.some((s) => s.tone === 'alert')}
+        busy={busy}
       />
-      {signals.length === 0 ? (
+      {busy ? (
+        // O texto acompanha a forma. Sem ele, quem usa leitor de ecrã via a
+        // contagem de sinais e não sabia que havia um pedido em curso.
+        <span className="sys-oracle-silent" aria-live="polite">A pensar.</span>
+      ) : signals.length === 0 ? (
         <span className="sys-oracle-silent">O Oráculo observa.</span>
       ) : (
         <span className="sys-oracle-line">

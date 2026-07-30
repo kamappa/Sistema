@@ -72,6 +72,45 @@
   stroke: rgb(var(--sys-magenta-rgb, 244 114 182) / var(--sys-o-88));
 }
 
+/* ── A PROCESSAR ───────────────────────────────────────────────────────
+ * Missão 26 · Fase 6B. ORIGEM: R17 — anéis concêntricos a CONTRAIR, e a
+ * passagem de difuso a discreto como sinal de conclusão.
+ *
+ * O que se extraiu: a contração como gramática de "em curso". Um ciclo
+ * simétrico (a respiração de repouso) diz presença; um movimento que acelera
+ * numa direção e recomeça diz processo — e é a diferença que faz isto
+ * comunicar sem um spinner.
+ *
+ * O que se rejeitou da R17: o azul-ciano, que é paleta de HUD de ficção
+ * científica, e os anéis holográficos. Fica a gramática, não a aparência.
+ *
+ * O que o torna verdadeiro: só acontece com `ocBusy` real, e para quando a
+ * resposta chega. Não há duração fingida.
+ */
+@keyframes sys-sigil-contract {
+  0%   { transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 4.4)) scaleX(1); opacity: 0.9; }
+  70%  { transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 0.9)) scaleX(0.82); opacity: 1; }
+  100% { transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 4.4)) scaleX(1); opacity: 0.5; }
+}
+
+.sys-oracle-sigil[data-busy='true'] .fil {
+  /* `--sys-ease-contract` (R17): acelera até ao fim, sem repouso no meio.
+     Comunica que algo está a ser puxado para dentro e ainda não terminou. */
+  animation: sys-sigil-contract 1400ms var(--sys-ease-contract) infinite;
+  stroke: rgb(var(--sys-violet-rgb) / var(--sys-o-88));
+}
+
+/* Os três filamentos contraem desfasados: é isso que dá a leitura de camadas
+   a convergir, em vez de uma linha a encolher. */
+.sys-oracle-sigil[data-busy='true'] .f1 { animation-delay: -180ms; }
+.sys-oracle-sigil[data-busy='true'] .f3 { animation-delay: -360ms; }
+
+/* A processar ganha a alerta: enquanto pensa, o Oráculo está a fazer UMA
+   coisa, e mostrar duas ao mesmo tempo não diria nenhuma. */
+.sys-oracle-sigil[data-busy='true'][data-alert='true'] .fil {
+  stroke: rgb(var(--sys-violet-rgb) / var(--sys-o-88));
+}
+
 /* ── Reduced motion ────────────────────────────────────────────────────
  * O ciclo pára. A AMPLITUDE FICA — é informação, não enfeite. Quem não pode
  * ver movimento continua a distinguir um Oráculo com três sinais de um calado.
@@ -81,5 +120,13 @@
     animation: none;
     /* congela no meio do ciclo, não no mínimo: é onde a forma se lê melhor */
     transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 3.5));
+  }
+
+  /* Sem movimento, "a processar" tem de continuar a distinguir-se — senão
+     quem pediu menos animação deixa de saber que o Oráculo está a pensar. A
+     onda fica CONTRAÍDA, que é a posição a meio do processo. É a mesma
+     decisão que o estado `saving` do sync já tinha tomado. */
+  .sys-oracle-sigil[data-busy='true'] .fil {
+    transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 0.9)) scaleX(0.82);
   }
 }

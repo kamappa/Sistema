@@ -1,0 +1,157 @@
+/* TRANSIÇÕES — entrada no Sistema e mudança de zona.
+ * Missão 26 · Fase 6G.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  SEM REMOUNT. As zonas continuam todas montadas; o que se anima é a  ║
+ * ║  VISIBILIDADE. Scroll, estado dos painéis e contexto WebGL ficam     ║
+ * ║  intactos — é a condição do Daniel desde a Fase 2 e não se toca.     ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * A transição que existia era `opacity` a 180ms: um fade genérico, que é
+ * exactamente o que a fase proíbe. O que falta a um fade é DIREÇÃO — não diz
+ * de onde vieste nem para onde foste.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  A DIREÇÃO VEM DA ÓRBITA. `--zone-dir` é −1 ou +1 conforme a zona    ║
+ * ║  nova esteja à esquerda ou à direita na órbita. A que sai desloca-se ║
+ * ║  para o lado contrário. É deslocamento de atenção, não um corte.     ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * NÃO USA: blur pesado (proibido em área grande por condição do Daniel),
+ * escala grande, nem durações acima dos 500ms que a fase impõe às transições
+ * funcionais.
+ */
+
+.sys-zone {
+  --zone-dir: 1;
+  /* 24px chega para se ler a direção e não chega para parecer um carrossel.
+     Medido contra 60px, que dava a sensação de página a passar. */
+  --zone-shift: 24px;
+}
+
+.sys-instrumental .sys-zone[data-active='false'] {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateX(calc(var(--zone-dir) * var(--zone-shift) * -1));
+  pointer-events: none;
+  transition:
+    opacity calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    transform calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    visibility calc(var(--sys-dur-quick) * var(--sys-motion-scale));
+}
+
+.sys-instrumental .sys-zone[data-active='true'] {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out),
+    transform calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+/* A zona que ENTRA começa deslocada do lado de onde vem. Sem isto, entrava
+   sempre do mesmo lado e a direção não significava nada. */
+@keyframes zone-in {
+  from { opacity: 0; transform: translateX(calc(var(--zone-dir) * var(--zone-shift))); }
+  to   { opacity: 1; transform: none; }
+}
+
+.sys-instrumental .sys-zone[data-active='true'][data-entered='true'] {
+  animation: zone-in calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-gravity) both;
+}
+
+/* ── Assinatura por zona ───────────────────────────────────────────────
+ * Cada zona acrescenta UM gesto curto à entrada, e é sempre sobre a luz de
+ * palco (`::before`) — nunca sobre o conteúdo, que tem de estar legível desde
+ * o primeiro frame.
+ *
+ *   Radar      varrimento — a luz atravessa
+ *   Operações  alinhamento — a luz assenta de cima
+ *   Universo   expansão — a luz abre
+ *   Oráculo    convergência — a luz fecha para dentro
+ *   Reflexão   desaceleração — a luz chega e demora a parar
+ *   Núcleo     recentramento — a luz volta ao meio
+ */
+@keyframes zs-sweep    { from { transform: translateX(-40%); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes zs-settle   { from { transform: translateY(-14px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes zs-expand   { from { transform: scale(0.86); opacity: 0; }      to { transform: none; opacity: 1; } }
+@keyframes zs-converge { from { transform: scale(1.16); opacity: 0; }      to { transform: none; opacity: 1; } }
+@keyframes zs-slow     { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes zs-center   { from { transform: scale(1.06); opacity: 0; }      to { transform: none; opacity: 1; } }
+
+.sys-instrumental .sys-zone[data-entered='true'][data-zone='radar']::before      { animation: zs-sweep    var(--sys-dur-slow) var(--sys-ease-out) both; }
+.sys-instrumental .sys-zone[data-entered='true'][data-zone='operations']::before { animation: zs-settle   var(--sys-dur-slow) var(--sys-ease-gravity) both; }
+.sys-instrumental .sys-zone[data-entered='true'][data-zone='universe']::before   { animation: zs-expand   var(--sys-dur-slow) var(--sys-ease-out) both; }
+.sys-instrumental .sys-zone[data-entered='true'][data-zone='oracle']::before     { animation: zs-converge var(--sys-dur-slow) var(--sys-ease-contract) both; }
+.sys-instrumental .sys-zone[data-entered='true'][data-zone='reflection']::before { animation: zs-slow     var(--sys-dur-slow) var(--sys-ease-gravity) both; }
+.sys-instrumental .sys-zone[data-entered='true'][data-zone='core']::before       { animation: zs-center   var(--sys-dur-slow) var(--sys-ease-gravity) both; }
+
+/* ══════════════════════════════════════════════════════════════════════
+ * ENTRADA NO SISTEMA
+ *
+ * Não é um splash. O objetivo é dizer "o Sistema acordou" e devolver o
+ * controlo — 700–1400ms, e o conteúdo já está no DOM por baixo desde o
+ * primeiro frame, por isso nada atrasa dados nem provoca layout shift.
+ *
+ * Corre UMA VEZ POR SESSÃO. Um reload de HMR ou um regresso ao separador não
+ * a repetem: o Sistema já está acordado, e repeti-la seria mentir sobre isso.
+ * ══════════════════════════════════════════════════════════════════════ */
+.sys-boot {
+  position: fixed;
+  inset: 0;
+  z-index: var(--sys-z-toast);
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  background: var(--sys-void);
+  animation: boot-veil 1100ms var(--sys-ease-gravity) both;
+}
+
+/* O véu levanta. `pointer-events: none` desde o início — a sequência NUNCA
+   bloqueia o Operador, mesmo enquanto se vê. */
+@keyframes boot-veil {
+  0%   { opacity: 1; }
+  55%  { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+/* O sinal: um ponto que se forma, ganha órbita e se dissolve. É o Núcleo a
+   acender-se — a mesma forma que fica no topo depois, e não um logótipo. */
+.sys-boot-core {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgb(var(--sys-violet-rgb) / 0.9) 0%,
+    rgb(var(--sys-violet-rgb) / 0.28) 42%,
+    transparent 72%);
+  animation: boot-core 900ms var(--sys-ease-gravity) both;
+}
+
+@keyframes boot-core {
+  0%   { transform: scale(0.1); opacity: 0; }
+  35%  { transform: scale(1.1); opacity: 1; }
+  70%  { transform: scale(0.94); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.85; }
+}
+
+/* A órbita que aparece à volta — o mundo a formar-se em redor do Núcleo. */
+.sys-boot-ring {
+  position: absolute;
+  width: 190px; height: 190px;
+  border-radius: 50%;
+  border: 1px solid rgb(var(--sys-violet-rgb) / var(--sys-o-24));
+  animation: boot-ring 1000ms var(--sys-ease-out) both;
+}
+
+@keyframes boot-ring {
+  0%   { transform: scale(0.4); opacity: 0; }
+  60%  { opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+/* Reduced motion: sem sequência nenhuma. O Sistema aparece — que é o estado
+   final, e o estado final é o que importa. */
+@media (prefers-reduced-motion: reduce) {
+  .sys-boot { display: none; }
+}
+html[data-motion='still'] .sys-boot { display: none; }

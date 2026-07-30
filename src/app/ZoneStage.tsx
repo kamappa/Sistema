@@ -23,7 +23,7 @@
  * recuado da B2, que permanece acessível — recuar não é esconder.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ZONES, type ZoneId } from './zones';
 
 interface Props {
@@ -32,10 +32,39 @@ interface Props {
 }
 
 export default function ZoneStage({ active, S }: Props) {
+  /* A DIREÇÃO da transição (Fase 6G). Um fade não diz de onde vieste; o
+     deslocamento diz. O sinal vem da posição relativa das duas zonas NA
+     ÓRBITA, que é a ordem que o Operador vê na navegação — não do índice do
+     array por acaso.
+     `entered` distingue "acabou de entrar" de "já cá estava": sem isso a
+     animação de entrada corria também no primeiro render da aplicação, por
+     cima da sequência de arranque. */
+  const prev = useRef<ZoneId>(active);
+  const [dir, setDir] = useState(1);
+  const [entered, setEntered] = useState(false);
+
+  useEffect(() => {
+    if (prev.current === active) return;
+    const from = ZONES.findIndex((z) => z.id === prev.current);
+    const to = ZONES.findIndex((z) => z.id === active);
+    setDir(to >= from ? 1 : -1);
+    setEntered(true);
+    prev.current = active;
+    // Limpa a marca depois da animação, para que a zona não reanime a cada
+    // re-render enquanto lá está.
+    const t = window.setTimeout(() => setEntered(false), 700);
+    return () => window.clearTimeout(t);
+  }, [active]);
+
   return (
-    <div className="sys-stage" data-active={active}>
+    <div
+      className="sys-stage"
+      data-active={active}
+      style={{ ['--zone-dir' as string]: dir }}
+    >
       {ZONES.map((z) => (
-        <ZonePane key={z.id} zoneId={z.id} zoneName={z.name} density={z.density} columns={z.columns} isActive={z.id === active}>
+        <ZonePane key={z.id} zoneId={z.id} zoneName={z.name} density={z.density} columns={z.columns}
+          isActive={z.id === active} entered={entered && z.id === active}>
           {/* Os grupos vêm do registo. A composição é decidida por CSS a partir
               de data-density e data-weight — nunca por verificações do nome da
               zona espalhadas pelo JSX. */}
@@ -67,6 +96,7 @@ function ZonePane({
   density,
   columns,
   isActive,
+  entered,
   children,
 }: {
   zoneId: ZoneId;
@@ -74,6 +104,7 @@ function ZonePane({
   density: string;
   columns?: string;
   isActive: boolean;
+  entered: boolean;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -97,6 +128,7 @@ function ZonePane({
       data-zone={zoneId}
       data-density={density}
       data-active={isActive ? 'true' : 'false'}
+      data-entered={entered ? 'true' : undefined}
       aria-hidden={isActive ? undefined : true}
       role="region"
       aria-label={zoneName}

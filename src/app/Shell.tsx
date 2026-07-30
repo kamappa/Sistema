@@ -25,12 +25,14 @@ import './shell.css';
 import './nav/orbit.css';
 import SyncState from './SyncState';
 import SystemEventLayer from './events/SystemEventLayer';
+import BootSequence from './motion/BootSequence';
 import { installSystemEventBridge } from './events/systemEvents';
 import { startMotionRegime } from './motion/motionTier';
 import { activeArcTheme } from './arcs/arcModel';
 import './instrumental.css';
 import './core/command-core.css';
 import './motion/motion-regime.css';
+import './motion/transitions.css';
 import './arcs/arc-layer.css';
 
 interface Props {
@@ -89,6 +91,9 @@ export default function Shell({ S }: Props) {
       <div className="sys-sync-slot"><SyncState /></div>
       {/* Anúncios de eventos: um dominante de cada vez, os outros em fila. */}
       <SystemEventLayer />
+      {/* A entrada. Uma vez por sessão, nunca bloqueia, e o conteúdo real já
+          está montado por baixo desde o primeiro frame. */}
+      <BootSequence />
     </div>
   );
 }

@@ -45,6 +45,7 @@ import { readCore, type CoreRead } from './core-read';
 import {
   type UniverseState, type UniverseCtx, canGo, scaleOf, litDomain,
 } from './universe-states';
+import { useFreeCam, type FreeCamAPI } from './useFreeCam';
 import { subscribeSystemEvents } from '../events/systemEvents';
 import { AM } from '../../state/config.js';
 import './universe-scene.css';
@@ -308,8 +309,43 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
     return () => window.clearTimeout(t);
   }, [m.state]);
 
+  /* ── CÂMARA MANUAL ──
+   * O gesto não decide destinos: pergunta "mais fundo" ou "recua", e quem
+   * resolve isso para um estado concreto é o reducer, que é quem sabe onde
+   * estamos. Uma roda que soubesse escolher domínios seria uma segunda
+   * máquina de estados escondida num handler.
+   *
+   * Aprofundar sem domínio escolhido leva ao Núcleo: é o único destino que
+   * não exige escolher nada, e escolher um domínio por ele seria o Sistema a
+   * decidir onde ele quer ir. */
+  const freeApi = useRef<FreeCamAPI | null>(null);
+  const stateRef = useRef(m.state);
+  stateRef.current = m.state;
+  const domainRef = useRef(m.domain);
+  domainRef.current = m.domain;
+  useFreeCam(rootRef, freeApi, {
+    enabled: live,
+    wide,
+    onDeeper: () => {
+      const st = stateRef.current;
+      if (st === 'DOMAIN_FOCUS' || st === 'OVERVIEW' || st === 'DOMAIN_HOVER') dispatch({ t: 'core' });
+    },
+    onBack: () => dispatch({ t: 'back' }),
+  });
+  // Cada mudança de estado zera o desvio: o estado novo tem o seu próprio
+  // enquadramento, e herdar o desvio do anterior punha o Operador a chegar
+  // torto a todo o lado.
+  useEffect(() => { freeApi.current?.reset(); }, [m.state, m.domain]);
+
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') dispatch({ t: 'back' }); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      // Escape CENTRA primeiro e só recua depois. Sem isto, quem arrastasse
+      // para um canto não tinha forma de voltar ao meio sem mudar de escala —
+      // e mudar de escala para corrigir o enquadramento é perder o sítio.
+      if (freeApi.current?.deslocado()) { freeApi.current.reset(); return; }
+      dispatch({ t: 'back' });
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
@@ -542,6 +578,11 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
               <div><dt>Rank</dt><dd style={{ color: scene.rank.color }}>{scene.rank.letter}</dd></div>
               <div><dt>Nível global</dt><dd>{scene.level}</dd></div>
             </dl>
+            {/* Um gesto que não se anuncia não existe: ninguém descobre por
+                acaso que se pode arrastar um céu. */}
+            <p className="us-hint">
+              Arrasta para olhar{wide ? ' · Ctrl+roda aprofunda' : ' · pinça aprofunda'} · Escape centra
+            </p>
           </>
         )}
 

@@ -55,6 +55,18 @@
  * e não `animation: none`: ao voltar, o ciclo retoma onde estava em vez de
  * saltar para o princípio, e um salto seria visível.
  */
+/* ── DURANTE A MANIPULAÇÃO DIRETA NÃO HÁ TRANSIÇÃO ──
+ * Com os 1400ms da viagem ligados, cada frame de arrasto ficava um segundo e
+ * meio atrás do dedo. Manipulação direta tem de ser direta; a transição existe
+ * para as viagens que o Sistema decide, não para as que a mão faz. */
+.us[data-free='true'] .us-scene { transition: none; }
+
+/* O cursor diz que se pode agarrar. */
+.us { cursor: grab; }
+.us:active { cursor: grabbing; }
+/* Menos os alvos, que continuam a ser alvos. */
+.us-terr-hit { cursor: pointer; }
+
 .us[data-live='false'] *,
 .us[data-live='false'] *::before,
 .us[data-live='false'] *::after { animation-play-state: paused !important; }
@@ -63,7 +75,17 @@
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  transform: translate3d(var(--cam-x, 0), var(--cam-y, 0), var(--cam-z, 0));
+  /* ── A CÂMARA É A SOMA DE DUAS COISAS ──
+   * A posição do ESTADO (`--cam-*`), que a máquina de estados decide, mais o
+   * DESVIO MANUAL (`--free-*`), que o Operador produz com o rato ou os dedos.
+   * Somam-se aqui, num sítio só, em vez de a manipulação direta ter uma
+   * camada própria — se tivesse, o parallax das camadas profundas aplicava-se
+   * a uma e não à outra, e olhar à volta deixava de parecer espaço. */
+  transform: translate3d(
+    calc(var(--cam-x, 0px) + var(--free-x, 0px)),
+    calc(var(--cam-y, 0px) + var(--free-y, 0px)),
+    calc(var(--cam-z, 0px) + var(--free-z, 0px))
+  );
   /* A viagem. Longa e com gravidade (R15): acumula, não salta. É o que faz a
      passagem entre escalas parecer deslocação e não corte. */
   transition: transform 1400ms var(--sys-ease-gravity);
@@ -846,6 +868,18 @@
   text-shadow: 0 0 12px var(--sys-void);
 }
 @keyframes us-rank-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* A dica dos gestos. Discreta ao ponto de não competir com a leitura, e
+   presente ao ponto de a exploração ser descoberta em vez de adivinhada. */
+.us-hint {
+  margin: var(--sys-space-2) 0 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--2, .72rem);
+  letter-spacing: var(--sys-track-label);
+  color: var(--sys-ink-mut);
+  opacity: .68;
+  text-shadow: 0 0 12px var(--sys-void);
+}
 
 .us-pulse-note {
   margin: 0;

@@ -128,6 +128,17 @@ export interface ArcMotif {
   accentSoft: string;
   /** Direção da energia ambiente. `out` expande, `in` converge, `up` sobe. */
   flow: 'out' | 'in' | 'up' | 'down';
+  /** ── A MATÉRIA DA ESTAÇÃO — Fase 7Z ──
+   *
+   *  Até aqui uma estação eram duas cores e uma direção. A biblioteca tem muito
+   *  mais do que isso guardado, e nenhuma delas estava a ser usada: R20 mostra
+   *  queda com parallax por desfoque, R22 floração em sequência, R28 luz
+   *  partida em fragmentos, R29 duas populações de neve, R30 cristal.
+   *
+   *  `materia` é o NOME desse comportamento, não um componente. Continua a não
+   *  existir `<BloomLayer/>`: a camada é uma só e lê este campo por
+   *  `data-arc-materia`. Um arco novo ganha matéria declarando uma palavra. */
+  materia: 'cintilacao' | 'queda' | 'assentamento' | 'abertura';
 }
 
 export interface ArcReading {
@@ -163,19 +174,31 @@ export interface ArcReading {
  * perigo nem legibilidade. Nenhuma destas é usada para texto.
  */
 const MOTIFS: Record<string, ArcMotif> = {
-  // expansão, exposição, energia solar, horizonte, movimento para fora
-  summer: { gesture: 'expansão', accent: '#fb923c', accentSoft: '#fbbf24', flow: 'out' },
-  // colheita, consolidação, transformação de esforço em evidência
-  harvest: { gesture: 'colheita', accent: '#d97706', accentSoft: '#b45309', flow: 'in' },
-  // silêncio, foco, compressão, preparação
-  winter: { gesture: 'compressão', accent: '#60a5fa', accentSoft: '#93c5fd', flow: 'in' },
-  // emergência, ramificação, crescimento, novos nós, movimento ascendente
-  bloom: { gesture: 'emergência', accent: '#4ade80', accentSoft: '#a3e635', flow: 'up' },
+  // expansão, exposição, energia solar, horizonte, movimento para fora.
+  // MATÉRIA de R28: uma fonte de luz vista através de água irregular parte-se
+  // em centenas de fragmentos e continua a ler-se como coluna. Coerência sem
+  // continuidade — que é o verão inteiro numa frase.
+  summer: { gesture: 'expansão', accent: '#fb923c', accentSoft: '#fbbf24', flow: 'out', materia: 'cintilacao' },
+  // colheita, consolidação, transformação de esforço em evidência.
+  // CORES de S13, que é uma paleta com hex reais: #B3682D e #D1B27B. O âmbar
+  // anterior era escolhido; estes são terrosos e vêm de uma fonte.
+  // MATÉRIA de R20: queda com três profundidades distinguidas só pela nitidez.
+  harvest: { gesture: 'colheita', accent: '#b3682d', accentSoft: '#d1b27b', flow: 'in', materia: 'queda' },
+  // silêncio, foco, compressão, preparação.
+  // CORES de S20: MIST #8EA1AE e FROSTYSILVER #BEB3AC. O #60a5fa anterior era o
+  // azul-cliché que a direção proíbe; estes são dessaturados, que é o que S20
+  // tem de diferente das paletas de primavera e verão — e o que os torna
+  // utilizáveis sobre preto sem correção.
+  winter: { gesture: 'compressão', accent: '#8ea1ae', accentSoft: '#beb3ac', flow: 'in', materia: 'assentamento' },
+  // emergência, ramificação, crescimento, novos nós, movimento ascendente.
+  // MATÉRIA de R22: a floração acontece em SEQUÊNCIA, de baixo para cima, e a
+  // ordem é legível. Não aparece florido — floresce.
+  bloom: { gesture: 'emergência', accent: '#4ade80', accentSoft: '#a3e635', flow: 'up', materia: 'abertura' },
 };
 
 /** Fallback honesto: um arco sem motivo declarado não fica sem tema — fica com
  *  a identidade do Sistema, que é violeta, e não com uma cor inventada. */
-const NEUTRAL: ArcMotif = { gesture: 'presença', accent: '#a78bfa', accentSoft: '#d946ef', flow: 'in' };
+const NEUTRAL: ArcMotif = { gesture: 'presença', accent: '#a78bfa', accentSoft: '#d946ef', flow: 'in', materia: 'assentamento' };
 
 export function arcMotif(id: string): ArcMotif {
   return MOTIFS[id] ?? NEUTRAL;

@@ -165,3 +165,188 @@ html[data-motion='calm'] .sys-shell::after { animation: none !important; }
      mundo, e a camada é secundária por definição. */
   .sys-shell::after { height: 26vh; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+ * A MATÉRIA DA ESTAÇÃO — Missão 26 · Fase 7Z
+ *
+ * Até aqui uma estação eram duas cores e uma direção de gradiente. A biblioteca
+ * tinha cinco tipos de matéria guardados e nenhum estava a ser usado.
+ *
+ * A DISCIPLINA MANTÉM-SE: uma só camada, doze partículas, e o que muda é o
+ * `data-arc-materia`. Não há `<BloomLayer/>`, não há `if (arc.id === ...)`.
+ *
+ * O QUE ESTA CAMADA NÃO PODE FAZER, e é lei desde a Fase 7: tocar em contraste,
+ * estrutura, semântica de perigo ou legibilidade. Por isso vive atrás de tudo,
+ * a opacidade é baixa, e nunca compõe cor por cima de texto.
+ *
+ * PAUSA E REGIME: nada aqui reimplementa o que o `motion-regime.css` já faz. A
+ * camada declara `data-ambient` e com isso ganha de graça a paragem em segundo
+ * plano (`data-motion='paused'`) e o desligar no modo `calm`. Escrever aqui uma
+ * segunda regra de pausa seria criar um segundo sítio para a mesma verdade.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+.arc-materia {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /* ── z-index: -1, e é a correção de um defeito real ───────────────────
+     A primeira versão usava `z-index: 0`, por analogia com `--sys-z-atmosphere`.
+     Está errado, e o screenshot mostrou-o: `.sys-stage-wrap` é uma área de grelha
+     SEM `position`, e na ordem de pintura do CSS um elemento posicionado a
+     `z-index: 0` fica ACIMA de conteúdo em fluxo. Resultado: partículas verdes
+     em cima do "gap analysis ISO 27001", do "Marco Aurélio" e do nível "64".
+
+     Isso viola a lei desta camada — pode mudar atmosfera, acento e partículas, e
+     NÃO pode tocar em legibilidade. Um valor negativo põe a matéria acima do
+     fundo da shell e abaixo de todo o conteúdo em fluxo, que é a definição de
+     "atrás". A profundidade passa a vir dos painéis translúcidos por cima, que
+     é como se lê matéria a passar por trás de vidro — e não confete.
+
+     A analogia com a atmosfera era falsa porque a atmosfera é um gradiente a 4%
+     de opacidade: por cima de texto não se vê. Um ponto sólido de 7px vê-se. */
+  z-index: -1;
+  /* A camada inteira desaparece com o arco. `--arc-presence` já governa a
+     atmosfera; usar a mesma variável impede que as duas se desencontrem.
+
+     0.9 e não 0.5, e a diferença é uma medição: a 0.5 o diff de pixéis com e
+     sem a camada dava delta médio 3.7 no outono — abaixo do limiar a que um
+     ecrã escuro num quarto iluminado mostra alguma coisa. Uma camada que só
+     existe no DOM é pior do que não existir, porque custa código e mente
+     sobre o que o produto faz. */
+  opacity: calc(var(--arc-presence, 0) * 0.9);
+}
+
+/* `--x`, `--y` e `--r` chegam do React, calculados por `hashStr`. O CSS não os
+   inventa: `calc()` não tem resto nem aleatório, e uma dispersão fabricada com
+   divisões inteiras que o CSS não faz colapsa em silêncio para o mesmo valor
+   em todas as partículas — que foi exatamente o erro da primeira versão desta
+   folha, invisível até se contarem os pontos no ecrã. */
+.arc-materia span {
+  position: absolute;
+  top: 0;
+  left: calc(var(--x) * 1%);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--arc-accent);
+  will-change: transform, opacity;
+}
+
+/* ── VERÃO · cintilação ────────────────────────────────────────────────
+ * ORIGEM R28: uma fonte de luz vista através de água irregular parte-se em
+ * centenas de fragmentos e continua a ler-se como coluna. Coerência sem
+ * continuidade.
+ * Aqui: fragmentos a acender e apagar em fases diferentes, sem se deslocarem —
+ * a água move-se, a luz fica.
+ */
+.sys-shell[data-arc-materia='cintilacao'] .arc-materia span {
+  top: calc(30% + var(--y) * 0.62%);
+  width: 3px; height: 3px;
+  box-shadow: 0 0 9px 2px var(--arc-accent-soft);
+  animation: arc-cintila calc(3.2s + var(--r) * 2.6s) var(--sys-ease-breath) infinite alternate;
+  animation-delay: calc(var(--r) * -4s);
+}
+@keyframes arc-cintila { from { opacity: .18; transform: scale(.7); } to { opacity: 1; transform: scale(1.4); } }
+
+/* ── OUTONO · queda ────────────────────────────────────────────────────
+ * ORIGEM R20: três profundidades distinguidas só pela NITIDEZ, não pelo
+ * tamanho, e duas escalas de matéria a cair juntas.
+ * A opacidade faz aqui o papel do desfoque: `filter: blur()` em doze elementos
+ * a cair é exatamente o custo contínuo que a regra do projeto proíbe.
+ */
+.sys-shell[data-arc-materia='queda'] .arc-materia span {
+  width: calc(4px + var(--r) * 5px);
+  height: calc(3px + var(--r) * 3px);
+  border-radius: 40% 60% 55% 45%;
+  background: color-mix(in oklab, var(--arc-accent) 70%, var(--arc-accent-soft));
+  animation: arc-cai calc(17s + var(--r) * 9s) linear infinite;
+  animation-delay: calc(var(--i) * -2.3s);
+}
+/* A profundidade: as próximas são nítidas, as longe são vagas. */
+.sys-shell[data-arc-materia='queda'] .arc-materia span:nth-child(3n) { opacity: .35; }
+@keyframes arc-cai {
+  0%   { transform: translate3d(0, -6vh, 0) rotate(0deg); }
+  8%   { opacity: .85; }
+  92%  { opacity: .5; }
+  100% { transform: translate3d(6vw, 106vh, 0) rotate(300deg); }
+}
+
+/* ── INVERNO · assentamento ────────────────────────────────────────────
+ * ORIGEM R29: DUAS POPULAÇÕES — poucos objetos definidos e muitos traços
+ * indistintos. É a mesma distribuição do céu do Sistema, e esta é a referência
+ * que a justifica.
+ * A queda é lenta e quase vertical: o inverno não irrompe, assenta.
+ */
+.sys-shell[data-arc-materia='assentamento'] .arc-materia span {
+  width: 2px; height: 2px;
+  opacity: .55;
+  animation: arc-assenta calc(24s + var(--r) * 12s) linear infinite;
+  animation-delay: calc(var(--i) * -3.1s);
+}
+/* A população franca: um em cada quatro. */
+.sys-shell[data-arc-materia='assentamento'] .arc-materia span:nth-child(4n+1) {
+  width: 5px; height: 5px;
+  opacity: 1;
+  box-shadow: 0 0 7px var(--arc-accent-soft);
+}
+@keyframes arc-assenta {
+  0%   { transform: translate3d(0, -4vh, 0); }
+  100% { transform: translate3d(1.5vw, 104vh, 0); }
+}
+
+/* ── PRIMAVERA · abertura ──────────────────────────────────────────────
+ * ORIGEM R22: a floração acontece em SEQUÊNCIA, de baixo para cima, e a ordem
+ * é legível. Não aparece florida — floresce.
+ * O atraso é POSITIVO e proporcional ao ÍNDICE, ao contrário de todas as outras
+ * matérias desta folha, onde é negativo e semeado: é a única onde a ordem é o
+ * conteúdo, e semear ao acaso destruiria precisamente aquilo que R22 mostra.
+ */
+.sys-shell[data-arc-materia='abertura'] .arc-materia span {
+  top: auto;
+  /* A FAIXA BAIXA, e é onde R22 põe a floração: sobe da base. Espalhada pelo
+     ecrã inteiro, a sequência deixa de se ler como ordem e passa a pontos
+     dispersos — que foi o que a primeira versão fez, com 24 partículas a cobrir
+     de 4% a 82% da altura. */
+  bottom: calc(3% + var(--i) * 1.15%);
+  width: 7px; height: 7px;
+  box-shadow: 0 0 8px var(--arc-accent-soft);
+  background: color-mix(in oklab, var(--arc-accent) 60%, var(--arc-accent-soft));
+  animation: arc-abre 14s var(--sys-ease-gravity) infinite;
+  animation-delay: calc(var(--i) * 0.28s);
+}
+@keyframes arc-abre {
+  0%, 4%  { transform: scale(0); opacity: 0; }
+  16%     { transform: scale(1.5); opacity: .9; }
+  30%     { transform: scale(1); opacity: .65; }
+  86%     { transform: scale(1); opacity: .65; }
+  100%    { transform: scale(1); opacity: 0; }
+}
+
+/* ── REDUCED MOTION · a camada SAI ────────────────────────────────────
+ * A primeira versão congelava as partículas e mantinha-as visíveis, para não
+ * "tirar a estação" a quem pede menos movimento. Vista em folha, a decisão
+ * estava errada: doze pontos parados não são queda, cintilação nem floração —
+ * são pontos. Uma animação que, parada, deixa de comunicar era decoração, e a
+ * lei do Sistema diz que nenhuma animação é decorativa. A regra corta nos dois
+ * sentidos: se a forma imóvel não diz nada, não fica.
+ *
+ * E não se perde informação nenhuma. A estação continua a dizer-se por três
+ * canais que não dependem de movimento: o acento, a atmosfera e o painel do
+ * arco, que a nomeia por extenso. A matéria era reforço, não o portador.
+ *
+ * (Nota técnica de por que `display: none` e não só `animation: none`: a guarda
+ * global do `hud.css` encurta a duração para 0.01ms, e isso salta cada partícula
+ * para o ÚLTIMO fotograma — que na queda é fora do ecrã. Deixar correr essa
+ * guarda daria uma camada com resultado imprevisível em vez de uma ausência
+ * declarada.)
+ */
+@media (prefers-reduced-motion: reduce) {
+  .arc-materia { display: none; }
+}
+
+@media (max-width: 900px) {
+  /* Metade da matéria em ecrã pequeno, e é a regra que a fase já tinha para a
+     atmosfera: a camada é secundária por definição. */
+  .arc-materia span:nth-child(2n) { display: none; }
+}

@@ -2506,6 +2506,105 @@ depende da cor do domínio para se ler.
 Verificado: 494×494 no desktop e 305×305 no mobile, ambos dentro do
 enquadramento; a conta continua a fechar (63 ganhos + 1 = 64); 115 elementos sem
 falhas de contraste AA; zero erros de consola.
+### Fase 7Z · A matéria da estação (CONCLUÍDA 2026-07-30)
+
+Era a maior distância entre o que a biblioteca guardava e o que o produto
+usava: a análise das 50 referências fechou com **cinco tipos de matéria** e
+**duas paletas com hex reais** documentados, e uma estação no Sistema continuava
+a ser duas cores e uma direção de gradiente.
+
+#### O que mudou
+
+`ArcMotif` ganhou um campo — `materia` — e o Arc Engine ganhou uma camada. A
+disciplina da Fase 7 mantém-se intacta: **não existe `<BloomLayer/>`, não existe
+`if (arc.id === ...)` em componente nenhum.** É uma camada só; o que muda é o
+`data-arc-materia`, que o CSS lê.
+
+| arco | matéria | origem | o que a referência mostra |
+|---|---|---|---|
+| summer | cintilação | R28 | luz partida em fragmentos que ainda se lê como coluna |
+| harvest | queda | R20 | três profundidades distinguidas só pela nitidez |
+| winter | assentamento | R29 | duas populações — poucos francos, muitos difusos |
+| bloom | abertura | R22 | a floração acontece em sequência, e a ordem lê-se |
+
+As cores de outono e inverno passaram a vir de fonte. O `#60a5fa` do inverno era
+o azul-cliché que a direção visual proíbe; **S20** dá `#8EA1AE` (MIST) e
+`#BEB3AC` (FROSTYSILVER), e o que distingue essa paleta é precisamente a
+dessaturação. O outono trocou o âmbar escolhido pelos terrosos de **S13**
+(`#B3682D`, `#D1B27B`).
+
+#### Quatro defeitos meus, e três só apareceram por medir
+
+**1 · A dispersão colapsava em silêncio.** A primeira folha fabricava um módulo
+em `calc()` com `x*37 - (x*37/22)*22`. O CSS não faz divisão inteira: aquilo é
+zero para qualquer `x`, e as 12 partículas ficavam todas na mesma linha com a
+mesma largura. Não dava erro nenhum. A conta que precisa de resto passou para o
+React, com o `hashStr` do projeto — o gerador determinístico que já existia.
+
+**2 · A camada não se via.** Diff de pixéis com e sem ela: **0.06% do ecrã** no
+inverno, delta médio 3.7 no outono. Existia no DOM e não existia para o olho —
+que é a pior das duas hipóteses, porque custa código e mente sobre o que o
+produto faz. Doze partículas passaram a 24, a opacidade da camada de 0.5 a 0.9.
+
+**3 · Estava por CIMA do texto, e isso parte a lei da camada.** Usei
+`z-index: 0` por analogia com `--sys-z-atmosphere`. A analogia era falsa:
+`.sys-stage-wrap` é uma área de grelha sem `position`, e na ordem de pintura do
+CSS um elemento posicionado a `z-index: 0` fica acima de conteúdo em fluxo. O
+screenshot mostrou pontos verdes em cima do "gap analysis ISO 27001" e do nível
+"64". A atmosfera safava-se por ser um gradiente a 4% de opacidade; um ponto
+sólido de 7px não se safa. Corrigido para `z-index: -1` — acima do fundo da
+shell, abaixo de todo o conteúdo.
+
+**4 · O modo `calm` não desligava a matéria.** O `motion-regime.css` desliga o
+ambiente com um seletor que **não desce** (`[data-ambient]`, `::before`,
+`::after`). A marca estava no contentor e a animação vive nas partículas: em
+poupança de bateria, 24 animações continuavam a correr. Medido antes e depois.
+
+#### A prova de legibilidade, e um método novo
+
+O auditor de contraste do projeto sobe a árvore de fundos — e é **cego a esta
+camada**, porque a matéria é um irmão atrás e não um antepassado. Passar nele
+não provava nada.
+
+Método usado: dois screenshots por estação, com e sem a camada; luminância
+**mediana** de cada caixa de linha de texto como fundo (os glifos cobrem menos
+de um terço de uma linha, por isso a mediana cai no fundo); rácio WCAG da cor do
+texto contra esse fundo, nos dois.
+
+| estação | caixas que caem abaixo de AA | pior perda de rácio |
+|---|---|---|
+| bloom | 0 | 0.278 (13.93 → 13.65) |
+| summer | 0 | 0.565, numa caixa de 2 caracteres já abaixo do limiar sem a camada |
+| harvest | 0 | 0.099 |
+| winter | 0 | 0.051 |
+
+**Zero caixas passam de conforme a não conforme.** A lei — a camada pode mudar
+atmosfera, acento e partículas, e não pode tocar em legibilidade — fica provada
+e não afirmada.
+
+Uma nota de honestidade sobre o método: numa caixa de dois caracteres a mediana
+já não é o fundo, é a tinta. O valor de 0.565 do verão não é fiável, e nessa
+caixa o rácio já estava abaixo do mínimo **antes** de a camada existir.
+
+#### Reduced motion: a camada SAI
+
+A primeira versão congelava as partículas e mantinha-as visíveis, para não tirar
+a estação a quem pede menos movimento. Visto em folha, estava errado: pontos
+parados não são queda, cintilação nem floração — são pontos. **Uma animação que,
+parada, deixa de comunicar era decoração**, e a lei do Sistema diz que nenhuma
+animação é decorativa. A regra corta nos dois sentidos.
+
+Não se perde informação: a estação continua a dizer-se pelo acento, pela
+atmosfera e pelo painel do arco, que a nomeia por extenso.
+
+#### Verificado
+
+Custo por frame com GPU real: **8.3 ms com a camada, 8.4 ms sem** — 24 elementos
+a animar `transform` e `opacity` não são mensuráveis. Quatro regimes de movimento
+corretos (normal corre, `calm` sem animação, `paused` congelado, reduced motion
+ausente). Mobile 390×844: 12 das 24 partículas, pela mesma regra que a fase já
+tinha para a atmosfera. Auditoria AA da zona: 64 elementos, zero falhas. Zero
+erros de consola nas quatro estações.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

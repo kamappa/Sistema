@@ -915,3 +915,53 @@ Foi esse teste que apanhou a primeira versão do alerta: só o portador se parti
 os outros dois passavam por cima, e o intervalo não se via na imagem apesar de
 existir no DOM.
 
+### 2026-07-30 · Fase 7Z — uma estação passa a ter matéria
+
+A análise das 50 referências fechou com cinco tipos de matéria e duas paletas de
+hex reais documentados. O produto continuava a tratar uma estação como duas
+cores e um `flow`. Esta foi a maior distância entre o que estava guardado e o
+que estava a ser usado — e por isso a primeira a fechar.
+
+**A decisão de arquitetura veio antes da decisão visual.** A tentação óbvia era
+um componente por estação. A Fase 7 tinha estabelecido o contrário — não existe
+`<BloomLayer/>`, não existe `if (arc.id === ...)` — e essa disciplina é mais
+valiosa do que qualquer efeito. Um arco novo continua a ganhar matéria
+declarando **uma palavra** no `MOTIFS`.
+
+**O que cada referência deu, e não é ilustração:**
+
+- **R28 → cintilação.** Uma fonte de luz vista através de água irregular
+  parte-se em centenas de fragmentos e continua a ler-se como coluna. Coerência
+  sem continuidade — que é o verão inteiro numa frase. Os fragmentos acendem e
+  apagam em fases diferentes e **não se deslocam**: a água move-se, a luz fica.
+- **R20 → queda.** Três profundidades distinguidas só pela **nitidez**, não pelo
+  tamanho. Aqui a opacidade faz o papel do desfoque, porque `filter: blur()` em
+  duas dúzias de elementos a cair é o custo contínuo que a regra do projeto
+  proíbe.
+- **R29 → assentamento.** Duas populações: poucos objetos francos, muitos traços
+  indistintos. É a mesma distribuição do céu do Sistema, e esta é a referência
+  que a justifica. A queda é lenta e quase vertical — o inverno não irrompe.
+- **R22 → abertura.** A floração acontece em **sequência**, de baixo para cima, e
+  a ordem é legível. É a única matéria com atraso **positivo** e proporcional ao
+  índice; semear ao acaso destruía exatamente aquilo que a referência mostra.
+- **S13 e S20 → cor com fonte.** O `#60a5fa` do inverno era o azul-cliché que a
+  direção visual proíbe. S20 dá `#8EA1AE` e `#BEB3AC`, e o que distingue essa
+  paleta das de primavera e verão é a dessaturação — que é também o que a torna
+  utilizável sobre preto sem correção.
+
+**A correção que importa registar** é de ordem de pintura, e o screenshot é que
+a encontrou: a camada estava por cima do texto. `z-index: 0` parecia certo por
+analogia com a atmosfera, e a analogia era falsa — a atmosfera é um gradiente a
+4% de opacidade, e por cima de texto não se vê; um ponto sólido de 7px vê-se.
+
+**E a decisão que quase ficou errada:** em reduced motion, manter as partículas
+paradas parecia generoso. Não é. Pontos imóveis não são queda nem floração — a
+matéria É o movimento. Uma animação que, parada, deixa de comunicar era
+decoração, e a lei diz que nenhuma animação é decorativa. A camada sai, e a
+estação continua a dizer-se por três canais que não dependem de movimento.
+
+**Isto parece um produto único chamado Sistema?** Sim, e a razão é que a matéria
+nunca se apresenta: passa **atrás** do vidro dos painéis, com a mesma lógica com
+que o céu já passava. Uma camada de partículas por cima da interface seria
+confete gerado por AI — que foi literalmente o que a primeira versão parecia.
+

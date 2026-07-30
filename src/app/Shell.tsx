@@ -29,6 +29,7 @@ import BootSequence from './motion/BootSequence';
 import { installSystemEventBridge } from './events/systemEvents';
 import { startMotionRegime } from './motion/motionTier';
 import { activeArcTheme } from './arcs/arcModel';
+import { hashStr } from '../state/world';
 import './instrumental.css';
 import './core/command-core.css';
 import './motion/motion-regime.css';
@@ -63,6 +64,7 @@ export default function Shell({ S }: Props) {
       data-nav="orbit"
       data-arc={arc?.id}
       data-arc-flow={arc?.motif.flow}
+      data-arc-materia={arc?.motif.materia}
       style={
         arc
           ? ({
@@ -74,6 +76,51 @@ export default function Shell({ S }: Props) {
       }
     >
       <Atmosphere />
+
+      {/* ── A MATÉRIA DA ESTAÇÃO — Fase 7Z ──
+          Uma partícula é matéria da estação, e é a MESMA camada para as quatro: o que
+          muda é o `data-arc-materia`, que o CSS lê. Continua a não existir
+          `<BloomLayer/>` nem um `if (arc.id === ...)` em componente nenhum — a
+          disciplina desta camada desde a Fase 7 é essa, e não se quebra por
+          causa de partículas.
+
+          Vinte e quatro, e o número foi MEDIDO e não escolhido: com doze, o
+          diff de pixéis com e sem a camada dava 0.06% do ecrã no inverno — a
+          matéria existia no DOM e não se via. Vinte e quatro chega para a
+          população difusa que R29 pede sem passar a ruído. O custo por frame
+          continua indistinguível de zero (8.3 ms contra 8.4 ms sem ela).
+
+          `data-ambient` está na camada E em cada partícula, e não é descuido: o
+          `motion-regime.css` desliga o ambiente no modo `calm` com um seletor que
+          NÃO desce (`[data-ambient]`, `::before`, `::after`). A animação vive nas
+          partículas, não no contentor — sem a marca em cada uma, o modo de
+          poupança de bateria deixava a matéria a correr. Medido: com a marca só
+          no contentor, `calm` dava `animationPlayState: running`.
+
+          A dispersão vem do `hashStr`, que é o gerador determinístico do
+          projeto — a mesma estação dá sempre a mesma disposição, e um mundo que
+          se reordena a cada render não é um mundo. O CSS recebe números puros
+          (`--x`, `--y`, `--r`) porque `calc` não tem módulo nem aleatório: a
+          aritmética que precisa de resto faz-se aqui, uma vez. */}
+      {arc && (
+        <div className="arc-materia" data-ambient aria-hidden="true">
+          {Array.from({ length: 24 }, (_, i) => {
+            const h = hashStr('materia:' + arc.id + ':' + i);
+            return (
+              <span
+                key={i}
+                data-ambient
+                style={{
+                  '--i': i,
+                  '--x': 4 + (h % 92),
+                  '--y': (h >>> 7) % 100,
+                  '--r': ((h >>> 15) % 100) / 100,
+                } as React.CSSProperties}
+              />
+            );
+          })}
+        </div>
+      )}
 
       <OrbitNav zones={ZONES} active={active} onSelect={setActive} S={S} />
 

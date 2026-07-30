@@ -424,8 +424,11 @@ pela nitidez, sem mudar de tamanho. E a mistura de dois tamanhos de matéria
 **Rejeitar:** o fundo verde-acinzentado (gramática 6) e o realismo fotográfico —
 o Sistema é simbólico, e uma folha fotográfica num céu de símbolos é uma colagem.
 **Risco de imitação:** baixo.
-**Aplicação possível:** o arco Harvest, se a camada sazonal ganhar matéria.
-**Estado:** parcialmente útil.
+**APLICADA** (2026-07-30, Fase 7Z): o arco Harvest, matéria `queda`. As três
+profundidades são feitas com opacidade e não com `filter: blur()` — desfocar duas
+dúzias de elementos em movimento é o custo contínuo que a regra do projeto
+proíbe, e o que a referência distingue é nitidez, que a opacidade também dá.
+**Estado:** aplicada.
 
 ### R21 · `03-universe-materials/primavera` · MATERIAL + INFORMATION — analisada
 720×1280 · 171,02 s · 30 fps · **das mais fortes por aplicar**
@@ -462,9 +465,11 @@ que mostra *tempo biológico*.
 **Rejeitar:** o realismo botânico; o escurecimento final, que é fim de clipe e
 não fim de arco.
 **Risco de imitação:** baixo.
-**Aplicação possível:** o arco Bloom, e a formação de uma constelação de domínio
-— hoje as estrelas aparecem todas de uma vez.
-**Estado:** analisada.
+**APLICADA EM PARTE** (2026-07-30, Fase 7Z): o arco Bloom, matéria `abertura` —
+é a única matéria da camada com atraso **positivo** e proporcional ao índice,
+precisamente porque aqui a ordem é o conteúdo. Fica por aplicar a formação de uma
+constelação de domínio: as estrelas continuam a aparecer todas de uma vez.
+**Estado:** aplicada em parte.
 
 ### R23 · `03-universe-materials/primavera` · DUPLICADA
 720×1280 · 15,07 s · 30 fps
@@ -519,7 +524,10 @@ estrelas. E a coluna vertical mantém-se legível apesar de ser feita de fragmen
 soltos — coerência sem continuidade.
 **Rejeitar:** o dourado saturado; o realismo fotográfico.
 **Risco de imitação:** baixo.
-**Estado:** parcialmente útil.
+**APLICADA** (2026-07-30, Fase 7Z): o arco Summer, matéria `cintilacao`. Os
+fragmentos acendem e apagam em fases diferentes e **não se deslocam** — a água
+move-se, a luz fica, que é a leitura literal do que o clipe mostra.
+**Estado:** aplicada.
 
 ### R29 · `03-universe-materials/winter` · MATERIAL — parcialmente útil
 1024×576 · 14,40 s · 50 fps
@@ -534,7 +542,10 @@ filamentos do Núcleo, e esta é a referência que a justifica. E a densidade a
 crescer como forma de dizer intensidade sem mudar nada mais.
 **Rejeitar:** a queda vertical constante, que num céu diz chuva e não espaço.
 **Risco de imitação:** baixo — o preto puro e o branco são a base do produto.
-**Estado:** parcialmente útil.
+**APLICADA** (2026-07-30, Fase 7Z): o arco Winter, matéria `assentamento`. As duas
+populações são literais — uma partícula em cada quatro é franca e maior, as
+outras três são traços a metade da opacidade.
+**Estado:** aplicada.
 
 ### R30 · `03-universe-materials/winter` · MATERIAL — parcialmente útil
 600×338 · 35 fr · 7 fps
@@ -749,7 +760,10 @@ fotografia de outono, com cinco hex: `#D1B27B` `#B88655` `#B3682D` `#9D3E13`
 **Utilizável:** os cinco hex, para a camada sazonal Harvest — que hoje tem duas
 cores. São terrosos e dessaturados, compatíveis com a direção.
 **Rejeitar:** a fotografia e o layout de Pinterest.
-**Estado:** analisada (como paleta, não como referência de interface).
+**APLICADA** (2026-07-30, Fase 7Z): dois dos cinco hex são agora o acento do arco
+Harvest — `#B3682D` e `#D1B27B`, no lugar do âmbar `#d97706`/`#b45309` que tinha
+sido escolhido e não vinha de lado nenhum.
+**Estado:** aplicada (como paleta, não como referência de interface).
 
 ### S14 · `03-universe-materials/primavera` · PALETA — rejeitada
 736×1104
@@ -832,7 +846,11 @@ com a direção sem correção. `Pine #27363F` e `BERRY #6B212C` funcionam sobre
 preto.
 **Extrair também:** a mistura de três famílias tipográficas numa peça pequena sem
 parecer desarrumada — é o que a direção chama de premium e humano.
-**Estado:** analisada (paleta + tipografia).
+**APLICADA EM PARTE** (2026-07-30, Fase 7Z): MIST `#8EA1AE` e FROSTYSILVER
+`#BEB3AC` são o acento do arco Winter. Substituem `#60a5fa`/`#93c5fd` — que eram
+o azul-cliché proibido por nome pela direção visual, e o único sítio do Arc
+Engine onde isso ainda acontecia. A parte tipográfica continua por aplicar.
+**Estado:** aplicada em parte (paleta sim, tipografia não).
 
 ---
 

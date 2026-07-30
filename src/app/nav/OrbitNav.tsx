@@ -19,6 +19,7 @@ import type { Zone, ZoneId } from '../zones';
 import { rankOf, overallLevel } from '../../state/config.js';
 import { useStore } from '../../store/useStore.js';
 import { readCore } from '../core/coreState';
+import AscensionLadder from '../rank/AscensionLadder';
 import '../core/core.css';
 
 interface Props {
@@ -32,6 +33,11 @@ export default function OrbitNav({ zones, active, onSelect, S }: Props) {
   const rank = readRank(S);
   const activeIndex = zones.findIndex((z) => z.id === active);
   const core = useCoreReading(S);
+  const [ladder, setLadder] = useState(false);
+  // O foco tem de VOLTAR ao Núcleo quando a escada fecha. Sem isto, quem
+  // navega por teclado sai do overlay e reaparece no topo do documento —
+  // medido: `document.activeElement` ficava no `<body>`.
+  const coreBtn = useRef<HTMLButtonElement>(null);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLUListElement>) {
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -54,11 +60,31 @@ export default function OrbitNav({ zones, active, onSelect, S }: Props) {
         style={{ ['--core-charge' as string]: core.charge.toFixed(3) }}
         title={core.evidence}
       >
-        <span className="sys-orbit-core-mark" aria-hidden="true">{rank}</span>
+        {/* Missão 26 · Fase 6D — a letra de rank passa a PORTA.
+            Era decoração: mostrava a letra e não levava a lado nenhum. Agora
+            abre a Escada de Ascensão, que é o que a letra significa. Um
+            `<button>` de verdade — o anel continua a ser desenhado pelo
+            contentor, e o que ganha alvo e foco é o conteúdo. */}
+        <button
+          ref={coreBtn}
+          type="button"
+          className="sys-orbit-core-btn"
+          onClick={() => setLadder(true)}
+          aria-label={`Rank ${rank} — abrir a Escada de Ascensão`}
+        >
+          <span className="sys-orbit-core-mark" aria-hidden="true">{rank}</span>
+        </button>
         {/* O estado do Núcleo é informação, não enfeite — quem usa leitor de
             ecrã tem direito à mesma leitura que quem vê o anel. */}
         <span className="sr-only">Núcleo: {core.evidence}</span>
       </div>
+
+      {ladder && (
+        <AscensionLadder
+          S={S as Record<string, any>}
+          onClose={() => { setLadder(false); coreBtn.current?.focus(); }}
+        />
+      )}
 
       <ul className="sys-orbit-ring" onKeyDown={onKeyDown}>
         {zones.map((z, i) => {

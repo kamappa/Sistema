@@ -214,7 +214,22 @@ export function arcState(S: Record<string, any> | null, arcId: string): ArcState
   // só volta a aparecer amanhã. Mesma condição do World.jsx e do next-action.
   if (wa.status === 'later') return wa.snooze === today() ? 'declined' : 'proposed';
   if (wa.status === 'active') {
-    const b = seasonBounds(SEASON_ARCS.find((a: any) => a.id === arcId));
+    /* ── DEFEITO REAL, encontrado ao tipar o `world.js` (2026-07-31) ──
+     * Isto era `seasonBounds(SEASON_ARCS.find(...))`, e o `find` devolve
+     * `undefined` quando o id não existe. O `seasonBounds` faz `a.id === ...`
+     * à primeira linha: um id desconhecido não dava um arco errado, dava
+     * **TypeError e a zona inteira em branco**.
+     *
+     * E `arcId` vem de `S.worldArc.id`, que é estado PERSISTIDO. Bastava um
+     * arco ser renomeado, ou um estado antigo sobreviver a uma migração, para
+     * a aplicação deixar de abrir — sem nada no ecrã a dizer porquê.
+     *
+     * A resposta honesta a "não conheço este arco" não é rebentar nem inventar
+     * uma data de fim: é dizer que não há arco a decorrer. `proposed` é o
+     * mesmo que este ramo já devolve para todo o resto que não se confirma. */
+    const arco = SEASON_ARCS.find((a: any) => a.id === arcId);
+    if (!arco) return 'proposed';
+    const b = seasonBounds(arco);
     return today() > b.end ? 'completed' : 'active';
   }
   return 'proposed';

@@ -58,7 +58,7 @@ export default function World({ S }) {
   if (S.recovery && today() <= S.recovery.until) chips.push(<span className="wchip green" key="rec">🌙 Recovery ativo até {S.recovery.until.slice(8, 10)}/{S.recovery.until.slice(5, 7)} — sem penalizações</span>);
   if (new Date().getHours() >= 21 && S.sleep && S.sleep.bedT) chips.push(<span className="wchip" key="bed">🌙 Recolher às {S.sleep.bedT} — o Corpo constrói-se a dormir</span>);
 
-  const w = whisperToday(S), done = !!S.whisper[today()];
+  const w = whisperToday(), done = !!S.whisper[today()];
   const vc = v.burn >= 70 ? '#ef4444' : v.burn >= 40 ? '#fb923c' : '#34d399';
   const showRecovery = v.burn >= 70 && !(S.recovery && today() <= S.recovery.until);
 

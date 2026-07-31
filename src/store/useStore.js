@@ -538,7 +538,7 @@ export const useStore = create((set, get) => ({
 
   // claimWhisper — porto de world.js:41-45. 1 sussurro/dia; XP ×xpMult + registo.
   claimWhisper: () => {
-    const S = get().S; if (S.whisper[today()]) return; const w = whisperToday(S);
+    const S = get().S; if (S.whisper[today()]) return; const w = whisperToday();
     S.whisper[today()] = true; const g = Math.round(w.xp * xpMult(S, w.attr));
     addXp(S, w.attr, g); plog(S, '🌬 ' + w.t, g, w.attr);
     set({ S: { ...S } }); get().save(); fx('floatXP', '+' + g + ' XP', AM[w.attr].color); // world.js:44

@@ -2749,6 +2749,134 @@ variante `warm`). Não introduz par de cor novo, e por isso herda a auditoria AA
 que já correu. O painel do Conselho não fica visível na montagem headless sem
 sessão real, por isso **não há recorte de ecrã deste botão** — o que se afirma
 aqui é o que foi medido, não o que foi visto.
+### Fase 7Z · TypeScript incremental — o passo 4, e o que ele encontrou (2026-07-31)
+
+A estratégia estava escrita no `tsconfig.json` desde a Fase 1, em quatro passos.
+Os três primeiros estavam feitos — 57 ficheiros `.ts`/`.tsx` contra 59 `.js`. O
+quarto dizia: *"módulos críticos migrados um a um, com `checkJs` a ser ligado
+por ficheiro via `// @ts-check` antes de qualquer migração global"*.
+
+**Não houve migração nenhuma.** Nenhum ficheiro mudou de extensão, nenhuma
+dependência entrou, o `checkJs` global continua a `false`. O que houve foi ligar
+a verificação em dois ficheiros do núcleo e tratar o que ela disse.
+
+#### Sondagem primeiro, com números em vez de intuição
+
+| ficheiro | avisos | não-implicit-any |
+|---|---|---|
+| `state/engine.js` | 20 | 2 |
+| `state/world.js` | 26 | 9 |
+| `state/recall.js` | 23 | 0 |
+| `state/memory.js` | 16 | 0 |
+| `state/config.js` | 18 | 0 |
+| `lib/fx.js` | 70 | 29 |
+| `lib/motion.js` | 46 | 17 |
+
+A separação é a que importa: `TS7xxx` é *"não sei o tipo deste parâmetro"* —
+ruído que se resolve a anotar. Tudo o resto é o verificador a dizer que a coisa
+pode não estar lá.
+
+#### A ponte de globais, declarada · `src/types/bridge.d.ts`
+
+Metade dos avisos de `lib/fx.js` eram `window.dustBurst`, `window.Bus`,
+`window.Motion`, `window.AM` — a ponte para o palco WebGL que o `CLAUDE.md`
+manda preservar. Existia só como chamadas espalhadas por dez ficheiros: a
+instrução de a preservar era verdadeira e **não verificável**.
+
+O ficheiro novo não é código — é o contrato. E ao escrevê-lo apareceram duas
+coisas que só se veem por escrito:
+
+- as primitivas de FX são instaladas por **`Object.assign(window, {...})`**, não
+  por `window.x = ...`. Procurar a origem de `window.rankCeremony` com uma
+  pesquisa por `window.rankCeremony =` não encontra nada;
+- **tudo na ponte é opcional**, e isso é política e não descuido: o padrão do
+  projeto é chamar guardado por `if (window.x)`, porque o palco pode não ter
+  montado. Marcá-las como obrigatórias ficava mais bonito e mentia.
+
+Verificado ao mesmo tempo: **nenhum global é lido sem quem o escreva**. As
+primitivas sem escritor aparente ou estão guardadas por `if`, ou eram só
+menções em comentários. Zero chamadas mortas.
+
+#### TRÊS DEFEITOS REAIS, e um deles rebentava a aplicação
+
+**1 · `arcState()` tinha um caminho de crash em estado persistido.**
+
+```js
+const b = seasonBounds(SEASON_ARCS.find((a) => a.id === arcId));
+```
+
+O `find` devolve `undefined` quando o id não existe, e o `seasonBounds` lê
+`a.id` na primeira linha. **Provado no browser, não deduzido:**
+`seasonBounds(undefined)` → `Cannot read properties of undefined (reading
+'id')`.
+
+E o `arcId` vem de `S.worldArc.id`, que é **estado persistido**. Bastava um arco
+ser renomeado, ou um estado antigo sobreviver a uma migração, para a aplicação
+deixar de abrir — sem nada no ecrã a dizer porquê.
+
+A resposta honesta a *"não conheço este arco"* não é rebentar nem inventar uma
+data de fim: é `proposed`, que é o que o resto da função já devolve para tudo o
+que não se confirma. Verificado: id desconhecido → `proposed`; `summer` →
+`active`.
+
+Este defeito estava lá desde a Fase 7 e **nenhuma verificação visual o podia ter
+encontrado** — só se vê com um estado que ninguém tem hoje.
+
+**2 · `LogEntry` em `types/domain.ts` mentia nos dois campos.** Dizia
+`{ d, t, x }`. O único escritor é o `plog` e escreve `{ text, gain }`. Nem sequer
+era a forma antiga — essa é `t`/`v`, e o `x` não existiu nunca em lado nenhum.
+
+Passou despercebido porque nenhum leitor o importava: os leitores são JS e leem a
+forma verdadeira. Bastava alguém tipar um leitor contra isto para escrever `e.t`
+e receber `undefined` sem um único aviso. **Um tipo que descreve algo que o
+código não faz é uma mentira com a autoridade de documentação.** Corrigido, com
+a forma antiga declarada à parte como `LegacyLogEntry` — apagá-la não apagava os
+dados, só escondia que existem.
+
+**3 · `whisperToday(S)` recebia um estado que não lia.** A assinatura prometia
+que o sussurro depende do estado; ele depende do dia e da estação, que é o que o
+torna determinístico. Parâmetro fora, dois sítios de chamada atualizados.
+
+#### Duas anotações minhas que estavam erradas, e o verificador apanhou-as
+
+Escrevi `@returns {void}` no `addXp` — devolve `string[]`. E `@returns {string}`
+no `whisperToday` — devolve `{ t, attr, xp }`, que é uma **micro-missão** e não
+uma frase. Quem lesse a segunda assinatura ficava a pensar que aquilo era texto
+quando é uma coisa que se pode cumprir. É o argumento inteiro a favor do passo 4:
+a anotação errada dura segundos.
+
+#### Melhorias sem defeito por trás
+
+- `addXp` capturava `window.sysEvent` dentro de um `forEach` guardado por um `if`
+  fora dele. Não é bug hoje, mas `sysEvent` é um global que outro módulo instala
+  e desinstala, e entre a verificação e a última iteração corre código nosso. A
+  referência passou a capturar-se antes do ciclo.
+- `plog` colava `e.attr = attr` a um literal já fechado. Passou a construir com
+  `...(attr ? { attr } : {})` — mesmo comportamento exacto: sem `attr`, a chave
+  **não existe**, e não fica um `undefined` a fingir-se de dono.
+- `isoWeekKey` fazia aritmética com `Date` cru; passou a `getTime()`.
+- Import morto (`fmt`) removido.
+- Os quatro arcos cobrem os 12 meses, e agora isso é **verificado no arranque em
+  desenvolvimento**. Um mês descoberto é erro de config, que se apanha a
+  programar — não algo que deva rebentar à frente do Operador a meio da sessão.
+  Em produção o fallback segura o Sistema de pé.
+
+#### Estado final
+
+`// @ts-check` **ligado permanentemente** em `state/engine.js` e `state/world.js`
+— os dois módulos onde vive *"o Sistema nunca mente"*. Ambos a zero.
+
+`lib/motion.js` fica de fora e a razão é estrutural: é o ficheiro que **constrói**
+`window.Motion`, e o definidor de um global luta sempre com a declaração dele.
+Ligar a verificação lá subiu os avisos de 46 para 58 — sinal de que o custo é
+maior do que o retorno. `lib/fx.js` fica para uma passagem própria: 29 avisos
+não-triviais é trabalho a sério, não um remate.
+
+Verificado no browser: sussurro do dia determinístico e com a forma certa;
+`xpMult` a dar 1.2 no Ofício com o Summer Arc ativo e 1 num domínio inventado;
+`plog` com e sem `attr`; as seis zonas visitadas com **zero erros de consola**.
+Nenhuma dependência nova, nenhum ficheiro convertido, `checkJs` global ainda a
+`false`.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

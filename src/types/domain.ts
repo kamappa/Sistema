@@ -86,10 +86,46 @@ export interface HistoryPoint {
   v: number;
 }
 
+/**
+ * Uma linha do registo de ganhos — as 14 últimas coisas que aconteceram.
+ *
+ * ── CORRIGIDO (2026-07-31, Fase 7Z) ──
+ * Este tipo dizia `{ d, t, x }` e **estava errado nos dois campos**. O único
+ * sítio que escreve aqui é o `plog` do `state/engine.js`, e ele escreve
+ * `text` e `gain`. Nem sequer era a forma antiga: essa é `t`/`v`, e o `x`
+ * não existiu nunca em lado nenhum.
+ *
+ * Passou despercebido porque nenhum leitor o importava — os leitores são JS e
+ * leem a forma verdadeira. Bastava alguém tipar um leitor contra isto para
+ * escrever `e.t` e receber `undefined` sem um único aviso.
+ *
+ * Um tipo que descreve algo que o código não faz é uma mentira com a
+ * autoridade de documentação. Encontrado ao ligar o `@ts-check` no motor.
+ */
 export interface LogEntry {
   d: IsoDate;
+  /** O que aconteceu, em texto. */
+  text: string;
+  /** XP ganho — negativo numa perda. */
+  gain: number;
+  /**
+   * O domínio a que o ganho pertence. **Opcional e aditivo**: as entradas
+   * escritas antes da Fase 7Z não o têm e nunca o vão ter. A leitura diz isso
+   * por extenso em vez de lhes inventar um dono.
+   */
+  attr?: DomainId;
+}
+
+/**
+ * A forma que o registo tinha no Vanilla. Não se escreve mais — existe porque
+ * o estado real do Daniel ainda tem entradas assim, e os leitores aceitam as
+ * duas (`evidence-read.ts`, `reflectionRead.ts`). Apagar isto não apagava os
+ * dados; só escondia que eles existem.
+ */
+export interface LegacyLogEntry {
+  d: IsoDate;
   t: string;
-  x: number;
+  v: number;
 }
 
 export interface TrainingState {

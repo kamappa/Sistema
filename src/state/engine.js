@@ -1,3 +1,4 @@
+// @ts-check
 import { need, AM, rankOf, overallLevel } from './config.js';
 import { today } from './dates.js';
 
@@ -8,6 +9,16 @@ import { today } from './dates.js';
 // níveis, do totalXP e do histórico é idêntica. O Bus continua a emitir
 // 'xp:gain' para o palco reagir ao XP real (dívida da Fase 2 paga).
 
+/**
+ * O motor de XP. Todo o ganho e toda a perda passam por aqui.
+ * @param {any} S estado do Operador
+ * @param {string} attr domínio
+ * @param {number} amt XP; negativo é perda
+ * @param {boolean} [silent] não anuncia — usado quando o anúncio é de outro
+ * @returns {string[]} os domínios que subiram de nível. Nenhum sítio do produto
+ *   usa este valor hoje; devolve-se porque quem chama pode querer encadear o
+ *   anúncio, e apagá-lo seria decidir isso por eles.
+ */
 export function addXp(S, attr, amt, silent) {
   if (window.Bus) window.Bus.emit('xp:gain', { attr, amt }); // o mundo reage (M12·2B)
   // M26·F6C — o rank ANTES da mutação. O rank global nunca teve anúncio: a
@@ -37,9 +48,16 @@ export function addXp(S, attr, amt, silent) {
   // A chave de deduplicação é o facto: atributo + nível atingido. Se o mesmo
   // nível voltar a ser atingido depois de uma reversão, o XP total já mudou e a
   // chave também — ver a nota em systemEvents.ts.
-  if (!silent && ups.length && window.sysEvent) {
+  /* A referência captura-se ANTES do ciclo. O `if` acima estreita
+     `window.sysEvent` mas a garantia não atravessa a fronteira do callback —
+     e não é só o verificador a ser rigoroso: `sysEvent` é um global que outro
+     módulo instala e pode desinstalar, e entre a verificação e a última
+     iteração corre código nosso. Capturar é o que torna o ciclo indiferente a
+     isso. */
+  const emitir = window.sysEvent;
+  if (!silent && ups.length && emitir) {
     ups.forEach((u) =>
-      window.sysEvent({
+      emitir({
         dedupe: 'level:' + u + ':' + S.attrs[u].level + ':' + Math.round(S.totalXP),
         kind: 'levelup',
         title: 'Nível aumentado',
@@ -99,9 +117,23 @@ export function addXp(S, attr, amt, silent) {
  * O campo é OPCIONAL e aditivo: as entradas antigas ficam sem `attr` para
  * sempre, e a leitura diz isso por extenso em vez de as esconder ou de lhes
  * inventar um dono. */
+/**
+ * @param {any} S
+ * @param {string} text
+ * @param {number} gain
+ * @param {string} [attr] domínio a que o ganho pertence, quando se sabe
+ * @returns {void}
+ */
 export function plog(S, text, gain, attr) {
-  const e = { text, gain, d: today() };
-  if (attr) e.attr = attr;
+  /* O campo entra na construção em vez de ser colado a seguir. A versão
+     anterior fazia `if (attr) e.attr = attr` sobre um literal já fechado, e o
+     objeto passava a ter uma forma que a sua própria declaração não previa —
+     invisível em JS, e a primeira coisa que o `@ts-check` apontou.
+     `...(attr ? { attr } : {})` mantém o comportamento exacto: sem `attr`, a
+     chave não existe, e não fica um `undefined` a fingir-se de dono. */
+  /** @type {{ text: string, gain: number, d: string, attr?: string }} */
+  const e = { text, gain, d: today(), ...(attr ? { attr } : {}) };
   S.log.unshift(e); S.log = S.log.slice(0, 14);
 }
-export function unlog(S, text, d) { const i = S.log.findIndex((e) => e.text === text && (!d || e.d === d)); if (i > -1) S.log.splice(i, 1); }
+/** @param {any} S @param {string} text @param {string} [d] @returns {void} */
+export function unlog(S, text, d) { const i = S.log.findIndex((/** @type {any} */ e) => e.text === text && (!d || e.d === d)); if (i > -1) S.log.splice(i, 1); }

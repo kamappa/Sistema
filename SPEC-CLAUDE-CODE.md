@@ -3426,6 +3426,72 @@ separar:
 O Núcleo pulsa proporcionalmente, a rede responde e o Oráculo pode comentar
 mais tarde; sem alterações reais, não existe espetáculo falso.
 
+### Fase 1 — o contrato do pulso, e o achado que a define (CONCLUÍDA 2026-08-01)
+
+#### O achado
+
+A Edge Function do Oráculo **já lê o vault e já calcula exatamente o que esta
+missão precisa**: `vaultChanges()` devolve os ficheiros alterados e os commits
+com data e mensagem. Depois **deita tudo fora** — converte-os em prosa para o
+modelo ler, e o cliente recebe uma só string (`r.estudo`) dentro do relatório
+semanal.
+
+A prova existe, é datada, é por ficheiro, e **morre no servidor**.
+
+Desenhar fragmentos a convergir para o Núcleo a partir de um parágrafo seria
+inventar origem, data e peso — a fabricação que a lei *"nada nasce do nada"*
+proíbe. Um fragmento sem ficheiro e sem data é uma partícula decorativa com nome
+bonito.
+
+#### O que a fase entrega
+
+`app/vault/vaultModel.ts` e `app/vault/vault-read.ts`. Zero pixéis alterados,
+pela mesma razão da Fase 1 da M27: o modelo tem de estar certo antes de ter cara.
+
+O read model devolve hoje, honestamente, **nada** — e diz porquê:
+
+> *O Vault ainda não envia pulsos. A ponte lê as notas para o Oráculo, mas não
+> guarda quando cada uma mudou — por isso não há nada datado para o Núcleo
+> receber. **Não é falta de estudo.***
+
+A última frase é o ponto. Um Núcleo parado sem explicação lê-se como censura ao
+Operador; a ausência tem de dizer de quem é a lacuna.
+
+#### Decisões que ficam fechadas
+
+- **`domain` é opcional.** Derivar o domínio do caminho é heurística, e uma
+  heurística generosa acerta mais vezes e erra em silêncio. Só atribui quando o
+  id do domínio é um **segmento** do caminho — nada de correspondência parcial.
+  Sem domínio, o pulso converge para o Núcleo sem passar por uma constelação, o
+  que é verdade e não um erro;
+- **contam-se NOTAS, não commits.** Dez commits na mesma nota são uma nota
+  trabalhada, não dez conhecimentos. Contar commits inflacionaria o céu
+  exatamente onde ele deve ser mais honesto;
+- **prova incompleta não entra**, tal como no World Engine II: sem caminho ou
+  sem data válida, o registo é descartado e a ausência é declarada.
+
+#### O que falta, e é UMA alteração em produção
+
+Persistir `vaultChanges()` em vez de o descartar — no `app_state` do relatório
+ou numa tabela — com caminho, data e mensagem por commit.
+
+**Não foi feito de propósito:** a Edge Function é produção, e alterá-la sem
+autorização violaria a regra de ouro do projeto. Fica registado em
+`LACUNA_DO_PRODUTOR`, no código, com onde, o que já calcula, o que descarta, o
+que precisa e o custo — para a decisão ser tomada com o preço à frente.
+
+#### Verificado no browser, contra o módulo real
+
+| caso | resultado |
+|---|---|
+| estado real de hoje | 0 pulsos, ausência explicada |
+| sem estado | mensagem distinta |
+| 4 pulsos em 3 notas | 4 pulsos, **3 notas**, ordenados do mais recente |
+| domínio pelo caminho | `saber`, `saber`, `oficio`, `sem dominio` |
+| 3 registos sem caminho ou sem data | 0 aceites, ausência declarada |
+| 10 commits na mesma nota | 10 pulsos, **1 nota** |
+| 90 pulsos | teto a 40 |
+| erros de consola | zero |
 ## Missão 29 — AI Lab e AI Governance como Domínios Vivos
 (PLANEADA; integra Radar, Vault, Oráculo, missões e eventos)
 

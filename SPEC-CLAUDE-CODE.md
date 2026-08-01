@@ -2916,6 +2916,99 @@ Verificado no browser: sussurro do dia determinístico e com a forma certa;
 `plog` com e sem `attr`; as seis zonas visitadas com **zero erros de consola**.
 Nenhuma dependência nova, nenhum ficheiro convertido, `checkJs` global ainda a
 `false`.
+### Fase 7Z · @ts-check na camada de efeitos (2026-08-01)
+
+Continuação do passo 4. O `lib/fx.js` era o ficheiro com mais avisos e o que
+toca em todos os momentos visíveis do produto: toast, XP a flutuar, celebração,
+momento cinematográfico, cerimónia de rank, contador animado, varrimento de
+painel e máquina de escrever.
+
+**70 avisos → 0.** Metade tinha desaparecido com a declaração da ponte de
+globais no dia anterior; a outra metade exigiu trabalho.
+
+#### O defeito principal: a guarda estava a 350 ms da chamada
+
+Em dois sítios — `cineArise` e `rankCeremony`:
+
+```js
+if (window.dustBurst) setTimeout(() => window.dustBurst(cor), 350);
+```
+
+O `if` corre **agora**; a chamada corre **um terço de segundo depois**. No meio
+cabe o palco a desmontar, a página a navegar, o WebGL a perder o contexto. Um
+`if` só garante o instante em que corre.
+
+E há uma segunda camada, pior: o `rankCeremony` tem `try/catch` à volta de tudo
+— **e não protege isto.** O callback do `setTimeout` corre fora da pilha do
+`try`, numa volta seguinte do event loop. O código parecia protegido e não
+estava. O `cineArise` nem `try` tinha.
+
+**Provado no browser, com o padrão antigo reconstruído:** apagar
+`window.dustBurst` 80 ms depois da cerimónia começar produz
+`Uncaught TypeError: window.dustBurst is not a function` — apanhado pelo
+`window.onerror`, ou seja, **escapou ao `try`**.
+
+Corrigido com uma função só, `poeiraDaqui(ms, cor)`, que captura a referência
+antes de agendar. Verificado: com o global apagado a meio do intervalo, a poeira
+corre à mesma, com a cor certa, e não há exceção.
+
+#### Três defeitos menores, todos da mesma família
+
+**O `toast` verificava o pai e escrevia nos filhos sem os verificar.** Os quatro
+elementos vêm do mesmo componente e na prática aparecem juntos — mas "na
+prática" é uma suposição sobre markup que outra pessoa pode mudar, e o preço de
+estar errado é um TypeError dentro do `toast`, que é chamado **pelo motor de
+XP**. Um brinde a falhar não pode derrubar uma subida de nível. Verificado com
+o `#tt` removido do DOM: já não rebenta.
+
+**O `celebrate()` sem cor dava duas cores.** O clarão usava
+`color || '#a78bfa'` e a poeira recebia o `color` cru — logo `undefined`, e o
+palco caía no fallback dele. Dois efeitos do mesmo momento com cores diferentes
+é o tipo de incoerência que ninguém reporta e toda a gente vê. A cor resolve-se
+uma vez. Verificado: flash `#a78bfa55`, poeira `#a78bfa`.
+
+**O `floatXP` lia `window.event` sem saber que tipo de evento era.** É o global
+legado e existe durante o despacho de **qualquer** evento, não só de rato. Um
+ganho vindo do teclado não tem coordenadas — o centro do ecrã não é defensiva
+decorativa, é o caso normal. Agora está explícito com `instanceof MouseEvent`.
+
+#### O refluxo forçado, que falharia em silêncio
+
+`void w.offsetWidth` entre remover e repor uma classe é o truque que força o
+refluxo — sem ele o browser junta as duas operações e a animação não recomeça.
+`offsetWidth` só existe em `HTMLElement`: num SVG é `undefined`, o refluxo não
+acontece e a animação falha **sem erro nenhum**. O `instanceof` transforma isso
+num caso tratado em vez de um mistério.
+
+#### Verificado no browser, primitiva a primitiva
+
+| primitiva | resultado |
+|---|---|
+| `toast` | aparece, escreve nos três filhos, borda com a cor, esconde |
+| `toast` em modo aviso | classe `pen` + rótulo "Aviso" |
+| `toast` com um filho removido | não rebenta |
+| `celebrate()` sem cor | flash e poeira coerentes |
+| poeira com o global apagado a meio | corre à mesma, sem exceção |
+| padrão antigo, reconstruído | `Uncaught TypeError`, fora do `try` |
+| `setNum` | conta e assenta em 1234 |
+| `floatXP` sem evento | aparece ao centro |
+| `cineMoment` | overlay entra; o segundo é recusado |
+| `panelScan`/`cardWave`/`barBurst`/`sysType` com alvo nulo | sobrevivem |
+| erros de consola | zero |
+
+#### Estado do passo 4
+
+`// @ts-check` ligado permanentemente em **`state/engine.js`**,
+**`state/world.js`** e **`lib/fx.js`**. Todos a zero.
+
+`lib/motion.js` continua de fora, e a razão é estrutural e não preguiça: é o
+ficheiro que **constrói** `window.Motion`, e o definidor de um global luta
+sempre com a declaração dele — ligar a verificação lá subiu os avisos de 46 para
+58. Fica registado como decisão, não como pendência.
+
+Os restantes `.js` são componentes e o store. Nenhum é núcleo de estado nem
+camada de efeitos; ficam para quando houver uma razão melhor do que a
+arrumação.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

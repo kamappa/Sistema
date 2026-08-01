@@ -32,6 +32,7 @@
 
 import { seasonArcNow, rainyActive, heatActive } from '../../state/world.js';
 import { today, diffDays } from '../../state/dates.js';
+import { readAi } from '../ai/ai-read';
 import type { WorldEventDef } from './worldModel';
 
 const hhmm = (d: Date) => d.getHours() * 60 + d.getMinutes();
@@ -53,7 +54,7 @@ export const WORLD_EVENTS: readonly WorldEventDef[] = [
     name: 'Arquivo da Meia-Noite',
     layer: 'time',
     priority: 'ambient',
-    trigger: (_S, now) => {
+    trigger: (_ctx, now) => {
       const m = hhmm(now);
       if (m < 23 * 60 && m > 4 * 60) return null;
       return { source: 'relógio', fact: `são ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`, date: today() };
@@ -72,7 +73,7 @@ export const WORLD_EVENTS: readonly WorldEventDef[] = [
     priority: 'notable',
     /* `rainyActive` já existe desde a M12 e já dá bónus ao Saber. Isto não
        duplica esse efeito — dá-lhe nome, prova e presença. */
-    trigger: (S) => {
+    trigger: ({ S }) => {
       if (!rainyActive(S)) return null;
       return { source: 'S.weather (Open-Meteo)', fact: `${S.weather.rain} mm de chuva previstos`, date: S.weather.d };
     },
@@ -88,7 +89,7 @@ export const WORLD_EVENTS: readonly WorldEventDef[] = [
     name: 'Impulso Solar',
     layer: 'weather',
     priority: 'notable',
-    trigger: (S) => {
+    trigger: ({ S }) => {
       if (!heatActive(S)) return null;
       return { source: 'S.weather (Open-Meteo)', fact: `máxima de ${S.weather.tmax}°C`, date: S.weather.d };
     },
@@ -109,7 +110,7 @@ export const WORLD_EVENTS: readonly WorldEventDef[] = [
     priority: 'major',
     /* Os primeiros três dias de um arco sazonal. A prova é o calendário e o
        mês do arco — não há nada a adivinhar. */
-    trigger: (_S, now) => {
+    trigger: (_ctx, now) => {
       const arco = seasonArcNow();
       const m = now.getMonth() + 1;
       const primeiroMes = arco.months[0];
@@ -130,7 +131,7 @@ export const WORLD_EVENTS: readonly WorldEventDef[] = [
     layer: 'calendar',
     priority: 'ambient',
     /* Lei da Missão 23, que já existe no céu. Aqui ganha prova e nome. */
-    trigger: (_S, now) => {
+    trigger: (_ctx, now) => {
       if (now.getDay() !== 0) return null;
       return { source: 'calendário', fact: 'é domingo', date: today() };
     },
@@ -144,7 +145,7 @@ export const WORLD_EVENTS: readonly WorldEventDef[] = [
     name: 'Novo Ciclo',
     layer: 'calendar',
     priority: 'major',
-    trigger: (_S, now) => {
+    trigger: (_ctx, now) => {
       if (now.getDate() !== 1) return null;
       return { source: 'calendário', fact: `primeiro dia de mês`, date: today() };
     },
@@ -164,7 +165,7 @@ export const WORLD_EVENTS: readonly WorldEventDef[] = [
     /* Lei da Missão 23: sem progresso, o universo perde intensidade. A prova é
        o histórico datado, e é por isso que este evento pode existir enquanto
        Mentor Signal e Boss Gate não podem. */
-    trigger: (S) => {
+    trigger: ({ S }) => {
       const dias = 5;
       const xp = xpUltimosDias(S, dias);
       if (xp > 0) return null;
@@ -172,6 +173,83 @@ export const WORLD_EVENTS: readonly WorldEventDef[] = [
     },
     visual: { intensity: 0.45, flag: 'silence' },
     copy: 'Há cinco dias sem registo. O mundo não julga — só deixa de brilhar.',
+    mobile: 'full',
+    reducedMotion: 'still',
+  },
+
+  /* ── AI E AI GOVERNANCE · Missão 29 ────────────────────────────────
+   * Os dois eventos da Missão 29 que têm prova hoje. Vivem AQUI, no mesmo
+   * registo, e não num motor paralelo: dois motores de eventos no mesmo
+   * produto seriam duas opiniões sobre o que é importante.
+   *
+   * A prova é o Radar, que já classifica itens em `ai` e `aigov` desde a
+   * Missão 13 (`RAREA`). Os outros catorze eventos da M29 esperam o
+   * inventário — ver `app/ai/aiModel.ts`.
+   */
+  {
+    id: 'ai-radar',
+    name: 'AI Radar',
+    layer: 'special',
+    priority: 'notable',
+    cooldownH: 20,
+    trigger: ({ radar }) => {
+      if (!Array.isArray(radar)) return null;
+      const hoje = today();
+      const itens = radar.filter((i) => i && i.area === 'ai' && String(i.d || '').slice(0, 10) === hoje);
+      if (!itens.length) return null;
+      return { source: 'radar_items (area: ai)', fact: `${itens.length} ${itens.length === 1 ? 'sinal novo' : 'sinais novos'} de IA`, date: hoje };
+    },
+    visual: { intensity: 0.8, flag: 'ai' },
+    copy: 'Há movimento em IA hoje. Ler não é estudar, mas é por onde começa.',
+    favours: ['saber'],
+    mobile: 'full',
+    reducedMotion: 'still',
+  },
+  {
+    id: 'governance-radar',
+    name: 'Governance Radar',
+    layer: 'special',
+    /* MAIOR do que o AI Radar, e é deliberado: uma alteração regulatória tem
+       prazo e consequência; uma notícia de modelo novo não tem. */
+    priority: 'major',
+    cooldownH: 20,
+    trigger: ({ radar }) => {
+      if (!Array.isArray(radar)) return null;
+      const hoje = today();
+      const itens = radar.filter((i) => i && i.area === 'aigov' && String(i.d || '').slice(0, 10) === hoje);
+      if (!itens.length) return null;
+      return { source: 'radar_items (area: aigov)', fact: `${itens.length} ${itens.length === 1 ? 'sinal novo' : 'sinais novos'} de governação de IA`, date: hoje };
+    },
+    visual: { intensity: 1, flag: 'aigov' },
+    copy: 'Governação de IA mexeu-se. É o teu terreno — vale a pena olhar hoje.',
+    favours: ['oficio'],
+    mobile: 'full',
+    reducedMotion: 'still',
+  },
+  {
+    id: 'ai-risk-overdue',
+    name: 'Risco de IA por rever',
+    layer: 'behaviour',
+    priority: 'notable',
+    /* O ÚNICO evento que lê o inventário, e por isso o único que hoje não
+       acende — o inventário ainda não existe. Está aqui, e não em
+       POR_IMPLEMENTAR, porque a diferença é real: os outros catorze precisam
+       de dados que ninguém sabe como recolher; este precisa de dados que o
+       Daniel pode escrever hoje. A regra está pronta e à espera. */
+    trigger: ({ S }) => {
+      const inv = readAi(S);
+      if (inv.absence) return null;
+      const criticos = inv.personalDataUnassessed.length;
+      const atrasados = inv.overdue.length;
+      if (!criticos && !atrasados) return null;
+      const partes = [];
+      if (criticos) partes.push(`${criticos} a tocar dados pessoais sem avaliação`);
+      if (atrasados) partes.push(`${atrasados} com revisão em atraso`);
+      return { source: 'inventário de IA', fact: partes.join(' e '), date: today() };
+    },
+    visual: { intensity: 0.9, flag: 'airisk' },
+    copy: 'O inventário de IA tem dívida. Não é urgente hoje; é o que fica por explicar amanhã.',
+    favours: ['oficio', 'disciplina'],
     mobile: 'full',
     reducedMotion: 'still',
   },

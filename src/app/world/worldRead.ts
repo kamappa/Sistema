@@ -27,16 +27,29 @@
 
 import { WORLD_EVENTS } from './worldEvents';
 import { LAYER_ORDER, PRIORITY_RANK } from './worldModel';
-import type { ActiveWorldEvent, WorldState } from './worldModel';
+import type { ActiveWorldEvent, WorldContext, WorldState } from './worldModel';
 
-export function readWorld(S: Record<string, any> | null, now: Date = new Date()): WorldState {
+/** Aceita o contexto completo ou só o estado — a segunda forma existe porque a
+ *  maior parte das regras não precisa de mais, e obrigar toda a gente a
+ *  construir um objeto para chamar isto seria atrito sem benefício. */
+export function readWorld(
+  entrada: WorldContext | Record<string, any> | null,
+  now: Date = new Date(),
+): WorldState {
+  const ctx: WorldContext = !entrada
+    ? { S: {} }
+    : ('S' in entrada && typeof (entrada as WorldContext).S === 'object')
+      ? (entrada as WorldContext)
+      : { S: entrada as Record<string, any> };
+
   const ativos: ActiveWorldEvent[] = [];
   const rejected: { id: string; reason: string }[] = [];
+  const cooldownIgnorado: string[] = [];
 
   for (const def of WORLD_EVENTS) {
     let prova = null;
     try {
-      prova = def.trigger(S ?? {}, now);
+      prova = def.trigger(ctx, now);
     } catch (e) {
       /* Uma regra que rebenta não pode derrubar o mundo inteiro — é a mesma
          disciplina do `Bus.emit`, onde um listener que falha não leva o
@@ -51,6 +64,21 @@ export function readWorld(S: Record<string, any> | null, now: Date = new Date())
     if (!prova.source || !prova.fact || !prova.date) {
       rejected.push({ id: def.id, reason: 'prova incompleta — falta origem, facto ou data' });
       continue;
+    }
+    /* COOLDOWN. Um evento com prova pode mesmo assim não entrar, se já entrou há
+       pouco. É a única razão pela qual algo com prova é recusado — e por isso a
+       razão diz há quanto tempo, para não se confundir com falta de prova. */
+    if (def.cooldownH) {
+      const ultima = ctx.seen?.[def.id];
+      if (!ultima) {
+        cooldownIgnorado.push(def.id);
+      } else {
+        const horas = (now.getTime() - Date.parse(ultima)) / 3600e3;
+        if (Number.isFinite(horas) && horas < def.cooldownH) {
+          rejected.push({ id: def.id, reason: `tem prova, mas entrou há ${horas.toFixed(1)} h e o cooldown é de ${def.cooldownH} h` });
+          continue;
+        }
+      }
     }
     ativos.push({ def, evidence: prova });
   }
@@ -69,6 +97,7 @@ export function readWorld(S: Record<string, any> | null, now: Date = new Date())
     events: ativos,
     dominant: ativos[0] ?? null,
     rejected,
+    cooldownIgnorado,
   };
 }
 

@@ -3440,6 +3440,75 @@ Sem isto, um mundo que não reage é indistinguível de um mundo avariado.
 - se `dominant` alimenta a fila de SYSTEM EVENTS ou se é um canal à parte;
 - `durationMin` e `cooldownH` estão declarados e **ainda não são respeitados**:
   precisam de onde guardar a última ocorrência, e isso é decisão de domínio.
+### Fase 1b — contexto, cooldown a sério, e a M29 a usar o registo (2026-08-01)
+
+#### A assinatura trocou uma hora depois de ser escrita
+
+Era `trigger(S, now)`. Bateu na primeira parede real: os eventos **AI Radar** e
+**Governance Radar** da Missão 29 precisam dos itens do **Radar**, que vivem no
+store e **não** no estado do Operador.
+
+As alternativas eram piores. Passar o radar por uma segunda via daria regras que
+leem de sítios diferentes conforme quem as escreveu; copiá-lo para `S` misturaria
+dados de servidor com o estado guardado.
+
+Passou a `trigger(ctx, now)` com `WorldContext = { S, radar?, seen? }`. **Trocar
+com sete eventos custa minutos; com vinte custa uma tarde e um risco.** É por
+isso que se troca agora e não depois.
+
+`readWorld` continua a aceitar só o estado — obrigar toda a gente a construir um
+objeto seria atrito sem benefício. Verificado: a forma antiga funciona.
+
+#### O cooldown deixou de ser decorativo
+
+A Fase 1 declarava `cooldownH` e **não o respeitava**. Um campo declarado que não
+faz nada é a definição de um estado exibido que contradiz o estado real.
+
+Agora é aplicado contra `ctx.seen` — e quando esse mapa não chega, o resolvedor
+**declara-o** em `cooldownIgnorado` em vez de deixar a proteção parecer ativa.
+É a distinção entre "protegido" e "ninguém verificou".
+
+| cenário | resultado |
+|---|---|
+| sem mapa de ocorrências | acende, e declara `cooldownIgnorado` |
+| entrou há 2 h, cooldown 20 h | recusado: *"tem prova, mas entrou há 2.0 h"* |
+| entrou há 30 h | acende |
+
+A razão diz **há quanto tempo**, para não se confundir com falta de prova. Um
+evento com prova recusado por cooldown é um caso diferente de um evento sem
+prova, e a lista de recusados tem de os separar.
+
+#### Missão 29 · Fase 2 — três eventos, no mesmo registo
+
+Vivem em `worldEvents.ts` e **não** num motor paralelo: dois motores de eventos
+no mesmo produto seriam duas opiniões sobre o que é importante.
+
+| evento | camada | prioridade | prova |
+|---|---|---|---|
+| AI Radar | especial | notável | `radar_items` com `area: ai`, do próprio dia |
+| Governance Radar | especial | **maior** | `radar_items` com `area: aigov` |
+| Risco de IA por rever | comportamento | notável | o inventário |
+
+**Governance Radar é maior do que AI Radar, e é deliberado:** uma alteração
+regulatória tem prazo e consequência; uma notícia de modelo novo não tem.
+
+O terceiro está no catálogo e **não** em `POR_IMPLEMENTAR`, e a diferença é real:
+os outros catorze eventos da M29 precisam de dados que ninguém sabe ainda como
+recolher; este precisa de dados que o Daniel **pode escrever hoje**. A regra está
+pronta e à espera do inventário.
+
+#### Verificado
+
+- itens de **ontem não contam**, e `area: nis2` também não;
+- com um item `aigov` e dois `ai`, o dominante é o Governance Radar;
+- as provas concordam em número: *"1 sinal novo"*, *"2 sinais novos"*;
+- **sem radar nenhum, zero regras rebentam** — só não acendem;
+- `ai-risk-overdue` só acende com dívida real, e o facto compõe-se:
+  *"1 a tocar dados pessoais sem avaliação e 1 com revisão em atraso"*;
+- determinismo aguenta com o catálogo maior;
+- zero erros de consola.
+
+O catálogo passou de **7 para 10 eventos**.
 ## Missão 28 — Vault Resonance e Core View em Tempo Real
 (PLANEADA; extensão das M8, M17 e M22)
 

@@ -83,6 +83,34 @@ export const PRIORITY_RANK: Record<EventPriority, number> = {
   ambient: 0, notable: 1, major: 2, critical: 3,
 };
 
+/**
+ * O que uma regra pode ler.
+ *
+ * ── PORQUE É QUE ISTO SUBSTITUIU `S` UMA HORA DEPOIS DE ESCREVER `S` ──
+ *
+ * A primeira assinatura era `trigger(S, now)`. Bateu na primeira parede real:
+ * os eventos de AI Radar e Governance Radar da Missão 29 precisam dos itens do
+ * **Radar**, que vivem no store (`radar`) e **não** no estado do Operador.
+ *
+ * A alternativa era passar o radar por uma segunda via, ou copiá-lo para `S`.
+ * As duas seriam piores: a primeira dá regras que leem de sítios diferentes
+ * conforme quem as escreveu, a segunda mistura dados de servidor com o estado
+ * guardado.
+ *
+ * Trocar a assinatura com sete eventos custa minutos. Com vinte, custa uma
+ * tarde e um risco. É por isso que se troca agora.
+ */
+export interface WorldContext {
+  /** O estado do Operador. */
+  S: Record<string, any>;
+  /** Itens do Radar, quando há sessão. Vazio não é o mesmo que ausente — uma
+   *  regra que precise da distinção tem de a testar explicitamente. */
+  radar?: readonly Record<string, any>[];
+  /** Última vez que cada evento foi dado como ativo, em ISO. É o que torna o
+   *  `cooldownH` real em vez de decorativo. */
+  seen?: Readonly<Record<string, string>>;
+}
+
 export interface WorldEventDef {
   id: string;
   /** Nome por extenso. Aparece ao Operador; escreve-se para ser lido, não para
@@ -101,13 +129,18 @@ export interface WorldEventDef {
    * sempre o mesmo resultado. Sem isto não há forma de explicar, no dia
    * seguinte, porque é que o mundo estava como estava.
    */
-  trigger: (S: Record<string, any>, now: Date) => WorldEvidence | null;
+  trigger: (ctx: WorldContext, now: Date) => WorldEvidence | null;
 
   /** Quanto tempo fica de pé depois de disparar, em minutos. `0` = enquanto a
    *  regra continuar verdadeira, que é o caso normal do ambiente. */
   durationMin?: number;
   /** Quanto tempo tem de passar até poder repetir, em horas. Protege o Operador
-   *  de ver a mesma cerimónia três vezes num dia. */
+   *  de ver a mesma cerimónia três vezes num dia.
+   *
+   *  **É respeitado pelo resolvedor** desde que lhe cheguem as últimas
+   *  ocorrências em `WorldContext.seen`. Sem esse mapa, um evento com cooldown
+   *  passa sempre — e o resolvedor **diz isso** em `cooldownIgnorado`, em vez
+   *  de dar a entender que a proteção está a funcionar. */
   cooldownH?: number;
 
   visual?: WorldVisual;
@@ -145,4 +178,8 @@ export interface WorldState {
   /** Eventos que a regra recusou, com a razão. Existe para o mundo ser
    *  auditável: "porque é que não houve Rain Sanctuary hoje?" tem resposta. */
   rejected: { id: string; reason: string }[];
+  /** Eventos que declaram `cooldownH` e cujo cooldown não pôde ser aplicado,
+   *  por não ter chegado o mapa de ocorrências. Existe para a proteção não
+   *  parecer ativa quando não está. */
+  cooldownIgnorado: string[];
 }

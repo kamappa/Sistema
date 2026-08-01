@@ -3300,6 +3300,92 @@ Critério de honestidade: um evento só se apresenta como facto quando possui
 prova. Um arco sazonal pode sugerir ações; um marco pessoal só celebra com data
 e evidência reais.
 
+### Fase 1 — o registo declarativo (CONCLUÍDA 2026-08-01)
+
+A frase do SPEC que decide o desenho desta missão:
+
+> *"Eventos compostos resultam de REGRAS, não de `if` espalhados."*
+
+O mundo já reagia — chuva dá bónus ao Saber (M12), o domingo acalma o céu e a
+ausência de progresso apaga-o (M23). Mas cada reação vivia no seu sítio, escrita
+à mão, e não havia forma de perguntar ao Sistema **o que está a acontecer agora
+e porquê**. Um evento composto seria um `if` dentro de outro `if`.
+
+**Três ficheiros, zero pixéis alterados.** É deliberado: o motor tem de estar
+certo antes de ter cara, e um motor que nasce ligado ao ambiente nunca mais se
+consegue testar sozinho.
+
+| ficheiro | o que é |
+|---|---|
+| `app/world/worldModel.ts` | o contrato de um evento |
+| `app/world/worldEvents.ts` | o catálogo |
+| `app/world/worldRead.ts` | o resolvedor — uma função, um resultado |
+
+#### A prova é obrigatória, e é um campo e não uma intenção
+
+O critério de honestidade da própria missão diz: *"um evento só se apresenta
+como facto quando possui prova"*. Por isso `evidence` **não é opcional** — tem
+origem, facto e data, e um evento que não consegue dizer de onde veio **não
+nasce**. Não é filtrado depois: não entra.
+
+Uma prova incompleta é recusada como se não existisse. Dar autoridade a um facto
+que não se consegue verificar é pior do que não o mostrar.
+
+#### Sete eventos, e não os vinte que o SPEC nomeia
+
+A diferença não é preguiça — é o mesmo critério. Prova significa **um dado
+datado que o Sistema já tem**. Os sete implementados apoiam-se em `S.weather`,
+`S.history`, no relógio e no arco sazonal:
+
+| evento | camada | prioridade | prova |
+|---|---|---|---|
+| Arquivo da Meia-Noite | tempo | ambiente | relógio |
+| Santuário de Chuva | clima | notável | `S.weather` (Open-Meteo) |
+| Impulso Solar | clima | notável | `S.weather` (Open-Meteo) |
+| Viragem de Arco | estação | maior | `SEASON_ARCS` + calendário |
+| Domingo | calendário | ambiente | calendário |
+| Novo Ciclo | calendário | maior | calendário |
+| Silêncio | comportamento | notável | `S.history` |
+
+Os outros **doze ficam listados em `POR_IMPLEMENTAR`, cada um com o que lhe
+falta** — e o que falta é sempre **dados**, não código. Boss Gate precisa de
+marcos de arco guardados, que é o mesmo buraco que deixa `milestone` e `climax`
+inalcançáveis na M26. Mentor Signal precisa de registo datado de contacto.
+Eclipse Protocol precisa de configuração, porque o SPEC proíbe hardcodar datas
+eternas. Escrever um `trigger` que devolve sempre `null` daria a impressão de um
+motor completo com metade dos eventos mortos.
+
+#### A lista de recusados é funcionalidade, não depuração
+
+`readWorld` devolve também o que **não** aconteceu e porquê. Passa a haver
+resposta para *"porque é que hoje não houve Santuário de Chuva?"* — a regra
+correu e devolveu nada, porque `S.weather` é de ontem.
+
+Sem isto, um mundo que não reage é indistinguível de um mundo avariado.
+
+#### Verificado no browser, contra o módulo real
+
+- as **sete regras acendem**, cada uma com o estado e o instante construídos
+  para ela, e cada uma com prova completa;
+- **prioridade**: com cinco eventos ativos ao mesmo tempo (novo ciclo + silêncio
+  + chuva + domingo + meia-noite), a ordem sai
+  `major → notable → notable → ambient → ambient` e o dominante é o Novo Ciclo;
+- **`S` nulo não derruba nada**: 2 ativos, 5 recusados, **zero regras
+  rebentadas**;
+- **determinismo**: o mesmo estado no mesmo instante dá a mesma lista;
+- `explainWorld` devolve a frase por extenso — a Constituição exige que o
+  Oráculo explique porquê, e um mundo que muda sem saber dizer porquê não é
+  explicável, é só bonito;
+- zero erros de consola.
+
+#### O que a Fase 2 vai precisar de decidir
+
+- que eventos **encenam** e que eventos só informam;
+- como o `WorldVisual` compõe com `--arc-accent` da camada de arcos da M26 —
+  duas fontes de acento a discutir a mesma variável é o próximo defeito óbvio;
+- se `dominant` alimenta a fila de SYSTEM EVENTS ou se é um canal à parte;
+- `durationMin` e `cooldownH` estão declarados e **ainda não são respeitados**:
+  precisam de onde guardar a última ocorrência, e isso é decisão de domínio.
 ## Missão 28 — Vault Resonance e Core View em Tempo Real
 (PLANEADA; extensão das M8, M17 e M22)
 

@@ -308,7 +308,26 @@
   .up-item{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px}
   .up-dot{width:8px;height:8px;border-radius:50%;flex:none}.up-d{font-family:var(--mono);font-size:11px;color:var(--mut);width:42px}
   .up-t{flex:1;min-width:0}.up-x{font-family:var(--mono);font-size:11px;flex:none}
-  .up-del{color:var(--mut2);cursor:pointer;font-size:13px;opacity:.5}.up-del:hover{color:#f87171;opacity:1}
+  /* O ✕ DE APAGAR estava a 1.15:1 com a opacidade herdada — medido na
+     auditoria das seis zonas. Nao e uma escolha de discricao: e um controlo
+     funcional que praticamente nao se ve, e a WCAG 1.4.11 pede 3:1 a
+     componentes de interface, nao 4.5 de texto. Passa a .8 em repouso, que o
+     mantem discreto e legivel; o hover continua a ser o sinal de que e o
+     botao perigoso. */
+  /* O ✕ DE APAGAR estava a 1.15:1 — medido na auditoria das seis zonas. Nao e
+     uma escolha de discricao: e um controlo funcional que praticamente nao se
+     ve, e a WCAG 1.4.11 pede 3:1 a componentes de interface.
+     Subir a opacidade nao chegou (1.89:1): o problema era a COR. `--mut2` e
+     #4e4768, roxo quase preto — nenhuma opacidade o salva sobre um painel
+     escuro. Passa a `--mut`, que e a cor de texto secundario do produto e da
+     folga sobre 3:1. Fica discreto e visivel; o hover continua a ser o sinal
+     de que e o botao perigoso.
+     FICA POR RESOLVER, e e estrutural: dentro de um item ja esbatido por
+     `opacity` no PAI, este controlo herda o esbatimento e volta a cair abaixo
+     de 3:1 — e um filho nao consegue desfazer a opacidade do pai. A correcao
+     e nao esbater contentores que contem controlos; esbater o texto. Registado
+     no SPEC como decisao por tomar, e nao corrigido aqui a socapa. */
+  .up-del{color:var(--mut);cursor:pointer;font-size:13px}.up-del:hover{color:#f87171}
   .up-empty{color:var(--mut2);font-style:italic;font-size:12px}
   .notif-btn{font-family:var(--mono);font-size:10.5px;color:var(--sky);border:1px solid var(--line2);background:transparent;padding:4px 10px;cursor:pointer;transition:.15s}
   .notif-btn:hover{background:rgba(167,139,250,.08)}

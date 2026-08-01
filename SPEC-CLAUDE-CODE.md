@@ -3142,6 +3142,92 @@ que não dependem do meu código.
 O item "performance nunca medida" fecha. Fica aberto o que é decisão e não
 medição: **se 1307 KB crus justificam code splitting por zona.** A resposta
 honesta, com os números na mão, é que a 351 KB gzipados ainda não justifica.
+### Contraste · as seis zonas, com o método corrigido (2026-08-01)
+
+Fecha o item que estava aberto: *"a zona Núcleo está a zero falhas em 58
+elementos; as outras cinco zonas precisam de nova passagem com o método
+corrigido"*.
+
+#### O resultado
+
+| zona | elementos | falhas | isentos |
+|---|---|---|---|
+| Núcleo | 61 | **0** | 0 |
+| Radar | 8 | **0** | 0 |
+| Operações | 146 | **20** | 0 |
+| Universo | 107 | **1** | 8 |
+| Oráculo | 8 | **0** | 1 |
+| Reflexão | 51 | **0** | 0 |
+| **total** | **381** | **21** | 9 |
+
+Corrido também com a camada do mundo da M27 acesa — é nova e passa por cima do
+ecrã inteiro, e por isso tinha de ser auditada com ela ligada. Não introduz
+nenhuma falha.
+
+#### Trinta e cinco falhas, onze causas
+
+A primeira leitura deu 35 falhas. Não são 35 problemas: são **onze regras de
+CSS**, cada uma a atingir vários elementos. Reportar 35 seria dar a impressão de
+um produto muito pior do que aquele que existe.
+
+#### O que foi corrigido, e porque só isto
+
+**1 · O ✕ de apagar estava a 1.15:1.** Não é discrição: é um controlo funcional
+que praticamente não se vê. A WCAG 1.4.11 pede 3:1 a componentes de interface.
+
+Subir a opacidade **não chegou** — deu 1.89:1. O problema era a **cor**:
+`--mut2` é `#4e4768`, roxo quase preto, e nenhuma opacidade o salva sobre um
+painel escuro. Passou a `--mut`.
+
+**2 · As conquistas bloqueadas não diziam que estavam bloqueadas.** "Bloqueada"
+a 1.88:1 e o nome a 2.91:1, por causa do `opacity: .5` do cartão.
+
+A WCAG isenta componentes **desativados** — mas **a isenção só vale se o
+componente disser que está desativado**, e este não dizia. Faltava a semântica,
+e sem ela quem usa leitor de ecrã também não sabia que a conquista estava por
+ganhar: o único sinal era a cor mais fraca, que um leitor não lê.
+
+`aria-disabled` resolve as duas coisas ao mesmo tempo, e é semântica e não
+maquilhagem.
+
+#### O que NÃO foi corrigido, e porquê
+
+As nove causas restantes são **decisões sobre a linguagem de esbatimento** do
+produto — quão apagado é "apagado" quando tem de chegar a 4.5:1. Alterá-las
+unilateralmente seria redesenhar como o Sistema mostra o que está concluído,
+inativo ou secundário, e a regra de ouro diz para propor antes.
+
+| falhas | rácio | causa | exemplo |
+|---|---|---|---|
+| 5 | 1.69:1 | `.stk @0.35` | 🔥 de streak a zero |
+| 4 | 2.27:1 | `.wchip @0.55` | "Mente" |
+| 2 | 2.46:1 | `.obj-t @0.55` | título de objetivo concluído |
+| 2 | 2.46:1 | `.up-x @0.55` | "a tempo" |
+| 2 | 2.46:1 | `.up-del @0.55` | ✕ dentro de item esbatido |
+| 1 | 3.47:1 | `.us-hint @0.68` | "Arrasta para olhar" |
+| 3 | 3.90:1 | `.pen @0.82` | "falha −" |
+| 2 | 4.30:1 | `.obj-st @0.55` | ✅ |
+
+#### O achado estrutural, que vale mais do que os números
+
+A última linha do ✕ diz o problema todo: **um controlo dentro de um contentor
+esbatido por `opacity` herda o esbatimento, e um filho não consegue desfazer a
+opacidade do pai.**
+
+É por isso que corrigir a cor do ✕ o levou a ~5:1 em contexto normal e o deixou
+a 2.46:1 dentro de um item concluído. Nenhuma correção local resolve.
+
+A correção certa é de arquitetura: **não esbater contentores que contêm
+controlos — esbater o texto.** Fica registado e não corrigido à socapa, porque
+toca em vários componentes e muda como o produto mostra "concluído".
+
+#### A auditoria distingue três coisas que antes eram uma
+
+Falha real · isento por estar desativado · não medido. A auditoria da Fase J
+dava "396 elementos, zero falhas" porque não compunha opacidades **nem**
+distinguia inativos — e por isso passava tudo. Esta compõe opacidade herdada e
+gradientes, e conta os isentos **à parte, para a isenção ser visível e
+revisível** em vez de silenciosa.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

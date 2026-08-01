@@ -47,8 +47,16 @@ export default function Achievements({ S }) {
       <div className="ach-grid" id="achs">
         {ACH.map((a) => {
           const on = a.cond(S);
+          /* M27 — `aria-disabled` numa conquista bloqueada.
+             A auditoria de contraste das seis zonas mediu "Bloqueada" a 1.88:1
+             e o nome a 2.91:1, por causa do `opacity: .5` do cartão. A WCAG
+             isenta componentes DESATIVADOS do requisito — mas a isenção só vale
+             se o componente DISSER que está desativado, e este não dizia.
+             Faltava a semântica, e sem ela quem usa leitor de ecrã também não
+             sabia que a conquista estava por ganhar: o único sinal era a cor
+             mais fraca, que um leitor não lê. */
           return (
-            <div className={`ach ${on ? 'on' : ''}`} key={a.id}>
+            <div className={`ach ${on ? 'on' : ''}`} key={a.id} aria-disabled={!on}>
               {/* M26·F6C — o emoji sai daqui. Um cadeado 🔒 e um punhado de
                   emojis são a assinatura de uma interface genérica, e a
                   pergunta obrigatória do projeto é se isto parece um produto

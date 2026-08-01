@@ -3538,6 +3538,83 @@ registados. Ações externas permanecem human-in-the-loop. O Oráculo interpreta
 impacto no percurso de Daniel e pode converter descoberta em missão, estudo,
 experimento ou artefacto de portfólio.
 
+### Fase 1 — o inventário (CONCLUÍDA 2026-08-01)
+
+#### Porque é que a Fase 1 é o inventário e não os eventos
+
+O SPEC nomeia dezoito eventos. Ao olhar para o que cada um precisa como prova,
+**catorze apontam para a mesma coisa que não existe**: saber que IA é que o
+Daniel usa.
+
+"Model Inventory Update" é um evento sobre um inventário que não existe. "AI
+Risk Review" é uma revisão de risco sem objeto. "Human-in-the-Loop Check"
+verifica supervisão sobre nada.
+
+Os dois que **não** precisam do inventário — AI Radar e Governance Radar — já
+têm prova hoje: o Radar já classifica itens em `ai` e `aigov` (`RAREA`). Ficam
+para a Fase 2, e serão ligados ao **World Engine II da Missão 27** em vez de a
+um registo paralelo. Dois motores de eventos no mesmo produto seriam duas
+opiniões sobre o que é importante.
+
+#### Não é compliance seco, e o SPEC é explícito
+
+O que torna isto operacional: o inventário é sobre a IA que o Daniel **realmente
+usa** — este assistente incluído, o Oráculo incluído. **Um inventário de IA que
+não se inventaria a si próprio seria a primeira coisa a falhar numa auditoria.**
+
+E é o domínio de carreira dele. Manter o inventário **é** estudar, e o estudo
+passa a ter prova datada — a diferença entre ler sobre governação e praticá-la
+sobre si mesmo.
+
+#### Decisões fechadas
+
+- **Um registo por USO, não por ferramenta.** O mesmo modelo a escrever código e
+  a ler documentos são dois riscos diferentes; juntá-los esconde o pior dos dois;
+- **sem data, não há avaliação.** Um `risk: baixo` sem `riskAssessedAt` é uma
+  opinião, e aparece em `unassessed` independentemente do que o campo diga;
+- **um campo ilegível cai para o estado que ADMITE não saber**, nunca para o mais
+  benigno. Tratar um risco ilegível como `baixo` seria o Sistema a inventar
+  tranquilidade. Verificado: `risk: "inventado"` passa a `por-avaliar`;
+  `oversight: "qualquer-coisa"` passa a `por-definir`; `personalData: "talvez"`
+  passa a `null`;
+- **um uso descontinuado não sai do inventário.** "Já não usamos" é uma resposta
+  de auditoria, e apagá-lo destruiria a única prova de que existiu;
+- **o cruzamento é que dá a prioridade real**: toca dados pessoais **e** não tem
+  avaliação datada. Começa-se por aí, não pelo risco mais alto;
+- **não classifica risco por lei.** Os níveis são de trabalho interno. Dizer
+  "isto é alto risco ao abrigo do artigo X" sem ter lido o artigo X seria
+  inventar autoridade — mesma disciplina da Missão 31;
+- **`explainAi` nunca afirma conformidade.** "Está conforme" é conclusão
+  jurídica e o Sistema não a produz.
+
+#### A ausência é declarada, e distingue dois casos
+
+> *Não há inventário de IA. Catorze dos dezoito eventos desta missão dependem
+> dele. **Um inventário vazio e um inventário inexistente não são a mesma coisa,
+> e isto é o segundo.***
+
+Sem esta frase, um painel vazio lê-se como "está tudo bem".
+
+#### Verificado no browser, contra o módulo real
+
+Inventário de teste com cinco usos, incluindo o Claude Code e o próprio Oráculo:
+
+| medida | resultado |
+|---|---|
+| 5 registados, 1 descontinuado | 4 ativos |
+| sem avaliação datada | `radar`, `traducao` |
+| revisão em atraso | `oraculo`, **+110 dias** |
+| supervisão por definir | `traducao` |
+| dados pessoais sem avaliação | `traducao` — a prioridade real |
+| campos ilegíveis | caem para `por-avaliar` / `por-definir` / `null` |
+| `risk: baixo` sem data | conta como **não avaliado** |
+| registos sem id, nome ou data | 0 aceites, ausência declarada |
+| erros de consola | zero |
+
+Um defeito meu apanhado a rever a saída: `explainAi` dizia *"1 tocam dados
+pessoais"*. O Sistema já tinha corrigido *"1 dias"* no sigilo do Operador, e
+repetir o descuido numa frase escrita para quem audita seria pior do que da
+primeira vez.
 ## Missão 30 — Migração Frontend Next Generation
 (SUPERADA / ABSORVIDA PELA MISSÃO 25 — 2026-07-25)
 

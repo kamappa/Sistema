@@ -3605,6 +3605,57 @@ Nenhuma era defeito do produto, e todas dariam um resultado publicável:
 Apagar a linha do `Shell.tsx` que passa `worldVars` desliga a camada inteira: os
 valores por omissão (`--world-accent: transparent`, `--world-intensity: 1`) fazem
 tudo colapsar para o que era antes.
+### Fase 2b — onde o mundo fala (CONCLUÍDA 2026-08-01)
+
+Cada evento tem um `copy` escrito e nenhum aparecia em lado nenhum. A pergunta
+não era "mostrar ou não" — era **onde**, e essa escolha tem consequência sobre
+quantas vezes o Sistema fala.
+
+#### O que foi recusado, e porquê
+
+**A fila de SYSTEM EVENTS.** Um evento do mundo é um **estado** que dura horas,
+não um acontecimento discreto. A fila existe para "subiste de nível" — coisas que
+acontecem uma vez. Um estado numa fila de acontecimentos ou faz spam ou precisa
+de truques de dedupe para não fazer.
+
+**Entre os sinais da faixa.** O `copy` é uma frase; os sinais são contagens.
+Juntá-los dava *"3 sinais no Radar · 1 prazo vencido · Mês novo. O que ficou por
+fazer..."* — a faixa vira parágrafo, e **contexto passa a competir com um
+alerta**. Um alerta é sempre mais urgente do que contexto.
+
+#### O que ficou
+
+O mundo fala **onde antes estava um texto de reserva**. Sem sinais, a faixa dizia
+*"O Oráculo observa."* — uma frase a ocupar espaço com nada. Passa a dizer o que
+o mundo tem para dizer, quando tem.
+
+O custo é **zero**: o sítio já estava vazio. E a Constituição fica servida — o
+Oráculo continua a não falar por cima de nada que importe.
+
+#### O limiar é o mesmo do acento, e isso não é coincidência
+
+Só `major` e `critical` falam — **o mesmo limiar que decide se o mundo pinta**.
+
+Se o evento não mereceu cor, também não merece palavras. Dois limiares diferentes
+para a mesma pergunta seriam duas opiniões sobre o que é importante — que é
+exatamente o argumento que já tinha impedido um segundo motor de eventos na
+Missão 29.
+
+Na prática: duas ou três vezes por mês.
+
+#### Verificado
+
+| caso | resultado |
+|---|---|
+| com sinais na faixa | o mundo **não fala** — "2 prazos vencidos" |
+| sem sinais nenhuns | *"Mês novo. O que ficou por fazer não desaparece — passa a ser visível."* |
+| dia 15, sem evento maior | zero maiores → volta o texto de reserva |
+| domingo | o dominante é `silence:notable` — abaixo do limiar, não fala |
+| erros de consola | zero |
+
+O caso do domingo mostra a resolução a funcionar por outra razão: o dominante não
+é o Domingo, é o **Silêncio**, que tem prioridade maior. O mundo escolheu bem e
+mesmo assim calou-se, porque `notable` não chega para falar.
 ## Missão 28 — Vault Resonance e Core View em Tempo Real
 (PLANEADA; extensão das M8, M17 e M22)
 

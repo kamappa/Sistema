@@ -18,6 +18,8 @@
 import { useStore } from '../../store/useStore.js';
 import { seasonArcNow } from '../../state/world.js';
 import OracleSigil from './OracleSigil';
+import { useWorld } from '../world/useWorld';
+import { PRIORITY_RANK } from '../world/worldModel';
 
 interface Signal {
   key: string;
@@ -35,6 +37,29 @@ export default function OracleAmbient({ onInvoke }: { onInvoke: () => void }) {
   // estava a acontecer vivia dentro do painel aberto, e quem o fechasse ficava
   // sem saber se tinha perguntado.
   const busy = useStore((s: { ocBusy: boolean }) => s.ocBusy);
+
+  /* ── O MUNDO FALA ONDE ANTES ESTAVA UM TEXTO DE RESERVA ──────────────
+   * M27·F2. O `copy` de um evento é uma FRASE, não uma contagem. Metê-lo
+   * entre os sinais ("3 sinais no Radar · 1 prazo vencido · Mês novo. O que
+   * ficou por fazer...") transformava a faixa num parágrafo e punha contexto a
+   * competir com um alerta — e um alerta é sempre mais urgente do que
+   * contexto.
+   *
+   * Por isso o mundo só fala quando NÃO HÁ sinais, no lugar de "O Oráculo
+   * observa." — que é um texto de reserva a ocupar espaço com nada. O custo é
+   * zero porque o sítio já estava vazio, e a Constituição fica servida: o
+   * Oráculo continua a não falar por cima de nada que importe.
+   *
+   * E só de `major` para cima, o MESMO limiar que decide se o mundo pinta.
+   * Se o evento não mereceu cor, também não merece palavras: dois limiares
+   * diferentes para a mesma pergunta seriam duas opiniões sobre o que é
+   * importante. Na prática são duas ou três vezes por mês. */
+  const { world } = useWorld(S);
+  const dom = world.dominant;
+  const worldCopy =
+    dom && dom.def.copy && PRIORITY_RANK[dom.def.priority] >= PRIORITY_RANK.major
+      ? dom.def.copy
+      : null;
 
   const signals = collectSignals({ radar, report, S });
 
@@ -71,7 +96,7 @@ export default function OracleAmbient({ onInvoke }: { onInvoke: () => void }) {
         // contagem de sinais e não sabia que havia um pedido em curso.
         <span className="sys-oracle-silent" aria-live="polite">A pensar.</span>
       ) : signals.length === 0 ? (
-        <span className="sys-oracle-silent">O Oráculo observa.</span>
+        <span className="sys-oracle-silent">{worldCopy ?? 'O Oráculo observa.'}</span>
       ) : (
         <span className="sys-oracle-line">
           {signals.map((s, i) => (

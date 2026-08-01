@@ -3509,6 +3509,102 @@ pronta e à espera do inventário.
 - zero erros de consola.
 
 O catálogo passou de **7 para 10 eventos**.
+### Fase 2 — o mundo ganha cara (CONCLUÍDA 2026-08-01)
+
+#### A decisão que esta fase tinha de tomar
+
+O `WorldVisual` traz `accent`. A camada de arcos da Missão 26 já governa
+`--arc-accent`. Duas fontes a discutir a mesma variável era o próximo defeito
+óbvio.
+
+> **O arco é a estação. O evento é o momento. Um momento não reescreve uma
+> estação — modula-a.**
+
+O arco dura meses e é a verdade de fundo; um evento dura horas. Deixar um
+Santuário de Chuva pintar o mundo de azul durante uma tarde apagaria o Summer
+Arc que dura desde junho — e no dia seguinte o Operador não saberia dizer em que
+estação está.
+
+`--arc-accent` fica **intocado**. O mundo contribui `--world-accent` e
+`--world-intensity`, que compõem por cima.
+
+#### Duas regras que limitam o estrago
+
+1. **Só o DOMINANTE pinta.** O `motion-regime.css` já declara "um ambiente
+   dominante por zona" desde a Fase 6A. Cinco eventos a contribuir cada um a sua
+   cor dariam lama, e a lama não comunica nada.
+2. **Eventos `ambient` não trazem cor — só intensidade.** É domingo todas as
+   semanas e é de noite todos os dias. Se o Domingo pintasse, o mundo mudava de
+   cor um dia em cada sete por uma razão que não é notícia. Só `major` e
+   `critical` ganham acento, e são precisamente os raros.
+
+O resultado: na maior parte dos dias **o mundo não muda de cor**, e quando muda é
+porque aconteceu alguma coisa que merece.
+
+#### Onde o mundo pinta, e porque não é onde o arco pinta
+
+O arco vive no **rodapé** (`::after`, 56vh a partir do fundo). O mundo vive no
+**topo** (`::before`, 38vh). Não é arrumação: são duas informações diferentes e
+não podem partilhar o mesmo sítio, senão a mais recente esconde a mais antiga e o
+Operador perde a estação.
+
+#### O DEFEITO, e é o mesmo que a Missão 26 já tinha encontrado
+
+A intensidade começou por ser uma regra própria:
+
+```css
+.sys-shell::after { opacity: calc(var(--arc-presence) * var(--world-intensity)); }
+```
+
+**Nunca funcionou.** As keyframes `arc-out`/`arc-in`/`arc-up` animam `opacity`, e
+uma **animação vence qualquer declaração normal** — a regra existia e não fazia
+nada.
+
+Medido: com intensidade a 1 e a 0.45, a opacidade lia **0.619 e 0.625** — que são
+o mesmo ciclo apanhado em dois sítios diferentes, não duas intensidades.
+
+É exatamente o defeito que a Fase 7Z já tinha encontrado na matéria sazonal —
+*uma keyframe que anima uma propriedade substitui o valor base* — e voltei a cair
+nele por escrever a regra sem verificar quem já mandava naquela propriedade.
+
+A intensidade passou para **dentro das keyframes**, a multiplicar os dois
+extremos do ciclo. Sem evento vale 1 e as keyframes ficam idênticas ao que sempre
+foram.
+
+#### Verificado
+
+| medida | resultado |
+|---|---|
+| o motor está vivo na shell | `data-world="newcycle"` no dia 1 |
+| `--arc-accent` intocado | `#fb923c`, o Summer Arc |
+| sem acento, a camada é invisível | alfas `[0, 0]` — medido no alfa, não na palavra |
+| com acento, pinta | alfas `[0.22, 0.09]` |
+| intensidade no horizonte | 0.615 → **0.280** |
+| intensidade na matéria | 0.900 → **0.405** |
+| **contraste AA** | **61 elementos, zero falhas — com e sem a camada** |
+| erros de consola | zero |
+
+O contraste é o gate que decidia se isto entrava. Uma camada nova por cima do
+ecrã tem de provar que não baixa a legibilidade, e não bastava argumentar que é
+fraca.
+
+#### Três medições minhas que estavam erradas
+
+Nenhuma era defeito do produto, e todas dariam um resultado publicável:
+
+1. procurei `rgb(` no gradiente — o `color-mix(in oklab, ...)` devolve `oklab()`,
+   e o teste dava falso negativo sobre a cor não pintar;
+2. medi a intensidade **sem arco ativo**: a opacidade era zero dos dois lados e o
+   teste não media nada;
+3. li a opacidade **durante a transição**, e depois durante a animação. Esperar
+   não chegou — foi preciso desligar a transição para ler o valor resolvido, e é
+   isso que revelou que o problema era a animação e não o tempo de espera.
+
+#### Reversível
+
+Apagar a linha do `Shell.tsx` que passa `worldVars` desliga a camada inteira: os
+valores por omissão (`--world-accent: transparent`, `--world-intensity: 1`) fazem
+tudo colapsar para o que era antes.
 ## Missão 28 — Vault Resonance e Core View em Tempo Real
 (PLANEADA; extensão das M8, M17 e M22)
 

@@ -29,6 +29,7 @@ import BootSequence from './motion/BootSequence';
 import { installSystemEventBridge } from './events/systemEvents';
 import { startMotionRegime } from './motion/motionTier';
 import { activeArcTheme } from './arcs/arcModel';
+import { useWorld } from './world/useWorld';
 import { hashStr } from '../state/world';
 import './instrumental.css';
 import './core/command-core.css';
@@ -58,6 +59,12 @@ export default function Shell({ S }: Props) {
      — trocar de estação troca duas cores e uma direção, e mais nada. */
   const arc = activeArcTheme(S);
 
+  /* WORLD ENGINE II (M27·F2). O arco é a estação; o evento é o momento. Um
+     momento não reescreve uma estação — modula-a. Por isso `--arc-accent` fica
+     intocado e o mundo contribui variáveis próprias, que compõem por cima.
+     Ver `world/useWorld.ts` para as duas regras que limitam o estrago. */
+  const { vars: worldVars, flag: worldFlag } = useWorld(S);
+
   return (
     <div
       className="sys-shell sys-instrumental"
@@ -65,15 +72,17 @@ export default function Shell({ S }: Props) {
       data-arc={arc?.id}
       data-arc-flow={arc?.motif.flow}
       data-arc-materia={arc?.motif.materia}
-      style={
-        arc
-          ? ({
+      data-world={worldFlag}
+      style={{
+        ...(arc
+          ? {
               '--arc-accent': arc.motif.accent,
               '--arc-accent-soft': arc.motif.accentSoft,
               '--arc-presence': 1,
-            } as React.CSSProperties)
-          : undefined
-      }
+            }
+          : {}),
+        ...worldVars,
+      } as React.CSSProperties}
     >
       <Atmosphere />
 

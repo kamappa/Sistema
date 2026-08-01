@@ -73,12 +73,31 @@
  * A DIREÇÃO é o significado (gramática 9): `out` expande, `in` converge, `up`
  * sobe. Não é uma escolha estética — trocar o sinal troca o que o arco diz.
  */
-@keyframes arc-out { from { transform: scaleX(0.94) translateY(4px); opacity: 0.55; }
-                     to   { transform: scaleX(1.06) translateY(0);   opacity: 1; } }
-@keyframes arc-in  { from { transform: scaleX(1.06); opacity: 1; }
-                     to   { transform: scaleX(0.94); opacity: 0.55; } }
-@keyframes arc-up  { from { transform: translateY(10px); opacity: 0.5; }
-                     to   { transform: translateY(-6px); opacity: 1; } }
+/* A INTENSIDADE DO MUNDO ENTRA AQUI DENTRO, e não numa declaração à parte.
+ *
+ * DEFEITO MEU, apanhado a medir e não a olhar. A Fase 2 começou por modular o
+ * horizonte com uma regra própria:
+ *
+ *   .sys-shell::after { opacity: calc(var(--arc-presence) * var(--world-intensity)); }
+ *
+ * Nunca funcionou. Estas keyframes animam `opacity`, e uma ANIMAÇÃO vence
+ * qualquer declaração normal — a regra existia e não fazia nada. Medido: com a
+ * intensidade a 1 e a 0.45, a opacidade lia 0.619 e 0.625, que são o mesmo
+ * ciclo apanhado em dois sítios diferentes.
+ *
+ * É exatamente o defeito que a Missão 26 já tinha encontrado na matéria
+ * sazonal — uma keyframe que anima uma propriedade SUBSTITUI o valor base — e
+ * eu voltei a cair nele por escrever a regra sem verificar quem já mandava
+ * naquela propriedade.
+ *
+ * A intensidade multiplica os dois extremos do ciclo. Sem evento vale 1, e as
+ * keyframes ficam idênticas ao que sempre foram. */
+@keyframes arc-out { from { transform: scaleX(0.94) translateY(4px); opacity: calc(0.55 * var(--world-intensity, 1)); }
+                     to   { transform: scaleX(1.06) translateY(0);   opacity: calc(1 * var(--world-intensity, 1)); } }
+@keyframes arc-in  { from { transform: scaleX(1.06); opacity: calc(1 * var(--world-intensity, 1)); }
+                     to   { transform: scaleX(0.94); opacity: calc(0.55 * var(--world-intensity, 1)); } }
+@keyframes arc-up  { from { transform: translateY(10px); opacity: calc(0.5 * var(--world-intensity, 1)); }
+                     to   { transform: translateY(-6px); opacity: calc(1 * var(--world-intensity, 1)); } }
 
 .sys-shell[data-arc-flow='out']::after {
   animation: arc-out var(--sys-cycle-ambient) var(--sys-ease-breath) infinite alternate;
@@ -350,3 +369,51 @@ html[data-motion='calm'] .sys-shell::after { animation: none !important; }
      atmosfera: a camada é secundária por definição. */
   .arc-materia span:nth-child(2n) { display: none; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+ * O MUNDO POR CIMA DA ESTAÇÃO — Missão 27 · Fase 2
+ *
+ * O arco pinta o horizonte e continua a pintá-lo. O que o mundo acrescenta é
+ * uma segunda camada, mais alta e muito mais fraca, e SÓ quando o evento
+ * dominante é `major` ou `critical`.
+ *
+ * Os valores por omissão fazem a camada desaparecer: sem `--world-accent` não
+ * há cor, e a regra inteira colapsa para transparente. Um dia sem eventos
+ * maiores é indistinguível de antes desta fase existir — que é o objetivo.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+.sys-shell {
+  /* Sem evento, transparente. É o que torna esta camada reversível na prática:
+     apagar a linha do `Shell.tsx` que passa as variáveis desliga tudo. */
+  --world-accent: transparent;
+  --world-intensity: 1;
+}
+
+.sys-shell::before {
+  content: '';
+  position: fixed;
+  /* No TOPO, ao contrário do arco. Não é arrumação: são duas informações
+     diferentes e não podem partilhar o mesmo sítio, senão a mais recente
+     esconde a mais antiga e o Operador perde a estação. */
+  inset: 0 0 auto 0;
+  height: 38vh;
+  pointer-events: none;
+  z-index: var(--sys-z-atmosphere);
+  opacity: calc(var(--arc-presence, 0) * 0.55);
+  background: radial-gradient(
+    ellipse 84% 100% at 50% 0%,
+    color-mix(in oklab, var(--world-accent) 22%, transparent) 0%,
+    color-mix(in oklab, var(--world-accent) 9%, transparent) 40%,
+    transparent 72%
+  );
+  transition: opacity calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+/* A INTENSIDADE modula o que já existe, em vez de acrescentar. É o canal que
+   os eventos `ambient` usam — e é por isso que o Silêncio consegue apagar o
+   mundo sem lhe mudar a cor.
+
+   O horizonte NÃO está aqui: a opacidade dele é animada pelas keyframes do
+   arco, e uma animação vence uma declaração. A intensidade entra dentro das
+   próprias keyframes — ver a nota acima delas. */
+.arc-materia { opacity: calc(var(--arc-presence, 0) * 0.9 * var(--world-intensity, 1)); }

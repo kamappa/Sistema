@@ -11,6 +11,7 @@
 import { AI_USES_KEY, REVIEW_DAYS } from './aiModel';
 import type { AiInventory, AiUse } from './aiModel';
 import { today, diffDays } from '../../state/dates.js';
+import { pl, dias as nDias } from '../shared/plural';
 
 const RISCOS = new Set(['baixo', 'medio', 'alto', 'por-avaliar']);
 const SUPERVISOES = new Set(['antes', 'depois', 'nenhum', 'por-definir']);
@@ -112,10 +113,9 @@ export function readAi(S: Record<string, any> | null): AiInventory {
  */
 export function explainAi(inv: AiInventory): string[] {
   if (inv.absence) return [inv.absence];
-  /* Concordância a sério. O Sistema já tinha corrigido "1 dias" no sigilo do
-     Operador; escrever "1 tocam" aqui seria repetir o mesmo descuido num sítio
-     onde a frase é para ser lida por alguém que audita. */
-  const s = (n: number, um: string, muitos: string) => (n === 1 ? um : muitos);
+  /* A concordância vive em `shared/plural` — ver o cabeçalho de lá para saber
+     porque é que isto passou a ser um ficheiro e não uma ternária repetida. */
+  const s = pl;
   const linhas = [
     `${inv.active} ${s(inv.active, 'utilização de IA ativa', 'utilizações de IA ativas')}, `
     + `de ${inv.uses.length} ${s(inv.uses.length, 'registada', 'registadas')}.`,
@@ -128,7 +128,7 @@ export function explainAi(inv: AiInventory): string[] {
   if (inv.overdue.length) {
     const pior = inv.overdue[0];
     const n = inv.overdue.length;
-    linhas.push(`${n} com revisão em atraso; a mais antiga há ${pior.daysLate} ${s(pior.daysLate, 'dia', 'dias')}.`);
+    linhas.push(`${n} com revisão em atraso; a mais antiga há ${nDias(pior.daysLate)}.`);
   }
   if (inv.oversightUnknown.length) {
     linhas.push(`${inv.oversightUnknown.length} sem supervisão humana definida — não se sabe quem verifica.`);

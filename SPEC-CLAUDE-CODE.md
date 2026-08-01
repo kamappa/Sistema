@@ -598,6 +598,60 @@ eventos (recrutamento + ciber/NIS2/ISO 27001/RGPD); cadência diária.
 - Verificar após a 1ª corrida real: qualidade das vagas e ruído — afinar
   a query se vier lixo.
 
+### A verificação de qualidade, finalmente com ferramenta (2026-08-01)
+
+O item que ficou aberto a 2026-07-19:
+
+> *"Verificar após a 1ª corrida real: qualidade das vagas e ruído — afinar a
+> query se vier lixo."*
+
+A Vigia está deployada e a correr **todos os dias às 06:30 UTC** desde essa
+data, a gastar uma chamada com pesquisa por dia. **Ninguém olhou.**
+
+E o motivo não é preguiça: olhar a sério exige abrir a lista, comparar itens,
+procurar repetições, verificar prazos e perceber se as fontes se repetem. Feito
+à mão é meia hora que nunca há.
+
+`app/radar/vigia-read.ts` faz isso em segundos.
+
+#### Mede, não decide
+
+Não afina a query, não apaga itens, não classifica nada como lixo. A última
+linha do veredicto é deliberada:
+
+> *O que isto não mede: se as vagas eram adequadas e se valeu a pena
+> candidatar-se. Essa é a tua.*
+
+#### Os sete sinais de ruído
+
+| sinal | porque interessa |
+|---|---|
+| URLs repetidos | o dedupe de 30 dias devia impedir; se aparecem, tem buraco |
+| títulos quase iguais, URLs diferentes | a mesma vaga em dois sítios — o dedupe por URL não apanha isto por desenho |
+| vagas **sem missão** anexada | a regra da missão diz que é obrigatória: é a regra a falhar, não uma preferência |
+| vagas sem prazo | não é defeito (o prazo só entra se for detetável), mas a proporção diz se as fontes servem |
+| itens sem URL | a regra diz "só URLs da pesquisa dessa conversa" — sem URL não há como verificar |
+| domínio de uma fonte | acima de 50% dos itens, a query pode ter ficado presa num agregador |
+| dias sem um único item | pode ser o mercado ou a query — o número não distingue, mas mostra que a pergunta existe |
+
+Mais: **áreas fora do `RAREA`**, que seria a Edge Function a inventar
+categorias.
+
+#### Verificado com um lote construído para conter cada defeito
+
+Sete itens, cinco da Vigia. Todos os detetores dispararam: 1 URL repetido, 1 par
+de títulos parecidos, 1 vaga sem missão, 1 item sem URL, `itjobs.pt` a 80% dos
+itens, 1 área inventada, 4 dias sem cobertura, 2 de 4 vagas sem prazo. Zero
+erros de consola.
+
+A ausência distingue dois casos que parecem iguais no ecrã: **sem sessão** (o
+Radar vive no Supabase) e **respondeu vazio** (pode ser mercado parado ou a
+query a falhar — e o texto diz que não distingue).
+
+#### O que falta, e não é código
+
+Correr isto com a **sessão real do Daniel**. O modelo está pronto e testado; os
+dados estão no Supabase e não chegam a este ambiente.
 ## Missão 14 — Universe Navigation · Fase 1: Vista de Universo
 (CONCLUÍDA 2026-07-19)
 

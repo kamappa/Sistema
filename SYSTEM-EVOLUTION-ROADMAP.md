@@ -2263,6 +2263,12 @@ necessário.
 - Missão 27: Season/Event Engine composto.
 - Missão 28: Vault Resonance e Core View.
 - Missão 29: AI Lab e AI Governance.
+- Missão 30: número reservado — superada pela Missão 25.
+- Missão 31: Compliance Intelligence OS — **visão registada, não autorizada**.
+  Agentes de compliance sob governação. Complementa a Missão 29 sem a
+  substituir: a 29 trata governação de IA como matéria de estudo do Operador,
+  a 31 como operação profissional para terceiros. Ver
+  `COMPLIANCE-INTELLIGENCE-MISSION.md`.
 
 A execução continua faseada. Esta camada é uma constituição; o SPEC decide qual
 peça pode ser construída agora.

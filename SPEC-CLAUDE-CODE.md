@@ -103,6 +103,45 @@ no Vanilla; não foi migrado para React).
 para o build React exige três passos manuais do Daniel e a sua decisão
 explícita. Enquanto não acontecer, o React não está em produção.
 
+## Missão 31 — Compliance Intelligence OS (VISÃO REGISTADA 2026-08-01)
+
+**ESTADO: VISÃO REGISTADA — IMPLEMENTAÇÃO NÃO AUTORIZADA.**
+
+Não é uma missão em curso e não interrompe a Missão 26. Está aqui para não se
+perder e para não ser começada de improviso — que eram as duas formas de a
+estragar.
+
+Ecossistema de **agentes especializados sob governação** para RGPD,
+privacidade, RATs, AIPDs, gestão de risco, ISO/IEC 27001, ISO/IEC 27701, NIS2,
+AI Act, ISO/IEC 42001, auditoria, evidência e atualização regulatória. Origem:
+conversa com uma profissional sénior da área, que mostrou modelos e processos
+reais. Nome, marca e modelos **não constam** da documentação.
+
+O objetivo **não é** substituir advogados, DPOs, auditores ou consultores. É
+reduzir trabalho repetitivo, organizar evidência, manter conhecimento
+versionado e preparar decisões humanas.
+
+**Documentação:** `COMPLIANCE-INTELLIGENCE-MISSION.md` na raiz e
+`docs/compliance-intelligence/` (17 ficheiros, ler `00_READ_ME_FIRST.md`).
+
+Três coisas que ficam decididas e não se voltam a discutir:
+
+- a expressão *"agentes que nunca ficam desatualizados"* **não se usa**. A
+  garantia é outra: nenhum agente conclui sem demonstrar data, jurisdição,
+  versão e fonte — e diz quando não sabe;
+- o profissional sénior trabalha **por exceção, não por confirmação**. Um
+  sistema que exige aprovação de cada correção custa mais do que poupa, e essa
+  é a forma mais provável de esta missão falhar;
+- **dados reais de terceiros não entram no ambiente pessoal.** Nem para testar.
+
+Nove afirmações regulatórias e de preço estão registadas como **NÃO
+VERIFICADAS** (V1–V9). É deliberado, e é a primeira aplicação da própria
+missão: um sistema cuja proposta é *"nunca concluímos sem saber a fonte"* não
+pode nascer de um documento que afirma datas de cabeça.
+
+**Gates:** catorze, treze por cumprir. **Perguntas por responder:** dezanove. A
+primeira é a única que não se responde a trabalhar — se existe interesse real
+da outra parte, ou se foi uma conversa interessante.
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)
 
 Os dois painéis sobrepõem-se. Fundir num único quadro "Missões" com o motor

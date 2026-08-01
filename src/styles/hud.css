@@ -718,7 +718,21 @@
   .oc-cancel{margin-left:6px;font-style:normal;min-height:26px}
   .oc-cancel:hover,.oc-cancel:focus-visible{border-color:#a78bfa}
   @media (pointer:coarse){.oc-cancel{min-height:32px;padding-inline:12px}}
-  .oc-row{display:flex;gap:8px;align-items:stretch}
+  /* ── O CAMPO DO ORÁCULO COLAPSAVA A ZERO ──────────────────────────────
+     Medido a 390px: o `<textarea>` tinha 24px de largura TOTAL — que é
+     exactamente o `padding: 9px 11px` mais as duas bordas. Caixa de conteúdo a
+     zero. O campo estava lá, focável e inútil.
+     A causa: o parágrafo `.oc-why` — o texto que explica porque é que não se
+     pode enviar, acrescentado na Fase 7Z por acessibilidade — declara
+     `grid-column: 1/-1`. Esta linha é `display:flex`, e `grid-column` num
+     contentor flex NÃO FAZ NADA: o parágrafo vira item flex normal e come a
+     largura toda.
+     Uma correção de acessibilidade partiu o layout, e ninguém deu por isso
+     porque em desktop sobrava espaço e em mobile é preciso não ter sessão para
+     o parágrafo aparecer.
+     `flex-wrap` mais `flex-basis:100%` no parágrafo põem-no na sua própria
+     linha, que é onde ele sempre devia ter estado. */
+  .oc-row{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
   .oc-row textarea{flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--ink);font-family:var(--body);font-size:13px;padding:9px 11px;outline:none;resize:none;transition:.15s}
   .oc-row textarea:focus{border-color:#a78bfa}
   .oc-row .btn:disabled{opacity:.4;cursor:not-allowed}
@@ -837,5 +851,10 @@
   /* M26·F7Z — a razão de o Oráculo não aceitar a pergunta, presa ao campo.
      Ocupa a linha inteira por baixo do par campo+botão: é uma explicação, não
      uma terceira coluna. */
-  .oc-row .oc-why{grid-column:1/-1;margin:6px 0 0;font-size:12px;line-height:1.45;
+  /* `flex-basis:100%` e não `grid-column` — a linha é flex, e a declaração
+     antiga era silenciosamente ignorada. O comentário acima já dizia a intenção
+     certa ("ocupa a linha inteira por baixo do par campo+botão"); só a
+     propriedade é que estava errada, e por isso o defeito passou a revisão: o
+     código explicava o que devia acontecer, não o que acontecia. */
+  .oc-row .oc-why{flex:0 0 100%;margin:6px 0 0;font-size:12px;line-height:1.45;
     color:var(--mut);opacity:.9}

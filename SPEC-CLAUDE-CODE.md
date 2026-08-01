@@ -3228,6 +3228,64 @@ dava "396 elementos, zero falhas" porque não compunha opacidades **nem**
 distinguia inativos — e por isso passava tudo. Esta compõe opacidade herdada e
 gradientes, e conta os isentos **à parte, para a isenção ser visível e
 revisível** em vez de silenciosa.
+### Resíduos de scroll, mobile, e um campo colapsado a zero (2026-08-01)
+
+#### Contraste em mobile — a lacuna do que eu tinha acabado de afirmar
+
+A auditoria das seis zonas correu só em **desktop**. O script tinha modo mobile
+e não o usei. Fechado: **382 elementos, 21 falhas, as mesmas 8 causas**. Zero
+falhas específicas de ecrã pequeno.
+
+#### Resíduos de scroll — FECHADO, e não havia nenhum
+
+O item dizia *"resíduos de 6px (Universo) e 3px (Operações), sem barra de
+scroll"*. Medido nas seis zonas, desktop e mobile: **zero**. Foram corrigidos
+algures no decurso da missão sem ficar registado.
+
+**Um zero de um detetor por verificar não vale nada** — pode ser "não há resíduos"
+ou "a sonda não vê nada". Injetou-se um resíduo de 6px de propósito e a sonda
+apanhou-o exactamente, com o filho culpado identificado.
+
+A primeira tentativa de auto-teste acrescentou um filho a um contentor do React
+e mediu 612px antes e depois — o React reconcilia e leva o intruso. O teste dizia
+"não detetou" e **o que estava errado era o teste**. A segunda constrói um
+contentor próprio e corre a mesma sonda por cima.
+
+#### O DEFEITO REAL, e não era o que se procurava
+
+A sonda não encontrou resíduos. Encontrou outra coisa:
+
+> **A 390px, o campo do Oráculo tinha 24px de largura TOTAL** — exactamente o
+> `padding: 9px 11px` mais as duas bordas. **Caixa de conteúdo a zero.**
+
+O campo estava lá, focável, e inútil. Escrever era impossível.
+
+**A causa:** o parágrafo `.oc-why` — o texto que explica porque é que não se
+pode enviar, acrescentado na Fase 7Z **por acessibilidade** — declara
+`grid-column: 1/-1`. A linha é `display: flex`, e **`grid-column` num contentor
+flex não faz nada**: o parágrafo vira item flex normal e come a largura toda.
+
+Uma correção de acessibilidade partiu o layout. Ninguém deu por isso porque em
+desktop sobra espaço, e em mobile **é preciso não ter sessão** para o parágrafo
+sequer aparecer.
+
+E há uma razão pela qual passou revisão: o comentário por cima da regra já dizia
+a intenção certa — *"ocupa a linha inteira por baixo do par campo+botão"*. **O
+código explicava o que devia acontecer, não o que acontecia.** Um comentário
+correto por cima de uma propriedade ignorada é mais difícil de apanhar do que
+código sem comentário nenhum.
+
+#### Verificado
+
+| | antes | depois |
+|---|---|---|
+| largura do campo, 390px | **22 px** | **232 px** |
+| scroll horizontal | 2 px | 0 |
+| `scrollHeight` | 690 px | 50 px |
+| largura do campo, 1440px | 1188 px | 1188 px — intacto |
+
+`flex-wrap` na linha e `flex: 0 0 100%` no parágrafo põem-no na sua própria
+linha, que é onde ele sempre devia ter estado.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

@@ -3009,6 +3009,85 @@ sempre com a declaração dele — ligar a verificação lá subiu os avisos de 
 Os restantes `.js` são componentes e o store. Nenhum é núcleo de estado nem
 camada de efeitos; ficam para quando houver uma razão melhor do que a
 arrumação.
+### Fase 7Z · Bundle e arranque, medidos (2026-08-01)
+
+O último item da lista "Por fazer" que era de medição e não de decisão. O SPEC
+dizia *"performance nunca medida: bundle em 996 KB"* — meio desatualizado: o FPS
+mobile foi medido na Fase 7Z (8,3 ms), o bundle e o arranque não.
+
+#### Bundle
+
+| ficheiro | cru | gzip |
+|---|---|---|
+| `state.js` | 498,4 KB | 129,5 KB |
+| `index.js` | 466,1 KB | 138,0 KB |
+| `react-vendor.js` | 138,5 KB | 44,4 KB |
+| `main.js` | 16,8 KB | 6,4 KB |
+| `index.css` | 187,3 KB | 32,3 KB |
+| **total** | **1307 KB** | **350,6 KB** |
+
+**O JS cru cresceu de 996 KB para 1120 KB — 12%.** Mas o número que interessa é
+o outro: o Pages serve com gzip, e o que atravessa a rede são **351 KB**. A
+entrada de 996 KB no SPEC comparava crus com uma intuição sobre gzipados, e por
+isso soava pior do que é.
+
+Os dois maiores são `state.js` (o domínio inteiro: config, motor, normalização,
+store) e `index.js` (a shell e as seis zonas). Nenhum é obviamente cortável sem
+code splitting por zona, que é uma missão e não um ajuste.
+
+#### Arranque
+
+Contra o **build**, não contra o dev server; servidor estático local, cache
+desligada, perfil Chrome isolado, três perfis de CPU e rede.
+
+| perfil | primeiro pixel | primeiro conteúdo | load |
+|---|---|---|---|
+| desktop, sem limite | 360 ms | 392 ms | 351 ms |
+| mobile 4G, CPU 4x | 288 ms | 312 ms | 285 ms |
+| mobile 3G lento, CPU 6x | 528 ms | 552 ms | 523 ms |
+
+**Ressalva que impede estes números de mentir:** os ativos são servidos de
+`localhost`. A limitação de rede aplica-se à latência mas não a uma ligação
+real, e é por isso que o mobile aparece por vezes melhor do que o desktop — a
+diferença entre perfis está dentro do ruído. O que isto estabelece é a **ordem
+de grandeza** (meio segundo até haver conteúdo, no pior caso) e o tamanho do
+bundle. Não é uma comparação realista entre redes e não deve ser lida como tal.
+
+#### O achado que não era o objetivo da medição
+
+**Sem sessão iniciada, a shell não monta.** Fica no ecrã de entrada à espera de
+um clique — e só depois aparece o Sistema. Medido: o clique aconteceu a 1577 ms
+no desktop e a **3059 ms** em 3G lento com CPU a 6x.
+
+Isto não é defeito: é o comportamento correto de uma app que precisa de saber se
+há conta. Mas significa que **o "tempo até ao Sistema" real não é o FCP** — é o
+FCP mais o tempo até alguém decidir e carregar. Nenhuma métrica anterior dizia
+isso, e as três primeiras versões deste harness mediram um ecrã vazio a achar
+que mediam o Sistema.
+
+#### Três erros meus no harness, e todos davam números publicáveis
+
+Ficam registados porque cada um produziu uma medição plausível e falsa:
+
+1. **faltava `?shell=1`** — media o arranque de um ecrã de entrada e chamava-lhe
+   arranque do Sistema;
+2. **`Network.clearBrowserCache` limpa o disco e deixa a memória** — a segunda
+   corrida dava 2,4 KB transferidos, e eu ia registar isso como o custo de quem
+   chega pela primeira vez. Só `setCacheDisabled` garante rede a sério;
+3. **sondar com `Runtime.evaluate` logo a seguir a `Page.navigate`** cai no
+   contexto de execução velho: a sonda nunca via a shell, devolvia `null` para
+   sempre, e a versão seguinte ficou pendurada 400 s.
+
+A medição final usa um `MutationObserver` injetado antes de qualquer script da
+app correr. Mesmo assim a marca de montagem não ficou fiável e **não está na
+tabela** — o que está são os valores que a API de performance dá diretamente e
+que não dependem do meu código.
+
+#### Estado
+
+O item "performance nunca medida" fecha. Fica aberto o que é decisão e não
+medição: **se 1307 KB crus justificam code splitting por zona.** A resposta
+honesta, com os números na mão, é que a 351 KB gzipados ainda não justifica.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗
@@ -3129,8 +3208,11 @@ Daniel**, não trabalho por fazer:
 
 ### Por fazer
 
-- **performance** nunca medida: bundle em 996 KB de JS, FPS em mobile e tempo de
-  arranque por medir;
+- ~~**performance** nunca medida~~ **FECHADO 2026-08-01**: FPS mobile medido na
+  Fase 7Z (8,3 ms); bundle e arranque medidos hoje — 1307 KB crus, **351 KB
+  gzipados**, primeiro conteúdo em 392 ms no desktop e 552 ms em 3G lento com CPU
+  a 6x. Ver a secção própria. Fica em aberto uma DECISÃO, não uma medição: se
+  justifica code splitting por zona;
 - ~~contraste~~ **REABERTO e fechado outra vez a 2026-07-29**: a auditoria da
   Fase J dava "396 elementos, zero falhas" mas não compunha opacidades sobre o
   fundo. Com a composição, `--sys-ink-far` sobre o vazio a 13px dá 3,23:1. A

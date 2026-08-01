@@ -109,6 +109,9 @@ export interface WorldContext {
   /** Última vez que cada evento foi dado como ativo, em ISO. É o que torna o
    *  `cooldownH` real em vez de decorativo. */
   seen?: Readonly<Record<string, string>>;
+  /** A memória completa — data **e prova**. É o que o `durationMin` precisa
+   *  para reapresentar um evento cuja regra já não é verdade. */
+  memory?: Readonly<Record<string, { at: string; source: string; fact: string; date: string }>>;
 }
 
 export interface WorldEventDef {
@@ -131,11 +134,27 @@ export interface WorldEventDef {
    */
   trigger: (ctx: WorldContext, now: Date) => WorldEvidence | null;
 
-  /** Quanto tempo fica de pé depois de disparar, em minutos. `0` = enquanto a
-   *  regra continuar verdadeira, que é o caso normal do ambiente. */
+  /** Quanto tempo fica de pé depois de disparar, em minutos. `0` ou ausente =
+   *  enquanto a regra continuar verdadeira, que é o caso normal do ambiente.
+   *
+   *  **É respeitado pelo resolvedor** desde que lhe cheguem as ocorrências em
+   *  `WorldContext.memory`. Um evento dentro da janela continua ativo mesmo
+   *  quando a regra já devolve `null`, e reapresenta **a prova com que
+   *  entrou** — um facto que fica de pé sem origem seria um facto sem prova, e
+   *  isso a missão proíbe. */
   durationMin?: number;
-  /** Quanto tempo tem de passar até poder repetir, em horas. Protege o Operador
-   *  de ver a mesma cerimónia três vezes num dia.
+  /** Quanto tempo tem de passar até poder **VOLTAR**, em horas — depois de ter
+   *  saído. Protege o Operador de ver a mesma cerimónia três vezes num dia.
+   *
+   *  ── NÃO É "quanto tempo fica escondido depois de aparecer" ──
+   *  A primeira implementação lia assim, e estava errada de uma forma que só se
+   *  via a correr: o resolvedor corre de 5 em 5 minutos, e um evento verdadeiro
+   *  o dia inteiro aparecia, era gravado, e **desaparecia na resolução
+   *  seguinte** — porque a memória dizia que já tinha entrado há 5 minutos.
+   *  Um estado verdadeiro passava a piscar uma vez por dia.
+   *
+   *  Um evento que continua verdadeiro está a CONTINUAR, não a repetir-se. O
+   *  cooldown só se aplica a quem sai e tenta voltar.
    *
    *  **É respeitado pelo resolvedor** desde que lhe cheguem as últimas
    *  ocorrências em `WorldContext.seen`. Sem esse mapa, um evento com cooldown
@@ -182,4 +201,8 @@ export interface WorldState {
    *  por não ter chegado o mapa de ocorrências. Existe para a proteção não
    *  parecer ativa quando não está. */
   cooldownIgnorado: string[];
+  /** Eventos ativos por `durationMin` e já não por prova nova — a regra deixou
+   *  de ser verdade mas a janela ainda não fechou. Declarado porque "está a
+   *  acontecer" e "aconteceu há pouco" não são a mesma coisa. */
+  aSustentar: string[];
 }

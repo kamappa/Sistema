@@ -3656,6 +3656,90 @@ Na prática: duas ou três vezes por mês.
 O caso do domingo mostra a resolução a funcionar por outra razão: o dominante não
 é o Domingo, é o **Silêncio**, que tem prioridade maior. O mundo escolheu bem e
 mesmo assim calou-se, porque `notable` não chega para falar.
+### Fase 3 — a memória do mundo (CONCLUÍDA 2026-08-01)
+
+`cooldownH` e `durationMin` deixam de depender de quem chama.
+
+#### Onde vive, e porque não vive no `app_state`
+
+O `app_state` é **evidência de uma vida** — XP, hábitos, títulos, datas de
+nascimento de estrelas — sincronizada com o Supabase e protegida por RLS.
+
+A memória do mundo é **quando a shell mostrou o quê**: um detalhe de
+apresentação. Metê-lo no `app_state` fazia-o viajar com evidência de vida,
+obrigava a uma migração de schema por um mapa que pode ser perdido sem
+consequência, e aumentava o que atravessa a rede em cada gravação, para sempre.
+
+Fica em `localStorage`, chave própria, validade de 72 h.
+
+**O custo, dito e não escondido:** a memória é por dispositivo. Ver um
+Governance Radar no telemóvel e depois no computador mostra-o duas vezes. É
+aceitável porque **falar duas vezes não é mentir** — é redundância. Se um dia
+incomodar, a decisão inverte-se com o custo à frente.
+
+#### O defeito que só apareceu ao ligar as peças
+
+O cooldown estava a ser lido como *"quanto tempo fica escondido depois de
+aparecer"*. Com o resolvedor a correr de 5 em 5 minutos, isso significava que um
+evento verdadeiro o dia inteiro **aparecia, era gravado, e desaparecia na
+resolução seguinte** — porque a memória dizia que já tinha entrado há 5 minutos.
+
+Um estado verdadeiro passava a piscar uma vez por dia.
+
+> **Continuar não é repetir.** Um evento que continua verdadeiro está a decorrer,
+> não a repetir-se. O cooldown só se aplica a quem **sai e tenta voltar**.
+
+Concretizado com uma janela de continuidade de 15 minutos — três vezes a cadência
+de resolução, folga deliberada para um separador em segundo plano poder falhar
+uma ou duas voltas sem que um evento contínuo passe a "novo".
+
+| visto há | resultado |
+|---|---|
+| 5 min | acende — é o mesmo episódio |
+| 3 h | recusado: *"saiu há 3.0 h e só pode voltar ao fim de 20 h"* |
+| 25 h | acende — o cooldown passou |
+
+#### A duração reapresenta a prova com que entrou
+
+Um evento dentro da janela fica de pé mesmo quando a regra já devolve `null`, e
+**reapresenta a prova original** — não uma nova. Um facto que continua no ecrã
+sem origem seria um facto sem prova.
+
+A gravação só regista quem entrou **por prova nova**. Um evento sustentado pela
+janela não renova a sua própria data: se renovasse, uma janela de 30 minutos
+ficava de pé para sempre, porque cada resolução a empurrava para a frente.
+
+#### `resolveWorld` é público, e a razão importa
+
+**Nenhum evento do catálogo usa `durationMin`** — todos declaram `0`. Um caminho
+de código sem utilizador é um caminho por testar, e num motor de regras é onde o
+primeiro defeito vai nascer.
+
+A alternativa era dar uma duração a um evento só para o exercitar — mudar o
+produto para servir o teste. Em vez disso o resolvedor aceita o catálogo como
+argumento, e o comportamento verifica-se com um catálogo próprio.
+
+| caso | ativo | prova |
+|---|---|---|
+| dentro da janela (10 de 30 min) | **sim** | *"facto de quando entrou"* |
+| fora da janela (40 min) | não | — |
+| memória sem prova completa | não | — |
+| `durationMin: 0` | não | — |
+| sem memória nenhuma | não | — |
+
+#### Verificado
+
+A shell grava mesmo: `sistema_world_v1` com `new-cycle` e prova completa. A
+memória caduca aos 100 h, sobrevive a JSON inválido sem rebentar, e a gravação
+falha em silêncio sem impedir ninguém de usar o Sistema. Zero erros de consola.
+
+#### Um erro meu no método, não no produto
+
+Verifiquei a gravação da shell **depois** dos testes que apagam a chave, e li
+*"não gravou"* — era o meu próprio teste a ter apagado o ficheiro. E o ficheiro
+de teste, remendado quatro vezes, chegou a um ponto em que as substituições
+deixaram de pegar **sem dar erro**: dizia que corria e media a versão anterior.
+Reescrito de raiz.
 ## Missão 28 — Vault Resonance e Core View em Tempo Real
 (PLANEADA; extensão das M8, M17 e M22)
 

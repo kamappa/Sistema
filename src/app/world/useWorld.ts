@@ -41,6 +41,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { readWorld } from './worldRead';
+import { loadWorldMemory, recordWorldMemory, seenFrom } from './worldMemory';
 import { PRIORITY_RANK } from './worldModel';
 import type { WorldState } from './worldModel';
 
@@ -78,8 +79,12 @@ export function useWorld(
     return () => { window.clearInterval(t); document.removeEventListener('visibilitychange', aoVoltar); };
   }, []);
 
-  return useMemo(() => {
-    const world = readWorld({ S: S ?? {}, radar }, agora);
+  /* A memória lê-se a cada resolução, não uma vez: outra aba pode ter escrito
+     nela entretanto, e ler uma vez daria um cooldown que se esquece de si
+     mesmo assim que a página fica aberta muito tempo. */
+  const bridge = useMemo(() => {
+    const memory = loadWorldMemory(agora);
+    const world = readWorld({ S: S ?? {}, radar, seen: seenFrom(memory), memory }, agora);
     const dom = world.dominant;
     if (!dom) return { world, vars: {}, flag: undefined };
 
@@ -94,4 +99,21 @@ export function useWorld(
     }
     return { world, vars, flag: dom.def.visual?.flag };
   }, [S, radar, agora]);
+
+  /* A GRAVAÇÃO É UM EFEITO, e nunca dentro do `useMemo`. Um `useMemo` com
+     efeito colateral corre duas vezes em StrictMode e deixa de ser previsível
+     — e aqui isso significaria gravar uma ocorrência que ninguém viu.
+
+     Só se registam os eventos que ENTRARAM POR PROVA NOVA. Um evento a ser
+     sustentado pela janela não renova a sua própria data: se renovasse, uma
+     janela de 30 minutos ficava de pé para sempre, porque cada resolução a
+     empurrava para a frente. */
+  useEffect(() => {
+    const novos = bridge.world.events
+      .filter((e) => !bridge.world.aSustentar.includes(e.def.id))
+      .map((e) => ({ id: e.def.id, ...e.evidence }));
+    if (novos.length) recordWorldMemory(novos, new Date(bridge.world.at));
+  }, [bridge.world]);
+
+  return bridge;
 }

@@ -27,12 +27,42 @@
 
 import { WORLD_EVENTS } from './worldEvents';
 import { LAYER_ORDER, PRIORITY_RANK } from './worldModel';
-import type { ActiveWorldEvent, WorldContext, WorldState } from './worldModel';
+
+/** Quanto tempo depois de ter sido visto um evento ainda conta como o MESMO
+ *  episódio, em minutos.
+ *
+ *  15 = três vezes a cadência de resolução do `useWorld`. É folga deliberada:
+ *  com um separador em segundo plano, um intervalo pode falhar uma ou duas
+ *  voltas, e um evento contínuo não pode passar a "novo" só porque ninguém
+ *  esteve a olhar. */
+const CONTINUIDADE_MIN = 15;
+import type { ActiveWorldEvent, WorldContext, WorldEventDef, WorldState } from './worldModel';
 
 /** Aceita o contexto completo ou só o estado — a segunda forma existe porque a
  *  maior parte das regras não precisa de mais, e obrigar toda a gente a
  *  construir um objeto para chamar isto seria atrito sem benefício. */
 export function readWorld(
+  entrada: WorldContext | Record<string, any> | null,
+  now: Date = new Date(),
+): WorldState {
+  return resolveWorld(WORLD_EVENTS, entrada, now);
+}
+
+/**
+ * O resolvedor, com o catálogo como argumento.
+ *
+ * ── PORQUE É QUE ISTO É PÚBLICO ──
+ * O `durationMin` está implementado e **nenhum evento do catálogo o usa** — todos
+ * declaram `0`. Um caminho de código sem utilizador é um caminho por testar, e
+ * um caminho por testar num motor de regras é onde o primeiro defeito vai
+ * nascer.
+ *
+ * A alternativa era dar uma duração a um evento só para o exercitar, o que seria
+ * mudar o produto para servir o teste. Esta função deixa o comportamento ser
+ * verificado com um catálogo próprio, sem tocar no catálogo real.
+ */
+export function resolveWorld(
+  eventos: readonly WorldEventDef[],
   entrada: WorldContext | Record<string, any> | null,
   now: Date = new Date(),
 ): WorldState {
@@ -45,8 +75,9 @@ export function readWorld(
   const ativos: ActiveWorldEvent[] = [];
   const rejected: { id: string; reason: string }[] = [];
   const cooldownIgnorado: string[] = [];
+  const aSustentar: string[] = [];
 
-  for (const def of WORLD_EVENTS) {
+  for (const def of eventos) {
     let prova = null;
     try {
       prova = def.trigger(ctx, now);
@@ -58,7 +89,23 @@ export function readWorld(
       rejected.push({ id: def.id, reason: 'a regra rebentou: ' + ((e as Error)?.message ?? String(e)) });
       continue;
     }
-    if (!prova) { rejected.push({ id: def.id, reason: 'sem prova neste instante' }); continue; }
+    if (!prova) {
+      /* DURAÇÃO. A regra deixou de ser verdade — mas se o evento declarou uma
+         janela e entrou dentro dela, fica de pé. Reapresenta a prova COM QUE
+         ENTROU, e não uma nova: um facto que continua no ecrã tem de continuar
+         a dizer de onde veio. */
+      const antes = def.durationMin ? ctx.memory?.[def.id] : undefined;
+      if (antes && antes.source && antes.fact && antes.date) {
+        const min = (now.getTime() - Date.parse(antes.at)) / 60000;
+        if (Number.isFinite(min) && min < def.durationMin!) {
+          aSustentar.push(def.id);
+          ativos.push({ def, evidence: { source: antes.source, fact: antes.fact, date: antes.date } });
+          continue;
+        }
+      }
+      rejected.push({ id: def.id, reason: 'sem prova neste instante' });
+      continue;
+    }
     /* A prova tem de ter as três partes. Uma prova incompleta é pior do que
        nenhuma: dá autoridade a um facto que não se consegue verificar. */
     if (!prova.source || !prova.fact || !prova.date) {
@@ -73,10 +120,17 @@ export function readWorld(
       if (!ultima) {
         cooldownIgnorado.push(def.id);
       } else {
-        const horas = (now.getTime() - Date.parse(ultima)) / 3600e3;
-        if (Number.isFinite(horas) && horas < def.cooldownH) {
-          rejected.push({ id: def.id, reason: `tem prova, mas entrou há ${horas.toFixed(1)} h e o cooldown é de ${def.cooldownH} h` });
-          continue;
+        const min = (now.getTime() - Date.parse(ultima)) / 60000;
+        /* CONTINUAR não é REPETIR. Um evento visto há menos de
+           `CONTINUIDADE_MIN` é o mesmo episódio a decorrer — passa sem sequer
+           consultar o cooldown. Sem esta linha, um estado verdadeiro o dia
+           inteiro aparecia cinco minutos e escondia-se vinte horas. */
+        if (Number.isFinite(min) && min >= CONTINUIDADE_MIN) {
+          const horas = min / 60;
+          if (horas < def.cooldownH) {
+            rejected.push({ id: def.id, reason: `tem prova, mas saiu há ${horas.toFixed(1)} h e só pode voltar ao fim de ${def.cooldownH} h` });
+            continue;
+          }
         }
       }
     }
@@ -98,6 +152,7 @@ export function readWorld(
     dominant: ativos[0] ?? null,
     rejected,
     cooldownIgnorado,
+    aSustentar,
   };
 }
 

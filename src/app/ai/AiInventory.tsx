@@ -36,6 +36,7 @@ import { useState } from 'react';
 import { useStore } from '../../store/useStore.js';
 import { readAi, explainAi } from './ai-read';
 import type { AiRiskLevel, HumanOversight } from './aiModel';
+import { porRegistar } from './ai-self';
 import './ai-inventory.css';
 
 const RISCOS: { v: AiRiskLevel; l: string }[] = [
@@ -69,6 +70,10 @@ export default function AiInventory() {
 
   const inv = readAi(S);
   const linhas = explainAi(inv);
+  /* O que o Sistema consegue provar de si próprio e ainda não está registado.
+     Ver `ai-self.ts`: são propostas com origem no código, nunca registos
+     automáticos. */
+  const sugestoes = porRegistar(inv.uses);
 
   function registar() {
     if (!nome.trim()) return;
@@ -176,6 +181,41 @@ export default function AiInventory() {
               ))}
             </ul>
           )}
+        </div>
+      )}
+
+      {sugestoes.length > 0 && (
+        <div className="ai-sug">
+          <p className="ai-sug-t">
+            O Sistema usa IA em {sugestoes.length} {sugestoes.length === 1 ? 'sítio' : 'sítios'} que
+            consegue provar do próprio código. Não os regista sozinho — um inventário que
+            se preenche a si mesmo é uma lista que ninguém leu.
+          </p>
+          <ul className="ai-sug-lista">
+            {sugestoes.map((s) => (
+              <li key={s.name}>
+                <div className="ai-sug-cab">
+                  <b>{s.name}</b>
+                  {s.personalData === true && <span className="ai-sug-dp">dados pessoais</span>}
+                  <button
+                    type="button"
+                    className="mini"
+                    onClick={() => addAiUse({
+                      name: s.name, purpose: s.purpose, provider: s.provider,
+                      data: s.data as string[], personalData: s.personalData,
+                      oversight: s.oversight, evidence: s.origem,
+                    })}
+                  >
+                    registar
+                  </button>
+                </div>
+                <p className="ai-sug-fim">{s.purpose}</p>
+                {/* A origem é a prova. Sem ela isto seria o Sistema a afirmar
+                    coisas sobre si próprio sem as poder demonstrar. */}
+                <p className="ai-sug-org">{s.origem}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

@@ -97,3 +97,24 @@
   /* Em coluna estreita as ações empilham em vez de espremer os `select`. */
   .ai-inv .ai-retirar { margin-left: 0; }
 }
+
+/* ── O QUE O SISTEMA SABE DE SI ────────────────────────────────────────
+ * Material distinto do inventário: isto ainda NÃO é um registo. Sem filete de
+ * risco, sem selects, sem data — porque nada disto existe até alguém registar.
+ * Se parecesse um item do inventário, dava a entender que já lá estava.
+ */
+.ai-inv .ai-sug { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 11px; }
+.ai-inv .ai-sug-t { margin: 0 0 9px; font-size: 11.5px; color: var(--mut); line-height: 1.5; }
+.ai-inv .ai-sug-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.ai-inv .ai-sug-lista li { padding-left: 9px; border-left: 1px dashed var(--line); }
+/* Tracejado e não sólido: a borda diz "proposta", o filete sólido diz
+   "registado". A diferença tem de se ver sem se ler. */
+.ai-inv .ai-sug-cab { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.ai-inv .ai-sug-cab b { font-size: 12.5px; }
+.ai-inv .ai-sug-cab .mini { margin-left: auto; }
+.ai-inv .ai-sug-dp {
+  font-family: var(--mono); font-size: 10px; color: #fb923c;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.ai-inv .ai-sug-fim { margin: 2px 0 0; font-size: 11.5px; color: var(--mut); }
+.ai-inv .ai-sug-org { margin: 2px 0 0; font-family: var(--mono); font-size: 10px; color: var(--mut2); }

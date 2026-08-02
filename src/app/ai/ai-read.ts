@@ -72,6 +72,27 @@ export function readAi(S: Record<string, any> | null): AiInventory {
     );
   }
 
+  /* ── TRÊS ESTADOS, E NÃO DOIS ─────────────────────────────────────────
+   * Defeito meu, apanhado a olhar para o painel: ao pôr `S.aiUses = []` como
+   * valor por omissão no `normalize.js`, tornei o caso "chave ausente"
+   * praticamente impossível — e o inventário **vazio** passou a receber a
+   * mensagem de *"chegaram registos e foram todos recusados"*.
+   *
+   * É exactamente a distinção que este ficheiro existe para fazer, e que eu
+   * tinha escrito no comentário acima: **um inventário vazio e um inventário
+   * inexistente não são a mesma coisa.** E "chegou lixo" é um terceiro caso,
+   * que não é nenhum dos dois.
+   *
+   * O ramo de cima continua a existir para estado corrompido ou de outra
+   * origem, onde a chave pode mesmo faltar. */
+  if (!cru.length) {
+    return vazio(
+      'Nenhuma utilização de IA registada ainda. Catorze dos dezoito eventos '
+      + 'desta missão dependem disto — sem saber que IA é usada, não há risco a '
+      + 'rever nem supervisão a verificar.',
+    );
+  }
+
   const uses = (cru as any[]).map(normaliza).filter((u): u is AiUse => !!u);
   if (!uses.length) {
     return vazio('Chegaram registos, mas nenhum tinha id, nome e data de entrada.');

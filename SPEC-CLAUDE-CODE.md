@@ -4242,6 +4242,73 @@ A causa foi `sleep` fixo depois de um build de 30 s ter deixado o servidor de
 desenvolvimento a recompilar. **Um teste com esperas fixas mente quando a
 máquina está lenta** — e mente na direção mais cara, que é inventar defeitos.
 Passou a esperar por condições: o botão existe, a shell monta, o painel aparece.
+### Fase 3b — o Sistema inventaria-se a si próprio (CONCLUÍDA 2026-08-02)
+
+**Um inventário de IA que não se inventaria a si próprio seria a primeira coisa
+a falhar numa auditoria.** E o Sistema usa IA em seis sítios que estão escritos
+no seu próprio código — não é opinião, é leitura de ficheiro.
+
+Pedir ao Operador que escreva à mão aquilo que o produto já sabe de si é o mesmo
+erro que a Missão 31 nomeia noutro contexto: *nenhum profissional deve trabalhar
+para alimentar a IA*.
+
+#### São propostas, não registos
+
+Nada entra sozinho. Aparece como sugestão, **com a origem à frente**, e é o
+Operador que regista — porque um inventário que se preenche a si mesmo não é um
+inventário: é uma lista que ninguém leu.
+
+E entram **sem avaliação de risco**, como qualquer outro registo. O Sistema sabe
+o que faz; **não sabe se isso é aceitável** — isso é julgamento, e o julgamento
+é de quem audita.
+
+| uso | dados pessoais | quem verifica | origem |
+|---|---|---|---|
+| Oráculo · Conselho | **sim** | depois | `mode=chat` |
+| Oráculo · Relatório semanal | **sim** | depois | `mode=report` + `vaultContextDeep` |
+| Oráculo · Radar | não | depois | `mode=radar` + `web_search` |
+| Oráculo · Vigia de Estágios | não | depois | 2.ª pesquisa da corrida |
+| Oráculo · Sussurro | **sim** | depois | `mode=sussurro` |
+| Claude Code | não | **antes** | `CLAUDE.md` · propor antes de alterar |
+
+O Claude Code é o único da lista com aprovação **antes** do efeito. Não é
+elogio: é o que a regra de ouro do projeto impõe, e por isso é verificável.
+
+A borda das sugestões é **tracejada**; a dos registos é sólida. A diferença
+entre proposta e registo tem de se ver sem se ler.
+
+#### O defeito que criei ao adicionar o valor por omissão
+
+Ao pôr `S.aiUses = []` no `normalize.js`, tornei o caso "chave ausente"
+praticamente impossível — e o inventário **vazio** passou a receber a mensagem
+de *"chegaram registos e foram todos recusados"*.
+
+É exactamente a distinção que o read model existe para fazer, e que eu tinha
+escrito num comentário do mesmo ficheiro: **um inventário vazio e um inventário
+inexistente não são a mesma coisa.** Faltava um terceiro caso, que é "chegou
+lixo".
+
+Apanhado a olhar para o painel, não a correr testes — o cabeçalho dizia
+"chegaram registos" com o inventário a zero.
+
+| estado | frase |
+|---|---|
+| chave ausente | *"Não há inventário de IA…"* |
+| lista vazia | *"Nenhuma utilização de IA registada ainda…"* |
+| só registos inválidos | *"Chegaram registos, mas nenhum tinha id, nome e data…"* |
+
+#### Verificado
+
+- **6 sugestões**, todas com origem no código;
+- 3 marcadas como tocando dados pessoais;
+- registar uma entra com `por-avaliar`, **sem data**, supervisão `depois`,
+  `personalData: true` e a origem gravada como prova;
+- **deixa de ser sugerida** depois de registada — 6 → 5, e o inventário 0 → 1;
+- registar as seis dá `sugestoesRestantes: 0` e o resumo passa a
+  *"3 tocam dados pessoais e não têm avaliação datada"*;
+- o World Engine acende `ai-risk-overdue` com essa prova exacta;
+- os três estados de ausência são **três frases diferentes**;
+- zero erros de consola.
 ## Missão 30 — Migração Frontend Next Generation
 (SUPERADA / ABSORVIDA PELA MISSÃO 25 — 2026-07-25)
 

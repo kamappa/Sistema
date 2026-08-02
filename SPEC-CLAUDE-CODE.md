@@ -103,6 +103,33 @@ no Vanilla; não foi migrado para React).
 para o build React exige três passos manuais do Daniel e a sua decisão
 explícita. Enquanto não acontecer, o React não está em produção.
 
+### Atualização a 2026-08-02
+
+O cabeçalho desta secção diz 2026-07-25 e fica: é a data em que o estado de
+**produção** foi fixado, e produção não mudou. O que mudou na branch de
+trabalho:
+
+- **a Órbita Instrumental é a interface**, por decisão do Daniel. Sem
+  parâmetro abre a Órbita; `?hud=1` devolve o HUD anterior como retorno. O
+  `?shell=1` deixou de ser condição e continua a funcionar para não partir
+  links guardados;
+- **o manifesto não mudou e não tinha de mudar** — `start_url: /Sistema/` passa
+  a abrir a Órbita sozinho, e a app instalada acompanha;
+- **PWA verificado**: manifesto sem erros pelo parser do Chrome, service worker
+  ativo, e o Sistema **usa-se offline** — navegação entre zonas e escrita no
+  estado local, com a faixa a dizer "só neste dispositivo". O SW guarda a shell
+  e **nunca dados**: abre com código de ontem, nunca com dados de ontem;
+- **Missão 27 completa** — World Engine II com motor, cara, voz e memória;
+- **Missão 29 Fases 1–3b** — inventário de IA com leitor, escritor, painel e
+  auto-inventariação a partir do código;
+- **Missão 28 Fase 1** — contrato do pulso do Vault, à espera de uma alteração
+  autorizada à Edge Function;
+- **Missão 13** — ferramenta de qualidade da Vigia pronta, por correr com
+  sessão real;
+- **Missão 31** — visão registada, implementação não autorizada.
+
+**Produção continua a ser `main` com o Vanilla.** Nada acima está publicado.
+
 ## Missão 31 — Compliance Intelligence OS (VISÃO REGISTADA 2026-08-01)
 
 **ESTADO: VISÃO REGISTADA — IMPLEMENTAÇÃO NÃO AUTORIZADA.**
@@ -1614,6 +1641,11 @@ gravadas, alvos a 44px exatos. A identidade orbital fica no Núcleo.
 **Consolidação:** B1 e B2 removidas depois de passarem os gates. Uma shell só,
 atrás de `?shell=1`. Sem parâmetro — ou com valor inválido — o HUD atual
 permanece intacto; a troca do comportamento por omissão é um gate à parte.
+
+> **SUPERADO a 2026-08-02.** Esse gate fechou: a Órbita passou a ser o
+> comportamento por omissão e o HUD ficou atrás de `?hud=1`. O parágrafo acima
+> fica como registo do que valia nesta fase — ver "A ÓRBITA PASSA A SER O
+> SISTEMA".
 
 Corrigidos ainda: o rótulo `SISTEMA · FASE 1` que vazava para o ecrã de entrada
 (passa a `SISTEMA · ACESSO`) e o cabeçalho de zona que roçava o Núcleo no
@@ -3403,11 +3435,15 @@ inferior.
 Não se oferece o que não há: sem conta, a ação de sair não aparece — em vez de
 aparecer desativada a prometer algo que não existe.
 
-#### O que isto NÃO faz
+#### O que isto NÃO fez — e o que aconteceu a seguir
 
-Não troca a interface. O `?shell=1` continua a ser a condição, e o `start_url`
-do manifesto continua a apontar para o HUD. **Isto remove o bloqueio; a troca
-continua a ser decisão do Daniel** e é a mesma do gate de produção.
+Escrito antes da troca: *"não troca a interface; o `?shell=1` continua a ser a
+condição"*. Removia o bloqueio e deixava a decisão ao Daniel.
+
+**A decisão veio na mesma sessão:** *"não quero que shell seja a condição"*. A
+Órbita passou a ser o Sistema no commit seguinte. Este parágrafo fica corrigido
+em vez de apagado, porque a sequência importa — **as três ações tiveram de
+existir ANTES da troca**, e não depois.
 ### A ÓRBITA PASSA A SER O SISTEMA (2026-08-02)
 
 Decisão do Daniel, por palavras dele: *"não quero que shell seja a condição"*.

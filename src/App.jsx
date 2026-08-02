@@ -45,8 +45,12 @@ export default function App() {
         ) : !S ? (
           <AuthGate />
         ) : SHELL_ON ? (
-          // Órbita Instrumental (Missão 26), atrás de ?shell=1. Qualquer outro
-          // valor cai no HUD — sem erro, por desenho.
+          // A ÓRBITA INSTRUMENTAL É O SISTEMA (2026-08-02).
+          // Foi construída atrás de ?shell=1 durante toda a Missão 26, para a
+          // baseline ficar intacta enquanto se comparava. Passa a ser o
+          // comportamento por omissão; o HUD anterior fica atrás de ?hud=1
+          // como retorno, e nunca se veem os dois ao mesmo tempo.
+          // Ver useShellVariant.ts para o contrato inteiro.
           <Shell S={S} />
         ) : (
           <Hud />

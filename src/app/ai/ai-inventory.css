@@ -117,4 +117,11 @@
   text-transform: uppercase; letter-spacing: .05em;
 }
 .ai-inv .ai-sug-fim { margin: 2px 0 0; font-size: 11.5px; color: var(--mut); }
-.ai-inv .ai-sug-org { margin: 2px 0 0; font-family: var(--mono); font-size: 10px; color: var(--mut2); }
+/* A ORIGEM da prova. Estava a `--mut2` e dava 2.36:1 — medido na auditoria
+   das seis zonas, logo a seguir a eu a escrever. E o MESMO #4e4768 que ja
+   tinha falhado no ✕ de apagar, e voltei a usa-lo por habito no mesmo dia.
+
+   Aqui doi mais do que num icone: esta linha e a PROVA de onde o uso de IA
+   veio. Um inventario cuja prova nao se le e um inventario sem prova — e o
+   ficheiro inteiro existe para o contrario disso. */
+.ai-inv .ai-sug-org { margin: 2px 0 0; font-family: var(--mono); font-size: 10px; color: var(--mut); opacity: .85; }

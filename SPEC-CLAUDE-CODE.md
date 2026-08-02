@@ -3408,6 +3408,74 @@ aparecer desativada a prometer algo que não existe.
 Não troca a interface. O `?shell=1` continua a ser a condição, e o `start_url`
 do manifesto continua a apontar para o HUD. **Isto remove o bloqueio; a troca
 continua a ser decisão do Daniel** e é a mesma do gate de produção.
+### A ÓRBITA PASSA A SER O SISTEMA (2026-08-02)
+
+Decisão do Daniel, por palavras dele: *"não quero que shell seja a condição"*.
+
+**Contrato antigo** — HUD por omissão, Órbita atrás de `?shell=1`. Cumpriu o que
+tinha a cumprir: manteve a baseline intacta durante toda a Missão 26 e permitiu
+comparar as duas sem risco. Deixa de fazer sentido quando a shell **é** a
+interface.
+
+**Contrato novo:**
+
+| URL | abre |
+|---|---|
+| sem parâmetro | **Órbita** |
+| `?hud=1` | HUD anterior, como retorno |
+| `?shell=1` | Órbita — não parte links guardados |
+| qualquer outro | Órbita, sem erro |
+| `?shell=0` | **Órbita** |
+
+A última linha é deliberada: desligar a interface principal com um valor falsy
+de um parâmetro que **já não a governa** seria uma armadilha para quem tivesse
+esse link guardado de uma fase antiga.
+
+#### O HUD não foi apagado, e não é uma junção
+
+*"Preservar reversibilidade, fallbacks e rollback"* é regra de ouro do projeto —
+a mesma razão pela qual o Vanilla continua em `legacy/`.
+
+**Nunca se veem as duas ao mesmo tempo e nada foi misturado.** É um retorno. Um
+retorno que não se usa é barato; um retorno que falta no dia em que é preciso
+custa a sessão inteira. Se o HUD passar meses sem ser aberto, apaga-se — mas
+isso decide-se com essa evidência à frente.
+
+#### O manifesto não mudou, e não tinha de mudar
+
+O `start_url` é `/Sistema/`, sem parâmetro. Com a inversão, **essa mesma URL
+passa a abrir a Órbita** — a app instalada acompanha a decisão sem se lhe tocar.
+
+Era exactamente a objeção do Daniel quando recusou que eu lhe mexesse. A
+inversão resolve-a sozinha.
+
+#### O que teve de ser construído antes
+
+A troca esteve bloqueada por três ações que só existiam no rodapé do HUD —
+sair, exportar, reiniciar. Ver a secção própria. Trocar sem elas deixava o
+Operador sem forma de terminar sessão.
+
+#### Verificado contra o BUILD, não o dev server
+
+É o build que a app instalada serve. As cinco URLs comportam-se como acima, em
+desktop e em mobile, com seis zonas e as ações do Sistema presentes. Zero erros
+de consola.
+
+#### Um defeito meu, no mesmo dia e com a mesma cor
+
+A auditoria de contraste correu logo a seguir e o Radar saltou de 0 para **6
+falhas**. Era código meu: a linha de **origem da prova** das sugestões do
+inventário estava a `--mut2` e dava 2.36:1.
+
+**É o mesmo `#4e4768` que já tinha falhado no ✕ de apagar poucas horas antes**,
+e voltei a usá-lo por hábito.
+
+Aqui dói mais do que num ícone: essa linha é a prova de onde o uso de IA veio.
+**Um inventário cuja prova não se lê é um inventário sem prova** — e o ficheiro
+inteiro existe para o contrário disso.
+
+Corrigido. Radar de volta a zero; total 406 elementos, 21 falhas, todas as já
+conhecidas da linguagem de esbatimento.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

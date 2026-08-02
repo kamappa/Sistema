@@ -3530,10 +3530,10 @@ faltar qualquer um destes:
 | Pavimento Pélvico / Kegel | **FECHADO** |
 | Referências (50: 30 animadas + 20 estáticas) | **FECHADO** — zero pendentes |
 | Performance mobile | **FECHADO** com ressalvas medidas |
-| Validação do Oráculo | **PARCIAL** — o que precisa de sessão fica por fazer |
+| Validação do Oráculo | **FECHADA 2026-08-02** — o erro medido por mim, o sucesso relatado pelo Daniel |
 | Auditoria com dados reais | **FECHADA** — executada read-only; 3 defeitos, 1 da primeira lei |
 | Oráculo · ciclo até ao erro | **FECHADO** — cronologia medida; 4 defeitos corrigidos |
-| Oráculo · INSIGHT (resposta real) | **BLOQUEADO** — só isto precisa de saldo |
+| Oráculo · INSIGHT (resposta real) | **FECHADO 2026-08-02** — relatado pelo Daniel, não observado por mim |
 | Oráculo · cancelamento | **FECHADO** — implementado; era requisito da Constituição §24 e gate do doc 18 |
 
 O plano da auditoria está em
@@ -3541,13 +3541,36 @@ O plano da auditoria está em
 a abrir, o que observar, as ações proibidas, os riscos, a política de
 screenshots e a lista do que precisa de sanitização.
 
-**Sobra um gate, e não é de implementação:** LISTENING, THINKING até ao fim,
-RESEARCHING, INSIGHT e CONSELHO com resposta real **não são validáveis sem saldo
-de API**. O caminho de erro está validado e correto; o de sucesso está bloqueado
-por uma condição externa ao código.
+**Sobrava um gate, e não era de implementação:** LISTENING, THINKING até ao fim,
+RESEARCHING, INSIGHT e CONSELHO com resposta real não eram validáveis sem saldo
+de API. O caminho de erro estava validado e correto; o de sucesso estava
+bloqueado por uma condição externa ao código.
 
-**Enquanto esse gate não fechar, a classificação é A e não B** — e fechá-lo
-depende de repor saldo na conta que serve o Oráculo, não de escrever código.
+#### FECHADO a 2026-08-02
+
+O Daniel repôs saldo, fez a pergunta e reportou: **"respondeu direito"**.
+
+**Como sei isto, e é a parte que importa registar:** por relato dele. **Não
+observei a resposta.** O Oráculo exige sessão iniciada e eu não entro em contas
+— e um gate que se fecha por relato não é o mesmo que um gate fechado por
+medição. Ambos são válidos; confundi-los é que não.
+
+O que **eu** verifiquei, e está medido nas secções próprias: a cronologia do
+THINKING (127 ms a entrar, sem ficar preso), o botão a desativar durante a
+espera, o cancelamento por botão e por Escape, a devolução da quota, e as quatro
+mensagens de erro distintas. **O caminho de sucesso é dele.**
+
+#### A classificação
+
+Todos os gates da tabela estão fechados. **Isso não faz a missão aceite** — a
+formulação oficial, fixada pelo Daniel, distingue as duas coisas:
+
+> *"Universo — implementação concluída e documentada; aceitação global da Missão
+> 26 ainda pendente."*
+
+Fechar gates é o que eu podia fazer. **Aceitar é dele**, e é um ato à parte —
+com a interface a ser usada a sério, com dados reais, durante dias. A troca da
+Órbita para interface por omissão, a 2026-08-02, é o primeiro dia desse uso.
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 
 Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,

@@ -3337,6 +3337,77 @@ ou um calendário com outra forma em mobile, e as duas são decisões de desenho
 A célula é `<button>`, tem `aria-label` descritivo — *"1 de agosto, 1 evento"* —
 e `aria-pressed`. A semântica da Fase 6F está intacta; o defeito era só de
 largura.
+### As três ações que só existiam no HUD (2026-08-02)
+
+**Decisão do Daniel:** a Órbita passa a ser o Sistema. *"Não quero fazer junção
+das duas."*
+
+Antes de trocar, comparação painel a painel do que o HUD tinha e a Órbita não.
+Quase tudo estava coberto, e por decisão registada: o `RadarNews` foi
+substituído pelo `RadarField` na Fase 6E, o `Debuffs` pela Reflexão na Fase 8, o
+`Training` e o `Sleep` mudaram-se para o subespaço Corpo na Fase 7.
+
+**Três coisas não tinham casa nenhuma:** sair da conta, exportar o estado e
+reiniciar o Sistema. Viviam no rodapé do HUD e mais lado nenhum.
+
+Trocar sem isto deixava o Operador **sem forma de terminar sessão** — o que não
+é falta de conveniência, é perder o controlo sobre a própria conta.
+
+#### Três tentativas de sítio, e as duas primeiras falharam por medição
+
+**1 · Faixa de sincronização, canto inferior direito.** O botão aparecia com
+tamanho e contraste certos — e **o clique real ia parar ao painel do Oráculo**.
+`elementFromPoint` disse quem recebia: `.sys-oracle-body`.
+
+**2 · `z-index` no botão.** Não fez nada. A razão vale a pena guardar: o
+`.sys-sync-slot` tem `position` e `z-index`, portanto **cria um contexto de
+empilhamento** — e **um filho nunca sobe acima do contexto do pai**, por mais
+alto que declare.
+
+**3 · Órbita.** É o sítio certo por razão e não por desenrasque: é onde o
+Sistema já fala de si próprio — o Núcleo, o rank, as zonas. A faixa de baixo
+pertence ao Oráculo, e disputar-lhe pixéis era o erro de partida.
+
+#### O defeito só apareceu com um rato a sério
+
+Um `.click()` por script **ignora a árvore de hit-testing** e teria passado nas
+três tentativas. Só `Input.dispatchMouseEvent` o apanhou.
+
+**Visível e não clicável é a pior forma de um controlo estar partido:** parece
+lá e não está. É a segunda vez nesta missão que um clique programático esconde
+um defeito — a primeira foi o foco perdido no cancelamento do Oráculo.
+
+#### E um quarto erro, de direção
+
+O menu abria **para cima**, herdado de quando estava na faixa inferior. Com a
+órbita no topo, nascia a `y = -56` — fora da janela. Medido, não visto:
+`dentroDoEcra: false`.
+
+**Um menu que abre para fora do ecrã é indistinguível de um menu que não abre.**
+
+Agora abre para baixo em desktop e para cima em mobile, onde a órbita é a faixa
+inferior.
+
+#### Verificado
+
+| medida | desktop | mobile |
+|---|---|---|
+| o clique chega ao botão | **sim** | sim |
+| menu dentro do ecrã | **sim** | **sim** |
+| alvos das ações | 158×26 | **158×36** |
+| contraste | 5.94 : 1 | **7.23 : 1** |
+| exportar produz ficheiro | `application/json`, 11.1 KB | idem |
+| sem sessão | **não oferece "terminar sessão"** | idem |
+| erros de consola | zero | zero |
+
+Não se oferece o que não há: sem conta, a ação de sair não aparece — em vez de
+aparecer desativada a prometer algo que não existe.
+
+#### O que isto NÃO faz
+
+Não troca a interface. O `?shell=1` continua a ser a condição, e o `start_url`
+do manifesto continua a apontar para o HUD. **Isto remove o bloqueio; a troca
+continua a ser decisão do Daniel** e é a mesma do gate de produção.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

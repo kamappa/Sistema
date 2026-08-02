@@ -15,6 +15,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import SystemActions from '../SystemActions';
 import type { Zone, ZoneId } from '../zones';
 import { rankOf, overallLevel } from '../../state/config.js';
 import { useStore } from '../../store/useStore.js';
@@ -116,6 +117,15 @@ export default function OrbitNav({ zones, active, onSelect, S }: Props) {
           );
         })}
       </ul>
+      {/* AS ACOES DO SISTEMA vivem AQUI e nao na faixa de sincronizacao.
+          Tentei primeiro no canto inferior direito e o clique real ia parar ao
+          painel do Oraculo — que ocupa a faixa inteira e esta num contexto de
+          empilhamento mais alto. Duas correcoes de z-index falharam, e a
+          segunda ensinou porque: um filho nunca sobe acima do contexto do pai.
+          A orbita e o sitio certo por razao e nao por desenrasque — e onde o
+          Sistema ja fala de si proprio (o Nucleo, o rank, as zonas), enquanto a
+          faixa de baixo pertence ao Oraculo. */}
+      <SystemActions />
     </nav>
   );
 }

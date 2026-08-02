@@ -3286,6 +3286,57 @@ código sem comentário nenhum.
 
 `flex-wrap` na linha e `flex: 0 0 100%` no parágrafo põem-no na sua própria
 linha, que é onde ele sempre devia ter estado.
+### Células do calendário em mobile (CONCLUÍDO 2026-08-01)
+
+Último item medível da lista "Por fazer" da Missão 26. E havia defeito.
+
+#### As sete colunas não eram sete colunas
+
+Medido a 390px, o `grid-template-columns` resolvido:
+
+```
+23px  145px  23px  23px  23px  …
+```
+
+Em vez de sete iguais de ~42px. **A armadilha clássica do `1fr`:** o mínimo
+dele é `min-content`, e a célula que contém o título de um evento recusa
+encolher — fica com 145px e espreme as outras seis para 23.
+
+Duas consequências, e as duas contam:
+
+- **23px está abaixo do mínimo de 24×24 da WCAG 2.5.8** para alvos. As células
+  são `<button>`, portanto é um alvo a sério e não decoração;
+- um calendário com colunas de larguras diferentes **deixa de se ler como
+  calendário** — a grelha é a informação.
+
+#### A correção
+
+`minmax(0, 1fr)` diz que o mínimo é **zero** e não o conteúdo. O título passa a
+caber por truncagem em vez de empurrar a grelha, e `text-overflow: ellipsis`
+evita que ele fique meio-desenhado contra a borda.
+
+| largura | antes | depois | larguras distintas |
+|---|---|---|---|
+| 390px | **23px** | **42px** | 3 → **1** |
+| 360px | — | 37.7px | 1 |
+| 320px | — | 32px | 1 |
+
+Zero transbordos nas três larguras.
+
+#### O que passa e o que não passa, dito com precisão
+
+**Passa** o critério AA de tamanho de alvo (2.5.8, 24×24) nas três larguras.
+
+**Não passa** os 44×44 do guia de conforto de toque — e isso é **geometria, não
+escolha**: sete células de 44px mais seis intervalos de 4px dão 332px, e o
+painel tem 318px a 390. Não cabe. Resolver exigiria scroll horizontal na grelha
+ou um calendário com outra forma em mobile, e as duas são decisões de desenho.
+
+#### O que já estava bem
+
+A célula é `<button>`, tem `aria-label` descritivo — *"1 de agosto, 1 evento"* —
+e `aria-pressed`. A semântica da Fase 6F está intacta; o defeito era só de
+largura.
 ### Fase 7Z · Estado de aceitação da Missão 26 (2026-07-30)
 
 ╔══════════════════════════════════════════════════════════════════════════╗

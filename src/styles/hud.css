@@ -292,7 +292,20 @@
   .cal-title{font-family:var(--disp);font-weight:600;font-size:16px;letter-spacing:.03em}
   .cal-nav{background:none;border:1px solid var(--line);color:var(--sky);font-size:16px;width:30px;height:30px;cursor:pointer;transition:.15s}
   .cal-nav:hover{border-color:var(--sky);background:rgba(167,139,250,.08)}
-  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  /* ── SETE COLUNAS IGUAIS, E `1fr` NÃO CHEGAVA ─────────────────────────
+     Medido a 390px: as colunas saíam `23px 145px 23px 23px 23px…` em vez de
+     sete iguais de ~42px. A causa é a armadilha classica do `1fr`: o mínimo
+     dele é `min-content`, e uma célula com o título de um evento longo recusa
+     encolher — fica com 145px e espreme as outras seis para 23.
+     23px está abaixo do mínimo de 24x24 da WCAG 2.5.8 para alvos, e um
+     calendário com colunas de larguras diferentes deixa de se ler como
+     calendário.
+     `minmax(0,1fr)` diz que o mínimo é ZERO e não o conteúdo. O título passa a
+     caber por truncagem em vez de empurrar a grelha. */
+  .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+  /* Sem isto o título continua a existir com a largura toda e a ser cortado
+     pelo `overflow` da célula, o que dá texto meio-desenhado na borda. */
+  .cal-ev{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
   .cal-wd{font-family:var(--mono);font-size:10px;color:var(--mut2);text-align:center;padding:4px 0;text-transform:uppercase}
   .cal-cell{min-height:44px;border:1px solid var(--line);padding:4px;display:flex;flex-direction:column;gap:3px;
     clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,5px 100%,0 calc(100% - 5px))}

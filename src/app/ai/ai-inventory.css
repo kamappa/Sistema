@@ -1,0 +1,99 @@
+/* INVENTÁRIO DE IA — folha.
+ * Missão 29 · Fase 3.
+ *
+ * Sem cor nova: o painel usa os tokens que já existem. Um domínio novo que
+ * chega com paleta própria transforma o produto numa colagem, e a direção
+ * proíbe-o por nome.
+ *
+ * O risco NÃO é comunicado só por cor — é a gramática 15 do projeto, e aqui é
+ * literal: quem não distingue vermelho de laranja continua a ler a palavra. A
+ * cor reforça; o texto informa.
+ */
+
+.ai-inv .ai-resumo { margin: 0 0 12px; }
+.ai-inv .ai-r1 { margin: 0 0 4px; font-size: 13px; color: var(--ink); }
+/* As linhas de dívida herdam o peso da primeira mas não competem com ela. */
+.ai-inv .ai-rn { margin: 0 0 2px; font-size: 12px; color: var(--mut); line-height: 1.45; }
+
+.ai-inv .ai-lista { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+
+.ai-inv .ai-item {
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  padding: 9px 11px;
+}
+/* O filete lateral diz o risco. É a mesma gramática do prazo no calendário —
+   filete lateral = urgência —, e reusá-la é o que evita inventar um vocabulário
+   novo para dizer a mesma coisa. */
+.ai-inv .ai-item[data-risco='por-avaliar'] { border-left-color: var(--mut2); }
+.ai-inv .ai-item[data-risco='baixo']       { border-left-color: #34d399; }
+.ai-inv .ai-item[data-risco='medio']       { border-left-color: #fb923c; }
+.ai-inv .ai-item[data-risco='alto']        { border-left-color: #ef4444; }
+
+.ai-inv .ai-cab { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.ai-inv .ai-nome { font-size: 13px; }
+.ai-inv .ai-quem { font-family: var(--mono); font-size: 11px; color: var(--mut); }
+.ai-inv .ai-risco {
+  margin-left: auto; font-family: var(--mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--mut);
+}
+.ai-inv .ai-fim { margin: 3px 0 0; font-size: 12px; color: var(--mut); }
+
+/* O alerta é texto, não um ícone. Um triângulo amarelo diz "algo"; esta linha
+   diz o quê. */
+.ai-inv .ai-alerta {
+  margin: 6px 0 0; font-size: 11.5px; line-height: 1.4;
+  color: #fb923c;
+}
+
+.ai-inv .ai-accoes { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.ai-inv .ai-lbl { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--mut); }
+.ai-inv .ai-lbl select {
+  background: var(--bg2); border: 1px solid var(--line); color: var(--ink);
+  font-family: var(--body); font-size: 11.5px; padding: 3px 6px; outline: none;
+  /* 24px é o mínimo de alvo da WCAG 2.5.8, e um `select` de 18px passava
+     despercebido até alguém tentar tocar-lhe num telemóvel. */
+  min-height: 26px;
+}
+.ai-inv .ai-lbl select:focus-visible { border-color: #a78bfa; }
+@media (pointer: coarse) { .ai-inv .ai-lbl select { min-height: 32px; } }
+
+.ai-inv .ai-retirar { margin-left: auto; }
+
+.ai-inv .ai-meta {
+  margin: 7px 0 0; font-family: var(--mono); font-size: 10.5px; color: var(--mut);
+}
+
+/* O histórico usa `aria-disabled`, e por isso a WCAG isenta-o de contraste — mas
+   a isenção só vale porque o atributo lá está. Ver a correção das conquistas. */
+.ai-inv .ai-lista-off { margin-top: 8px; opacity: .55; }
+
+.ai-inv .ai-hist { margin-bottom: 12px; }
+
+.ai-inv .ai-form { display: grid; gap: 8px; margin-top: 10px; }
+.ai-inv .ai-campo { display: grid; gap: 3px; font-size: 11px; color: var(--mut); }
+.ai-inv .ai-campo input {
+  background: var(--bg2); border: 1px solid var(--line); color: var(--ink);
+  font-family: var(--body); font-size: 13px; padding: 8px 10px; outline: none;
+  /* `min-width: 0` porque o campo vive numa grelha e sem isto o conteúdo
+     impede-o de encolher — é exactamente o defeito que colapsou o campo do
+     Oráculo a 24px. */
+  min-width: 0;
+}
+.ai-inv .ai-campo input:focus { border-color: #a78bfa; }
+
+.ai-inv .ai-radio {
+  border: 1px solid var(--line); padding: 7px 10px; margin: 0;
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+}
+.ai-inv .ai-radio legend { font-size: 11px; color: var(--mut); padding: 0 4px; }
+.ai-inv .ai-radio label { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+
+.ai-inv .ai-form-accoes { display: flex; gap: 8px; align-items: center; }
+.ai-inv .ai-nota { margin: 2px 0 0; font-size: 11px; color: var(--mut); line-height: 1.45; }
+.ai-inv .ai-novo { margin-top: 4px; }
+
+@media (max-width: 720px) {
+  /* Em coluna estreita as ações empilham em vez de espremer os `select`. */
+  .ai-inv .ai-retirar { margin-left: 0; }
+}

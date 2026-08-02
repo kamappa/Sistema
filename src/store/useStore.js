@@ -623,6 +623,87 @@ export const useStore = create((set, get) => ({
     return {};
   },
 
+  // ===== INVENTÁRIO DE IA (Missão 29) =====
+  //
+  // O leitor existia desde a Fase 1 e não havia escritor. Um read model sem
+  // quem lhe escreva é um modelo de dados que nunca vai ter dados — e catorze
+  // dos dezoito eventos da missão esperam por estes.
+  //
+  // ISTO VIVE NO `app_state`, ao contrário da memória do mundo, e a distinção
+  // é a mesma de sempre: a memória do mundo é apresentação (quando a shell
+  // mostrou o quê) e perde-se sem consequência. Um inventário de IA é
+  // **evidência de uma prática** — é o registo que se mostra a quem pergunta
+  // "que IA usam e quem verifica". Perde-lo é perder trabalho.
+
+  // addAiUse — um registo por USO, não por ferramenta. O mesmo modelo a
+  // escrever código e a ler documentos são dois riscos diferentes.
+  addAiUse: ({ name, purpose, provider, data, personalData, oversight, risk, evidence }) => {
+    const S = get().S;
+    const n = (name || '').trim();
+    if (!n) return { error: 'sem-nome' };
+    const id = 'ai' + Date.now().toString(36);
+    S.aiUses = Array.isArray(S.aiUses) ? S.aiUses : [];
+    S.aiUses.push({
+      id, name: n,
+      purpose: (purpose || '').trim(),
+      provider: (provider || '').trim(),
+      data: Array.isArray(data) ? data : (data || '').split(',').map((x) => x.trim()).filter(Boolean),
+      // `null` é uma resposta legítima e distinta de `false`. Um "não sei"
+      // forçado a "não" é o Sistema a inventar tranquilidade.
+      personalData: personalData === true ? true : personalData === false ? false : null,
+      oversight: oversight || 'por-definir',
+      risk: risk || 'por-avaliar',
+      // NÃO se grava `riskAssessedAt` aqui de propósito: registar um uso não é
+      // avaliá-lo. Um risco com data no momento da entrada seria uma avaliação
+      // que ninguém fez.
+      ...(evidence && evidence.trim() ? { evidence: evidence.trim() } : {}),
+      addedAt: today(),
+      active: true,
+    });
+    set({ S: { ...S } }); get().save();
+    fx('toast', 'Registado no inventário', n + ' — falta avaliar o risco', '#f472b6');
+    return { id };
+  },
+
+  // assessAiRisk — a avaliação é um ato SEPARADO do registo, e é o que põe a
+  // data. Sem data não há avaliação: é a regra do read model, e o escritor tem
+  // de a respeitar ou o leitor passa a mentir.
+  assessAiRisk: (id, risk, evidence) => {
+    const S = get().S;
+    const u = (S.aiUses || []).find((x) => x.id === id);
+    if (!u) return { error: 'nao-existe' };
+    u.risk = risk;
+    u.riskAssessedAt = today();
+    if (evidence && evidence.trim()) u.evidence = evidence.trim();
+    set({ S: { ...S } }); get().save();
+    fx('toast', 'Risco avaliado', u.name + ' — risco ' + risk, '#f472b6');
+    return {};
+  },
+
+  // setAiOversight — quem verifica. É o campo mais importante do inventário:
+  // quase toda a governação de IA se reduz a "quem verifica, e antes ou depois
+  // de fazer efeito".
+  setAiOversight: (id, oversight) => {
+    const S = get().S;
+    const u = (S.aiUses || []).find((x) => x.id === id);
+    if (!u) return { error: 'nao-existe' };
+    u.oversight = oversight;
+    set({ S: { ...S } }); get().save();
+    return {};
+  },
+
+  // retireAiUse — NÃO apaga. "Já não usamos" é uma resposta de auditoria, e
+  // apagar o registo destruiria a única prova de que alguma vez existiu.
+  retireAiUse: (id) => {
+    const S = get().S;
+    const u = (S.aiUses || []).find((x) => x.id === id);
+    if (!u) return { error: 'nao-existe' };
+    u.active = false;
+    u.retiredAt = today();
+    set({ S: { ...S } }); get().save();
+    fx('toast', 'Descontinuado', u.name + ' — fica no histórico', '#8d86a8');
+    return {};
+  },
   // acceptOracleMission — porto de radar.js:74-80 (tag 🔮 Do Oráculo).
   acceptOracleMission: (i) => {
     const S = get().S; const r = get().report && get().report.report; if (!r || !r.missoes_propostas || !r.missoes_propostas[i]) return;

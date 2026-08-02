@@ -44,6 +44,7 @@ import { ReflectionNow, ReflectionPatterns, ReflectionMemory } from './reflectio
 import BodySpace from './body/BodySpace';
 import Universe from './universe/Universe';
 import RadarField from './radar/RadarField';
+import AiInventory from './ai/AiInventory';
 
 /* O `DeadlineBanner` saiu do registo na Fase 5 e o componente NÃO foi apagado.
  *
@@ -157,7 +158,12 @@ export const ZONES: Zone[] = [
     name: 'Radar',
     purpose: 'Sinais, oportunidades e o mundo filtrado para ti.',
     density: 'instrument',
-    groups: [{ id: 'sinais', weight: 'full', panels: [RadarField] }],
+    // M29·F3 — o inventário de IA vive no Radar e não em Operações.
+    // Operações é o que o Daniel FAZ; o Radar é o que existe e o afeta. Um
+    // inventário de IA é a segunda metade da pergunta que o Radar levanta:
+    // ele traz sinais de IA e governação, e isto responde "e o que é que eu
+    // uso, afinal". Separá-los punha a pergunta numa zona e a resposta noutra.
+    groups: [{ id: 'sinais', weight: 'full', panels: [RadarField, AiInventory] }],
   },
   {
     id: 'operations',

@@ -4164,6 +4164,84 @@ Um defeito meu apanhado a rever a saída: `explainAi` dizia *"1 tocam dados
 pessoais"*. O Sistema já tinha corrigido *"1 dias"* no sigilo do Operador, e
 repetir o descuido numa frase escrita para quem audita seria pior do que da
 primeira vez.
+### Fase 3 — o inventário passa a ter escritor (CONCLUÍDA 2026-08-02)
+
+A Fase 1 construiu o read model e **não havia por onde escrever**. Um modelo de
+dados sem quem lhe escreva é um modelo que nunca vai ter dados — e catorze dos
+dezoito eventos da missão esperavam por estes.
+
+#### Onde vive, e a distinção que já se tinha feito uma vez
+
+No **`app_state`**, ao contrário da memória do mundo (M27·F3) que ficou em
+`localStorage`. A regra é a mesma dos dois lados:
+
+- a memória do mundo é **apresentação** — quando a shell mostrou o quê — e
+  perde-se sem consequência;
+- um inventário de IA é **evidência de uma prática**. É o registo que se mostra
+  a quem pergunta *"que IA usam e quem verifica"*. Perdê-lo é perder trabalho.
+
+Chave aditiva no `normalize.js`: um estado antigo recebe lista vazia e continua
+a funcionar. Não há migração porque não há forma antiga desta chave.
+
+#### Registar não é avaliar, e o escritor respeita-o
+
+O `addAiUse` **não grava `riskAssessedAt`**. Registar um uso não é avaliá-lo, e
+uma data no momento da entrada seria uma avaliação que ninguém fez.
+
+A avaliação é um ato separado (`assessAiRisk`) e é o que põe a data — que é a
+regra do read model. **Se o escritor não a respeitasse, o leitor passava a
+mentir.**
+
+`retireAiUse` marca `active: false` e grava `retiredAt`. **Não apaga:** "já não
+usamos" é uma resposta de auditoria.
+
+#### Porque é que o painel vive no Radar e não em Operações
+
+Operações é o que o Daniel **faz**; o Radar é o que **existe e o afeta**.
+
+O inventário é a segunda metade da pergunta que o Radar levanta: ele traz sinais
+de IA e de governação, e isto responde *"e o que é que eu uso, afinal"*.
+Separá-los punha a pergunta numa zona e a resposta noutra.
+
+#### A dívida vem primeiro, e é o que o distingue de um formulário
+
+O painel abre com o resumo, não com a lista. Um inventário que abre com trinta
+linhas iguais é um arquivo; um que abre com *"1 toca dados pessoais e não tem
+avaliação datada"* é um instrumento.
+
+O risco é dito por **filete lateral e por palavra** — a mesma gramática do prazo
+no calendário, reusada em vez de inventada. Quem não distingue vermelho de
+laranja continua a ler "alto".
+
+**"Não sei" é uma opção a sério** no formulário. Forçar sim/não sobre dados
+pessoais produz respostas erradas, e uma resposta errada aí muda o tratamento
+todo. Verificado: fica `null`, e não `false`.
+
+#### Verificado, o ciclo inteiro pela UI
+
+| passo | resultado |
+|---|---|
+| vazio | ausência declarada, com de quem é a lacuna |
+| registar pela UI | entra com `por-avaliar`, `por-definir`, `personalData: null` |
+| registo ≠ avaliação | **sem `riskAssessedAt`** |
+| avaliar pela UI | `alto` + data de hoje |
+| o mundo reage | `ai-risk-overdue` acende com *"1 a tocar dados pessoais sem avaliação"*; não acende sem dívida |
+| descontinuar | 1 no estado, `active: false`, `retiredAt` gravado |
+| recarregar | registo completo persiste |
+| contraste com o painel novo | **378 elementos, as mesmas 21 falhas — zero novas** |
+| mobile | shell e painel montam; ciclo completo |
+| erros de consola | zero |
+
+#### Um erro meu no método
+
+A primeira corrida do teste reportou **oito passos falhados**. Não havia defeito
+nenhum: o clique em "Continuar offline" correu antes de o botão existir, a app
+ficou no ecrã de entrada, e tudo o que veio a seguir mediu um ecrã vazio.
+
+A causa foi `sleep` fixo depois de um build de 30 s ter deixado o servidor de
+desenvolvimento a recompilar. **Um teste com esperas fixas mente quando a
+máquina está lenta** — e mente na direção mais cara, que é inventar defeitos.
+Passou a esperar por condições: o botão existe, a shell monta, o painel aparece.
 ## Missão 30 — Migração Frontend Next Generation
 (SUPERADA / ABSORVIDA PELA MISSÃO 25 — 2026-07-25)
 

@@ -20,6 +20,11 @@ export function normalize(S) {
   S.sleep = S.sleep || { bedT: '23:30', wakeT: '07:30', logs: [] }; S.sleep.logs = S.sleep.logs || [];
   S.objectives = S.objectives || []; S.shadows = S.shadows || []; S.oracle = S.oracle || { reports: [] }; S.radarAccepted = S.radarAccepted || {};
   S.oracleChat = S.oracleChat || { d: null, count: 0 }; S.sussurro = S.sussurro || null; S.antidote = S.antidote || {};
+  /* INVENTARIO DE IA (M29). Chave nova e ADITIVA: um estado antigo sem ela
+     recebe uma lista vazia e continua a funcionar. Nao ha migracao a fazer
+     porque nao ha forma antiga desta chave — e a diferenca entre uma lista
+     vazia e a chave ausente e tratada no read model, nao aqui. */
+  S.aiUses = Array.isArray(S.aiUses) ? S.aiUses : [];
   S.recall = S.recall || {};
   S.recallToday = S.recallToday || null;
   if (S.recallToday && !S.recallToday.results) S.recallToday.results = {};

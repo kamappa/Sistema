@@ -164,6 +164,11 @@ a.rdf-sig-t:hover, a.rdf-sig-t:focus-visible { text-decoration-color: var(--area
   display: flex; flex-wrap: wrap; gap: var(--sys-space-2) 0;
   font-family: var(--sys-type-data); font-size: var(--sys-step--1); color: var(--sys-ink-mut);
 }
+/* A origem é um domínio, e um domínio não tem espaços por onde quebrar: num
+   ecrã de 390 o `recrutamento.infraestruturasdeportugal.pt` empurrava o sinal
+   inteiro 5px para lá do bordo. `anywhere` deixa-o partir onde for preciso —
+   um endereço cortado ao meio continua legível, um sinal fora do ecrã não. */
+.rdf-sig-m span { min-width: 0; overflow-wrap: anywhere; }
 .rdf-sig-m span + span { padding-left: var(--sys-space-4); margin-left: var(--sys-space-4); border-left: 1px solid var(--sys-seam); }
 .rdf-high { color: var(--sys-alert); }
 

@@ -169,6 +169,38 @@ a.rdf-sig-t:hover, a.rdf-sig-t:focus-visible { text-decoration-color: var(--area
 
 .rdf-sig .mini { min-height: 36px; }
 
+/* ── Abrir o resto do trilho ───────────────────────────────────────────
+ * Não é um botão de ação: é uma continuação do trilho temporal, e por isso
+ * herda a linguagem das marcas — mono, minúsculo, alinhado ao eixo dos sinais.
+ * Um `.btn` cheio aqui seria o elemento mais brilhante da zona a competir com
+ * o alto impacto, que é o portador da luz deste trilho.
+ */
+.rdf-more {
+  justify-self: start;
+  margin-left: calc(7rem + var(--sys-space-5));
+  padding: var(--sys-space-3) var(--sys-space-4);
+  min-height: 40px;
+  background: transparent;
+  border: 0;
+  border-left: 2px solid rgb(var(--sys-bone-rgb) / var(--sys-o-24));
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  color: var(--sys-ink-mut);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    border-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.rdf-more:hover,
+.rdf-more:focus-visible {
+  color: var(--sys-ink);
+  border-left-color: var(--sys-violet);
+}
+
 /* ── O que está a ser vigiado ──────────────────────────────────────────
  * A parte que torna o vazio operacional: um instrumento que não encontrou
  * nada tem de dizer onde procurou.
@@ -219,4 +251,6 @@ a.rdf-sig-t:hover, a.rdf-sig-t:focus-visible { text-decoration-color: var(--area
   }
   .rdf-mark-n { font-size: var(--sys-step-1); }
   .rdf-sig-m span + span { padding-left: var(--sys-space-3); margin-left: var(--sys-space-3); }
+  /* sem trilho de 7rem, o recuo que o alinhava aos sinais deixa de ter eixo */
+  .rdf-more { margin-left: 0; }
 }

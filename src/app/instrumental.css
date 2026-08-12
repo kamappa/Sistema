@@ -171,6 +171,34 @@
   transition: background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
 }
 
+/* ── O `rise` herdado do HUD sai da shell ──────────────────────────────
+ * `.reveal` (hud.css) faz `opacity:0 → 1` com `translateY(14px)` em 600ms, e
+ * foi desenhado para uma página que se lê de uma vez, de cima a baixo. Dentro
+ * da shell instrumental deixou de servir e passou a atrapalhar, por duas
+ * razões concretas e medidas:
+ *
+ *   1. DUPLICA a entrada. A zona já tem coreografia própria — `zone-in` mais a
+ *      assinatura por zona (transitions.css). O `rise` corre POR CIMA dela, e
+ *      duas animações de entrada sobrepostas no mesmo gesto leem-se como
+ *      hesitação, não como intenção.
+ *   2. Fica DESSINCRONIZADO do resto. Só alguns painéis o trazem — no Radar é
+ *      exatamente um, o Inventário de IA. O resultado é meia zona a assentar e
+ *      a outra metade já parada: no Radar viam-se as notícias imóveis e o
+ *      Inventário a subir sozinho, o que dá a sensação de conteúdo a chegar
+ *      atrasado e a assentar fora do sítio.
+ *
+ * A entrada não se perde: continua a ser a da ZONA, que é a que tem direção e
+ * significado. Nada aqui toca no HUD sem `?shell=`, que é o que está em
+ * produção — lá o `rise` fica exatamente como estava.
+ *
+ * A sequência de arranque continua a mandar: `html.boot .reveal` tem
+ * especificidade superior e segura os painéis até o véu levantar. */
+.sys-instrumental .reveal {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
 /* ── Botões primários: luz é estado, não decoração ─────────────────────
  * O `.btn` do HUD é um gradiente violeta cheio. Dentro da shell isso dava sete
  * blocos no brilho máximo — seis em Operações, um no Oráculo — todos parados.

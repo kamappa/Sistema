@@ -660,6 +660,205 @@
   will-change: transform;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+ * NÚCLEO HERÓI — Missão 26 · Renaissance Visual · camada 1
+ *
+ * O veredicto do Daniel: "de ponto invisível a coração de plasma que pulsa e
+ * irradia luz". O que existia era um corpo de raio 26 com três conchas de
+ * filamentos por cima — e as conchas dominavam de tal maneira que a leitura
+ * era a de um sunburst desenhado, que é precisamente o que o cabeçalho do
+ * `Nucleus.tsx` já receava.
+ *
+ * Quatro camadas novas, e nenhuma remove o que já tinha sido aprovado:
+ *
+ *   CORONA   duas conchas de luz em contra-fase — a irradiação
+ *   RAIOS    um cone repetido a rodar devagar — a luz a sair
+ *   PLASMA   duas grelhas de células em sentidos opostos — a superfície
+ *   LIMBO    o bordo quente — o volume
+ *
+ * ── ORÇAMENTO, que é a parte inegociável ──
+ * Seis elementos, todos compostos: `background` estático mais `transform` e
+ * `opacity` animados. ZERO `filter`, ZERO `backdrop-filter` — a proibição de
+ * blur em área grande mantém-se, e a suavidade vem dos gradientes.
+ *
+ * Qualidade (`html[data-sys-quality]`, escrita pelo Atmosphere):
+ *   full  tudo — 6 elementos, 6 animações
+ *   lite  corona ×2 + limbo — 3 elementos, 3 animações; plasma ×2 e raios saem
+ *   off   os mesmos 3 elementos, 0 animações: a luz fica, o movimento sai
+ *
+ * Contagens verificadas no browser, não estimadas.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+.nuc-corona,
+.nuc-rays,
+.nuc-plasma,
+.nuc-limb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* ── CORONA ────────────────────────────────────────────────────────────
+ * Larga e macia. O `--nuc-focus` governa a intensidade: em vista geral o
+ * Núcleo está longe e não pode ofuscar os domínios; à chegada abre.
+ * O piso de 0,55 é o que garante que ele IRRADIA mesmo em vista geral, que é
+ * onde estava o problema — antes o multiplicador chegava a 0,59 no halo e o
+ * corpo desaparecia contra o vazio. */
+.nuc-corona {
+  inset: 0;
+  opacity: calc(0.55 + var(--nuc-focus, 0.2) * 0.45);
+}
+
+.nuc-corona-a {
+  background: radial-gradient(circle at 50% 50%,
+    rgb(196 181 253 / 0.34) 0%,
+    rgb(139 92 246 / 0.22) 16%,
+    rgb(124 58 237 / 0.11) 34%,
+    rgb(76 29 149 / 0.05) 54%,
+    transparent 72%);
+  animation: nuc-corona-a var(--sys-cycle-ambient, 19s) var(--sys-ease-breath) infinite alternate;
+}
+
+/* Mais larga, mais fria e mais fraca — é o campo exterior. Com um período
+   deliberadamente diferente do da concha interior: em uníssono seriam uma
+   coisa só a escalar. */
+.nuc-corona-b {
+  background: radial-gradient(circle at 50% 50%,
+    rgb(167 139 250 / 0.16) 0%,
+    rgb(109 40 217 / 0.10) 28%,
+    rgb(56 24 120 / 0.05) 52%,
+    transparent 78%);
+  animation: nuc-corona-b 27s var(--sys-ease-breath) infinite alternate;
+}
+
+@keyframes nuc-corona-a { from { transform: scale(0.94); } to { transform: scale(1.09); } }
+@keyframes nuc-corona-b { from { transform: scale(1.10); } to { transform: scale(0.93); } }
+
+/* ── RAIOS ─────────────────────────────────────────────────────────────
+ * `repeating-conic-gradient` é UM paint. A máscara radial tira-lhe o centro
+ * (onde ficaria uma roseta dura) e a ponta (onde acabaria num círculo). */
+.nuc-rays {
+  inset: -6%;
+  /* CORRIGIDO na primeira observação. A 0,28+0,42 e com um cone a cada 9° isto
+     desenhava um SUNBURST — o cliché que a direção visual proíbe por nome, e
+     ainda por cima em cima dos filamentos das conchas, que já fazem esse
+     trabalho. Duas famílias de linhas radiais no mesmo sítio somam-se numa
+     explosão de esferográfica.
+     Agora são poucos cones, largos e muito fracos: o que se lê é a luz a ter
+     direção, não linhas desenhadas. Se se conseguir contar os raios, está
+     errado. */
+  opacity: calc(0.10 + var(--nuc-focus, 0.2) * 0.20);
+  background: repeating-conic-gradient(from 0deg,
+    transparent 0deg,
+    rgb(196 181 253 / 0.05) 7deg,
+    transparent 17deg,
+    transparent 41deg);
+  mask-image: radial-gradient(circle,
+    transparent 16%, rgb(0 0 0 / 0.7) 40%, rgb(0 0 0 / 0.35) 62%, transparent 84%);
+  animation: nuc-spin 320s linear infinite;
+}
+
+/* ── PLASMA ────────────────────────────────────────────────────────────
+ * Colado ao raio real do corpo por `--nuc-body-pct`, que o componente calcula
+ * a partir do mesmo `core` que desenha o círculo — uma verdade só.
+ *
+ * `screen` porque isto é LUZ a somar-se a luz. Com `normal` as células
+ * escureciam o corpo onde se cruzavam, que é o oposto do que a matéria quente
+ * faz. */
+.nuc-plasma {
+  width: var(--nuc-body-pct, 26%);
+  height: var(--nuc-body-pct, 26%);
+  left: 50%; top: 50%;
+  margin-left: calc(var(--nuc-body-pct, 26%) / -2);
+  margin-top: calc(var(--nuc-body-pct, 26%) / -2);
+  /* ── SEM `mix-blend-mode`, e a razão NÃO é a que eu julguei ──
+     A primeira montagem usava `screen`, que é o modo correto para luz a somar
+     luz. Tirei-o porque o renderer congelou — três chamadas seguidas em
+     timeout — e atribuí a culpa ao blend dentro da subárvore 3D, apoiado no
+     custo que o SPEC regista na Fase 6C ("compor a subárvore 3D por
+     software"). Era uma boa história e estava ERRADA.
+
+     A causa real do congelamento era a tab estar OCULTA: sem `rAF`, a sonda
+     nunca terminava. Medido a seguir com a página em primeiro plano, em ecrã
+     estreito e com as camadas todas ligadas: 8,3 ms medianos e p95 8,6 COM
+     `screen` e SEM ele — indistinguível.
+
+     Fica sem blend por PRUDÊNCIA DECLARADA, não por medição: os números acima
+     são de uma máquina com GPU de secretária a emular um telemóvel, e blend
+     modes dentro de subárvores 3D são um risco conhecido em GPU móvel — que é
+     precisamente o hardware do critério de aceitação e o único que não posso
+     medir daqui. O ganho visual não paga o risco: sobre fundo escuro, `normal`
+     com cores claras e alfa parcial dá praticamente o mesmo, porque `screen`
+     só se distingue onde dois claros se cruzam. */
+  /* O bordo tem de morrer antes do limite do corpo, senão as células cortam-se
+     numa aresta e o corpo passa a ler-se como um disco recortado. */
+  mask-image: radial-gradient(circle, #000 42%, rgb(0 0 0 / 0.45) 68%, transparent 88%);
+}
+
+/* Células grandes e lentas. As posições são irregulares de propósito: em
+   grelha regular isto seria uma textura, e uma textura não ferve. */
+.nuc-plasma-a {
+  background:
+    radial-gradient(circle at 32% 38%, rgb(233 213 255 / 0.55) 0%, transparent 34%),
+    radial-gradient(circle at 68% 30%, rgb(196 181 253 / 0.40) 0%, transparent 30%),
+    radial-gradient(circle at 58% 72%, rgb(221 214 254 / 0.45) 0%, transparent 32%),
+    radial-gradient(circle at 24% 66%, rgb(167 139 250 / 0.34) 0%, transparent 28%);
+  animation: nuc-spin 38s linear infinite;
+}
+
+/* Contra-rotação, células menores e mais quentes. É o cruzamento dos dois
+   conjuntos que produz a variação — nenhum dos dois, sozinho, ferve. */
+.nuc-plasma-b {
+  background:
+    radial-gradient(circle at 46% 26%, rgb(255 255 255 / 0.42) 0%, transparent 24%),
+    radial-gradient(circle at 74% 58%, rgb(233 213 255 / 0.36) 0%, transparent 26%),
+    radial-gradient(circle at 30% 54%, rgb(216 180 254 / 0.32) 0%, transparent 22%),
+    radial-gradient(circle at 54% 80%, rgb(196 181 253 / 0.30) 0%, transparent 20%);
+  animation: nuc-spin-r 53s linear infinite;
+}
+
+/* ── LIMBO ─────────────────────────────────────────────────────────────
+ * Um anel fino de luz mesmo no limite, com o interior vazado. Não é um
+ * `border`: um bordo de espessura constante desenha um ícone. Isto é matéria
+ * mais densa vista à tangente. */
+.nuc-limb {
+  width: var(--nuc-body-pct, 26%);
+  height: var(--nuc-body-pct, 26%);
+  left: 50%; top: 50%;
+  margin-left: calc(var(--nuc-body-pct, 26%) / -2);
+  margin-top: calc(var(--nuc-body-pct, 26%) / -2);
+  /* sem blend, pela mesma razão do plasma — ver o comentário lá */
+  opacity: calc(0.5 + var(--nuc-focus, 0.2) * 0.5);
+  background: radial-gradient(circle,
+    transparent 58%,
+    rgb(221 214 254 / 0.22) 76%,
+    rgb(167 139 250 / 0.30) 88%,
+    rgb(124 58 237 / 0.14) 96%,
+    transparent 100%);
+  animation: nuc-limb 23s var(--sys-ease-breath) infinite alternate;
+}
+
+@keyframes nuc-limb { from { transform: scale(0.99); opacity: 0.72; } to { transform: scale(1.05); opacity: 1; } }
+
+/* ── QUALIDADE ─────────────────────────────────────────────────────────
+ * `lite` perde as três camadas caras (plasma ×2, raios) e fica com as duas
+ * conchas de corona e o limbo. O corpo continua a ser um corpo — perde a
+ * fervura, não a presença. */
+html[data-sys-quality='lite'] .nuc-plasma,
+html[data-sys-quality='lite'] .nuc-rays,
+html[data-sys-quality='off'] .nuc-plasma,
+html[data-sys-quality='off'] .nuc-rays { display: none; }
+
+/* Em `off` o campo fica, e fica PARADO. A corona sem animação continua a fazer
+   o Núcleo irradiar — a luz não é movimento. */
+html[data-sys-quality='off'] .nuc-corona,
+html[data-sys-quality='off'] .nuc-limb { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nuc-corona, .nuc-rays, .nuc-plasma, .nuc-limb { animation: none; }
+}
+
 @keyframes nuc-spin   { to { transform: rotate(360deg); } }
 @keyframes nuc-spin-r { to { transform: rotate(-360deg); } }
 

@@ -62,7 +62,29 @@ interface Props {
   size?: number;
 }
 
-const BASE = 26;
+/* ── PRESENÇA E MASSA, que deixam de ser a mesma coisa ──────────────────
+ * Missão 26 · Renaissance Visual · camada 1.
+ *
+ * `BASE` era 26 e `mass` acrescentava até 22. Com o nível global a 1 — que é o
+ * estado real do Daniel, e o estado em que a maioria de quem abre isto está —
+ * o corpo saía com raio 26,5 num viewBox de 320: um ponto. O veredicto foi
+ * "de ponto invisível a coração de plasma", e estava certo.
+ *
+ * A correção NÃO é inflacionar a massa, que seria o Sistema a mentir sobre o
+ * nível. É separar duas coisas que estavam soldadas:
+ *
+ *   PRESENÇA (`BASE`) — o corpo EXISTE. Não é um indicador de progresso; é o
+ *     centro do mundo, e o centro do mundo não pode depender de já se ter
+ *     provado alguma coisa. Um recém-chegado tem um Núcleo pequeno, não um
+ *     Núcleo ausente.
+ *   MASSA (`GROWTH`) — o que a evidência acrescenta. Continua a crescer, e
+ *     agora cresce MAIS em termos absolutos do que antes: 34 contra 22.
+ *
+ * A leitura verdadeira do nível continua onde sempre esteve — o número no HUD,
+ * as estrelas, o interior do Núcleo na escala 4. O raio nunca foi lido como
+ * número por ninguém, e um corpo maior não afirma um nível que não existe. */
+const BASE = 42;
+const GROWTH = 34;
 const MATTER = '#c4b5fd';
 const MATTER_DEEP = '#7c3aed';
 
@@ -87,13 +109,25 @@ function shell(n: number, r0: number, r1: number, seed: number, focus: number) {
 export default function Nucleus({
   mass, color, focus, state, attune, fromAngle = 0, size = 340,
 }: Props) {
-  const core = BASE + mass * 22;
+  const core = BASE + mass * GROWTH;
+  /* O corpo em percentagem do lado, para as camadas CSS (plasma e limbo) se
+     colarem ao raio real sem ter de saber o viewBox. */
+  const bodyPct = ((core * 2) / 320) * 100;
   // Três conchas. A de dentro é densa e curta; a de fora é esparsa e longa —
   // é essa diferença de densidade com o raio que faz o corpo ter dentro.
+  /* As opacidades desceram de 0,34/0,26/0,20 para 0,20/0,17/0,15 quando o corpo
+     ganhou plasma e corona. Não é timidez: com o corpo a ser um ponto, os
+     filamentos ERAM o Núcleo e tinham de carregar a leitura sozinhos. Agora há
+     matéria por baixo, e às opacidades antigas o que se via era uma explosão
+     de riscos por cima de uma superfície que ninguém chegava a ler — duas
+     famílias de linhas radiais (conchas + raios) a somarem-se num sunburst,
+     que é o cliché proibido por nome na direção visual.
+     As conchas passam ao papel que sempre deveriam ter tido: matéria projetada
+     PARA FORA do corpo, e não o desenho do corpo. */
   const shells = [
-    { fil: shell(Math.round(46 + mass * 44), core, core + 26 + mass * 14, 1, focus), w: 0.42, o: 0.34 },
-    { fil: shell(Math.round(34 + mass * 34), core * 1.1, core + 54 + mass * 26, 2, focus), w: 0.55, o: 0.26 },
-    { fil: shell(Math.round(20 + mass * 22), core * 1.2, core + 96 + mass * 40, 3, focus), w: 0.75, o: 0.2 },
+    { fil: shell(Math.round(46 + mass * 44), core, core + 26 + mass * 14, 1, focus), w: 0.42, o: 0.20 },
+    { fil: shell(Math.round(34 + mass * 34), core * 1.1, core + 54 + mass * 26, 2, focus), w: 0.55, o: 0.17 },
+    { fil: shell(Math.round(20 + mass * 22), core * 1.2, core + 96 + mass * 40, 3, focus), w: 0.75, o: 0.15 },
   ];
 
   // Matéria em órbita. Poucas e desiguais: um anel regular de pontos é um
@@ -116,10 +150,25 @@ export default function Nucleus({
         ['--nuc-tint' as string]: tint,
         ['--nuc-from' as string]: fromAngle + 'deg',
         ['--nuc-focus' as string]: focus.toFixed(3),
+        ['--nuc-body-pct' as string]: bodyPct.toFixed(2) + '%',
       }}
       role="img"
       aria-label={`Núcleo do Sistema, massa ${Math.round(mass * 100)}%`}
     >
+      {/* ── CORONA ── duas conchas de luz que respiram em CONTRA-FASE.
+          É a camada que faz o corpo irradiar em vez de estar apenas aceso.
+          Contra-fase e não em uníssono porque duas coisas a inchar ao mesmo
+          tempo leem-se como uma coisa só a escalar — que é o defeito que o
+          cabeçalho já identificava na montagem anterior. Em oposição, o que se
+          vê é o campo a trocar de densidade: plasma, não um balão. */}
+      <div className="nuc-corona nuc-corona-a" aria-hidden="true" />
+      <div className="nuc-corona nuc-corona-b" aria-hidden="true" />
+
+      {/* ── RAIOS ── a irradiação. Um cone repetido com máscara radial, a rodar
+          muito devagar. É UM paint e um transform — não são N elementos — e é
+          por isso que cabe no orçamento. Só em qualidade `full`. */}
+      <div className="nuc-rays" aria-hidden="true" />
+
       {/* O halo. Estático e largo: é o que faz a luz existir contra o vazio
           (gramática 6), e uma coisa que define o vazio não pode piscar. */}
       <svg className="nuc-l nuc-halo" viewBox="0 0 320 320" aria-hidden="true">
@@ -206,6 +255,27 @@ export default function Nucleus({
         </defs>
         <circle cx="160" cy="160" r={core} fill="url(#nuc-g-core)" />
       </svg>
+
+      {/* ── PLASMA ── a superfície, e vem DEPOIS do corpo.
+          A ordem não é detalhe: na primeira montagem pus estas duas camadas
+          antes do `nuc-body` e o corpo desenhou-se por cima delas — o plasma
+          existia no DOM e não se via nem um pixel dele. É superfície, e uma
+          superfície está à frente da matéria que cobre.
+
+          Dois conjuntos de células que derivam em SENTIDOS OPOSTOS: onde se
+          cruzam, a densidade muda, e é essa interferência — não um
+          `@keyframes` de brilho — que faz a superfície parecer estar a ferver.
+          Custo: dois elementos com `background` e `transform`. Sem `filter`:
+          a proibição de blur em área grande mantém-se, e a suavidade vem dos
+          próprios gradientes. */}
+      <div className="nuc-plasma nuc-plasma-a" aria-hidden="true" />
+      <div className="nuc-plasma nuc-plasma-b" aria-hidden="true" />
+
+      {/* ── LIMBO ── o bordo quente. Numa estrela real o limite lê-se porque a
+          linha de visão atravessa mais matéria à tangente do que ao centro.
+          Sem isto o corpo é um gradiente que desvanece e não tem volume; com
+          isto ganha superfície e passa a ter um "onde acaba". */}
+      <div className="nuc-limb" aria-hidden="true" />
 
       {/* O anel de absorção: CONVERGE de fora para dentro. A energia vem do
           mundo para o centro (R15, gramática 1) — nunca ao contrário, que é o

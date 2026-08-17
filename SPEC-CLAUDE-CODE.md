@@ -4712,6 +4712,28 @@ prevalece a Constituição. O programa técnico está abaixo.
 
 ## Programa Oracle Intelligence & Governance
 
+### Constituição enriquecida com modos pedagógicos (2026-08-17)
+
+A `CONSTITUICAO` do Oráculo (`supabase/functions/oraculo/index.ts`, usada só no
+`mode=chat`) ganha a **regra 7 — modos pedagógicos**: `7A` chave numa frase,
+`7B` simulador de erro real, `7C` Feynman forçado. Quando o Daniel sinaliza
+estudo, o Oráculo passa a **active recall** — cenário antes de explicação,
+pergunta socrática antes de correção, resposta completa só depois de duas
+tentativas — e volta ao normal fora desses sinais. Origem do método: **imagens
+pretas** (material do Daniel).
+
+Não é feature nem UI: é texto de persona. Reforça a regra 4 (Reality Check), que
+já pedia active recall sem dar protocolo, e não colide com nenhuma das outras.
+O detector de estudo da linha do `vaultDeep` ganhou os gatilhos novos — decide
+se as **notas do vault** entram no contexto, não a ativação dos modos.
+
+Três atritos **registados e não resolvidos**, por serem decisão do Daniel:
+`CHAT_LIMIT = 12` mensagens/dia não acomoda bem sessões de 4–5 turnos; a regra 1
+e a construção de cenários foram conciliadas por texto explícito e não por
+código; e o prompt cresce ~380 palavras. **O commit não altera produção** — a
+Edge Function exige `supabase functions deploy oraculo --no-verify-jwt`, que
+não foi executado.
+
 ### Estatuto
 
 Programa estratégico de longo prazo.

@@ -107,42 +107,62 @@
  *
  *   −1400  poeira · −1000 nebulosa · −520 NÚCLEO · −120 anéis · 0 territórios
  *
- * OS `inset` NEGATIVOS: uma camada empurrada para trás aparece MENOR, porque a
- * perspetiva divide por (p − z). Com `inset: 0`, a camada a −1400px cobria 44%
- * do enquadramento e via-se a aresta dela — a nebulosa acabava numa linha reta
- * a meio do céu, o que num screenshot parecia um bloco cinzento sem dono. O
- * fator é 1100/(1100+|z|).
+ * A COMPENSAÇÃO DA PERSPETIVA: uma camada empurrada para trás aparece MENOR,
+ * porque a perspetiva divide por (p − z). Com `inset: 0`, a camada a −1400px
+ * cobria 44% do enquadramento e via-se a aresta dela — a nebulosa acabava numa
+ * linha reta a meio do céu, o que num screenshot parecia um bloco cinzento sem
+ * dono. Ela tem de ser ampliada por 1 / (1100/(1100+|z|)).
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  A AMPLIAÇÃO VIVE NO `scale`, NUNCA NO `inset`. As duas dão a mesma  ║
+ * ║  imagem e NÃO dão o mesmo custo: o `inset` aumenta a CAIXA, e uma    ║
+ * ║  caixa promovida a camada de composição paga textura pela caixa      ║
+ * ║  inteira × DPR², mesmo na parte que nunca é visível.                 ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * Foi medido, e foi este o defeito: com `inset: −82%` o campo distante tinha
+ * uma caixa de 3532×1254 e cada um dos três filhos promovidos custava 67,6 MB
+ * a DPR 2. As seis camadas de fundo somavam ~500 MB numa janela de 1440×766 —
+ * o compositor do Chrome ficava sem orçamento de tiles, desistia de pintar, e
+ * o Universo aparecia com blocos retangulares, manchas lavadas e preto. O
+ * `overflow: hidden` do `.us` não salva: dentro de um contexto `preserve-3d` o
+ * recorte do antepassado não encolhe a rasterização.
+ *
+ * NOTA PARA QUEM MEXER AQUI: isto NÃO se aplica a camadas com filhos em px
+ * fixos. Os anéis ficam com `inset` de propósito — os seus diâmetros estão
+ * casados com os raios reais (760 = 2 × R_X) e um `scale` mudava-os.
  *
  * A GRAVIDADE DO CURSOR entra aqui, e POR PROFUNDIDADE: o fundo desloca-se
  * muito, o plano dos domínios quase nada. É a mesma física do parallax da
  * viagem, e é isso que faz o gesto parecer espaço em vez de um efeito de rato.
+ * Fica ANTES do `scale` na lista, e por isso a amplitude dela não é ampliada.
  */
 .us-dust {
-  transform: translate3d(calc(var(--px) * -34px), calc(var(--py) * -22px), -1400px);
-  inset: -64%;   /* ×2,27 */
+  transform: translate3d(calc(var(--px) * -34px), calc(var(--py) * -22px), -1400px) scale(2.273);
+  inset: 0;
 }
 .us-neb {
-  transform: translate3d(calc(var(--px) * -24px), calc(var(--py) * -16px), -1000px);
-  inset: -46%;   /* ×1,91 */
+  transform: translate3d(calc(var(--px) * -24px), calc(var(--py) * -16px), -1000px) scale(1.909);
+  inset: 0;
 }
-/* Camada 2. As profundidades novas seguem a mesma aritmética das antigas — o
-   `inset` compensa o encolhimento da perspetiva pelo fator 1100/(1100+|z|),
-   senão a camada acaba a meio do céu e vê-se a aresta.
-     −1800 → 1100/2900 = 37,9%  → precisa de ×2,64 → inset −82%
-     −1600 → 1100/2700 = 40,7%  → precisa de ×2,45 → inset −73%
-     −700  → 1100/1800 = 61,1%  → precisa de ×1,64 → inset −32%  */
+/* Camada 2. As profundidades novas seguem a mesma aritmética das antigas:
+     −1800 → 1100/2900 = 37,9%  → precisa de ×2,636
+     −1600 → 1100/2700 = 40,7%  → precisa de ×2,455
+     −700  → 1100/1800 = 61,1%  → precisa de ×1,636  */
 .us-field-far {
-  transform: translate3d(calc(var(--px) * -42px), calc(var(--py) * -28px), -1800px);
-  inset: -82%;
+  transform: translate3d(calc(var(--px) * -42px), calc(var(--py) * -28px), -1800px) scale(2.636);
+  inset: 0;
 }
 .us-neb-far {
-  transform: translate3d(calc(var(--px) * -30px), calc(var(--py) * -20px), -1600px);
-  inset: -73%;
+  transform: translate3d(calc(var(--px) * -30px), calc(var(--py) * -20px), -1600px) scale(2.455);
+  inset: 0;
 }
 .us-neb-near {
-  transform: translate3d(calc(var(--px) * -16px), calc(var(--py) * -11px), -700px);
-  inset: -32%;
+  transform: translate3d(calc(var(--px) * -16px), calc(var(--py) * -11px), -700px) scale(1.636);
+  inset: 0;
 }
+/* Os anéis mantêm o `inset`: ver a nota acima. A caixa cresce 11% e não 164%,
+   por isso não é ela que põe o orçamento em causa. */
 .us-rings {
   transform: translate3d(calc(var(--px) * -5px), calc(var(--py) * -3px), -120px);
   inset: -6%;    /* ×1,11 */
@@ -195,9 +215,14 @@
     radial-gradient(.8px .8px at 8% 56%, rgb(233 231 242 / .16), transparent 60%);
   animation: us-drift-c 94s linear infinite alternate;
 }
-@keyframes us-drift-a { from { transform: translate3d(-18px, 4px, 0); } to { transform: translate3d(18px, -4px, 0); } }
-@keyframes us-drift-b { from { transform: translate3d(12px, -7px, 0); } to { transform: translate3d(-12px, 7px, 0); } }
-@keyframes us-drift-c { from { transform: translate3d(-7px, -3px, 0); } to { transform: translate3d(9px, 5px, 0); } }
+/* As amplitudes estão DIVIDIDAS POR 2,273 — a ampliação da camada-mãe. Um
+   filho dentro de um pai escalado desloca-se pelo produto dos dois, e os
+   valores antigos (±18px numa caixa que era ampliada pelo `inset`, não pelo
+   `scale`) passariam a ler-se com o dobro e meio da deriva. O que se vê tem de
+   continuar igual: a mudança foi de custo, não de movimento. */
+@keyframes us-drift-a { from { transform: translate3d(-7.9px, 1.8px, 0); } to { transform: translate3d(7.9px, -1.8px, 0); } }
+@keyframes us-drift-b { from { transform: translate3d(5.3px, -3.1px, 0); } to { transform: translate3d(-5.3px, 3.1px, 0); } }
+@keyframes us-drift-c { from { transform: translate3d(-3.1px, -1.3px, 0); } to { transform: translate3d(4px, 2.2px, 0); } }
 
 /* ── Nebulosa ── o ambiente dominante do fundo. Muito lenta. ───────────── */
 /* Mesma regra da poeira: quem tem profundidade não anima. O gradiente vive só
@@ -259,9 +284,12 @@
 
 /* Deriva mínima e desigual. O campo distante quase não se move — é isso que o
    faz ser distante. Se se vir a mexer, está errado. */
-@keyframes us-sf-a { from { transform: translate3d(-5px, -3px, 0); } to { transform: translate3d(6px, 4px, 0); } }
-@keyframes us-sf-b { from { transform: translate3d(7px, 2px, 0); }  to { transform: translate3d(-6px, -5px, 0); } }
-@keyframes us-sf-c { from { transform: translate3d(-4px, 5px, 0); } to { transform: translate3d(8px, -4px, 0); } }
+/* Divididas por 2,636, pela mesma razão das da poeira. Aqui importa ainda
+   mais: este campo é o que NÃO se pode ver mexer, e triplicar-lhe a deriva
+   sem querer seria trocar "distante" por "próximo e lento". */
+@keyframes us-sf-a { from { transform: translate3d(-1.9px, -1.1px, 0); } to { transform: translate3d(2.3px, 1.5px, 0); } }
+@keyframes us-sf-b { from { transform: translate3d(2.7px, 0.8px, 0); }  to { transform: translate3d(-2.3px, -1.9px, 0); } }
+@keyframes us-sf-c { from { transform: translate3d(-1.5px, 1.9px, 0); } to { transform: translate3d(3px, -1.5px, 0); } }
 
 /* ── Nebulosa distante ── azul-profundo, larguíssima, quase parada.
    É a que dá a cor de fundo ao céu inteiro sem se conseguir apontar onde
@@ -971,7 +999,8 @@ html[data-sys-quality='off'] .us-sats { animation: none; }
  * Acompanha o Núcleo (mesmo `--cx`/`--cy`) mas fica um pouco atrás dele, a
  * −560: assim o corpo desenha-se por cima do próprio véu, que é a ordem certa
  * — a luz espalha-se À VOLTA da fonte, não por cima dela.
- *   −560 → 1100/1660 = 66,3% → precisa de ×1,51 → inset −25%
+ *   −560 → 1100/1660 = 66,3% → precisa de ×1,509, e a ampliação vai no
+ *   `scale` e não no `inset` — ver a nota do bloco «Profundidade».
  *
  * Muito fraco de propósito. Um véu que se nota é neblina, e neblina baixa o
  * contraste de tudo o que está por baixo — incluindo os rótulos dos domínios,
@@ -979,8 +1008,9 @@ html[data-sys-quality='off'] .us-sats { animation: none; }
  * que se note a AUSÊNCIA dele, não a presença. */
 .us-glare {
   transform: translate(var(--cx, 0), var(--cy, 0))
-             translate3d(calc(var(--px) * -10px), calc(var(--py) * -7px), -560px);
-  inset: -25%;
+             translate3d(calc(var(--px) * -10px), calc(var(--py) * -7px), -560px)
+             scale(1.509);
+  inset: 0;
   transition: transform 1400ms var(--sys-ease-gravity);
 }
 .us-glare::after {

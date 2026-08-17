@@ -3571,6 +3571,112 @@ formulação oficial, fixada pelo Daniel, distingue as duas coisas:
 Fechar gates é o que eu podia fazer. **Aceitar é dele**, e é um ato à parte —
 com a interface a ser usada a sério, com dados reais, durante dias. A troca da
 Órbita para interface por omissão, a 2026-08-02, é o primeiro dia desse uso.
+### Renaissance Visual · Universo em quatro camadas (2026-08-17)
+
+Pedido do Daniel, por palavras dele: *"o universo tem de ser deslumbrante por
+si só, mesmo com poucas estrelas de evidência"*. Executado por camadas, com
+resultado mostrado ao fim de cada uma. Commits `942fd0a`, `297d2bd`, `7f1b9ce`
+e o desta secção, na `mission-26/renaissance-visual`.
+
+**O diagnóstico comum às quatro.** Com o nível global a 1 — o estado real, e o
+de quem abre isto pela primeira vez — o Núcleo era um corpo de raio 26 num
+viewBox de 320 e o céu era preto com dez pontos de poeira. A zona prometia "a
+evidência tornada céu" e entregava um vazio à espera de mérito. A resposta
+**não** foi inventar evidência: foi separar o que representa progresso do que é
+o mundo onde o progresso acontece.
+
+**1 · Núcleo herói.** `BASE` 26 → 42, crescimento por evidência 22 → 34.
+Presença deixa de ser massa: o corpo existe independentemente de já se ter
+provado alguma coisa. Quatro camadas novas — corona (duas conchas em
+contra-fase), raios, plasma (duas grelhas em sentidos opostos) e limbo. As
+conchas de filamentos descem de 0,34/0,26/0,20 para 0,20/0,17/0,15: quando o
+corpo era um ponto elas *eram* o Núcleo.
+
+**2 · Céu ambiente.** Campo distante de 206 pontos a −1800 (`starfield.ts`,
+hash FNV-1a com semente fixa) e nebulosa em três profundidades (−1600, −1000,
+−700) em vez de uma. **A parte que protege a primeira lei:** o HUD afirma que
+cada estrela é um nível provado, e 206 pontos no fundo tornavam isso falso. A
+distinção está feita em geometria — nunca passam de 1,3px **aparentes**, não
+têm halo, não reagem a nada — e está **dita ao Operador** numa linha nova do
+HUD. Uma distinção que só existe no código não protege quem está a olhar.
+
+**3 · Bloom.** Bloom a sério é pós-processamento e não existe em CSS; a
+alternativa habitual é desfocar a cena inteira, que é o blur em área grande
+proibido pela direção. Reproduzido peça a peça: *streaks* anamórficas (dois
+gradientes, zero filter, e é a peça que mais trabalho faz), *halo* com
+`filter: blur` sobre **80×80 medidos**, e *veiling glare* por gradiente, atrás
+do plano dos domínios para não lhes baixar o contraste.
+
+**4 · Deriva de câmara.** O parallax por profundidade já existia; a deriva
+também — **mas só no fundo**. Medido: tudo a −520 e mais perto estava imóvel
+sem rato. Isso não é parallax, é um fundo a mexer atrás de coisas paradas, e
+falha a lei *o mundo existe mesmo quando o Operador para*. Resolvido animando
+`translate`, que se **compõe** com `transform` em vez de o substituir — a regra
+"quem tem profundidade não anima" fica intacta e não foi preciso quebrá-la.
+
+#### Erros meus nesta série, registados porque valem mais registados
+
+- Montei o plasma **antes** do corpo: o corpo desenhou-se por cima e as camadas
+  existiam no DOM sem se ver um pixel delas.
+- O renderer congelou e atribuí a culpa a `mix-blend-mode` dentro da subárvore
+  3D, apoiado no custo real que este SPEC regista na Fase 6C. Era plausível e
+  **falso**: a tab estava oculta e sem `rAF` a sonda nunca terminava. Medido
+  depois, 8,3 med e p95 8,6 **com e sem** o blend. Ficou sem blend por
+  prudência declarada, não por medição.
+- Pedi pontos de campo a 0,9–1,35px e no ecrã não se via nada: a camada está a
+  −1800 e é encolhida por 0,379, logo 0,9px chegam ao ecrã com 0,34. É o mesmo
+  fator que o CSS já usava para o `inset` — apliquei-o à caixa e esqueci-me do
+  conteúdo. Os tamanhos passam a ser pedidos em pixels **aparentes**.
+- As streaks eram linhas de 2px com opacidade constante na secção e liam-se
+  como um risco. Uma streak real tem núcleo fino dentro de halo largo.
+
+#### Níveis de qualidade — contagens verificadas no browser
+
+| | `full` | `lite` | `off` |
+|---|---|---|---|
+| Núcleo (camada 1) | 6 elem · 6 anim | 3 · 3 | 3 · **0** |
+| Céu (camada 2) | 6 · 6 | 4 · 4 | 4 · **0** |
+| Bloom (camada 3) | 4 · 4 · 1 filter | 3 · 2 · 0 filter | 0 · 0 |
+| Deriva (camada 4) | 4 | 4 | **0** |
+| **Total da zona** | **34** | **27** | **14** |
+
+Na zona inteira: **1 elemento com `filter`** (80×80), **0 com
+`backdrop-filter`**. A proibição de blur em área grande continua respeitada.
+
+#### Medido — Universo ativo, página em primeiro plano, alternado com/sem
+
+| cenário | mediana | p95 | frames > 20ms |
+|---|---|---|---|
+| desktop 1440×900 `full` | 8,3 ms | 8,5–8,6 | 0 |
+| o mesmo, sem cada camada | 8,3 ms | 8,5–8,6 | 0 |
+| mobile emulado 390×844 `lite` | 8,3 ms | 8,6–16,4 | 0 |
+| mobile emulado 390×844 `full` forçado | 8,3 ms | 8,6 | 0 |
+
+O custo das quatro camadas é **indistinguível** do estado anterior em todas as
+medições. A medição alternada na mesma sessão é o método — foi ela que impediu
+duas conclusões erradas.
+
+#### Não medido, e dito por extenso
+
+- **Hardware móvel real.** Os números são de uma máquina com GPU de secretária
+  a emular um telemóvel. O critério do Daniel — *60fps no Brave mobile com
+  `?fps=1`* — **continua por confirmar**, e a camada 3 é a que mais precisa
+  disso, porque blur em GPU móvel é mais caro. Se falhar, o `filter` do halo é
+  a primeira coisa a cair: está isolado em `full` e é uma linha.
+- CPU estrangulado a 6× põe tudo a 3–5 fps, **com e sem** estas camadas
+  (358,3 contra 358,5 ms). O teste não distingue nada e não é usado como prova.
+
+#### Observado e não mexido
+
+Há um retângulo de bordos visíveis a delimitar a área da cena — a máscara da
+`.us` contra a luz de palco da zona. Confirmado por bissecção que é
+**pré-existente**: continua lá com as camadas novas desligadas. Fica para
+decisão própria em vez de ser corrigido de passagem no meio de outra coisa.
+
+Em `data-sys-quality='off'` continuam a correr **14 animações** na zona, todas
+pré-existentes a esta série. O nível `off` nunca prometeu zero — o
+`prefers-reduced-motion` é que o faz, por regra própria.
+
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 
 Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,

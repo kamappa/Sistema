@@ -745,6 +745,67 @@ html[data-sys-quality='off'] .us-neb-far::after { animation: none; }
   will-change: transform;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+ * DERIVA DE CÂMARA — Missão 26 · Renaissance Visual · camada 4
+ *
+ * O DIAGNÓSTICO, e não era o que eu esperava encontrar. O parallax por
+ * profundidade já existia (a gravidade do cursor, com peso por camada) e a
+ * deriva também — mas SÓ NO FUNDO. Medido: tudo a −520 e mais perto — o
+ * Núcleo, os anéis, os territórios, os satélites — estava completamente
+ * imóvel enquanto ninguém mexesse no rato.
+ *
+ * Isso não é parallax. É um fundo a mexer atrás de coisas paradas, que é
+ * exatamente a leitura de "papel de parede animado" que a cena tenta evitar.
+ * E falha a lei: *o mundo existe mesmo quando o Operador para*. Sem rato, o
+ * primeiro plano do Universo estava morto.
+ *
+ * ── PORQUÊ `translate` E NÃO `transform` ──
+ * Estas camadas levam a profundidade num `transform` que NÃO pode ser tocado:
+ * um `@keyframes` sobre `transform` substitui-o inteiro e apaga o `translateZ`
+ * e a gravidade do cursor. Já aconteceu nesta missão, está registado no SPEC e
+ * é a razão da regra "quem tem profundidade não anima".
+ *
+ * A saída foi não precisar de a quebrar: `translate` é uma propriedade
+ * INDEPENDENTE que se compõe com `transform` em vez de o substituir. As
+ * camadas de fundo continuam a derivar pelos filhos, como sempre; estas
+ * derivam por `translate`, e o `transform` fica intacto.
+ *
+ * ── AS AMPLITUDES ──
+ * Deriva de câmara: o que está perto atravessa mais ecrã. Os valores são
+ * LOCAIS e a perspetiva encolhe-os, por isso o valor aparente é menor no que
+ * está fundo — que é precisamente o efeito pretendido, e sai de graça:
+ *   −520  ×0,679   −120  ×0,902   0  ×1,0   +90  ×1,089
+ *
+ * ── OS PERÍODOS ──
+ * 163, 191, 211 e 127 segundos: primos entre si, e nenhum coincide com os
+ * períodos já em uso no ambiente (76, 94, 97, 118, 137, 149, 152, 181, 233).
+ * O conjunto não se repete dentro de uma sessão — a mesma regra do resto.
+ * Longos ao ponto de nunca se apanhar o movimento a olho: o que se nota é que
+ * a cena não está congelada, não é a cena a deslocar-se.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+.us-core-layer { animation: us-cam-core 163s var(--sys-ease-breath) infinite alternate; }
+.us-rings      { animation: us-cam-ring 191s var(--sys-ease-breath) infinite alternate; }
+.us-terr-layer { animation: us-cam-terr 211s var(--sys-ease-breath) infinite alternate; }
+.us-sats       { animation: us-cam-sats 127s var(--sys-ease-breath) infinite alternate; }
+
+@keyframes us-cam-core { from { translate: -4px 2px; }  to { translate: 5px -3px; } }
+@keyframes us-cam-ring { from { translate: 6px -3px; }  to { translate: -7px 4px; } }
+@keyframes us-cam-terr { from { translate: -5px -3px; } to { translate: 6px 4px; } }
+@keyframes us-cam-sats { from { translate: 8px 4px; }   to { translate: -9px -5px; } }
+
+/* O céu não deriva quando não há quem o veja, e não deriva contra a vontade de
+   quem pediu menos movimento. `off` mantém a composição — a deriva é a única
+   coisa que sai. */
+html[data-sys-quality='off'] .us-core-layer,
+html[data-sys-quality='off'] .us-rings,
+html[data-sys-quality='off'] .us-terr-layer,
+html[data-sys-quality='off'] .us-sats { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .us-core-layer, .us-rings, .us-terr-layer, .us-sats { animation: none; }
+}
+
 /* ── VEILING GLARE ── camada 3.
  * Acompanha o Núcleo (mesmo `--cx`/`--cy`) mas fica um pouco atrás dele, a
  * −560: assim o corpo desenha-se por cima do próprio véu, que é a ordem certa

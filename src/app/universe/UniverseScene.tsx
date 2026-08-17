@@ -510,6 +510,17 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
         <div className="us-layer us-neb" data-ambient="dominant" aria-hidden="true" />
         <div className="us-layer us-neb-near" data-ambient aria-hidden="true" />
 
+        {/* ── VEILING GLARE ── camada 3.
+            A luz do Núcleo a espalhar-se no ar em vez de parar no objeto. É o
+            que faz o brilho pertencer à CENA e não só ao corpo — sem isto, o
+            Núcleo pode estar incandescente e o céu à volta continua a parecer
+            uma fotografia separada colada por trás.
+            Fica ATRÁS do plano dos domínios de propósito: um véu por cima
+            deles baixava-lhes o contraste, e os rótulos têm de continuar
+            legíveis. Sem `filter` — é um gradiente. */}
+        <div className="us-layer us-glare" data-ambient aria-hidden="true"
+          style={{ ['--cy' as string]: CY_ + 'px', ['--cx' as string]: CX + 'px' }} />
+
         <div className="us-layer us-core-layer" style={{ ['--cy' as string]: CY_ + 'px', ['--cx' as string]: CX + 'px' }}>
           <Nucleus
             mass={scene.coreMass}

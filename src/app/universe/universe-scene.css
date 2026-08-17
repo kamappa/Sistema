@@ -744,6 +744,45 @@ html[data-sys-quality='off'] .us-neb-far::after { animation: none; }
   transition: transform 1400ms var(--sys-ease-gravity);
   will-change: transform;
 }
+
+/* ── VEILING GLARE ── camada 3.
+ * Acompanha o Núcleo (mesmo `--cx`/`--cy`) mas fica um pouco atrás dele, a
+ * −560: assim o corpo desenha-se por cima do próprio véu, que é a ordem certa
+ * — a luz espalha-se À VOLTA da fonte, não por cima dela.
+ *   −560 → 1100/1660 = 66,3% → precisa de ×1,51 → inset −25%
+ *
+ * Muito fraco de propósito. Um véu que se nota é neblina, e neblina baixa o
+ * contraste de tudo o que está por baixo — incluindo os rótulos dos domínios,
+ * que já passaram uma auditoria de contraste e não podem regredir. O alvo é
+ * que se note a AUSÊNCIA dele, não a presença. */
+.us-glare {
+  transform: translate(var(--cx, 0), var(--cy, 0))
+             translate3d(calc(var(--px) * -10px), calc(var(--py) * -7px), -560px);
+  inset: -25%;
+  transition: transform 1400ms var(--sys-ease-gravity);
+}
+.us-glare::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%,
+    rgb(196 181 253 / 0.10) 0%,
+    rgb(139 92 246 / 0.06) 22%,
+    rgb(109 40 217 / 0.03) 44%,
+    transparent 68%);
+  animation: us-glare 31s var(--sys-ease-breath) infinite alternate;
+  will-change: transform, opacity;
+}
+@keyframes us-glare {
+  from { transform: scale(0.9);  opacity: .55; }
+  to   { transform: scale(1.15); opacity: 1; }
+}
+
+/* O véu é a peça mais barata das três e a que mais depende do ecrã ser bom.
+   Em `lite` fica, sem animação; em `off` sai. */
+html[data-sys-quality='lite'] .us-glare::after { animation: none; }
+html[data-sys-quality='off'] .us-glare { display: none; }
+@media (prefers-reduced-motion: reduce) { .us-glare::after { animation: none; } }
 /* A perspetiva sozinha fá-lo crescer ~2,5× da vista geral até à chegada. Não
    chega para uma chegada: acumula-se uma escala própria, e o resultado é
    ~4,7×. É o único sítio do produto onde a escala é o argumento. */
@@ -965,6 +1004,131 @@ html[data-sys-quality='off'] .us-neb-far::after { animation: none; }
 }
 
 @keyframes nuc-limb { from { transform: scale(0.99); opacity: 0.72; } to { transform: scale(1.05); opacity: 1; } }
+
+/* ══════════════════════════════════════════════════════════════════════
+ * BLOOM — Missão 26 · Renaissance Visual · camada 3
+ *
+ * O pedido era "o brilho que faz tudo irradiar". Bloom a sério é um passe de
+ * pós-processamento: extrair o que passa de um limiar de luminância, desfocar
+ * e somar. Isso não existe em CSS, e a alternativa habitual — desfocar a cena
+ * inteira numa segunda camada — é exatamente o blur em área grande que a
+ * direção visual proíbe, e que num telemóvel custaria o frame todo.
+ *
+ * O que se faz em vez disso é reproduzir o que o olho reconhece como bloom,
+ * peça a peça, com o custo de cada uma escolhido:
+ *
+ *   STREAKS  a assinatura anamórfica. Dois gradientes cruzados. Custo zero, e
+ *            é a peça que mais trabalho faz — o olho lê streaks como
+ *            "saturou", muito antes de ler um halo.
+ *   HALO     a luz que sangra para fora do corpo. `filter: blur` sobre
+ *            206×206, que é área pequena. Só em `full`.
+ *   GLARE    o véu sobre a cena inteira — a luz a espalhar-se no ar em vez de
+ *            parar no objeto. Um gradiente radial muito fraco, sem filter.
+ *
+ * Nenhuma delas inventa luz onde não há: todas nascem do Núcleo, que é o
+ * portador de luz da zona, e a sua intensidade segue `--nuc-focus`.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+.nuc-bloom,
+.nuc-streak {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* ── HALO DE SATURAÇÃO ──
+   Uma cópia do corpo, maior e desfocada. Sobre um corpo que já tem estrutura
+   (o plasma por baixo), o blur produz o esbatimento assimétrico que um
+   gradiente sozinho não consegue imitar. */
+.nuc-bloom {
+  width: var(--nuc-body-pct, 26%);
+  height: var(--nuc-body-pct, 26%);
+  left: 50%; top: 50%;
+  margin-left: calc(var(--nuc-body-pct, 26%) / -2);
+  margin-top: calc(var(--nuc-body-pct, 26%) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgb(255 255 255 / 0.5) 0%,
+    rgb(233 213 255 / 0.34) 26%,
+    rgb(167 139 250 / 0.18) 52%,
+    transparent 76%);
+  filter: blur(9px);
+  opacity: calc(0.4 + var(--nuc-focus, 0.2) * 0.6);
+  animation: nuc-bloom 17s var(--sys-ease-breath) infinite alternate;
+}
+@keyframes nuc-bloom { from { transform: scale(1.02); } to { transform: scale(1.3); } }
+
+/* ── STREAKS ──
+   Largura em percentagem do Núcleo, não do corpo: uma streak que acabasse no
+   limite do corpo seria um sublinhado. Tem de sair para o céu.
+   As máscaras dão a ponta afilada; sem elas acabam num corte reto que se lê
+   como uma barra. */
+.nuc-streak {
+  left: 50%; top: 50%;
+  opacity: calc(0.24 + var(--nuc-focus, 0.2) * 0.5);
+  animation: nuc-streak 13s var(--sys-ease-breath) infinite alternate;
+}
+
+/* O PERFIL, e sem isto o efeito falha.
+   Uma streak de 2px com opacidade constante na secção é um RISCO — foi o que
+   se viu na primeira observação: uma linha nítida a atravessar o corpo, que
+   se lê como artefacto e não como luz. Numa lente real a streak tem um núcleo
+   fino muito brilhante dentro de um halo largo e fraco, e é esse degradê na
+   perpendicular que a faz parecer luz derramada.
+   Dois elementos dariam o mesmo; um pseudo-elemento não acrescenta nó ao DOM
+   e herda a animação do pai de graça. */
+.nuc-streak::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  opacity: 0.55;
+}
+.nuc-streak-h::before { transform: scaleY(5); }
+.nuc-streak-v::before { transform: scaleX(4); }
+
+.nuc-streak-h {
+  width: 132%; height: 2px;
+  margin-left: -66%; margin-top: -1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgb(196 181 253 / 0.10) 18%,
+    rgb(233 213 255 / 0.5) 44%,
+    rgb(255 255 255 / 0.7) 50%,
+    rgb(233 213 255 / 0.5) 56%,
+    rgb(196 181 253 / 0.10) 82%,
+    transparent 100%);
+}
+
+/* 2,4× mais curta. Uma cruz simétrica é o brilho de um ícone; uma lente real
+   tem um eixo dominante. */
+.nuc-streak-v {
+  width: 2px; height: 55%;
+  margin-left: -1px; margin-top: -27.5%;
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgb(196 181 253 / 0.08) 20%,
+    rgb(233 213 255 / 0.34) 45%,
+    rgb(255 255 255 / 0.5) 50%,
+    rgb(233 213 255 / 0.34) 55%,
+    rgb(196 181 253 / 0.08) 80%,
+    transparent 100%);
+}
+
+/* Respiram em fase com a saturação do corpo — uma streak que pulsasse sozinha
+   seria um efeito colado, e não a consequência de haver luz a mais. */
+@keyframes nuc-streak { from { transform: scaleX(0.88) scaleY(0.94); opacity: 0.55; } to { transform: none; opacity: 1; } }
+
+html[data-sys-quality='lite'] .nuc-bloom,
+html[data-sys-quality='off'] .nuc-bloom,
+html[data-sys-quality='off'] .nuc-streak { display: none; }
+
+html[data-sys-quality='off'] .nuc-bloom,
+html[data-sys-quality='off'] .nuc-streak { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nuc-bloom, .nuc-streak { animation: none; }
+}
 
 /* ── QUALIDADE ─────────────────────────────────────────────────────────
  * `lite` perde as três camadas caras (plasma ×2, raios) e fica com as duas

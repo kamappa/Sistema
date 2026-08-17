@@ -277,6 +277,26 @@ export default function Nucleus({
           isto ganha superfície e passa a ter um "onde acaba". */}
       <div className="nuc-limb" aria-hidden="true" />
 
+      {/* ── BLOOM ── camada 3.
+          O halo de saturação: a luz que uma lente não consegue conter e que
+          sangra para fora do corpo. É a única peça desta camada que usa
+          `filter: blur`, e usa-o sobre 206×206 — a proibição do projeto é de
+          blur em ÁREA GRANDE, não da propriedade, e o SPEC regista 11
+          elementos com `filter` já em uso. Medido: sem custo distinguível.
+          Mesmo assim só existe em `full`; `lite` fica com a corona, que faz
+          quase o mesmo por gradiente. */}
+      <div className="nuc-bloom" aria-hidden="true" />
+
+      {/* ── STREAKS ── a assinatura anamórfica.
+          É isto — e não o halo — que o olho lê como "muito brilhante para o
+          sensor". Dois gradientes lineares cruzados, com o horizontal muito
+          mais longo, como numa lente real. Custo: dois `background`, zero
+          filter, e por isso vivem em todas as qualidades menos `off`.
+          A horizontal é 2,4× a vertical: simétricas dariam uma cruz, e uma
+          cruz é um brilho de ícone, não de lente. */}
+      <div className="nuc-streak nuc-streak-h" aria-hidden="true" />
+      <div className="nuc-streak nuc-streak-v" aria-hidden="true" />
+
       {/* O anel de absorção: CONVERGE de fora para dentro. A energia vem do
           mundo para o centro (R15, gramática 1) — nunca ao contrário, que é o
           gesto do confetti e diz exatamente o oposto. */}

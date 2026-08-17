@@ -125,6 +125,24 @@
   transform: translate3d(calc(var(--px) * -24px), calc(var(--py) * -16px), -1000px);
   inset: -46%;   /* ×1,91 */
 }
+/* Camada 2. As profundidades novas seguem a mesma aritmética das antigas — o
+   `inset` compensa o encolhimento da perspetiva pelo fator 1100/(1100+|z|),
+   senão a camada acaba a meio do céu e vê-se a aresta.
+     −1800 → 1100/2900 = 37,9%  → precisa de ×2,64 → inset −82%
+     −1600 → 1100/2700 = 40,7%  → precisa de ×2,45 → inset −73%
+     −700  → 1100/1800 = 61,1%  → precisa de ×1,64 → inset −32%  */
+.us-field-far {
+  transform: translate3d(calc(var(--px) * -42px), calc(var(--py) * -28px), -1800px);
+  inset: -82%;
+}
+.us-neb-far {
+  transform: translate3d(calc(var(--px) * -30px), calc(var(--py) * -20px), -1600px);
+  inset: -73%;
+}
+.us-neb-near {
+  transform: translate3d(calc(var(--px) * -16px), calc(var(--py) * -11px), -700px);
+  inset: -32%;
+}
 .us-rings {
   transform: translate3d(calc(var(--px) * -5px), calc(var(--py) * -3px), -120px);
   inset: -6%;    /* ×1,11 */
@@ -190,15 +208,122 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 60% 42% at 32% 38%, rgb(var(--sys-violet-rgb) / .16), transparent 68%),
-    radial-gradient(ellipse 48% 38% at 70% 62%, rgb(var(--sys-magenta-rgb) / .10), transparent 66%),
-    radial-gradient(ellipse 70% 30% at 50% 88%, rgb(var(--sys-azure-rgb) / .22), transparent 70%);
+    /* Camada 2: a dominante sobe com as outras duas, senão passava a ler-se
+       como a mais fraca das três e a hierarquia invertia-se. */
+    radial-gradient(ellipse 60% 42% at 32% 38%, rgb(var(--sys-violet-rgb) / .26), transparent 68%),
+    radial-gradient(ellipse 48% 38% at 70% 62%, rgb(var(--sys-magenta-rgb) / .16), transparent 66%),
+    radial-gradient(ellipse 70% 30% at 50% 88%, rgb(var(--sys-azure-rgb) / .30), transparent 70%);
   animation: us-neb 76s var(--sys-ease-breath) infinite alternate;
   will-change: transform, opacity;
 }
 @keyframes us-neb {
   from { transform: scale(1) rotate(0deg); opacity: .5; }
   to   { transform: scale(1.09) rotate(2.4deg); opacity: .9; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+ * CÉU AMBIENTE — Missão 26 · Renaissance Visual · camada 2
+ *
+ * O problema, e é o mesmo do Núcleo pela outra ponta: com zero estrelas
+ * provadas — o estado real, e o de quem abre isto pela primeira vez — o céu
+ * era preto com dez pontos de poeira. O painel prometia "a evidência tornada
+ * céu" e entregava um vazio à espera de mérito.
+ *
+ * A resposta NÃO é inventar evidência. É dar ao céu o que um céu tem
+ * independentemente de quem olha: um campo distante, nebulosas com distância
+ * entre si, e poeira que se vê mexer.
+ *
+ * ── A REGRA DA CENA, que se aplica a tudo o que está aqui ──
+ * Quem tem profundidade não anima; quem anima não tem profundidade. Um
+ * `@keyframes` sobre `transform` SUBSTITUI o transform do elemento, incluindo
+ * o `translateZ` e a gravidade do cursor. A camada-mãe leva o Z; os filhos
+ * derivam. Já custou uma vez nesta missão e está registado no SPEC.
+ *
+ * ── ORÇAMENTO ──
+ * 3 elementos de campo + 2 de nebulosa = 5 novos, todos `background` estático
+ * mais `transform`/`opacity`. Zero filter. Os 150 pontos do campo são três
+ * `background-image` — não são 150 elementos.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+.us-sf {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+/* Períodos primos entre si e nenhum múltiplo de outro, como o resto do
+   ambiente: em 3,2 s de observação as sete camadas instrumentadas mexeram-se
+   todas, e o conjunto não se repete numa sessão. */
+.us-sf-0 { animation: us-sf-a 233s linear infinite alternate; }
+.us-sf-1 { animation: us-sf-b 181s linear infinite alternate; }
+.us-sf-2 { animation: us-sf-c 137s linear infinite alternate; }
+
+/* Deriva mínima e desigual. O campo distante quase não se move — é isso que o
+   faz ser distante. Se se vir a mexer, está errado. */
+@keyframes us-sf-a { from { transform: translate3d(-5px, -3px, 0); } to { transform: translate3d(6px, 4px, 0); } }
+@keyframes us-sf-b { from { transform: translate3d(7px, 2px, 0); }  to { transform: translate3d(-6px, -5px, 0); } }
+@keyframes us-sf-c { from { transform: translate3d(-4px, 5px, 0); } to { transform: translate3d(8px, -4px, 0); } }
+
+/* ── Nebulosa distante ── azul-profundo, larguíssima, quase parada.
+   É a que dá a cor de fundo ao céu inteiro sem se conseguir apontar onde
+   começa. A liberdade de cor está dada na direção: roxo/preto é a base,
+   azul-profundo e magenta entram em subtileza. */
+.us-neb-far::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 78% 54% at 24% 30%, rgb(var(--sys-azure-rgb) / .22), transparent 72%),
+    radial-gradient(ellipse 64% 46% at 76% 24%, rgb(var(--sys-violet-rgb) / .15), transparent 70%),
+    radial-gradient(ellipse 90% 40% at 58% 82%, rgb(var(--sys-azure-rgb) / .17), transparent 74%);
+  animation: us-neb-far 149s var(--sys-ease-breath) infinite alternate;
+  will-change: transform, opacity;
+}
+@keyframes us-neb-far {
+  from { transform: scale(1.04) rotate(-1.2deg); opacity: .46; }
+  to   { transform: scale(1.13) rotate(1.6deg);  opacity: .78; }
+}
+
+/* ── Nebulosa próxima ── magenta, pequena e descentrada.
+   É a que passa À FRENTE do Núcleo e por isso a que dá a sensação de se estar
+   DENTRO de alguma coisa. Fraca de propósito: à frente do corpo, qualquer
+   opacidade a mais suja-o em vez de o envolver. */
+.us-neb-near::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 42% 30% at 68% 40%, rgb(var(--sys-magenta-rgb) / .13), transparent 66%),
+    radial-gradient(ellipse 36% 26% at 26% 66%, rgb(var(--sys-violet-rgb) / .11), transparent 64%);
+  animation: us-neb-near 97s var(--sys-ease-breath) infinite alternate;
+  will-change: transform, opacity;
+}
+@keyframes us-neb-near {
+  from { transform: scale(1.06) translate3d(-1.5%, 1%, 0); opacity: .4; }
+  to   { transform: scale(0.97) translate3d(2%, -1.5%, 0); opacity: .82; }
+}
+
+/* ── QUALIDADE ─────────────────────────────────────────────────────────
+ * `lite` perde a camada mais funda do campo e a nebulosa próxima — 2 dos 5
+ * elementos novos. Fica com campo médio e próximo (86 pontos dos 150) e com
+ * duas nebulosas: o céu continua a ter fundo e a ter distância, que é o que a
+ * camada 2 existe para dar. O que se perde é a terceira velocidade.
+ * `off` mantém tudo desenhado e para o movimento — um céu parado continua a
+ * ser um céu. */
+html[data-sys-quality='lite'] .us-sf-0,
+html[data-sys-quality='lite'] .us-neb-near,
+html[data-sys-quality='off'] .us-sf-0,
+html[data-sys-quality='off'] .us-neb-near { display: none; }
+
+/* A nebulosa DOMINANTE entra aqui apesar de ser pré-existente: em `off` ficava
+   sozinha a animar — medido, 1 animação a correr quando a regra ao lado promete
+   zero. A camada 2 reforçou-lhe a opacidade, portanto passou a ser a coisa mais
+   visível a mexer num nível que existe precisamente para não mexer. */
+html[data-sys-quality='off'] .us-sf,
+html[data-sys-quality='off'] .us-neb::after,
+html[data-sys-quality='off'] .us-neb-far::after { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .us-sf, .us-neb-far::after, .us-neb-near::after { animation: none; }
 }
 
 /* ── Anéis orbitais ────────────────────────────────────────────────────
@@ -1041,6 +1166,14 @@ html[data-sys-quality='off'] .nuc-limb { animation: none; }
   /* o céu passa por trás do texto: sem isto, uma estrela atrás de uma letra
      tira-lhe o contraste */
   text-shadow: 0 0 16px var(--sys-void), 0 0 6px var(--sys-void);
+}
+/* A nota que distingue o campo distante da evidência. Um degrau abaixo da
+   leitura principal — é uma precisão, não uma segunda explicação — mas tem de
+   passar o contraste como qualquer texto, e por isso NÃO desce a
+   `--sys-ink-far`, que foi o tom apanhado a 3,23:1 na Fase 5. */
+.us-hud-far {
+  font-size: var(--sys-step--1);
+  max-width: 48ch;
 }
 .us-hud-brief {
   font-family: var(--sys-type-data);

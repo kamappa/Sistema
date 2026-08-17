@@ -47,6 +47,7 @@ import {
   type UniverseState, type UniverseCtx, canGo, scaleOf, litDomain,
 } from './universe-states';
 import { useFreeCam, type FreeCamAPI } from './useFreeCam';
+import { STARFIELD } from './starfield';
 import { subscribeSystemEvents } from '../events/systemEvents';
 import { AM } from '../../state/config.js';
 import './universe-scene.css';
@@ -476,6 +477,17 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
           ['--cam-z' as string]: cam.z + 'px',
         }}
       >
+        {/* ── CAMPO DISTANTE ── camada 2. O mais fundo de tudo (−1800).
+            NÃO é evidência: ver o cabeçalho de `starfield.ts`, onde a
+            distinção está feita por geometria e não por boa vontade. É a
+            camada que responde ao "nunca vazio" — antes disto, um Operador com
+            zero estrelas provadas abria o Universo e via preto. */}
+        <div className="us-layer us-field-far" data-ambient aria-hidden="true">
+          {STARFIELD.map((l, i) => (
+            <span key={i} className={`us-sf us-sf-${i}`} style={{ backgroundImage: l.image }} />
+          ))}
+        </div>
+
         {/* Três populações de poeira, cada uma no seu elemento.
             NÃO é um detalhe de arrumação: um `@keyframes` que anima
             `transform` SUBSTITUI o transform base do elemento — incluindo o
@@ -486,7 +498,17 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
         <div className="us-layer us-dust" data-ambient aria-hidden="true">
           <span className="us-dust-a" /><span className="us-dust-b" /><span className="us-dust-c" />
         </div>
+        {/* ── NEBULOSA EM TRÊS PROFUNDIDADES ──
+            Era uma camada só. Uma camada, por muitos gradientes que tenha, é
+            um fundo pintado: move-se toda ao mesmo tempo e por isso não tem
+            distância. Três, a −1600, −1000 e −700, com períodos que não são
+            múltiplos uns dos outros e parallax próprio, dão volume — e é o
+            volume que faz o céu ser um sítio em vez de um papel de parede.
+            A dominante continua a ser a do meio; as outras duas são contexto,
+            e a sua opacidade di-lo. */}
+        <div className="us-layer us-neb-far" data-ambient aria-hidden="true" />
         <div className="us-layer us-neb" data-ambient="dominant" aria-hidden="true" />
+        <div className="us-layer us-neb-near" data-ambient aria-hidden="true" />
 
         <div className="us-layer us-core-layer" style={{ ['--cy' as string]: CY_ + 'px', ['--cx' as string]: CX + 'px' }}>
           <Nucleus
@@ -652,6 +674,17 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
               Cada estrela é um nível provado num domínio. A que está a formar-se é o XP
               do nível em curso — a única coisa aqui que pode recuar. Passa o cursor por
               um domínio para o despertar; toca para te aproximares.
+            </p>
+            {/* ── ISTO EXISTE PARA A FRASE DE CIMA CONTINUAR VERDADEIRA ──
+                A camada 2 pôs um campo distante no fundo. Sem esta linha, o
+                Universo afirmava "cada estrela é um nível provado" com 150
+                pontos no ecrã que não são nível nenhum — e a primeira lei do
+                projeto é que o Sistema não mente. A distinção está feita na
+                geometria (ver `starfield.ts`), mas uma distinção que só existe
+                no código não protege quem está a olhar. */}
+            <p className="us-hud-s us-hud-far">
+              O pó distante ao fundo é céu, não é teu: as tuas estrelas são as que
+              orbitam os domínios.
             </p>
             <dl className="rf-debrief">
               <div><dt>Estrelas</dt><dd>{scene.totalStars}</dd></div>

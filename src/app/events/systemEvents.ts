@@ -58,6 +58,20 @@ export interface SystemEvent {
   /** Id do domínio (ATTRS). O Universo usa-o para saber QUAL território
    *  recebeu a evidência — sem isto, o céu não sabia que algo aconteceu. */
   domain?: string;
+  /**
+   * CONSEQUÊNCIA NO MUNDO, quando o facto tem uma que o céu deva encenar.
+   *
+   * Existe porque `kind` responde a "como se ANUNCIA" e isto responde a "o que
+   * ACONTECEU ao mundo" — e as duas perguntas divergem exatamente num caso: a
+   * perda de rank sai como `warning`, porque é assim que tem de ser lida no
+   * anúncio, mas para o Universo é o acontecimento mais violento que existe.
+   *
+   * A alternativa era o Universo adivinhar pelo prefixo do `dedupe`. Isso
+   * funcionaria hoje — `warning` só é emitido num sítio — e partia-se em
+   * silêncio no dia em que aparecesse o segundo warning. Um campo declarado
+   * não se parte por alguém ter escrito código noutro ficheiro.
+   */
+  world?: 'rank-up' | 'rank-down';
   /** Quanto tempo fica. Omisso = calculado do comprimento do texto. */
   holdMs?: number;
 }

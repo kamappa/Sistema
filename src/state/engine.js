@@ -63,6 +63,19 @@ export function addXp(S, attr, amt, silent) {
         title: 'Nível aumentado',
         subject: AM[u].name + ' subiu para nível ' + S.attrs[u].level,
         color: AM[u].color,
+        // O DOMÍNIO, que faltava — M26 · Renaissance Visual.
+        //
+        // O campo existe no `SystemEvent` desde a Fase 6A e este emissor nunca
+        // o preencheu, apesar de ter o atributo (`u`) na mão. A consequência
+        // não era teórica: o Universo filtra os eventos por domínio e o
+        // comentário dele dizia "um level-up sem domínio não acende território
+        // nenhum, e inventar um seria mentir" — correto quanto ao inventar, e
+        // a conclusão errada. O domínio não estava a ser inventado: estava a
+        // ser DEITADO FORA aqui.
+        //
+        // Um nível provado é o nascimento de uma estrela. Era o único facto do
+        // céu que não chegava ao céu.
+        domain: u,
         readings: [{ label: AM[u].name, value: 'Nv ' + S.attrs[u].level }],
       })
     );
@@ -84,6 +97,11 @@ export function addXp(S, attr, amt, silent) {
       window.sysEvent({
         dedupe: 'rank:' + rankAntes + '>' + rankDepois.l + ':' + Math.round(S.totalXP),
         kind: subiu ? 'rank' : 'warning',
+        // O ANÚNCIO e a CONSEQUÊNCIA NO MUNDO são coisas diferentes, e é aqui
+        // que divergem: uma perda de rank tem de se ler como aviso — daí o
+        // `kind` — mas para o Universo é o acontecimento mais violento que
+        // existe, e ele precisa de o saber sem adivinhar pelo texto.
+        world: subiu ? 'rank-up' : 'rank-down',
         title: subiu ? 'Rank alterado' : 'Rank perdido',
         subject: rankAntes + ' → ' + rankDepois.l,
         color: rankDepois.color,

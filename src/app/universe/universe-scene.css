@@ -746,6 +746,167 @@ html[data-sys-quality='off'] .us-neb-far::after { animation: none; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+ * EVENTOS ÉPICOS — Missão 26 · Renaissance Visual
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  NENHUM DESTES É DECORATIVO E NENHUM É INVENTADO. Cada um tem um     ║
+ * ║  facto do domínio por trás, com trigger, data e evidência.           ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ *   STAR_BIRTH  `kind: 'levelup'` com domínio — um NÍVEL foi provado, e um
+ *               nível provado é uma estrela que passa a existir para sempre.
+ *   RANK_EVENT  já existia.
+ *   SUPERNOVA   `world: 'rank-down'` — um rank foi PERDIDO.
+ *
+ * A supernova é o único evento do produto que encena uma PERDA, e existe pela
+ * mesma razão que o `engine.js` já anunciava a descida: um Sistema que celebra
+ * a subida e cala a descida está a escolher o que conta.
+ *
+ * ── PORQUÊ ISTO NÃO É ESPETÁCULO ──
+ * Frequência. Um nível provado acontece talvez uma vez por semana; um rank,
+ * poucas vezes por ano; uma perda de rank, quase nunca. A raridade é do FACTO,
+ * não de um temporizador — não há nada aqui a decidir "está na hora de uma
+ * supernova". Se nunca se perder um rank, isto nunca corre, e é o correto.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* ── NASCIMENTO DE ESTRELA — 2,8s ──
+ * A constelação do domínio contrai, cala-se, e volta com a estrela nova. A
+ * pausa a meio é a peça que faz a diferença: sem ela é um pulso, com ela é um
+ * acontecimento. É a mesma gramática da cerimónia de rank, mais curta.
+ */
+@keyframes us-birth-terr {
+  0%   { transform: scale(1); }
+  26%  { transform: scale(0.9); }      /* colapso */
+  40%  { transform: scale(0.9); }      /* o silêncio */
+  62%  { transform: scale(1.14); }     /* a estrela acende */
+  100% { transform: scale(1); }
+}
+.us[data-state='STAR_BIRTH'] .us-terr[data-lit='true'] {
+  animation: us-birth-terr 2800ms var(--sys-ease-gravity) both;
+}
+
+/* A onda. Nasce no território e atravessa o céu — é o que diz que aquilo
+   aconteceu ALI e teve consequência em todo o lado. Um anel só, e a expandir
+   até desaparecer: dois anéis seriam um radar, e um radar procura em vez de
+   anunciar. */
+.us-shock {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 26px; height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  border: 1px solid var(--dom, var(--sys-violet));
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+.us[data-state='STAR_BIRTH'] .us-terr[data-lit='true'] .us-shock {
+  animation: us-shock 1700ms var(--sys-ease-out) 900ms both;
+}
+@keyframes us-shock {
+  0%   { transform: scale(0.4); opacity: 0; }
+  18%  { opacity: .85; }
+  100% { transform: scale(11); opacity: 0; }
+}
+
+/* ── SUPERNOVA — 4,6s ──
+ * O corpo colapsa, há um clarão, e o mundo fica MENOR. É o único evento que
+ * não termina onde começou.
+ *
+ * O clarão é branco-quente e curto (280ms). Não é uma celebração invertida: é
+ * o instante em que se percebe o que aconteceu, e tem de ser desconfortável.
+ */
+.us-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 46%,
+    rgb(255 245 235 / 0.55) 0%,
+    rgb(248 113 113 / 0.28) 26%,
+    rgb(127 29 29 / 0.12) 52%,
+    transparent 76%);
+  z-index: 2;
+}
+.us[data-state='SUPERNOVA'] .us-flash {
+  animation: us-flash 4600ms var(--sys-ease-out) both;
+}
+@keyframes us-flash {
+  0%   { opacity: 0; }
+  22%  { opacity: 0; }        /* a contração acontece no escuro */
+  30%  { opacity: 1; }        /* o clarão */
+  36%  { opacity: .5; }
+  58%  { opacity: .12; }
+  100% { opacity: 0; }
+}
+
+/* O céu inteiro recua e volta — a perda sente-se como perda de escala, que é
+   literalmente o que aconteceu ao nível global. */
+.us[data-state='SUPERNOVA'] .us-scene {
+  animation: us-nova-scene 4600ms var(--sys-ease-gravity) both;
+}
+@keyframes us-nova-scene {
+  0%   { transform: scale(1); }
+  24%  { transform: scale(1.04); }   /* a inspiração antes do colapso */
+  32%  { transform: scale(0.93); }   /* o golpe */
+  46%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+/* O corpo do Núcleo colapsa e volta MENOR do que estava. Ao contrário do
+   RANK_UP, que volta a 1,12 — e ao contrário dele também na leitura: aqui o
+   0,94 final não é um resto de animação, é o estado novo a ser mostrado antes
+   de o `mass` real o repor no próximo render. */
+.nuc[data-state='COLLAPSE'] .nuc-body {
+  animation: nuc-collapse 4200ms var(--sys-ease-gravity) 200ms both;
+}
+@keyframes nuc-collapse {
+  0%   { transform: scale(1); }
+  20%  { transform: scale(1.16); }   /* incha antes de ceder */
+  30%  { transform: scale(0.12); }   /* colapso */
+  38%  { transform: scale(0.12); }   /* o silêncio, e é o mais longo do produto */
+  52%  { transform: scale(1.05); }
+  100% { transform: scale(0.94); }
+}
+
+/* A corona e o bloom apagam-se com o colapso e voltam mais fracos. A luz é a
+   parte que se perde primeiro. */
+.nuc[data-state='COLLAPSE'] .nuc-corona,
+.nuc[data-state='COLLAPSE'] .nuc-bloom {
+  animation: nuc-collapse-light 4200ms var(--sys-ease-gravity) 200ms both;
+}
+@keyframes nuc-collapse-light {
+  0%   { opacity: 1; transform: scale(1); }
+  28%  { opacity: .1; transform: scale(0.3); }
+  40%  { opacity: .1; }
+  60%  { opacity: .9; transform: scale(1.5); }
+  100% { opacity: .7; transform: scale(1); }
+}
+
+/* As conchas travam. Um corpo que perde energia perde rotação — e é a única
+   parte deste evento que não se vê, só se sente. */
+.nuc[data-state='COLLAPSE'] .nuc-shell-0 { animation-duration: 260s; }
+.nuc[data-state='COLLAPSE'] .nuc-shell-1 { animation-duration: 340s; }
+.nuc[data-state='COLLAPSE'] .nuc-shell-2 { animation-duration: 480s; }
+.nuc[data-state='COLLAPSE'] .nuc-orbit   { animation-duration: 190s; }
+
+/* ── QUALIDADE E REDUCED MOTION ──
+ * Estes eventos NÃO desaparecem em `off` nem em reduced motion: são factos, e
+ * a lei diz que o Sistema mostra provas. O que muda é a forma de os mostrar —
+ * sem escala do céu inteiro, sem onda de choque, e com o clarão reduzido a uma
+ * mudança de opacidade curta. O Operador continua a saber o que aconteceu.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .us[data-state='SUPERNOVA'] .us-scene,
+  .us[data-state='STAR_BIRTH'] .us-terr[data-lit='true'] { animation: none; }
+  .us-shock { display: none; }
+  .us[data-state='SUPERNOVA'] .us-flash { animation: us-flash-still 2600ms linear both; }
+  @keyframes us-flash-still { 0%, 100% { opacity: 0; } 20%, 60% { opacity: .34; } }
+}
+html[data-sys-quality='off'] .us[data-state='SUPERNOVA'] .us-scene { animation: none; }
+html[data-sys-quality='off'] .us-shock { display: none; }
+
+/* ══════════════════════════════════════════════════════════════════════
  * DERIVA DE CÂMARA — Missão 26 · Renaissance Visual · camada 4
  *
  * O DIAGNÓSTICO, e não era o que eu esperava encontrar. O parallax por

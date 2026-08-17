@@ -75,7 +75,11 @@ type Action =
   | { t: 'eventEnd' }
   | { t: 'evidence' }
   | { t: 'rank'; texto: string; cor: string }
-  | { t: 'rankEnd' };
+  | { t: 'rankEnd' }
+  | { t: 'starBirth'; domain: string; color: string }
+  | { t: 'starBirthEnd' }
+  | { t: 'supernova'; texto: string; cor: string }
+  | { t: 'supernovaEnd' };
 
 interface Model extends UniverseCtx {
   /** Para onde voltar quando um evento acaba, ou quando se recua. */
@@ -132,6 +136,24 @@ function reducer(m: Model, a: Action): Model {
       return go(m, 'RANK_EVENT', { rank: { texto: a.texto, cor: a.cor }, event: null, domain: null });
     case 'rankEnd':
       if (m.state !== 'RANK_EVENT') return m;
+      return { ...m, prev: m.state, state: 'OVERVIEW', rank: null };
+    /* ── NASCIMENTO DE ESTRELA ──
+       O domínio entra no `event` e não no `domain` porque quem acende é o
+       `litDomain`, e ele lê o evento. Sem isto, a estrela nova nascia e o
+       território dela ficava apagado. */
+    case 'starBirth':
+      return go(m, 'STAR_BIRTH', { event: { domain: a.domain, color: a.color, kind: 'levelup' }, domain: null });
+    case 'starBirthEnd':
+      if (m.state !== 'STAR_BIRTH') return m;
+      return { ...m, prev: m.state, state: 'OVERVIEW', event: null };
+    /* ── SUPERNOVA ──
+       Reutiliza o campo `rank`, que é literalmente o que está em causa: a
+       transição perdida, em texto, vinda do evento. Uma segunda estrutura para
+       guardar "E → F" seria duas fontes para o mesmo facto. */
+    case 'supernova':
+      return go(m, 'SUPERNOVA', { rank: { texto: a.texto, cor: a.cor }, event: null, domain: null });
+    case 'supernovaEnd':
+      if (m.state !== 'SUPERNOVA') return m;
       return { ...m, prev: m.state, state: 'OVERVIEW', rank: null };
     case 'eventEnd': {
       if (m.state !== 'PROGRESS_EVENT') return m;
@@ -321,13 +343,43 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
       if (seen.size > 60) seen.delete(seen.values().next().value as string);
     };
     return subscribeSystemEvents((q) => {
-      // O RANK primeiro, esteja onde estiver na fila. Quando chegam juntos — e
-      // chegam, porque é a missão que faz subir o rank — quem manda é o
-      // acontecimento maior.
+      /* ── A ORDEM DE PRECEDÊNCIA, e é uma decisão e não uma sequência ──
+       * Numa só escrita podem chegar quatro factos: uma missão erguida, o
+       * nível que ela fez subir, o rank que o nível fez mudar. O céu encena
+       * UM, e a regra é: o maior ganha, e a PERDA ganha à celebração.
+       *
+       * 1. SUPERNOVA — perder um rank ganha a tudo. Se na mesma escrita se
+       *    ganhou um nível e se perdeu um rank, o que o Operador tem de ver é
+       *    o que perdeu. Tapar isso com a celebração seguinte seria o Sistema
+       *    a escolher o que conta.
+       * 2. RANK — o mundo mudou de escala.
+       * 3. ESTRELA — um nível provado. Maior do que a missão que o causou,
+       *    porque a missão passa e a estrela fica.
+       * 4. PROGRESSO — evidência a chegar a um território. */
+      const sn = q.find((e) => e.world === 'rank-down' && !seen.has(e.dedupe));
+      if (sn) {
+        marcar(sn.dedupe);
+        dispatch({ t: 'supernova', texto: sn.subject, cor: sn.color || '#f87171' });
+        return;
+      }
+      // O RANK esteja onde estiver na fila. Quando chegam juntos — e chegam,
+      // porque é a missão que faz subir o rank — quem manda é o maior.
       const rk = q.find((e) => e.kind === 'rank' && !seen.has(e.dedupe));
       if (rk) {
         marcar(rk.dedupe);
         dispatch({ t: 'rank', texto: rk.subject, cor: rk.color || '#fbbf24' });
+        return;
+      }
+      /* O NÍVEL. `e.domain` continua a ser exigido, e a razão do comentário
+         antigo mantém-se de pé: há um `levelup` sem domínio — o da progressão
+         do Treino (`useStore.js`) — que agrega vários pilares e não pertence a
+         um território só. Esse não acende nenhum, e continua a não acender.
+         O que mudou foi o emissor por atributo, em `engine.js`, que TINHA o
+         domínio e não o passava. */
+      const lv = q.find((e) => e.kind === 'levelup' && !seen.has(e.dedupe) && e.domain && AM[e.domain]);
+      if (lv) {
+        marcar(lv.dedupe);
+        dispatch({ t: 'starBirth', domain: lv.domain!, color: AM[lv.domain!].color });
         return;
       }
       const ev = q.find(
@@ -356,6 +408,25 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
   useEffect(() => {
     if (m.state !== 'RANK_EVENT') return;
     const t = window.setTimeout(() => dispatch({ t: 'rankEnd' }), 4200);
+    return () => window.clearTimeout(t);
+  }, [m.state]);
+
+  /* A estrela nasce em 2,8s: 0,9s de colapso da protoestrela, 0,4s de silêncio
+     antes do acendimento, 1,5s de onda e assentamento. Mais curto do que o
+     rank (4,2s) de propósito — um nível é frequente e um rank não, e uma
+     cerimónia de quatro segundos a cada nível passava a ser uma interrupção. */
+  useEffect(() => {
+    if (m.state !== 'STAR_BIRTH') return;
+    const t = window.setTimeout(() => dispatch({ t: 'starBirthEnd' }), 2800);
+    return () => window.clearTimeout(t);
+  }, [m.state]);
+
+  /* A supernova é o evento mais longo do produto: 4,6s. É mais longa do que a
+     subida de rank por decisão, não por simetria — o que se perde tem de ter
+     tempo para ser visto, senão o Sistema está a passar por cima. */
+  useEffect(() => {
+    if (m.state !== 'SUPERNOVA') return;
+    const t = window.setTimeout(() => dispatch({ t: 'supernovaEnd' }), 4600);
     return () => window.clearTimeout(t);
   }, [m.state]);
 
@@ -450,11 +521,19 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
   })();
 
   const coreState: CoreState =
-    m.state === 'RANK_EVENT' ? 'RANK_UP'
-      : m.state === 'PROGRESS_EVENT' ? 'ABSORBING'
-        : lit ? 'ATTUNEMENT' : 'REST';
+    m.state === 'SUPERNOVA' ? 'COLLAPSE'
+      : m.state === 'RANK_EVENT' ? 'RANK_UP'
+        // O nascimento de uma estrela é energia a entrar no Núcleo, tal como
+        // um progresso — a diferença entre os dois não está no corpo, está no
+        // céu, e é lá que se encena.
+        : (m.state === 'PROGRESS_EVENT' || m.state === 'STAR_BIRTH') ? 'ABSORBING'
+          : lit ? 'ATTUNEMENT' : 'REST';
 
   const showSky = m.state === 'OVERVIEW' || m.state === 'RETURNING'
+    // Os dois épicos recuam para a vista geral, e o que eles mudam é
+    // precisamente o que a leitura do céu conta: o número de estrelas e o
+    // rank. Escondê-la ali era tapar o resultado do acontecimento.
+    || m.state === 'STAR_BIRTH' || m.state === 'SUPERNOVA'
     || (m.state === 'PROGRESS_EVENT' && scale === 'system' && !m.prevDomain);
   const showDomain = (m.state === 'DOMAIN_FOCUS' || (m.state === 'PROGRESS_EVENT' && scale === 'domain')) && selT;
   const showCore = m.state === 'CORE_APPROACH' || m.state === 'CORE_INSIDE'
@@ -469,6 +548,12 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
       data-live={live ? 'true' : 'false'}
       data-revelacao={revelacao}
     >
+      {/* O CLARÃO DA SUPERNOVA. Fora da `.us-scene` de propósito: a cena
+          inteira escala durante o evento, e um clarão que escalasse com ela
+          deixaria de cobrir os cantos — que é precisamente o que ele existe
+          para fazer. Fica no `.us`, que não se move. */}
+      <div className="us-flash" aria-hidden="true" />
+
       <div
         className="us-scene"
         style={{
@@ -578,6 +663,11 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
                     maneira é o que o domínio é. Só é desenhada quando acesa —
                     seis assinaturas a correr sempre seriam seis ruídos. */}
                 {isLit && <DomainSignature id={t.id} color={t.color} level={t.level} />}
+
+                {/* A ONDA DO NASCIMENTO. Existe sempre no DOM e só anima em
+                    STAR_BIRTH — montá-la no evento obrigaria a esperar por um
+                    render para a animação arrancar, e o atraso via-se. */}
+                <span className="us-shock" aria-hidden="true" />
 
                 <span className="us-stars">
                   {t.stars.map((st) => (

@@ -43,9 +43,13 @@
  *   ATTUNEMENT   um domínio está em foco: o Núcleo afina-se pela cor dele
  *   ABSORBING    energia a chegar de evidência real
  *   RANK_UP      contração e expansão; o corpo ficou maior para sempre
+ *   COLLAPSE     um rank foi PERDIDO. O corpo colapsa e volta menor — é a
+ *                única resposta do Núcleo que não termina onde começou, e é
+ *                assim porque o facto também não. Ver a SUPERNOVA em
+ *                `universe-states.ts`.
  */
 
-export type CoreState = 'REST' | 'ATTUNEMENT' | 'ABSORBING' | 'RANK_UP';
+export type CoreState = 'REST' | 'ATTUNEMENT' | 'ABSORBING' | 'RANK_UP' | 'COLLAPSE';
 
 interface Props {
   /** 0–1, derivado do nível global real. */

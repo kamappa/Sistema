@@ -3666,6 +3666,65 @@ duas conclusões erradas.
 - CPU estrangulado a 6× põe tudo a 3–5 fps, **com e sem** estas camadas
   (358,3 contra 358,5 ms). O teste não distingue nada e não é usado como prova.
 
+#### Eventos épicos — e o facto que faltava chegar ao céu
+
+Pedido do Daniel: *"eventos épicos pontuais (nascimento de estrela, rank-up,
+supernova)"*. O rank-up já existia desde a Fase 6C. Os outros dois não — e o
+primeiro não existia por uma razão que se veio a revelar um **bug de dados**.
+
+**O achado.** `engine.js` emite `kind: 'levelup'` **por atributo**, com o
+atributo na mão (`u`), e nunca preenchia o campo `domain` — que existe no
+`SystemEvent` desde a Fase 6A. O Universo filtra por domínio, e o comentário
+dele dizia *"um level-up sem domínio não acende território nenhum, e inventar
+um seria mentir"*. Correto quanto a não inventar, e a conclusão errada: o
+domínio não estava a ser inventado, estava a ser **deitado fora no emissor**.
+Consequência: um nível provado — o facto que literalmente cria uma estrela
+permanente — era o único acontecimento do céu que não chegava ao céu.
+
+Fica registado que continua a haver um `levelup` **sem** domínio, e de
+propósito: o da progressão do Treino (`useStore.js`), que agrega vários pilares
+e não pertence a um território só. Esse não acende nenhum.
+
+**`world`, campo novo em `SystemEvent`.** `kind` responde a *como se anuncia*;
+`world` responde a *o que aconteceu ao mundo*. Divergem exatamente num caso: a
+perda de rank sai como `warning`, porque é assim que tem de ser lida no
+anúncio, mas para o Universo é o acontecimento mais violento que existe. A
+alternativa era o Universo adivinhar pelo prefixo do `dedupe` — funcionaria
+hoje, porque `warning` só é emitido num sítio, e partia-se em silêncio no dia
+do segundo warning.
+
+**Precedência, quando vários factos chegam na mesma escrita:** supernova >
+rank > estrela > progresso. A perda ganha à celebração — se na mesma escrita se
+ganhou um nível e se perdeu um rank, o que o Operador tem de ver é o que
+perdeu. Tapar isso seria o Sistema a escolher o que conta.
+
+| evento | facto | duração | verificado |
+|---|---|---|---|
+| `STAR_BIRTH` | `levelup` com domínio | 2,8s | estado ativo 400→2400ms, `OVERVIEW` a 2800 |
+| `RANK_EVENT` | `kind: 'rank'` | 4,2s | já existia |
+| `SUPERNOVA` | `world: 'rank-down'` | 4,6s | cena 1,04 → **0,944** com clarão a 0,98 → `OVERVIEW` a 4620ms |
+
+A raridade é **do facto**, não de um temporizador: não há nada a decidir "está
+na hora de uma supernova". Se nunca se perder um rank, nunca corre.
+
+Os três **não desaparecem** em `off` nem em reduced motion — são factos, e a lei
+é mostrar provas. O que muda é a forma: sem escala do céu, sem onda de choque,
+e o clarão reduzido a uma mudança de opacidade.
+
+**Provado pela via real:** `addXp(S, 'corpo', 400)` pelo motor emitiu
+`levelup` com `domain: "corpo"` e `rank` com `world: "rank-up"`, e o Universo
+entrou em `RANK_EVENT` — a precedência a funcionar. Os dois casos que não se
+produzem por XP (estrela isolada e perda de rank) foram disparados com a forma
+exata que o `engine.js` emite, pelo canal real (`window.sysEvent` +
+`save()`).
+
+**Custo:** repouso 8,3 med / p95 8,5. Durante quatro `STAR_BIRTH` seguidos:
+8,3 / p95 8,5 / zero frames acima de 20ms. Durante a supernova: 8,3 / p95 8,5 /
+zero. **Uma anomalia não explicada:** na primeira medição apareceu um frame de
+391,7ms durante um `STAR_BIRTH`. Não reproduziu em quatro repetições seguidas;
+o `save()` foi isolado e custa 0,2ms. Fica registado sem causa atribuída —
+inventar uma seria pior do que dizer que não sei.
+
 #### Observado e não mexido
 
 Há um retângulo de bordos visíveis a delimitar a área da cena — a máscara da

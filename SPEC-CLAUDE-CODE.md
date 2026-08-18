@@ -3835,6 +3835,62 @@ o `live` que já existia. Verificado nos dois sentidos.
 animada. O Chrome não rasteriza tiles fora do ecrã, mas o `LayerTree` mantém as
 mesmas 177 camadas.
 
+#### Causa 4 — a que faltava, e a que o Daniel viu: o céu "aos quadrados"
+
+Screenshot do Daniel **dentro do Núcleo**: bandas retangulares de conteúdo,
+preto no resto, texto cortado a meio da linha. É o compositor a não acabar de
+rasterizar. As três causas acima não lhe tocaram — porque o estado que falha é
+o `data-scale='core'`, e eu tinha medido a vista geral.
+
+**Erro de método meu, registado.** Disse ao Daniel que, se ainda pesasse, os
+anéis orbitais eram o próximo corte, *"~48 MB para três contornos de 1px"*.
+Estava errado, e a medição desmentiu-o de forma limpa: esconder os anéis não
+melhorou nada. Eu tinha inferido a culpa do **tamanho nominal das camadas** no
+`LayerTree`, que é uma caixa, não textura alocada — o Chrome só rasteriza os
+tiles visíveis. Contar MB de `LayerTree` responde a "quanto ocupa", e a
+pergunta era "quanto custa PINTAR".
+
+**A métrica que resolveu isto:** tempo para o Chrome produzir um frame
+(`Page.captureScreenshot` cronometrado). É binária quando falha, contínua
+quando não, e não depende de a máquina estar boa — ao contrário do frame time
+por `rAF`, que passou a sessão inteira a derivar.
+
+**O achado.** O campo distante eram **206 `radial-gradient` num
+`background-image`**. Um `background-image` é re-rasterizado sempre que a
+camada muda de escala em espaço de ecrã — e a viagem ao Núcleo desloca a câmara
++780 em z, o que a muda. A afirmação que estava escrita no `starfield.ts` —
+*"o custo em runtime é o mesmo de um gradiente estático"* — era falsa, e é agora
+o próprio ficheiro que o diz.
+
+Medido a 1920×1080 com DPR 2, dentro do Núcleo:
+
+| | ms para produzir um frame |
+|---|---|
+| base (206 gradientes CSS) | 4373 / 5768 / 4999 |
+| só o campo escondido | **439** |
+| só a poeira escondida | 6374 |
+| só a nebulosa distante escondida | 4880 |
+| só os anéis escondidos | falha (>12 s) |
+| 3 gradientes CSS em vez de 206 | 457 |
+| 206 pontos num `<canvas>` | 1002 |
+| **206 pontos, e só o `transform` 3D removido** | **622** |
+
+As duas últimas linhas são a correção inteira, e são independentes: sai do 3D
+**e** passa a bitmap. Resultado na página, antes → depois: vista geral
+3302 → **250 ms**; dentro do Núcleo 5737 → **519 / 470 / 520 ms**, e estável
+entre repetições em vez de degradar.
+
+**A armadilha que quase passou.** Sem perspetiva a encolher, o `PERSP` de 2,636
+do `starfield.ts` — que existia para pedir tamanhos em pixels *aparentes* —
+punha os pontos a 2,4–3,4px, **dentro da gama das estrelas de evidência
+(2–5px)**. O HUD afirma que cada estrela é um nível provado; o fundo passaria a
+desmenti-lo por efeito secundário de uma correção de performance. `PERSP` passa
+a 1, declarado e não apagado, com a conta a refazer escrita ao lado.
+
+**O que se perde:** o campo deixa de se aproximar durante a viagem ao Núcleo.
+Era 1,37× num fundo já indistinto, e a camada é, por definição do próprio CSS,
+*"o que NÃO se pode ver mexer"*.
+
 #### Por confirmar
 
 O ganho em **frames por segundo** não é afirmado. A máquina de medição degradou

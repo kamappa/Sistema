@@ -52,8 +52,16 @@ html[data-motion='still'] {
  * dominantes na mesma zona são um erro de composição, e o seletor abaixo
  * torna-o visível em vez de o esconder.
  */
+/* O fator é um TOKEN e não um número solto porque deixou de ser lido só aqui:
+   quem anima a opacidade da própria camada ambiental — e não a de um filho —
+   tem de a multiplicar por ele à mão, senão a animação passa por cima desta
+   regra e promove um ambiente secundário a dominante sem ninguém dar por isso.
+   Aconteceu no céu do Universo. Ver as keyframes `us-neb-far`, `us-neb-near` e
+   `us-glare` em `universe/universe-scene.css`. */
+:root { --sys-ambient-o: 0.62; }
+
 .sys-zone [data-ambient]:not([data-ambient='dominant']) {
-  opacity: 0.62;
+  opacity: var(--sys-ambient-o);
 }
 
 /* Fora da zona ativa não há ambiente nenhum: é movimento que ninguém vê, num

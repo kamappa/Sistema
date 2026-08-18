@@ -140,10 +140,12 @@
 .us-dust {
   transform: translate3d(calc(var(--px) * -34px), calc(var(--py) * -22px), -1400px) scale(2.273);
   inset: 0;
+  animation: us-dust-drift 118s linear infinite alternate;
 }
 .us-neb {
   transform: translate3d(calc(var(--px) * -24px), calc(var(--py) * -16px), -1000px) scale(1.909);
   inset: 0;
+  animation: us-neb 76s var(--sys-ease-breath) infinite alternate;
 }
 /* Camada 2. As profundidades novas seguem a mesma aritmética das antigas:
      −1800 → 1100/2900 = 37,9%  → precisa de ×2,636
@@ -152,14 +154,17 @@
 .us-field-far {
   transform: translate3d(calc(var(--px) * -42px), calc(var(--py) * -28px), -1800px) scale(2.636);
   inset: 0;
+  animation: us-field-drift 181s linear infinite alternate;
 }
 .us-neb-far {
   transform: translate3d(calc(var(--px) * -30px), calc(var(--py) * -20px), -1600px) scale(2.455);
   inset: 0;
+  animation: us-neb-far 149s var(--sys-ease-breath) infinite alternate;
 }
 .us-neb-near {
   transform: translate3d(calc(var(--px) * -16px), calc(var(--py) * -11px), -700px) scale(1.636);
   inset: 0;
+  animation: us-neb-near 97s var(--sys-ease-breath) infinite alternate;
 }
 /* Os anéis mantêm o `inset`: ver a nota acima. A caixa cresce 11% e não 164%,
    por isso não é ela que põe o orçamento em causa. */
@@ -188,17 +193,59 @@
  * sem Z nenhum, e o ponteiro não a movia um píxel. Regra geral desta cena —
  * quem tem profundidade não anima, quem anima não tem profundidade.
  */
+/* ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  SEGUNDA LEI DE CUSTO: CADA FILHO QUE ANIMA É UMA SUPERFÍCIE INTEIRA ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * A primeira lei — «a ampliação vive no `scale`, nunca no `inset`» — resolveu
+ * o TAMANHO de cada camada e continua de pé. Não resolveu o NÚMERO delas, e
+ * era esse o que faltava.
+ *
+ * MEDIDO com o `LayerTree` do CDP, a 1512×900 e com o Universo aberto:
+ * 187 camadas de composição na página, 129 delas dentro do `.us`, a somar
+ * 356 MB de textura a DPR 1 — ou seja ~1,4 GB no ecrã do Daniel, que é DPR 2.
+ * Vinte e cinco dessas camadas eram do tamanho do enquadramento inteiro
+ * (2810×1116, 12 MB cada). É o mesmo orçamento que já tinha rebentado uma vez
+ * nesta missão, pelo outro lado.
+ *
+ * A razão é simples e não estava escrita em lado nenhum: um elemento com
+ * `animation` sobre `transform`/`opacity` — ou com `will-change` — ganha uma
+ * SUPERFÍCIE PRÓPRIA. Como a regra antiga («quem tem profundidade não anima,
+ * quem anima não tem profundidade») punha a deriva sempre num filho, cada
+ * camada de ambiente pagava DUAS superfícies do tamanho do céu: a mãe, pela
+ * profundidade, e o filho, pela deriva.
+ *
+ * A saída é a mesma que a deriva de câmara já tinha encontrado 800 linhas
+ * abaixo e que ninguém trouxe para cá: `translate`, `rotate` e `scale` são
+ * propriedades INDEPENDENTES e COMPÕEM-SE com o `transform` em vez de o
+ * substituírem. A camada pode ter profundidade E animar-se. O filho fica —
+ * é ele que carrega o desenho — mas deixa de animar, e por isso deixa de ter
+ * superfície: pinta dentro da mãe, de graça.
+ *
+ * ── O QUE ISTO CUSTA, DITO SEM MAQUILHAGEM ──
+ * As três populações de poeira e as três do campo distante deixam de ter
+ * velocidades independentes: cada conjunto passa a derivar como um só. Era
+ * paralaxe INTERNA de ±7px em 118s (poeira) e ±2px em 181s (campo) — 0,06 e
+ * 0,01 px por segundo. A paralaxe que se vê é a da PROFUNDIDADE entre camadas,
+ * e essa fica intacta. O que sai é o que não se conseguia ver.
+ *
+ * ── A CONVERSÃO DAS AMPLITUDES, que é onde isto se estraga em silêncio ──
+ * O filho vivia DENTRO do `scale()` da mãe; o `translate` independente é
+ * aplicado FORA dele. Para o movimento aparente não mudar, a amplitude tem de
+ * ser MULTIPLICADA pela ampliação — que é desfazer exatamente a divisão que o
+ * comentário da deriva antiga documenta. Poeira: 7,9 × 2,273 = 18px, que é o
+ * valor original de antes da primeira lei. Campo: 1,9 × 2,636 ≈ 5px.
+ * `scale` e `rotate` não precisam de conversão: uma escala uniforme comuta.
+ */
 .us-dust > span {
   position: absolute;
   inset: 0;
-  will-change: transform;
 }
 .us-dust-a {
   background-image:
     radial-gradient(1.6px 1.6px at 61% 14%, rgb(233 231 242 / .6), transparent 60%),
     radial-gradient(1.4px 1.4px at 12% 22%, rgb(233 231 242 / .55), transparent 60%),
     radial-gradient(1.2px 1.2px at 88% 80%, rgb(233 231 242 / .45), transparent 60%);
-  animation: us-drift-a 118s linear infinite alternate;
 }
 .us-dust-b {
   background-image:
@@ -206,23 +253,20 @@
     radial-gradient(1px 1px at 78% 52%, rgb(233 231 242 / .3), transparent 60%),
     radial-gradient(1px 1px at 24% 88%, rgb(233 231 242 / .28), transparent 60%),
     radial-gradient(1px 1px at 52% 40%, rgb(233 231 242 / .22), transparent 60%);
-  animation: us-drift-b 152s linear infinite alternate;
 }
 .us-dust-c {
   background-image:
     radial-gradient(.8px .8px at 44% 12%, rgb(233 231 242 / .2), transparent 60%),
     radial-gradient(.8px .8px at 68% 92%, rgb(233 231 242 / .18), transparent 60%),
     radial-gradient(.8px .8px at 8% 56%, rgb(233 231 242 / .16), transparent 60%);
-  animation: us-drift-c 94s linear infinite alternate;
 }
-/* As amplitudes estão DIVIDIDAS POR 2,273 — a ampliação da camada-mãe. Um
-   filho dentro de um pai escalado desloca-se pelo produto dos dois, e os
-   valores antigos (±18px numa caixa que era ampliada pelo `inset`, não pelo
-   `scale`) passariam a ler-se com o dobro e meio da deriva. O que se vê tem de
-   continuar igual: a mudança foi de custo, não de movimento. */
-@keyframes us-drift-a { from { transform: translate3d(-7.9px, 1.8px, 0); } to { transform: translate3d(7.9px, -1.8px, 0); } }
-@keyframes us-drift-b { from { transform: translate3d(5.3px, -3.1px, 0); } to { transform: translate3d(-5.3px, 3.1px, 0); } }
-@keyframes us-drift-c { from { transform: translate3d(-3.1px, -1.3px, 0); } to { transform: translate3d(4px, 2.2px, 0); } }
+/* A deriva das TRÊS populações, agora na camada-mãe e numa só. ±18px é o valor
+   original — o mesmo 7,9 × 2,273 explicado no bloco da segunda lei, porque
+   aqui o `translate` já está fora do `scale`. */
+@keyframes us-dust-drift {
+  from { translate: -18px 4.1px; }
+  to   { translate: 18px -4.1px; }
+}
 
 /* ── Nebulosa ── o ambiente dominante do fundo. Muito lenta. ───────────── */
 /* Mesma regra da poeira: quem tem profundidade não anima. O gradiente vive só
@@ -238,12 +282,15 @@
     radial-gradient(ellipse 60% 42% at 32% 38%, rgb(var(--sys-violet-rgb) / .26), transparent 68%),
     radial-gradient(ellipse 48% 38% at 70% 62%, rgb(var(--sys-magenta-rgb) / .16), transparent 66%),
     radial-gradient(ellipse 70% 30% at 50% 88%, rgb(var(--sys-azure-rgb) / .30), transparent 70%);
-  animation: us-neb 76s var(--sys-ease-breath) infinite alternate;
-  will-change: transform, opacity;
 }
+/* A respiração passou para a camada, em propriedades independentes — ver o
+   bloco da segunda lei. `scale` e `rotate` não precisam de conversão: eram
+   aplicados dentro de uma escala uniforme e agora são aplicados fora dela, e
+   uma escala uniforme comuta com ambos. A opacidade muda de dono sem mudar de
+   valor: a camada não tem outro conteúdo além deste pseudo-elemento. */
 @keyframes us-neb {
-  from { transform: scale(1) rotate(0deg); opacity: .5; }
-  to   { transform: scale(1.09) rotate(2.4deg); opacity: .9; }
+  from { scale: 1;    rotate: 0deg;   opacity: .5; }
+  to   { scale: 1.09; rotate: 2.4deg; opacity: .9; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -270,26 +317,24 @@
  * `background-image` — não são 150 elementos.
  * ══════════════════════════════════════════════════════════════════════ */
 
+/* Os três continuam a existir como elementos — é neles que vivem os 206 pontos,
+   e é o `.us-sf-0` que o tier `lite` desliga. O que deixaram de ter é animação
+   própria, e por isso deixaram de ter superfície: pintam dentro da camada-mãe.
+   Ver o bloco da segunda lei. */
 .us-sf {
   position: absolute;
   inset: 0;
-  will-change: transform;
 }
-/* Períodos primos entre si e nenhum múltiplo de outro, como o resto do
-   ambiente: em 3,2 s de observação as sete camadas instrumentadas mexeram-se
-   todas, e o conjunto não se repete numa sessão. */
-.us-sf-0 { animation: us-sf-a 233s linear infinite alternate; }
-.us-sf-1 { animation: us-sf-b 181s linear infinite alternate; }
-.us-sf-2 { animation: us-sf-c 137s linear infinite alternate; }
 
-/* Deriva mínima e desigual. O campo distante quase não se move — é isso que o
-   faz ser distante. Se se vir a mexer, está errado. */
-/* Divididas por 2,636, pela mesma razão das da poeira. Aqui importa ainda
-   mais: este campo é o que NÃO se pode ver mexer, e triplicar-lhe a deriva
-   sem querer seria trocar "distante" por "próximo e lento". */
-@keyframes us-sf-a { from { transform: translate3d(-1.9px, -1.1px, 0); } to { transform: translate3d(2.3px, 1.5px, 0); } }
-@keyframes us-sf-b { from { transform: translate3d(2.7px, 0.8px, 0); }  to { transform: translate3d(-2.3px, -1.9px, 0); } }
-@keyframes us-sf-c { from { transform: translate3d(-1.5px, 1.9px, 0); } to { transform: translate3d(3px, -1.5px, 0); } }
+/* Deriva mínima. O campo distante quase não se move — é isso que o faz ser
+   distante. Se se vir a mexer, está errado.
+   ±5px é 1,9 × 2,636: o `translate` está agora fora do `scale` da camada, e
+   sem esta multiplicação o campo passaria a derivar a um terço do que derivava.
+   181s é o período do meio dos três antigos. */
+@keyframes us-field-drift {
+  from { translate: -5px -2.9px; }
+  to   { translate: 6.1px 4px; }
+}
 
 /* ── Nebulosa distante ── azul-profundo, larguíssima, quase parada.
    É a que dá a cor de fundo ao céu inteiro sem se conseguir apontar onde
@@ -303,12 +348,17 @@
     radial-gradient(ellipse 78% 54% at 24% 30%, rgb(var(--sys-azure-rgb) / .22), transparent 72%),
     radial-gradient(ellipse 64% 46% at 76% 24%, rgb(var(--sys-violet-rgb) / .15), transparent 70%),
     radial-gradient(ellipse 90% 40% at 58% 82%, rgb(var(--sys-azure-rgb) / .17), transparent 74%);
-  animation: us-neb-far 149s var(--sys-ease-breath) infinite alternate;
-  will-change: transform, opacity;
 }
+/* ── A OPACIDADE VAI MULTIPLICADA PELO FATOR DE AMBIENTE, E ISTO NÃO É ZELO ──
+ * Esta camada é `data-ambient` sem `dominant`, e o `motion-regime.css` dá-lhe
+ * `opacity: var(--sys-ambient-o)` por REGRA DE COMPOSIÇÃO — um só ambiente
+ * dominante por zona. Enquanto a animação vivia no `::after`, as duas
+ * opacidades multiplicavam-se e a regra sobrevivia. Na camada, uma animação de
+ * `opacity` SUBSTITUI a regra — e o secundário passava a brilhar como o
+ * dominante. A multiplicação repõe exatamente o produto antigo. */
 @keyframes us-neb-far {
-  from { transform: scale(1.04) rotate(-1.2deg); opacity: .46; }
-  to   { transform: scale(1.13) rotate(1.6deg);  opacity: .78; }
+  from { scale: 1.04; rotate: -1.2deg; opacity: calc(var(--sys-ambient-o) * .46); }
+  to   { scale: 1.13; rotate: 1.6deg;  opacity: calc(var(--sys-ambient-o) * .78); }
 }
 
 /* ── Nebulosa próxima ── magenta, pequena e descentrada.
@@ -322,12 +372,13 @@
   background:
     radial-gradient(ellipse 42% 30% at 68% 40%, rgb(var(--sys-magenta-rgb) / .13), transparent 66%),
     radial-gradient(ellipse 36% 26% at 26% 66%, rgb(var(--sys-violet-rgb) / .11), transparent 64%);
-  animation: us-neb-near 97s var(--sys-ease-breath) infinite alternate;
-  will-change: transform, opacity;
 }
+/* O deslocamento em % é do próprio elemento, e a camada tem a mesma caixa que
+   o pseudo-elemento tinha — logo, mesma percentagem, mesmo movimento. */
+/* Mesma multiplicação e mesma razão da `us-neb-far`. */
 @keyframes us-neb-near {
-  from { transform: scale(1.06) translate3d(-1.5%, 1%, 0); opacity: .4; }
-  to   { transform: scale(0.97) translate3d(2%, -1.5%, 0); opacity: .82; }
+  from { scale: 1.06; translate: -1.5% 1%;  opacity: calc(var(--sys-ambient-o) * .4); }
+  to   { scale: 0.97; translate: 2% -1.5%;  opacity: calc(var(--sys-ambient-o) * .82); }
 }
 
 /* ── QUALIDADE ─────────────────────────────────────────────────────────
@@ -336,7 +387,11 @@
  * duas nebulosas: o céu continua a ter fundo e a ter distância, que é o que a
  * camada 2 existe para dar. O que se perde é a terceira velocidade.
  * `off` mantém tudo desenhado e para o movimento — um céu parado continua a
- * ser um céu. */
+ * ser um céu.
+ *
+ * O `.us-sf-0` continua a existir como elemento precisamente para esta regra
+ * poder desligá-lo: as populações do campo perderam animação própria, não
+ * existência própria. */
 html[data-sys-quality='lite'] .us-sf-0,
 html[data-sys-quality='lite'] .us-neb-near,
 html[data-sys-quality='off'] .us-sf-0,
@@ -346,12 +401,12 @@ html[data-sys-quality='off'] .us-neb-near { display: none; }
    sozinha a animar — medido, 1 animação a correr quando a regra ao lado promete
    zero. A camada 2 reforçou-lhe a opacidade, portanto passou a ser a coisa mais
    visível a mexer num nível que existe precisamente para não mexer. */
-html[data-sys-quality='off'] .us-sf,
-html[data-sys-quality='off'] .us-neb::after,
-html[data-sys-quality='off'] .us-neb-far::after { animation: none; }
+html[data-sys-quality='off'] .us-field-far,
+html[data-sys-quality='off'] .us-neb,
+html[data-sys-quality='off'] .us-neb-far { animation: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .us-sf, .us-neb-far::after, .us-neb-near::after { animation: none; }
+  .us-field-far, .us-neb-far, .us-neb-near { animation: none; }
 }
 
 /* ── Anéis orbitais ────────────────────────────────────────────────────
@@ -1012,6 +1067,7 @@ html[data-sys-quality='off'] .us-sats { animation: none; }
              scale(1.509);
   inset: 0;
   transition: transform 1400ms var(--sys-ease-gravity);
+  animation: us-glare 31s var(--sys-ease-breath) infinite alternate;
 }
 .us-glare::after {
   content: '';
@@ -1022,19 +1078,20 @@ html[data-sys-quality='off'] .us-sats { animation: none; }
     rgb(139 92 246 / 0.06) 22%,
     rgb(109 40 217 / 0.03) 44%,
     transparent 68%);
-  animation: us-glare 31s var(--sys-ease-breath) infinite alternate;
-  will-change: transform, opacity;
 }
+/* Mesma multiplicação e mesma razão da `us-neb-far`. Aqui pesa ainda mais: um
+   véu que se nota é neblina, e neblina baixa o contraste dos rótulos dos
+   domínios, que já passaram uma auditoria de contraste e não podem regredir. */
 @keyframes us-glare {
-  from { transform: scale(0.9);  opacity: .55; }
-  to   { transform: scale(1.15); opacity: 1; }
+  from { scale: 0.9;  opacity: calc(var(--sys-ambient-o) * .55); }
+  to   { scale: 1.15; opacity: var(--sys-ambient-o); }
 }
 
 /* O véu é a peça mais barata das três e a que mais depende do ecrã ser bom.
    Em `lite` fica, sem animação; em `off` sai. */
-html[data-sys-quality='lite'] .us-glare::after { animation: none; }
+html[data-sys-quality='lite'] .us-glare { animation: none; }
 html[data-sys-quality='off'] .us-glare { display: none; }
-@media (prefers-reduced-motion: reduce) { .us-glare::after { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .us-glare { animation: none; } }
 /* A perspetiva sozinha fá-lo crescer ~2,5× da vista geral até à chegada. Não
    chega para uma chegada: acumula-se uma escala própria, e o resultado é
    ~4,7×. É o único sítio do produto onde a escala é o argumento. */

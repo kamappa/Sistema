@@ -562,6 +562,130 @@ html[data-sys-quality='off'] .us-neb-far { animation: none; }
    direta ao "as estrelas próximas deveriam reagir". */
 .us-terr[data-lit='true'] .us-star { opacity: calc(0.62 + var(--l) * 0.38); }
 
+/* ══════════════════════════════════════════════════════════════════════
+ * OS MARCOS — as estrelas que têm nome
+ * Missão 26 · Renaissance Visual · a fusão dos dois céus
+ *
+ * A zona Universo tinha DOIS céus a dizer a mesma coisa: esta cena e o painel
+ * legado das Constelações, com o motor WebGL de `stage/constellation.js`. O
+ * painel antigo tinha o que faltava aqui — estrelas com NOME — e esta camada
+ * traz esse conteúdo para dentro da cena. O painel sai da zona.
+ *
+ * DUAS POPULAÇÕES, e a diferença tem de se ver sem legenda:
+ *   `.us-star`  ponto redondo, pequeno, anónimo. Conta QUANTO.
+ *   `.us-mk`    quatro pontas, maior, com halo e ligações. Conta O QUÊ.
+ *
+ * As quatro pontas são a mesma forma do Núcleo à escala pequena. Não é uma
+ * repetição decorativa: é o que diz que os marcos e o Núcleo são a mesma
+ * família de matéria, e que a energia deles converge para lá.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+.us-marcos {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* ── AS LIGAÇÕES ──
+   Em repouso são um traço quase apagado: a forma da constelação está lá, mas
+   não compete com as estrelas. Ao despertar o domínio, ACENDEM — e é aí que a
+   figura aparece, que é a razão de as ligações existirem.
+   0,55px e não 1: à escala destes territórios uma linha de 1px lê-se como uma
+   grelha desenhada, e o que se quer é o fio ténue entre dois pontos de luz. */
+.us-mk-links line {
+  stroke-width: 0.7;
+  opacity: 0.26;
+  transition:
+    opacity calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out),
+    stroke-width calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+.us-terr[data-lit='true'] .us-mk-links line,
+.us-terr[data-sel='true'] .us-mk-links line {
+  opacity: 0.68;
+  stroke-width: 1.05;
+}
+
+/* ── OS MARCOS ──
+   O halo por baixo, o corpo branco por cima. O corpo é branco e não da cor do
+   domínio porque uma estrela é branca ao centro — a cor está no halo, que é o
+   ar à volta dela, e é assim que funciona em qualquer fotografia de céu. */
+.us-mk-glow {
+  opacity: 0.7;
+  transition: opacity calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+.us-mk-body {
+  opacity: 0.82;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity calc(var(--sys-dur-calm) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+.us-terr[data-lit='true'] .us-mk-body,
+.us-terr[data-sel='true'] .us-mk-body { opacity: 1; }
+.us-terr[data-lit='true'] .us-mk-glow,
+.us-terr[data-sel='true'] .us-mk-glow { opacity: 1; }
+
+/* Respiram, e MUITO devagar — 9s mais o índice. Um marco é um facto assente,
+   não uma coisa em curso: a estrela em formação é que tem pressa. O desfasamento
+   por `--i` garante que não há dois em fase; sem ele o território inteiro
+   pulsava em uníssono, que é a árvore de Natal já proibida para as `.us-star`. */
+.us-mk {
+  animation: us-mk-breathe calc(9s + var(--i, 0) * 1.7s) var(--sys-ease-breath) infinite alternate;
+  animation-delay: calc(var(--i, 0) * -1.3s);
+  transform-box: view-box;
+}
+@keyframes us-mk-breathe {
+  from { opacity: 0.78; }
+  to   { opacity: 1; }
+}
+
+/* A FORMAÇÃO. Os marcos nascem DEPOIS das estrelas anónimas — 380ms de atraso
+   base — e a ordem é a leitura: primeiro o campo, depois o que tem nome. Um céu
+   onde tudo aparece ao mesmo tempo não tem hierarquia nenhuma. */
+.us[data-revelacao='a-nascer'] .us-mk {
+  animation: us-mk-nasce 760ms var(--sys-ease-gravity) calc(380ms + var(--i, 0) * 78ms) both;
+}
+@keyframes us-mk-nasce {
+  from { opacity: 0; transform: scale(0.2) rotate(-40deg); }
+  to   { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.us[data-revelacao='a-nascer'] .us-mk-links line {
+  animation: us-mk-liga 900ms var(--sys-ease-out) calc(620ms + var(--i, 0) * 60ms) both;
+}
+@keyframes us-mk-liga {
+  from { opacity: 0; }
+  to   { opacity: 0.26; }
+}
+
+/* ── OS NOMES ──
+   Só no domínio em foco. Deslocados para baixo da estrela e centrados nela; o
+   `text-shadow` é o que os separa do céu sem precisar de uma caixa por trás,
+   que seria uma etiqueta colada em cima do mundo. */
+.us-mk-labels { position: absolute; inset: 0; pointer-events: none; }
+.us-mk-lb {
+  position: absolute;
+  transform: translate(-50%, 12px);
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  color: var(--ink, #e9e4f5);
+  text-shadow: 0 0 9px rgb(0 0 0 / 0.9), 0 0 3px rgb(0 0 0 / 0.8);
+  white-space: nowrap;
+  opacity: 0;
+  animation: us-mk-lb-in 520ms var(--sys-ease-out) 260ms forwards;
+}
+@keyframes us-mk-lb-in {
+  from { opacity: 0; transform: translate(-50%, 18px); }
+  to   { opacity: 0.92; transform: translate(-50%, 12px); }
+}
+
+html[data-sys-quality='off'] .us-mk { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .us-mk, .us-mk-lb { animation: none; }
+  .us-mk-lb { opacity: 0.92; }
+}
+
 /* ── PROTOESTRELA ──────────────────────────────────────────────────────
  * As quatro fases do XP do nível em curso. Não é a mesma estrela mais ou menos
  * brilhante — são quatro estados visualmente distintos, porque uma barra a 32%
@@ -629,6 +753,26 @@ html[data-sys-quality='off'] .us-neb-far { animation: none; }
   text-shadow: 0 0 14px var(--sys-void);
 }
 .us-terr[data-lit='true'] .us-terr-n { color: var(--dom); }
+
+/* ── O ROTULO SAI DE CIMA DA CONSTELACAO ───────────────────────────────
+ * Missão 26 · Renaissance Visual · a fusão dos dois céus.
+ *
+ * O nome e o nível do território estavam centrados no território, o que estava
+ * certo enquanto o centro estava vazio. Deixou de estar: os marcos ocupam-no,
+ * e a primeira observação mostrou "SABER Nv 19" escrito por cima de "Notas" e
+ * "Síntese" — três textos no mesmo sítio.
+ *
+ * Sobe só na ESCALA DE DOMÍNIO, e é por isso que a regra depende de
+ * `data-scale` e não de `data-sel`: `data-sel` também é verdadeiro no hover,
+ * e um rótulo que salta ao passar o rato é pior do que a colisão que isto
+ * corrige. Em vista geral não há colisão nenhuma — os nomes dos marcos não
+ * existem lá. */
+.us-terr-hit {
+  transition: transform calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+.us[data-scale='domain'] .us-terr[data-sel='true'] .us-terr-hit {
+  transform: translate(-50%, -50%) translateY(-124px);
+}
 .us-terr-hit:focus-visible { outline: 2px solid var(--sys-ink); outline-offset: 4px; border-radius: 4px; }
 
 /* ── ASSINATURAS DE DOMÍNIO ────────────────────────────────────────────
@@ -1194,9 +1338,15 @@ html[data-sys-quality='off'] .us-glare { display: none; }
  * O piso de 0,55 é o que garante que ele IRRADIA mesmo em vista geral, que é
  * onde estava o problema — antes o multiplicador chegava a 0,59 no halo e o
  * corpo desaparecia contra o vazio. */
+/* O piso desceu de 0,55 para 0,34 quando o corpo passou de 42 para 58. Não é
+   recuo do "irradiar mesmo em vista geral" que a nota acima defende — é a
+   consequência aritmética de ele ter crescido: a corona é uma fração do corpo,
+   e a mesma opacidade sobre um corpo maior tapa os domínios em vez de os
+   emoldurar. A luz total no ecrã ficou aproximadamente igual; o que mudou foi
+   a área por onde ela se espalha. */
 .nuc-corona {
   inset: 0;
-  opacity: calc(0.55 + var(--nuc-focus, 0.2) * 0.45);
+  opacity: calc(0.34 + var(--nuc-focus, 0.2) * 0.42);
 }
 
 .nuc-corona-a {
@@ -1378,7 +1528,8 @@ html[data-sys-quality='off'] .us-glare { display: none; }
     rgb(167 139 250 / 0.18) 52%,
     transparent 76%);
   filter: blur(9px);
-  opacity: calc(0.4 + var(--nuc-focus, 0.2) * 0.6);
+  /* Ver a nota da corona: mesma razão, mesmo ajuste. */
+  opacity: calc(0.26 + var(--nuc-focus, 0.2) * 0.5);
   animation: nuc-bloom 17s var(--sys-ease-breath) infinite alternate;
 }
 @keyframes nuc-bloom { from { transform: scale(1.02); } to { transform: scale(1.3); } }
@@ -1455,6 +1606,101 @@ html[data-sys-quality='off'] .nuc-streak { animation: none; }
   .nuc-bloom, .nuc-streak { animation: none; }
 }
 
+
+/* ══════════════════════════════════════════════════════════════════════
+ * NÚCLEO — FITAS, INSCRIÇÕES E PONTAS
+ * Missão 26 · Renaissance Visual · a passagem dos dois céus
+ *
+ * Três camadas novas, e cada uma responde a uma parte do mesmo veredicto do
+ * Daniel: "o núcleo podia ser maior e mais vivo, mostrando provas vivas".
+ *
+ *   PONTAS       a silhueta. Um corpo com eixo, não uma bola de luz
+ *   FITAS        a órbita. Matéria a envolver o corpo, à frente e atrás
+ *   INSCRIÇÕES   a prova. O estado real escrito num anel, legível de perto
+ *
+ * ── ORÇAMENTO ──
+ * Três elementos, todos `transform` e `opacity`. ZERO `filter` — a proibição
+ * de blur em área grande mantém-se, e nenhuma destas precisou dele: as pontas
+ * têm o esbatimento no próprio gradiente, e as fitas no gradiente do traço.
+ * As inscrições só existem quando a câmara se aproximou, por isso em vista
+ * geral — o estado em que se passa a maior parte do tempo — o custo é zero.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* ── AS FITAS ──
+   Cada uma roda no seu elemento, a velocidades que não são múltiplas: em
+   proporções simples as três alinham-se de tempos a tempos e nesse instante
+   lê-se o padrão, que é o que transforma matéria em gráfico.
+   A terceira roda ao contrário — sem um sentido oposto as três leem-se como
+   uma coisa só a girar. */
+.nuc-rb { transform-origin: 160px 160px; will-change: transform; }
+.nuc-rb-0 { animation: nuc-spin    41s linear infinite; }
+.nuc-rb-1 { animation: nuc-spin-r  67s linear infinite; }
+.nuc-rb-2 { animation: nuc-spin    97s linear infinite; }
+
+/* O pulso acelera as fitas. `calc` sobre a duração e não sobre a velocidade
+   porque é a duração que o CSS sabe animar: mais pulso, período mais curto. */
+.nuc[style] .nuc-rb-0 { animation-duration: calc(41s - var(--nuc-pulse, 0.3) * 19s); }
+.nuc[style] .nuc-rb-1 { animation-duration: calc(67s - var(--nuc-pulse, 0.3) * 28s); }
+.nuc[style] .nuc-rb-2 { animation-duration: calc(97s - var(--nuc-pulse, 0.3) * 36s); }
+
+/* ── AS INSCRIÇÕES ──
+   Roda muito devagar — 240s — e o motivo é o oposto do das fitas: uma fita
+   parada não está em órbita, mas um texto que se move depressa não se lê. A
+   esta velocidade dá uma volta em quatro minutos e nunca atrapalha a leitura.
+   A opacidade segue o foco: aparece ao aproximar e some-se ao recuar, sem
+   nunca ser uma coisa que liga e desliga. */
+.nuc-sigil {
+  animation: nuc-spin 240s linear infinite;
+  transform-origin: 160px 160px;
+  opacity: calc(var(--nuc-focus, 0.2) * 0.9);
+  transition: opacity 900ms var(--sys-ease-gravity);
+}
+.nuc-sig-t {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 7.2px;
+  letter-spacing: 0.34em;
+  opacity: 0.72;
+}
+.nuc-sig-ticks line { opacity: 0.55; }
+
+/* ── AS PONTAS ──
+   Respiram no ritmo do corpo e em FASE com ele: as pontas são o mesmo corpo
+   visto ao longo do eixo, e duas partes da mesma matéria não podem respirar
+   em tempos diferentes — isso lê-se como duas peças coladas.
+   A amplitude é maior do que a do corpo (0,94→1,06 contra 0,985→1,03) porque
+   é na ponta que uma variação de luz se vê; ao centro, saturado, não. */
+.nuc-spikes {
+  animation: nuc-spike var(--nuc-rate, 11s) var(--sys-ease-breath) infinite alternate;
+  transform-origin: 160px 160px;
+  will-change: transform, opacity;
+}
+@keyframes nuc-spike {
+  from { transform: scale(0.94); opacity: 0.82; }
+  to   { transform: scale(1.06); opacity: 1; }
+}
+
+/* Em ABSORBING as pontas alongam-se no eixo de onde vem a energia. Não é um
+   brilho a mais: é o corpo a esticar-se na direção do que o alimenta, que é a
+   mesma gramática do `nuc-attune`. */
+.nuc[data-state='ABSORBING'] .nuc-spikes { animation-duration: 2.4s; }
+.nuc[data-state='RANK_UP'] .nuc-spikes   { animation-duration: 1.6s; }
+.nuc[data-state='COLLAPSE'] .nuc-spikes  { animation-duration: 6s; opacity: 0.5; }
+
+/* ── QUALIDADE ──
+   `lite` perde as fitas e as inscrições e fica com as pontas: a silhueta é a
+   leitura, e a leitura não se negoceia. `off` fica com a mesma composição e
+   sem movimento nenhum. */
+html[data-sys-quality='lite'] .nuc-ribbons,
+html[data-sys-quality='lite'] .nuc-sigil,
+html[data-sys-quality='off'] .nuc-ribbons,
+html[data-sys-quality='off'] .nuc-sigil { display: none; }
+html[data-sys-quality='off'] .nuc-spikes { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nuc-rb, .nuc-sigil, .nuc-spikes { animation: none; }
+}
+
+
 /* ── QUALIDADE ─────────────────────────────────────────────────────────
  * `lite` perde as três camadas caras (plasma ×2, raios) e fica com as duas
  * conchas de corona e o limbo. O corpo continua a ser um corpo — perde a
@@ -1484,7 +1730,12 @@ html[data-sys-quality='off'] .nuc-limb { animation: none; }
 /* A respiração do corpo. É a animação DOMINANTE da zona em repouso, e a única
    que se apanha a olho — todo o resto só prova que o espaço continua vivo. */
 @keyframes nuc-breathe { from { transform: scale(.985); } to { transform: scale(1.03); } }
-.nuc-body { animation: nuc-breathe var(--sys-cycle-ambient) var(--sys-ease-breath) infinite alternate; }
+/* ── O RITMO É O PULSO ──
+   Era `--sys-cycle-ambient`, uma constante: o corpo respirava exatamente ao
+   mesmo ritmo numa semana de trabalho e numa semana parada. `--nuc-rate` vem
+   dos últimos sete dias (ver `readPulse`), entre 13s em repouso e 5,2s no
+   máximo. É a diferença entre um corpo vivo e um corpo com uma animação. */
+.nuc-body { animation: nuc-breathe var(--nuc-rate, var(--sys-cycle-ambient)) var(--sys-ease-breath) infinite alternate; }
 
 /* AFINAÇÃO: uma zona da superfície orienta-se para o domínio em foco. Não é o
    Núcleo a mudar de cor — é uma parte dele a responder, que é o que um corpo

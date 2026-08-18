@@ -28,6 +28,7 @@
  */
 
 import { ATTRS, need, rankOf, overallLevel, TITLES_REAL, ACH } from '../../state/config.js';
+import { readMarcos, readPulse, type Marco, type MarcoLink, type PulseRead } from './marcos-read';
 
 /** FNV-1a. Determinístico e estável entre sessões. */
 function hash(s: string): number {
@@ -100,6 +101,17 @@ export interface Territory {
   stars: Star[];
   /** Quantas estrelas consolidadas. É o número que o domínio provou. */
   proven: number;
+  /* ── OS MARCOS ──
+   * As estrelas com NOME, vindas do desenho em `config.js`. São uma população
+   * diferente das de cima, e a diferença é de natureza e não de tamanho:
+   *   `stars`  = QUANTIDADE de prova. Uma por nível. Anónimas por definição —
+   *              "nível 7" não é o nome de nada.
+   *   `marcos` = IDENTIDADE da prova. ISO 27001, Lead Auditor, Forja. Cada um
+   *              tem uma razão que se pode ler em voz alta.
+   * Um céu só com as primeiras conta QUANTO; só com os segundos conta O QUÊ.
+   * A cena mostra as duas populações e desenha-as de maneira diferente. */
+  marcos: Marco[];
+  links: MarcoLink[];
 }
 
 export interface Satellite {
@@ -119,6 +131,13 @@ export interface SceneRead {
   totalStars: number;
   /** Quanta massa o Núcleo tem, 0–1. Governa o tamanho do feixe. */
   coreMass: number;
+  /** O que aconteceu nos últimos sete dias. A única leitura do Núcleo que pode
+   *  DESCER — ver o cabeçalho de `readPulse`. */
+  pulse: PulseRead;
+  /** Marcos nascidos em todo o céu. Fica ao lado de `totalStars` e não somado
+   *  a ele: são duas contagens de coisas diferentes, e somá-las inventaria um
+   *  número que não significa nada. */
+  totalMarcos: number;
 }
 
 /** Teto de estrelas desenhadas por domínio. Acima disto o céu deixa de se ler
@@ -197,6 +216,8 @@ export function readScene(S: Record<string, any> | null): SceneRead | null {
       });
     }
 
+    const { marcos, links } = readMarcos(S, a.id);
+
     return {
       id: a.id,
       name: a.name,
@@ -211,6 +232,8 @@ export function readScene(S: Record<string, any> | null): SceneRead | null {
       rankColor: ar.color,
       stars,
       proven: count,
+      marcos,
+      links,
     };
   });
 
@@ -227,6 +250,7 @@ export function readScene(S: Record<string, any> | null): SceneRead | null {
   }));
 
   const totalStars = territories.reduce((n, t) => n + t.proven, 0);
+  const totalMarcos = territories.reduce((n, t) => n + t.marcos.length, 0);
 
   return {
     territories,
@@ -237,5 +261,7 @@ export function readScene(S: Record<string, any> | null): SceneRead | null {
     // O feixe do Núcleo cresce com o nível global, com saturação. Sem teto,
     // um nível alto enchia o ecrã e deixava de haver céu.
     coreMass: Math.min(1, level / 40),
+    pulse: readPulse(S),
+    totalMarcos,
   };
 }

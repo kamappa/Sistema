@@ -3901,6 +3901,138 @@ correções acima são afirmadas pelo que **é** mensurável e determinístico: 
 que passam a rolar, camadas e MB antes/depois, animações paradas. O veredito
 sobre a fluidez é do Daniel, no ecrã dele.
 
+### Fase 8 · A fusão dos dois céus (2026-08-18)
+
+Relato do Daniel: *"não aparece nada na parte das constelações (…) sinto que o
+núcleo podia ser maior e mais vivo, mostrando mais vivacidade e provas vivas de
+que ando a fazer coisas. o céu das constelações parece-me estático"*. Com quatro
+referências enviadas no chat — um corpo de luz com estrela de quatro pontas e
+fitas em órbita, uma silhueta com círculo de glifos, e duas nebulosas.
+
+#### O achado que reordenou o pedido
+
+A zona Universo tinha **dois céus**, um por cima do outro, em `zones.ts`:
+
+| grupo | painel | motor |
+|---|---|---|
+| `campo` | `Universe` → `UniverseScene.tsx` | Missão 26, novo |
+| `ceu` | `Constellations.jsx` | `stage/constellation.js`, WebGL das M12/16/17 |
+
+Os dois mostravam **os mesmos seis domínios e o mesmo Núcleo**. O de baixo é o
+que "não aparecia".
+
+Observado no browser com estado offline — níveis 8–19, 27 estrelas nascidas, ou
+seja um cenário **mais favorável** do que a conta real. Três causas somadas:
+
+1. as estrelas eram pontos de ~1px sem halo;
+2. a nebulosa do motor antigo tinha mais peso visual do que elas;
+3. numa conta com níveis baixos a maioria dos limiares `req` falha, e o céu
+   está **legitimamente** quase vazio — o silêncio da M16 a funcionar. O erro
+   não é mostrar pouco; é uma caixa preta não explicar o silêncio.
+
+#### A decisão do Daniel: fundir, não remendar
+
+O motor antigo tinha o que faltava ao novo: as estrelas dele **têm nome**. RGPD,
+NIS2, ISO 27001, Lead Auditor, GRC, Cyber Foundations, AI Gov Practitioner,
+Forja. O novo sabia contar níveis — "nível 7 de Saber" — e isso é uma
+quantidade, não uma identidade. Ninguém reconhece o que provou numa quantidade.
+
+`marcos-read.ts` (novo) traz esse conteúdo para dentro da cena. O que muda em
+relação a `stage/constellation.js`: o estado entra por parâmetro em vez de ser
+lido de globais dentro de `try/catch` que devolviam "apagada" a qualquer erro; a
+prova vem junto de cada marco ("Nível 6 de Ofício", "Título Real: Lead Auditor");
+e a data de nascimento é `null` — não inventada — quando o registo a marcou como
+observada na migração.
+
+**Duas populações, e a diferença tem de se ver sem legenda:** `.us-star` é um
+ponto redondo anónimo e conta QUANTO; `.us-mk` tem quatro pontas, halo e
+ligações, e conta O QUÊ. As contagens ficam separadas na leitura ("Estrelas 63 ·
+Marcos 24") e nunca somadas — seriam um número que não corresponde a nada
+contável no céu.
+
+**O silêncio da M16 mantém-se intacto:** nenhum marco por nascer é devolvido, e
+uma ligação com uma ponta por nascer não se desenha — seria uma seta a apontar
+para o que falta.
+
+A leitura abre por distância: em vista geral os marcos brilham e as ligações são
+um traço; ao despertar o domínio as ligações acendem e vê-se a forma; em foco
+aparecem os nomes. Os nomes em vista geral seriam trinta e tal rótulos de 9px
+sobrepostos em seis territórios.
+
+#### O Núcleo — quatro camadas, e o que quase correu mal
+
+Todas as quatro coisas que o Daniel escolheu, em camadas separadas por
+raridade:
+
+- **quatro pontas** (`spikePath`) — a silhueta. Perfil côncavo, eixo vertical
+  1,25× o horizontal. Um bloom radial é uma bola de luz e lê-se como ícone; um
+  corpo com eixo lê-se como entidade;
+- **fitas em órbita** — três elipses com traço em gradiente, a velocidades não
+  múltiplas, uma em sentido oposto. Vêm **antes** do corpo no DOM: é o corpo a
+  desenhar-se por cima que faz metade de cada fita desaparecer, e é essa oclusão
+  que as põe em órbita em vez de as deixar como anéis à volta de um disco;
+- **inscrições** — anel de texto com o estado real (rank, nível global, os seis
+  domínios com o nível de cada um) mais um traço por domínio cujo comprimento é
+  o nível. Rejeitado da referência: a densidade. Um muro de glifos ilegíveis é
+  decoração, e a lei proíbe decoração;
+- **pulso** (`readPulse`) — dias distintos com registo nos últimos 7. É a única
+  leitura do Núcleo que **desce**. Governa ritmo de respiração (13s parado →
+  5,2s a todo o gás), velocidade e brilho das fitas, comprimento das pontas —
+  **nunca** o tamanho do corpo, que é massa provada e não pode encolher por se
+  ter faltado três dias. Piso de 0,12: um corpo que chega a zero é um cadáver, e
+  mostrar um cadáver a quem esteve uma semana sem abrir a app é castigar em vez
+  de informar.
+
+**O erro apanhado na primeira observação, e é o mesmo defeito de que o Daniel se
+queixou.** `BASE` subiu de 42 para 58 e a curva de gradiente do corpo ficou
+igual: o branco acabava a 0,28. Crescer o raio multiplica a **área saturada**, e
+o resultado foi uma mancha branca de ~250px sem estrutura nenhuma — exatamente a
+mancha lavada da captura dele. A correção não foi encolher o corpo: foi
+concentrar a luz (branco a acabar a 0,12) e baixar corona e bloom, deixando as
+pontas e as fitas carregarem o tamanho. Luz total no ecrã aproximadamente igual;
+o que mudou foi a área por onde se espalha.
+
+**Segundo erro, apanhado no mobile.** `size` era fixo em 460. Num ecrã estreito
+o anel dos domínios encolhe (`kx` 0,342, `ky` 0,674) e o Núcleo engolia os seis
+territórios e lavava o texto da leitura. Passa a `wide ? 460 : 290`.
+
+**Terceiro, apanhado na escala de domínio.** O rótulo do território estava
+centrado, o que estava certo enquanto o centro estava vazio — deixou de estar.
+"SABER Nv 19" ficava escrito por cima de "Notas" e "Síntese". Sobe 124px, e a
+regra depende de `data-scale` e não de `data-sel`, porque `data-sel` também é
+verdadeiro no hover e um rótulo que salta ao passar o rato é pior do que a
+colisão.
+
+#### O painel legado saiu da zona, e não foi apagado
+
+`components/Constellations.jsx` e `stage/constellation.js` continuam no
+repositório. Desmontar é reversível numa linha em `zones.ts`; apagar não é. O
+que sai é a duplicação, não o histórico. Leftover conhecido e deliberado:
+`stage/main.js` continua a chamar `initConstellation()`, que desiste em silêncio
+sem o canvas — o mesmo comportamento que tinha antes de existir a casca React.
+
+#### Verificado
+
+`tsc --noEmit` limpo; `vite build` em 224 módulos, Three.js continua no chunk
+**assíncrono** e não bloqueia o primeiro paint. Zero erros de consola.
+
+| condição | resultado |
+|---|---|
+| vista geral 1600×1000 | 24 marcos, 18 ligações, 3 fitas, sigilo ausente (correto: só de perto) |
+| domínio Ofício | RGPD → NIS2 → ISO 27001 → Lead Auditor → GRC, ligados e nomeados |
+| domínio Saber | Leitura → Notas → Síntese → Ensinar → Especialista |
+| anel de inscrições | `RANK S · NÍVEL 64 · OFÍCIO 12 · SABER 19 · …` — bate com o HUD |
+| mobile 390×844 | sem overflow horizontal; Núcleo 176px num plano de 332 |
+| `quality=lite` / `off` | fitas e sigilo saem, pontas e marcos ficam |
+| `prefers-reduced-motion` | todas as animações a `none`, revelação saltada, 24 marcos a opacidade 1 |
+
+**Por confirmar, e é do Daniel:** a captura dele mostrava a mancha clara a
+**substituir** o `UniverseScene` inteiro — sem "O teu céu", sem níveis, sem
+anéis. Isso não se reproduziu aqui em nenhum dos tamanhos testados. A correção
+da saturação torna o sintoma muito menos provável, mas a causa da substituição
+não está identificada e não se declara resolvida. Fica a pergunta: acontece
+sempre, ou só nos primeiros segundos depois de carregar?
+
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 
 Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,

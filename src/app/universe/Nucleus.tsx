@@ -64,6 +64,19 @@ interface Props {
   /** Ângulo (graus) de onde vem a energia ou o foco. O corpo orienta-se. */
   fromAngle?: number;
   size?: number;
+  /* ── O PULSO ── 0–1, dos últimos sete dias. Ver `readPulse`.
+   * É a leitura que faltava, e a falta dela era a queixa: um Núcleo que só
+   * conhece o nível global fica IDÊNTICO numa semana de trabalho e numa semana
+   * parada, porque o nível global nunca desce. Isto governa o ritmo da
+   * respiração, a velocidade e o brilho das fitas, e o comprimento das pontas
+   * — nunca o TAMANHO do corpo. O corpo é massa provada e não pode encolher
+   * por se ter faltado três dias; o que abranda é a atividade, e é isso que o
+   * movimento diz. */
+  pulse?: number;
+  /** As inscrições. Texto real do estado — rank, nível global, domínios — e os
+   *  traços do anel, um por domínio, com o comprimento dado pelo nível dele.
+   *  Ausente em vista geral: a esta distância seria ruído ilegível. */
+  sigil?: { texto: string; ticks: { v: number; color: string }[] } | null;
 }
 
 /* ── PRESENÇA E MASSA, que deixam de ser a mesma coisa ──────────────────
@@ -87,8 +100,22 @@ interface Props {
  * A leitura verdadeira do nível continua onde sempre esteve — o número no HUD,
  * as estrelas, o interior do Núcleo na escala 4. O raio nunca foi lido como
  * número por ninguém, e um corpo maior não afirma um nível que não existe. */
-const BASE = 42;
-const GROWTH = 34;
+/* ── E VOLTA A CRESCER, e a razão é a mesma da primeira vez ──
+ * Missão 26 · Renaissance Visual · a passagem dos dois céus.
+ *
+ * 42/34 vinham da correção anterior, feita quando o corpo era um ponto de raio
+ * 26. Resolveu o "ponto invisível" e parou aí. O veredicto seguinte do Daniel
+ * — "o núcleo podia ser maior e mais vivo" — é sobre o que sobrou: um corpo
+ * que se lê, mas que ainda não é o centro do mundo num plano de 620px.
+ *
+ * A distinção mantém-se intacta e é ela que autoriza o aumento: PRESENÇA não é
+ * PROGRESSO. Subir `BASE` não afirma nível nenhum — afirma que o centro do
+ * mundo existe. `GROWTH` é que é a evidência, e sobe menos em proporção do que
+ * a presença, de propósito: o corpo de quem acabou de chegar aproxima-se do
+ * corpo de quem já provou muito, e é assim que deve ser. O que separa os dois
+ * é o céu à volta, que é onde a prova está. */
+const BASE = 58;
+const GROWTH = 42;
 const MATTER = '#c4b5fd';
 const MATTER_DEEP = '#7c3aed';
 
@@ -110,8 +137,35 @@ function shell(n: number, r0: number, r1: number, seed: number, focus: number) {
   });
 }
 
+/* ── AS QUATRO PONTAS ──────────────────────────────────────────────────
+ * ORIGEM: imagem enviada pelo Daniel no chat — um corpo de luz azul com uma
+ * estrela de quatro pontas ao centro e fitas de energia em órbita. NÃO está
+ * catalogada e NÃO tem número de referência; dar-lhe um seria inventar
+ * proveniência, que é o erro já cometido e corrigido no cabeçalho deste
+ * ficheiro. Rejeitado dela: o ciano, que não é a paleta do Sistema.
+ *
+ * A silhueta é o que muda a leitura. Um bloom radial é uma BOLA DE LUZ e lê-se
+ * como um ícone aceso; um corpo com eixo lê-se como uma ENTIDADE. A diferença
+ * está toda no perfil: os lados são côncavos, e por isso as pontas afinam
+ * depressa junto ao corpo e alongam-se muito no fim.
+ *
+ * O eixo vertical é mais longo do que o horizontal — 1,7× — pela mesma razão
+ * que já está escrita para as streaks: uma cruz simétrica é o brilho desenhado
+ * de um ícone, e o que existe na natureza tem um eixo dominante. */
+function spikePath(lv: number, lh: number, w: number): string {
+  return [
+    `M160,${(160 - lv).toFixed(1)}`,
+    `Q${(160 + w).toFixed(1)},${(160 - w).toFixed(1)} ${(160 + lh).toFixed(1)},160`,
+    `Q${(160 + w).toFixed(1)},${(160 + w).toFixed(1)} 160,${(160 + lv).toFixed(1)}`,
+    `Q${(160 - w).toFixed(1)},${(160 + w).toFixed(1)} ${(160 - lh).toFixed(1)},160`,
+    `Q${(160 - w).toFixed(1)},${(160 - w).toFixed(1)} 160,${(160 - lv).toFixed(1)}`,
+    'Z',
+  ].join(' ');
+}
+
 export default function Nucleus({
   mass, color, focus, state, attune, fromAngle = 0, size = 340,
+  pulse = 0.3, sigil = null,
 }: Props) {
   const core = BASE + mass * GROWTH;
   /* O corpo em percentagem do lado, para as camadas CSS (plasma e limbo) se
@@ -144,6 +198,37 @@ export default function Nucleus({
 
   const tint = attune || MATTER;
 
+  /* As pontas. O comprimento responde ao PULSO e ao FOCO, nunca à massa: o
+     corpo já diz a massa, e um segundo canal a dizer o mesmo facto não é
+     redundância inofensiva — é uma leitura a fingir que são dois. */
+  /* 2,5×/1,45× dava um eixo vertical tão longo que a ponta de baixo chegava ao
+     território da Mente e passava por cima do rótulo dele. A anisotropia
+     mantém-se — continua a ser 1,25× e não uma cruz simétrica, pela razão já
+     escrita — mas dentro do enquadramento: um corpo que invade os vizinhos
+     deixa de ser o centro da composição e passa a ser um obstáculo nela. */
+  const spikeV = core * (2.05 + pulse * 0.95 + focus * 1.0);
+  const spikeH = core * (1.64 + pulse * 0.6 + focus * 0.7);
+  const spikeW = core * 0.3;
+
+  /* ── AS FITAS ──
+   * Da mesma imagem: bandas de luz que ENVOLVEM o corpo em vez de saírem
+   * dele. É o que separa um corpo que está no espaço de um corpo colado a um
+   * fundo, e faz uma coisa que nenhuma camada anterior fazia — passar À FRENTE
+   * e ATRÁS. O truque da profundidade não é 3D: é o gradiente do traço a
+   * apagar-se de um lado, que é o que se vê quando uma fita passa por trás.
+   *
+   * Três, com raios e inclinações que não são múltiplos: em proporções
+   * simples o olho apanha o padrão e aquilo passa a ser um logótipo a rodar. */
+  const ribbons = [
+    { rx: core * 2.30, ry: core * 0.92, rot: -17, w: 1.7 },
+    { rx: core * 1.74, ry: core * 1.36, rot: 54, w: 1.25 },
+    { rx: core * 2.72, ry: core * 0.62, rot: 28, w: 1.0 },
+  ];
+
+  /* O anel das inscrições. `r` fica fora do corpo e dentro das pontas: por
+     dentro seria uma tatuagem no plasma, por fora perdia a ligação a ele. */
+  const sigR = core * 1.62;
+
   return (
     <div
       className="nuc"
@@ -155,6 +240,12 @@ export default function Nucleus({
         ['--nuc-from' as string]: fromAngle + 'deg',
         ['--nuc-focus' as string]: focus.toFixed(3),
         ['--nuc-body-pct' as string]: bodyPct.toFixed(2) + '%',
+        ['--nuc-pulse' as string]: pulse.toFixed(3),
+        /* O ritmo da respiração EM SEGUNDOS, e é aqui que o pulso se vê sem
+           se estar à espera dele: 13s parado, 5,2s a todo o gás. Um corpo que
+           respira devagar está em repouso; um que respira depressa está a
+           trabalhar. Ninguém precisa de aprender isto. */
+        ['--nuc-rate' as string]: (13 - pulse * 7.8).toFixed(2) + 's',
       }}
       role="img"
       aria-label={`Núcleo do Sistema, massa ${Math.round(mass * 100)}%`}
@@ -187,6 +278,89 @@ export default function Nucleus({
         </defs>
         <circle cx="160" cy="160" r={core * 3.4} fill="url(#nuc-g-halo)" opacity={0.5 + focus * 0.5} />
       </svg>
+
+      {/* ── FITAS ── e vêm ANTES do corpo de propósito.
+          O corpo desenha-se por cima delas, e é isso que faz metade de cada
+          fita desaparecer atrás dele. Sem essa oclusão as três seriam anéis
+          desenhados à volta de um disco — o mesmo que um logótipo de átomo. É
+          a oclusão que as põe em ÓRBITA, e a órbita é o que se pediu.
+          A segunda metade da leitura é o gradiente do traço: cada fita entra
+          transparente, acende ao meio e apaga-se — a luz de uma banda vista de
+          lado, e não uma linha com fim. */}
+      <svg className="nuc-l nuc-ribbons" viewBox="0 0 320 320" aria-hidden="true">
+        <defs>
+          {ribbons.map((_, k) => (
+            <linearGradient key={k} id={`nuc-g-rb${k}`} x1="0" y1="0" x2="1" y2="0.35">
+              <stop offset="0" stopColor={MATTER} stopOpacity="0" />
+              <stop offset="0.26" stopColor={MATTER} stopOpacity="0.44" />
+              <stop offset="0.52" stopColor="#fff" stopOpacity="0.82" />
+              <stop offset="0.74" stopColor={tint} stopOpacity="0.4" />
+              <stop offset="1" stopColor={tint} stopOpacity="0" />
+            </linearGradient>
+          ))}
+        </defs>
+        {ribbons.map((rb, k) => (
+          <g key={k} className={`nuc-rb nuc-rb-${k}`}>
+            <ellipse
+              cx="160" cy="160" rx={rb.rx} ry={rb.ry}
+              fill="none"
+              stroke={`url(#nuc-g-rb${k})`}
+              strokeWidth={rb.w * (1 + focus * 0.5)}
+              strokeLinecap="round"
+              transform={`rotate(${rb.rot} 160 160)`}
+              opacity={0.3 + pulse * 0.34 + focus * 0.3}
+            />
+          </g>
+        ))}
+      </svg>
+
+      {/* ── AS INSCRIÇÕES ── ORIGEM: segunda imagem do chat, a silhueta com o
+          círculo de glifos por trás. NÃO catalogada, sem número de referência.
+          Rejeitado dela: a densidade. Naquela imagem o anel é um muro de
+          símbolos, e um muro de símbolos ilegíveis é decoração — proibida por
+          lei do projeto ("nenhuma animação é decorativa", e um anel que não se
+          pode ler não comunica estado nenhum).
+
+          Aqui o anel diz o ESTADO, por extenso: rank, nível global, e os seis
+          domínios com o nível de cada um. Quem se aproximar o suficiente
+          consegue lê-lo, e o que lá está é verdade verificável contra o HUD.
+          Os traços por baixo são a mesma informação em forma: um por domínio,
+          o comprimento é o nível.
+
+          Só existe com `sigil` — ou seja, quando a câmara já se aproximou.
+          Em vista geral seriam 200 caracteres de 3px, que é ruído. */}
+      {sigil && (
+        <svg className="nuc-l nuc-sigil" viewBox="0 0 320 320" aria-hidden="true">
+          <defs>
+            <path
+              id="nuc-sig-path"
+              fill="none"
+              d={`M160,${160 - sigR} A${sigR},${sigR} 0 1,1 ${(160 - 0.01).toFixed(2)},${160 - sigR} Z`}
+            />
+          </defs>
+          {/* Os traços: um por domínio, o nível é o comprimento. */}
+          <g className="nuc-sig-ticks">
+            {sigil.ticks.map((t, k) => {
+              const a = ((k / sigil.ticks.length) * 360 - 90) * (Math.PI / 180);
+              const r0 = sigR * 0.8;
+              const r1 = r0 + 6 + t.v * 20;
+              return (
+                <line
+                  key={k}
+                  x1={160 + Math.cos(a) * r0} y1={160 + Math.sin(a) * r0}
+                  x2={160 + Math.cos(a) * r1} y2={160 + Math.sin(a) * r1}
+                  stroke={t.color} strokeWidth="1.4" strokeLinecap="round"
+                  opacity="0.55"
+                />
+              );
+            })}
+          </g>
+          <circle cx="160" cy="160" r={sigR} fill="none" stroke={MATTER} strokeWidth="0.4" opacity="0.2" />
+          <text className="nuc-sig-t" fill={MATTER}>
+            <textPath href="#nuc-sig-path" startOffset="0">{sigil.texto}</textPath>
+          </text>
+        </svg>
+      )}
 
       {/* AFINAÇÃO: quando um domínio está em foco, uma parte da superfície
           orienta-se para ele. Não é o Núcleo a mudar de cor — é uma zona dele
@@ -249,11 +423,24 @@ export default function Nucleus({
 
       {/* O corpo. Sem contorno, sem borda: matéria a apagar-se para fora. */}
       <svg className="nuc-l nuc-body" viewBox="0 0 320 320" aria-hidden="true">
+        {/* ── O PERFIL DA LUZ, e é aqui que "maior" quase correu mal ──
+            Com o corpo a 42 os stops de 0,28 e 0,62 davam uma esfera com
+            gradação. A 58 a mesma curva pintou uma MANCHA BRANCA de 250px:
+            crescer o raio multiplica a área saturada, e uma superfície toda
+            saturada não tem estrutura nenhuma para se ver. Era literalmente o
+            defeito de que o Daniel se queixou na captura dele.
+
+            A correção não é encolher o corpo — é concentrar a luz. O branco
+            acaba a 0,12 em vez de 0,28, e o violeta ocupa o resto. O que se
+            ganha é o que uma estrela real tem: um ponto incandescente pequeno
+            dentro de um corpo que ainda se lê como corpo. As pontas e as fitas
+            é que carregam o TAMANHO; o brilho não tem de o fazer também. */}
         <defs>
           <radialGradient id="nuc-g-core">
-            <stop offset="0" stopColor="#fff" stopOpacity={0.7 + focus * 0.3} />
-            <stop offset="0.28" stopColor={MATTER} stopOpacity="0.8" />
-            <stop offset="0.62" stopColor={MATTER_DEEP} stopOpacity="0.3" />
+            <stop offset="0" stopColor="#fff" stopOpacity={0.82 + focus * 0.18} />
+            <stop offset="0.12" stopColor="#fff" stopOpacity={0.5 + focus * 0.25} />
+            <stop offset="0.34" stopColor={MATTER} stopOpacity="0.52" />
+            <stop offset="0.66" stopColor={MATTER_DEEP} stopOpacity="0.26" />
             <stop offset="1" stopColor={MATTER_DEEP} stopOpacity="0" />
           </radialGradient>
         </defs>
@@ -290,6 +477,29 @@ export default function Nucleus({
           Mesmo assim só existe em `full`; `lite` fica com a corona, que faz
           quase o mesmo por gradiente. */}
       <div className="nuc-bloom" aria-hidden="true" />
+
+      {/* ── AS QUATRO PONTAS ── depois do bloom e antes das streaks, e a ordem
+          é a leitura: o bloom é a luz que sangra (macia, por baixo), as pontas
+          são a GEOMETRIA do corpo (nítidas, por cima dele), e as streaks são o
+          artefacto da lente (largas, por cima de tudo). Trocar qualquer par
+          punha um desfoque à frente de uma aresta, e uma aresta desfocada
+          deixa de ser aresta.
+          Duas cópias: a de baixo larga e fraca faz o halo da ponta; a de cima
+          estreita e branca faz o gume. Uma só dá um triângulo chapado. */}
+      <svg className="nuc-l nuc-spikes" viewBox="0 0 320 320" aria-hidden="true">
+        <defs>
+          <radialGradient id="nuc-g-spike">
+            <stop offset="0" stopColor="#fff" stopOpacity="0.95" />
+            <stop offset="0.22" stopColor={MATTER} stopOpacity="0.6" />
+            <stop offset="0.62" stopColor={MATTER_DEEP} stopOpacity="0.22" />
+            <stop offset="1" stopColor={MATTER_DEEP} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <path d={spikePath(spikeV, spikeH, spikeW)} fill="url(#nuc-g-spike)"
+          opacity={0.5 + focus * 0.5} />
+        <path d={spikePath(spikeV * 0.97, spikeH * 0.9, spikeW * 0.34)} fill="url(#nuc-g-spike)"
+          opacity={0.72 + focus * 0.28} />
+      </svg>
 
       {/* ── STREAKS ── a assinatura anamórfica.
           É isto — e não o halo — que o olho lê como "muito brilhante para o

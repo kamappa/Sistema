@@ -17,7 +17,6 @@ import World from '../components/World.jsx';
  * ?shell=, que e o que esta em producao. */
 import Attributes from '../components/Attributes.jsx';
 import Radar from '../components/Radar.jsx';
-import Constellations from '../components/Constellations.jsx';
 import Titles from '../components/Titles.jsx';
 import Achievements from '../components/Achievements.jsx';
 import Diario from '../components/Diario.jsx';
@@ -67,7 +66,7 @@ export type ZoneId =
   | 'reflection';
 
 /** Os painéis são .jsx sem tipos. A maioria recebe `S`; alguns (Conselho,
- *  OracleReport, Constellations) não recebem props e ignoram-na — em React uma
+ *  OracleReport, OracleReportLayered) não recebem props e ignoram-na — em React uma
  *  função com menos parâmetros continua a ser um componente válido aqui. */
 type PanelComponent = ComponentType<{ S: any }>;
 
@@ -203,7 +202,31 @@ export const ZONES: Zone[] = [
     // cosmologia sem números seria bonita e inútil.
     groups: [
       { id: 'campo', weight: 'full', panels: [Universe] },
-      { id: 'ceu', weight: 'full', panels: [Constellations] },
+      /* ── O SEGUNDO CÉU SAIU ────────────────────────────────────────────
+       * Missão 26 · Renaissance Visual · a fusão dos dois céus.
+       *
+       * O grupo `ceu` montava `Constellations` — a casca React do motor WebGL
+       * de `stage/constellation.js`, herdado das Missões 12/16/17. Ficava
+       * imediatamente por baixo de `campo`, e os dois mostravam A MESMA COISA:
+       * os seis domínios em anel e o Núcleo ao centro.
+       *
+       * O veredicto do Daniel foi "não aparece nada na parte das constelações",
+       * e a observação no browser deu-lhe razão por três motivos que se somavam:
+       * as estrelas eram pontos de 1px sem halo; a nebulosa do motor antigo
+       * tinha mais peso visual do que elas; e numa conta com níveis baixos a
+       * maioria dos limiares de evidência falha, por isso o céu está
+       * legitimamente quase vazio — e uma caixa preta não explica o silêncio.
+       *
+       * O que o motor antigo tinha e este não tinha eram as estrelas com NOME:
+       * RGPD, NIS2, ISO 27001, Lead Auditor, GRC, Forja. Esse conteúdo passou
+       * para dentro da cena — ver `marcos-read.ts` e a camada `.us-marcos` em
+       * `UniverseScene`. É a identidade da prova, e é o que responde a "provas
+       * vivas de que ando a fazer coisas".
+       *
+       * OS FICHEIROS NÃO FORAM APAGADOS. `components/Constellations.jsx` e
+       * `stage/constellation.js` continuam no repositório: desmontar é
+       * reversível numa linha, apagar não é, e a regra do projeto é preservar
+       * reversibilidade. O que sai é a DUPLICAÇÃO na zona, não o histórico. */
       { id: 'dominios', name: 'Domínios · detalhe', weight: 'main', panels: [Attributes] },
       { id: 'equilibrio', name: 'Equilíbrio', weight: 'side', panels: [Radar] },
       { id: 'evidencia', name: 'Evidência', weight: 'full', panels: [Titles, Achievements] },

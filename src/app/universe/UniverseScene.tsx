@@ -190,6 +190,17 @@ function useWide(): boolean {
  * não é um evento. */
 const REVELACAO_MS = 1900;
 
+/* ── O GLIFO DO MARCO ──────────────────────────────────────────────────
+ * Uma estrela de quatro pontas, à escala pequena, com o mesmo perfil côncavo
+ * do Núcleo. Não é um enfeite repetido: é a MESMA forma, e é isso que diz que
+ * o Núcleo e os marcos são a mesma família de matéria. Um marco desenhado como
+ * um círculo seria um ponto entre pontos, e o que ele tem para dizer é
+ * precisamente que não é um ponto entre pontos — tem nome.
+ *
+ * Desenhado na origem e colocado por `translate`: um só `d` para todos, em vez
+ * de um path recalculado por marco. */
+const MARCO_D = 'M0,-7.4 Q1.7,-1.7 5.2,0 Q1.7,1.7 0,7.4 Q-1.7,1.7 -5.2,0 Q-1.7,-1.7 0,-7.4 Z';
+
 const PROTO_LABEL: Record<string, string> = {
   dust: 'ainda sem formação em curso',
   proto: 'protoestrela difusa',
@@ -557,6 +568,20 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
         : (m.state === 'PROGRESS_EVENT' || m.state === 'STAR_BIRTH') ? 'ABSORBING'
           : lit ? 'ATTUNEMENT' : 'REST';
 
+  /* ── O QUE ESTÁ ESCRITO NO ANEL ──
+   * Estado real e verificável contra o HUD: rank, nível global, e os seis
+   * domínios com o nível de cada um. Repetido duas vezes porque o anel dá a
+   * volta toda e uma frase única deixaria metade do círculo vazio — e um anel
+   * meio vazio lê-se como um erro de render, não como espaço negativo.
+   *
+   * Nada aqui é enchimento: se um dia isto tiver de encolher, encolhe-se o
+   * anel, não se inventam glifos para o encher. */
+  const sigilTexto = (() => {
+    const doms = scene.territories.map((t) => `${t.name.toUpperCase()} ${t.level}`).join('  ·  ');
+    const um = `RANK ${scene.rank.letter}  ·  NÍVEL ${scene.level}  ·  ${doms}  ·  `;
+    return um + um;
+  })();
+
   const showSky = m.state === 'OVERVIEW' || m.state === 'RETURNING'
     // Os dois épicos recuam para a vista geral, e o que eles mudam é
     // precisamente o que a leitura do céu conta: o número de estrelas e o
@@ -663,7 +688,29 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
             state={coreState}
             attune={litT?.color ?? null}
             fromAngle={litT ? litT.angle : 0}
-            size={340}
+            /* 340 → 460 no ecrã largo. O plano tem 620px de altura e o Núcleo
+               ocupava pouco mais de metade dessa altura contando com o halo —
+               ficava um objeto NO céu em vez de ser o centro dele. A 460 as
+               pontas chegam perto da margem e o corpo passa a organizar a
+               composição, que é o que o veredicto pedia.
+
+               E DEIXA DE SER FIXO, que era o defeito de sempre e só se viu
+               agora. Num ecrã estreito o anel dos domínios encolhe — `kx` é
+               0,342 e `ky` 0,674 — e um Núcleo de 460 num plano de 332 de
+               largura engolia os seis territórios e lavava o texto da leitura
+               por baixo. O corpo tem de encolher com o mundo à volta dele; o
+               que não pode encolher é a proporção entre os dois. */
+            size={wide ? 460 : 290}
+            pulse={scene.pulse.valor}
+            /* AS INSCRIÇÕES só quando a câmara se aproximou. Em vista geral
+               seriam caracteres de 3px — ruído a fingir de detalhe. */
+            sigil={scale === 'system' ? null : {
+              texto: sigilTexto,
+              ticks: scene.territories.map((t) => ({
+                v: Math.min(1, t.level / 25),
+                color: t.color,
+              })),
+            }}
           />
           {/* ── A ESCALA 4 ──
               Só existe quando se CHEGOU. Em CORE_APPROACH ainda não: a viagem
@@ -746,6 +793,114 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
                   ))}
                 </span>
 
+                {/* ══════════════════════════════════════════════════════
+                    OS MARCOS — as estrelas que têm nome.
+
+                    Esta camada é a fusão dos dois céus. O que estava no painel
+                    legado das Constelações — RGPD, NIS2, ISO 27001, Lead
+                    Auditor, Forja — passa a viver AQUI, no mesmo espaço 3D,
+                    com a mesma câmara e os mesmos eventos.
+
+                    A leitura abre por etapas, e a etapa é a distância:
+                      vista geral   os marcos brilham, as ligações são um traço
+                      ao despertar  as ligações acendem — vê-se a FORMA
+                      em foco       os nomes aparecem
+
+                    Mostrar os nomes já em vista geral daria trinta e tal
+                    rótulos de 9px sobrepostos em seis territórios, e um céu
+                    ilegível não prova nada a ninguém.
+
+                    O SILÊNCIO MANTÉM-SE (decisão do Daniel na Missão 16): o
+                    que ainda não nasceu não está aqui, e uma ligação com uma
+                    ponta por nascer não se desenha — seria uma seta a apontar
+                    para o que falta. Ver `readMarcos`. */}
+                {t.marcos.length > 0 && (
+                  <svg
+                    className="us-marcos"
+                    viewBox="-100 -100 200 200"
+                    style={{ width: (60 + t.level * 3) * 2, height: (60 + t.level * 3) * 2 }}
+                    aria-hidden="true"
+                  >
+                    {/* O halo por GRADIENTE e não por `filter: blur`. Um disco
+                        de cor chapada a baixa opacidade tem bordo, e um bordo
+                        lê-se como um anel — o marco passava a ser um alvo. O
+                        blur resolvia e custava: seriam até trinta e tal
+                        elementos desfocados no céu ao mesmo tempo, e a
+                        proibição de blur em área grande existe precisamente
+                        para não se chegar aqui por acumulação.
+                        Um gradiente por território, partilhado por todos os
+                        marcos dele — o `id` leva o domínio porque os `id` de
+                        SVG são globais ao documento e há seis destes. */}
+                    <defs>
+                      <radialGradient id={`us-mk-g-${t.id}`}>
+                        <stop offset="0" stopColor={t.color} stopOpacity="0.5" />
+                        <stop offset="0.4" stopColor={t.color} stopOpacity="0.16" />
+                        <stop offset="1" stopColor={t.color} stopOpacity="0" />
+                      </radialGradient>
+                    </defs>
+                    <g className="us-mk-links" stroke={t.color} fill="none" strokeLinecap="round">
+                      {t.links.map((l, li) => {
+                        const A = t.marcos.find((k) => k.key === l.a);
+                        const B = t.marcos.find((k) => k.key === l.b);
+                        if (!A || !B) return null;
+                        return (
+                          <line
+                            key={l.a + '-' + l.b}
+                            x1={A.x * 100} y1={A.y * 100}
+                            x2={B.x * 100} y2={B.y * 100}
+                            style={{ ['--i' as string]: li }}
+                          />
+                        );
+                      })}
+                    </g>
+                    <g className="us-mk-stars">
+                      {t.marcos.map((mk, mi) => (
+                        <g
+                          key={mk.id}
+                          className="us-mk"
+                          style={{ ['--i' as string]: mi }}
+                          transform={`translate(${(mk.x * 100).toFixed(1)} ${(mk.y * 100).toFixed(1)})`}
+                        >
+                          <circle className="us-mk-glow" r="12" fill={`url(#us-mk-g-${t.id})`} />
+                          <path className="us-mk-body" d={MARCO_D} fill="#fff" />
+                        </g>
+                      ))}
+                    </g>
+                  </svg>
+                )}
+
+                {/* OS NOMES. HTML e não SVG de propósito: é texto para ler, e
+                    texto para ler quer a tipografia do produto, o `text-shadow`
+                    que o separa do fundo e o mesmo tratamento dos outros
+                    rótulos da cena. Só existem no domínio em foco.
+
+                    O `title` carrega a PROVA — porque é que esta estrela
+                    existe — e a data do nascimento quando ela é sabida. Quando
+                    não é, diz-se que não é: a migração inicial do registo
+                    marcou como "observadas" as estrelas cuja evidência já era
+                    verdadeira antes de o céu existir, e a data verdadeira
+                    dessas perdeu-se. Escrever lá um dia inventado seria a
+                    coisa exata que "nada nasce do nada" proíbe. */}
+                {isSel && scale === 'domain' && (
+                  <span className="us-mk-labels" aria-hidden="true">
+                    {t.marcos.map((mk) => (
+                      <span
+                        key={mk.id}
+                        className="us-mk-lb"
+                        style={{
+                          left: `calc(50% + ${(mk.x * (60 + t.level * 3)).toFixed(1)}px)`,
+                          top: `calc(50% + ${(mk.y * (60 + t.level * 3)).toFixed(1)}px)`,
+                        }}
+                        title={mk.born
+                          ? `${mk.name} — ${mk.proof}. Nasceu a ${mk.born}.`
+                          : `${mk.name} — ${mk.proof}. Anterior ao registo do céu; a data do nascimento não é sabida.`}
+                      >
+                        {mk.name}
+                      </span>
+                    ))}
+                  </span>
+                )}
+
                 {fed && <span className="us-flow" aria-hidden="true" />}
 
                 <button
@@ -822,8 +977,9 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
             <p className="us-hud-t">O teu céu</p>
             <p className="us-hud-s">
               Cada estrela é um nível provado num domínio. A que está a formar-se é o XP
-              do nível em curso — a única coisa aqui que pode recuar. Passa o cursor por
-              um domínio para o despertar; toca para te aproximares.
+              do nível em curso — a única coisa aqui que pode recuar. As maiores, ligadas
+              entre si, são os marcos: têm nome e uma prova por trás. Passa o cursor por
+              um domínio para o despertar; toca para leres os nomes.
             </p>
             {/* ── ISTO EXISTE PARA A FRASE DE CIMA CONTINUAR VERDADEIRA ──
                 A camada 2 pôs um campo distante no fundo. Sem esta linha, o
@@ -838,6 +994,11 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
             </p>
             <dl className="rf-debrief">
               <div><dt>Estrelas</dt><dd>{scene.totalStars}</dd></div>
+              {/* SEPARADO de "Estrelas", e nunca somado. São duas contagens de
+                  coisas diferentes: uma conta níveis, a outra conta marcos com
+                  nome. Um total único seria um número que não corresponde a
+                  nada que se possa contar no céu. */}
+              <div><dt>Marcos</dt><dd>{scene.totalMarcos}</dd></div>
               <div><dt>Rank</dt><dd style={{ color: scene.rank.color }}>{scene.rank.letter}</dd></div>
               <div><dt>Nível global</dt><dd>{scene.level}</dd></div>
             </dl>
@@ -868,6 +1029,7 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
             <p className="us-hud-s">{selT.sub}</p>
             <dl className="rf-debrief">
               <div><dt>Estrelas</dt><dd>{selT.proven}</dd></div>
+              <div><dt>Marcos</dt><dd>{selT.marcos.length}</dd></div>
               <div><dt>A formar-se</dt><dd>{selT.xp} / {selT.xpNeed} XP</dd></div>
               <div><dt>Rank</dt><dd style={{ color: selT.rankColor }}>{selT.rankLetter}</dd></div>
             </dl>

@@ -230,9 +230,25 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
     const el = rootRef.current;
     if (!el) return;
     const zone = el.closest('.sys-zone') as HTMLElement | null;
+    /* ── A TERCEIRA RAZÃO PARA PAUSAR: O CÉU SAIU DO ECRÃ ──
+     * Faltava, e era a que se pagava mais vezes. A zona Universo tem 2603px de
+     * conteúdo numa janela de scroll de 621px: assim que se desce até às
+     * Constelações, aos Domínios ou à Evidência, o céu já não está no ecrã —
+     * e continuava com cento e tal animações a correr e a mesma pilha de
+     * camadas de composição a ser recomposta a cada frame de scroll. Ou seja,
+     * o sítio onde o Universo era mais caro era precisamente aquele onde
+     * ninguém estava a olhar para ele.
+     *
+     * É a mesma doutrina que já estava escrita para a tab escondida — "um
+     * mundo que continua a gastar bateria numa tab que ninguém está a ver não
+     * é vivo, é uma fuga" — aplicada ao caso que faltava. E é `live` e não uma
+     * marca nova de propósito: o CSS já sabe o que fazer com ele
+     * (`animation-play-state: paused`), e o gesto manual e o Escape também
+     * devem calar-se quando o céu não está à vista. */
+    let noEcra = true;
     const check = () => {
       const active = !zone || zone.dataset.active !== 'false';
-      setLive(active && !document.hidden);
+      setLive(active && noEcra && !document.hidden);
     };
     check();
     document.addEventListener('visibilitychange', check);
@@ -241,7 +257,19 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
       obs = new MutationObserver(check);
       obs.observe(zone, { attributes: true, attributeFilter: ['data-active'] });
     }
-    return () => { document.removeEventListener('visibilitychange', check); obs?.disconnect(); };
+    /* `rootMargin` generoso: o céu volta a respirar ANTES de reentrar no
+       enquadramento. Sem folga, entrava parado e arrancava à vista — e um
+       ambiente que se vê a arrancar deixa de ser ambiente. */
+    const io = new IntersectionObserver(
+      ([e]) => { noEcra = e.isIntersecting; check(); },
+      { rootMargin: '220px 0px' },
+    );
+    io.observe(el);
+    return () => {
+      document.removeEventListener('visibilitychange', check);
+      obs?.disconnect();
+      io.disconnect();
+    };
   }, []);
 
   /* ── A CONSTELAÇÃO FORMA-SE POR ORDEM ────────────────────────────────

@@ -3736,6 +3736,115 @@ Em `data-sys-quality='off'` continuam a correr **14 animações** na zona, todas
 pré-existentes a esta série. O nível `off` nunca prometeu zero — o
 `prefers-reduced-motion` é que o faz, por regra própria.
 
+### Renaissance Visual · o Universo deixa de travar o scroll (2026-08-18)
+
+Relato do Daniel: *"sempre que dou scroll dentro da página universo, é lagado e
+difícil de dar scroll (…) mesmo que dê, as coisas desaparecem abruptamente ou
+deixam de aparecer sequer, bugam, ficam fora do sítio"*. Duas causas
+independentes, as duas medidas antes de se lhe tocar. Commits `9bd80e8`,
+`4625f1a` e `7ec564b`.
+
+**Porque é que a série anterior não apanhou isto.** Ela mediu **em repouso** —
+8,3ms de mediana, zero frames acima de 20ms — e a conclusão estava certa para o
+que foi medido. O custo do Universo não está em repouso: está no **scroll**, que
+é o momento em que o compositor tem de deslocar e voltar a compor a pilha
+inteira. Fica como método: uma cena com camadas de composição mede-se **também
+a rolar**, não só parada.
+
+#### Causa 1 — a roda era engolida pelo céu das Constelações
+
+`stage/constellation.js` chamava `e.preventDefault()` em **todas** as rodas,
+num listener `passive: false`. No HUD antigo isso passava despercebido: o canvas
+era um painel curto numa página muito mais alta e havia sempre para onde tirar o
+cursor. Na Órbita deixou de haver — medido a 1512×900, o canvas mede **1405×448
+dentro de uma janela de scroll de 621px** e cobre-a quase toda entre
+`scrollTop` ~400 e ~1000.
+
+Era isto que fazia a zona parecer travada, **e também o que fazia as coisas sair
+do sítio**: o que se via a mexer não era a página, era este segundo céu a
+ampliar debaixo do cursor, com as constelações a sair do enquadramento e os
+rótulos a acompanhá-las. Dois sintomas, uma causa.
+
+| cursor a `y=` | antes (de 960px de intenção) | depois |
+|---|---|---|
+| 400 | 720 | 840 |
+| 600 | 360 | 960 |
+| 800 | 240 | 960 |
+
+Passa a Ctrl/⌘ + roda, que é a convenção de qualquer mapa embebido e **já era a
+do céu do Universo** (`useFreeCam.ts`) exatamente por esta razão. Dois céus na
+mesma zona não podem ter regras diferentes para o mesmo gesto. O gesto passou a
+ser anunciado no painel; o toque já estava resolvido pelo `touch-action: pan-y`
+e não se lhe tocou.
+
+#### Causa 2 — segunda lei de custo: cada filho que anima é uma superfície
+
+Medido com o `LayerTree` do CDP: **187 camadas de composição na página, 129
+dentro do `.us`, a somar 356 MB de textura a DPR 1** — ~1,4 GB no ecrã do
+Daniel, que é DPR 2. Vinte e cinco dessas camadas eram do tamanho do
+enquadramento inteiro (2810×1116, 12 MB cada). É o mesmo orçamento que já
+rebentou uma vez nesta missão, pelo outro lado — e é o mecanismo conhecido do
+"desaparecem, ficam aos quadrados".
+
+A primeira lei (*a ampliação vive no `scale`, nunca no `inset`*) resolveu o
+**tamanho** de cada camada e continua de pé. Não resolveu o **número** delas, e a
+razão não estava escrita em lado nenhum: um elemento que anima
+`transform`/`opacity` ganha superfície própria, e a regra *"quem tem
+profundidade não anima"* punha a deriva sempre num filho — logo cada camada de
+ambiente pagava **duas** superfícies do tamanho do céu.
+
+A saída já existia no próprio ficheiro, 800 linhas abaixo, escrita para a deriva
+de câmara e nunca generalizada: `translate`, `rotate` e `scale` são propriedades
+independentes e **compõem-se** com `transform`. A camada passa a ter
+profundidade **e** animação; os filhos ficam, porque é neles que vive o desenho,
+mas deixam de animar e por isso deixam de custar.
+
+| | antes | depois |
+|---|---|---|
+| camadas no `.us` | 129 | 119 |
+| MB de textura no `.us` (DPR 1) | 356 | 237 |
+| superfícies do tamanho do enquadramento | 25 | 15 |
+
+**Bissecção que aponta o culpado:** com o `.us` escondido, os frames acima de
+32ms durante scroll caem de 19–37 para **3**. Esconder camadas individuais não
+mudava nada — era a pilha, não uma peça.
+
+**O que isto custa, dito sem maquilhagem:** as três populações de poeira e as
+três do campo distante perdem velocidades independentes. Era paralaxe **interna**
+de 0,06 e 0,01 px por segundo. A paralaxe da **profundidade entre camadas**, que
+é a que se vê, fica intacta.
+
+**Regressão apanhada a meio, e vale registada.** Mover a animação de `opacity`
+para a camada passava por cima da regra de composição
+`[data-ambient] { opacity: .62 }` e **promovia três ambientes secundários a
+dominante** — a lei do "um só ambiente dominante por zona" quebrada em silêncio
+por uma correção de performance. O fator passou a token `--sys-ambient-o` e as
+keyframes multiplicam por ele; verificado que as opacidades efetivas voltam ao
+produto antigo ao milésimo (.2852→.4836, .248→.5084, .341→.62).
+
+#### Causa 3, que ninguém relatou mas paga-se sempre — o céu fora do ecrã
+
+A cena sabia pausar por zona inativa e por tab escondida, e faltava-lhe a
+terceira. A zona tem 2603px numa janela de 621px: assim que se desce até às
+Constelações, o céu já não está no ecrã e continuava com 52 animações a correr.
+O sítio onde o Universo era mais caro era exatamente aquele onde ninguém estava
+a olhar para ele. Passa a `IntersectionObserver` com 220px de folga, a alimentar
+o `live` que já existia. Verificado nos dois sentidos.
+
+**O que isto NÃO faz:** a árvore de camadas não encolhe, só deixa de ser
+animada. O Chrome não rasteriza tiles fora do ecrã, mas o `LayerTree` mantém as
+mesmas 177 camadas.
+
+#### Por confirmar
+
+O ganho em **frames por segundo** não é afirmado. A máquina de medição degradou
+monotonicamente ao longo da sessão (baseline 25 → 33 → 41ms de mediana em três
+corridas seguidas da *mesma* condição) e a janela caía em oclusão, com o `rAF` a
+1 Hz — o mesmo erro de medição que esta missão já registou uma vez. As três
+correções acima são afirmadas pelo que **é** mensurável e determinístico: rodas
+que passam a rolar, camadas e MB antes/depois, animações paradas. O veredito
+sobre a fluidez é do Daniel, no ecrã dele.
+
 ### Fase 6E · Radar — campo de sinais (CONCLUÍDA 2026-07-30)
 
 Quatro estados operacionais: `scanning` (lido do `sync` real), `signal`,

@@ -47,7 +47,7 @@ import {
   type UniverseState, type UniverseCtx, canGo, scaleOf, litDomain,
 } from './universe-states';
 import { useFreeCam, type FreeCamAPI } from './useFreeCam';
-import { STARFIELD } from './starfield';
+import FieldFar from './FieldFar';
 import { subscribeSystemEvents } from '../events/systemEvents';
 import { AM } from '../../state/config.js';
 import './universe-scene.css';
@@ -582,6 +582,38 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
           para fazer. Fica no `.us`, que não se move. */}
       <div className="us-flash" aria-hidden="true" />
 
+      {/* ── CAMPO DISTANTE ── camada 2, e agora FORA da cena 3D.
+          NÃO é evidência: ver o cabeçalho de `starfield.ts`, onde a distinção
+          está feita por geometria e não por boa vontade. É a camada que
+          responde ao "nunca vazio" — antes disto, um Operador com zero
+          estrelas provadas abria o Universo e via preto.
+
+          ╔══════════════════════════════════════════════════════════════════╗
+          ║  PORQUE SAIU DA `.us-scene`, e é a correção que resolveu o       ║
+          ║  "aos quadrados" dentro do Núcleo.                               ║
+          ╚══════════════════════════════════════════════════════════════════╝
+
+          Isto são 206 gradientes radiais numa camada só. Dentro do contexto
+          3D, ela vivia a −1800 com `scale(2.636)` a compensar a perspetiva —
+          e o Chrome escolhe a escala de rasterização pela escala em espaço de
+          ecrã. Ao viajar para o Núcleo a câmara desloca-se +780 em z e
+          multiplica essa escala outra vez: os 206 gradientes passavam a ser
+          rasterizados a uma resolução enorme, o compositor não acabava o
+          trabalho a tempo, e ficavam as bandas retangulares e o preto.
+
+          MEDIDO a 1920×1080 com DPR 2, dentro do Núcleo, tempo para produzir
+          um frame: 6064ms de base; 439ms com esta camada escondida — era ela
+          sozinha. E, decisivo: **622ms com os 206 pontos todos lá e só o
+          transform 3D removido**. Não era o número de pontos, era a escala.
+
+          O que se perde: durante a viagem ao Núcleo o campo deixa de se
+          aproximar. Era 1,37× num fundo já indistinto — e o próprio CSS desta
+          camada diz que ela é *"o que NÃO se pode ver mexer"*. A gravidade do
+          cursor fica, com a mesma amplitude aparente. */}
+      <div className="us-field-far" data-ambient aria-hidden="true">
+        <FieldFar />
+      </div>
+
       <div
         className="us-scene"
         style={{
@@ -590,17 +622,6 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
           ['--cam-z' as string]: cam.z + 'px',
         }}
       >
-        {/* ── CAMPO DISTANTE ── camada 2. O mais fundo de tudo (−1800).
-            NÃO é evidência: ver o cabeçalho de `starfield.ts`, onde a
-            distinção está feita por geometria e não por boa vontade. É a
-            camada que responde ao "nunca vazio" — antes disto, um Operador com
-            zero estrelas provadas abria o Universo e via preto. */}
-        <div className="us-layer us-field-far" data-ambient aria-hidden="true">
-          {STARFIELD.map((l, i) => (
-            <span key={i} className={`us-sf us-sf-${i}`} style={{ backgroundImage: l.image }} />
-          ))}
-        </div>
-
         {/* Três populações de poeira, cada uma no seu elemento.
             NÃO é um detalhe de arrumação: um `@keyframes` que anima
             `transform` SUBSTITUI o transform base do elemento — incluindo o

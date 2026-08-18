@@ -151,9 +151,24 @@
      −1800 → 1100/2900 = 37,9%  → precisa de ×2,636
      −1600 → 1100/2700 = 40,7%  → precisa de ×2,455
      −700  → 1100/1800 = 61,1%  → precisa de ×1,636  */
+/* ── O CAMPO DISTANTE VIVE FORA DA CENA 3D ────────────────────────────
+ * Não é uma `.us-layer`: é filho direto do `.us`, num plano 2D atrás da cena.
+ * A razão está por extenso no `UniverseScene.tsx`, e em duas linhas é esta:
+ * 206 gradientes radiais dentro do contexto 3D eram rasterizados à escala de
+ * ecrã da camada, que a viagem ao Núcleo multiplica — e o compositor não
+ * acabava. Medido: 6064ms para produzir um frame, contra 622ms com os 206
+ * pontos todos lá e só o `translateZ(-1800) scale(2.636)` removido.
+ *
+ * A amplitude da gravidade do cursor está em pixels APARENTES, porque aqui já
+ * não há perspetiva a dividi-la: 42 × 0,379 ≈ 16. O que se vê é o mesmo.
+ *
+ * `z-index` nenhum e primeiro no DOM: fica atrás da `.us-scene`, que é auto, e
+ * abaixo do `.us-flash`, que é 2. */
 .us-field-far {
-  transform: translate3d(calc(var(--px) * -42px), calc(var(--py) * -28px), -1800px) scale(2.636);
+  position: absolute;
   inset: 0;
+  pointer-events: none;
+  transform: translate3d(calc(var(--px) * -16px), calc(var(--py) * -11px), 0);
   animation: us-field-drift 181s linear infinite alternate;
 }
 .us-neb-far {
@@ -317,23 +332,25 @@
  * `background-image` — não são 150 elementos.
  * ══════════════════════════════════════════════════════════════════════ */
 
-/* Os três continuam a existir como elementos — é neles que vivem os 206 pontos,
-   e é o `.us-sf-0` que o tier `lite` desliga. O que deixaram de ter é animação
-   própria, e por isso deixaram de ter superfície: pintam dentro da camada-mãe.
-   Ver o bloco da segunda lei. */
-.us-sf {
+/* Os 206 pontos deixaram de ser `background-image` e passaram a um bitmap
+   desenhado uma vez — a razão, com números, está no `FieldFar.tsx`. O canvas
+   não leva animação nem `will-change`: quem deriva é a camada-mãe. */
+.us-sf-cv {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* Deriva mínima. O campo distante quase não se move — é isso que o faz ser
    distante. Se se vir a mexer, está errado.
-   ±5px é 1,9 × 2,636: o `translate` está agora fora do `scale` da camada, e
-   sem esta multiplicação o campo passaria a derivar a um terço do que derivava.
+   Valores em pixels APARENTES, como tudo nesta camada desde que ela saiu do
+   3D: já não há perspetiva a dividi-los nem `scale` a multiplicá-los.
    181s é o período do meio dos três antigos. */
 @keyframes us-field-drift {
-  from { translate: -5px -2.9px; }
-  to   { translate: 6.1px 4px; }
+  from { translate: -1.9px -1.1px; }
+  to   { translate: 2.3px 1.5px; }
 }
 
 /* ── Nebulosa distante ── azul-profundo, larguíssima, quase parada.
@@ -389,12 +406,11 @@
  * `off` mantém tudo desenhado e para o movimento — um céu parado continua a
  * ser um céu.
  *
- * O `.us-sf-0` continua a existir como elemento precisamente para esta regra
- * poder desligá-lo: as populações do campo perderam animação própria, não
- * existência própria. */
-html[data-sys-quality='lite'] .us-sf-0,
+ * A CAMADA MAIS FUNDA DO CAMPO SAIU DAQUI, e não por descuido: deixou de ser
+ * um elemento que se possa esconder — é um bitmap, e a decisão passou para
+ * quem o desenha (`FieldFar.tsx`, que lê o mesmo `data-sys-quality`). O
+ * comportamento observável é o mesmo: 114 pontos em vez de 206. */
 html[data-sys-quality='lite'] .us-neb-near,
-html[data-sys-quality='off'] .us-sf-0,
 html[data-sys-quality='off'] .us-neb-near { display: none; }
 
 /* A nebulosa DOMINANTE entra aqui apesar de ser pré-existente: em `off` ficava

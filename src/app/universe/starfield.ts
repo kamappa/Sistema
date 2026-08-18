@@ -28,10 +28,21 @@
  * existe no código não protege ninguém.
  *
  * ── PORQUÊ GERADO, E NÃO ESCRITO À MÃO ──
- * São ~150 pontos. Escritos à mão seriam 150 linhas de CSS impossíveis de
- * reequilibrar. Gerados, são três strings de `background-image` calculadas uma
- * vez: o custo em runtime é o mesmo de um gradiente estático, porque é
- * exatamente isso que acabam por ser.
+ * São 206 pontos. Escritos à mão seriam 206 linhas impossíveis de reequilibrar.
+ *
+ * ── PORQUÊ DADOS, E NÃO `background-image` ──
+ * Este módulo devolveu durante um tempo três strings de `background-image` com
+ * 206 `radial-gradient` dentro. A afirmação de que *"o custo em runtime é o
+ * mesmo de um gradiente estático"* estava errada, e o browser disse-o:
+ *
+ *   MEDIDO a 1920×1080 com DPR 2, dentro do Núcleo, tempo para produzir um
+ *   frame — 4373ms com os 206 gradientes CSS; 457ms com três; 1002ms com os
+ *   206 pontos desenhados uma vez para um `<canvas>`.
+ *
+ * Um `background-image` com 206 gradientes é RE-RASTERIZADO de cada vez que a
+ * camada muda de escala de ecrã — e a viagem ao Núcleo muda-a. Um canvas é um
+ * bitmap: desenha-se uma vez e a partir daí é uma cópia. Daí este módulo passar
+ * a devolver os PONTOS, e quem os desenha ser o `FieldFar.tsx`.
  *
  * ── PORQUÊ HASH, E NÃO `Math.random()` ──
  * A mesma regra do resto da cena: o céu tem de ser o MESMO em cada visita. Um
@@ -65,11 +76,40 @@ const rnd = (s: string) => (hash(s) % 100000) / 100000;
  * continuam a ser expressos em pixels APARENTES — que é a unidade em que a
  * distinção face às estrelas de evidência tem de ser verdadeira, porque é a
  * única que alguém vê. */
-const PERSP = (1100 + 1800) / 1100;   // 2,636…
+/* ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  E DEIXOU DE SER PRECISA — A COMPENSAÇÃO PASSOU A 1, E ISTO NÃO É    ║
+ * ║  UMA CONSTANTE MORTA QUE SE ESQUECEU DE APAGAR.                      ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * O campo saiu do contexto 3D (ver o comentário do `.us-field-far` no
+ * `UniverseScene.tsx`: 206 gradientes radiais a serem rasterizados à escala
+ * que a viagem ao Núcleo multiplica). Sem `translateZ(-1800)` não há
+ * perspetiva a encolher nada, logo o tamanho pedido **é** o tamanho no ecrã.
+ *
+ * Deixar o 2,636 aqui teria sido o pior desfecho possível desta correção: os
+ * pontos passariam a 2,4–3,4px aparentes, ou seja, dentro da gama das estrelas
+ * de EVIDÊNCIA (2–5px). O HUD continua a afirmar que cada estrela é um nível
+ * provado, e o fundo passaria a desmenti-lo — a primeira lei do projeto caída
+ * por um efeito secundário de uma correção de performance.
+ *
+ * A constante fica declarada, e não apagada, para o próximo que mexer na
+ * profundidade desta camada saber que existe uma conta a refazer: se o campo
+ * voltar a entrar no 3D, isto volta a ser (1100 + |z|) / 1100.
+ */
+const PERSP = 1;
+
+/** Um ponto do campo. `x`/`y` em percentagem da caixa; `size` e `alpha` já em
+ *  unidades APARENTES — ver `PERSP`. */
+export interface FieldPoint {
+  x: number;
+  y: number;
+  size: number;
+  alpha: number;
+  rgb: string;
+}
 
 export interface FieldLayer {
-  /** Pronto a entrar em `style.backgroundImage`. */
-  image: string;
+  points: readonly FieldPoint[];
   /** Quantos pontos tem — para se poder afirmar o número, em vez de o estimar. */
   count: number;
 }
@@ -86,7 +126,7 @@ export interface FieldLayer {
  * dúzia deles ao meio — um ponto cortado lê-se como artefacto.
  */
 function layer(seed: string, n: number, maxApparent: number, maxAlpha: number): FieldLayer {
-  const parts: string[] = [];
+  const points: FieldPoint[] = [];
   const min = 0.4 * PERSP;
   const max = maxApparent * PERSP;
   for (let i = 0; i < n; i++) {
@@ -102,11 +142,9 @@ function layer(seed: string, n: number, maxApparent: number, maxAlpha: number): 
     // Tom: a maioria fria, algumas quentes. Um céu monocromático é um poster.
     const warm = rnd(`${seed}c${i}`) > 0.82;
     const rgb = warm ? '255 236 214' : rnd(`${seed}b${i}`) > 0.5 ? '226 232 255' : '244 244 255';
-    parts.push(
-      `radial-gradient(${size}px ${size}px at ${x.toFixed(2)}% ${y.toFixed(2)}%, rgb(${rgb} / ${alpha}), transparent 62%)`,
-    );
+    points.push({ x: +x.toFixed(2), y: +y.toFixed(2), size, alpha, rgb });
   }
-  return { image: parts.join(','), count: n };
+  return { points, count: n };
 }
 
 /**

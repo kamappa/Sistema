@@ -1197,6 +1197,28 @@ export function initConstellation(){
      ampliado, duplo-clique repõe. Tudo alvos da mola — a câmara persegue. */
   const ptrs=new Map();let pinch=null,drag=null,clickSquelch=false;
   cv.addEventListener('wheel',e=>{
+    /* ── A RODA SÓ AMPLIA COM MODIFICADOR, E ISTO NÃO É TIMIDEZ ──
+     * Este handler chamava `preventDefault()` INCONDICIONALMENTE e engolia a
+     * roda inteira. No HUD antigo passava despercebido — o canvas era um
+     * painel curto numa página muito mais alta, e havia sempre para onde tirar
+     * o cursor. Na Órbita deixou de haver: medido a 1512×900, o canvas mede
+     * 1405×448 dentro de uma janela de scroll de 621px e cobre-a quase toda
+     * entre scrollTop ~400 e ~1000.
+     *
+     * O efeito era exatamente o que o Daniel descreveu: a zona Universo
+     * "não deixa dar scroll", e o que se vê a mexer não é a página — é este
+     * céu a ampliar debaixo do cursor, com as constelações a sair do
+     * enquadramento e os rótulos a ficar fora do sítio. Medido: 8 rodas com o
+     * cursor sobre o canvas, 2 a rolar a página e 6 consumidas.
+     *
+     * Ctrl/⌘ + roda é a convenção de qualquer mapa embebido, e é a MESMA que
+     * o céu do Universo já usa por esta mesmíssima razão — ver o bloco da
+     * roda em `app/universe/useFreeCam.ts`. Dois céus na mesma zona não podem
+     * ter regras diferentes para o mesmo gesto.
+     *
+     * O toque já estava resolvido e não se lhe toca: o `touch-action: pan-y`
+     * do `hud.css` deixa passar o scroll vertical e guarda o pinch para nós. */
+    if(!e.ctrlKey&&!e.metaKey)return;
     e.preventDefault();
     if(pendingEnter)return; /* durante o fly-in a câmara é do sistema */
     /* zoom-out no limite do domínio = regressar ao universo */

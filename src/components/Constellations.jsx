@@ -43,6 +43,10 @@ export default function Constellations() {
         <canvas id="constel-cv" ref={cvRef} aria-hidden="true"></canvas>
         <div id="const-labels"></div>
       </div>
+      {/* Um gesto que não se anuncia não existe — a mesma regra do `us-hint` do
+          céu do Universo. Passou a ser preciso dizê-lo quando a roda deixou de
+          ampliar sozinha: ver o bloco do `wheel` em `stage/constellation.js`. */}
+      <div className="dhint">Ctrl+roda amplia · pinça no toque · duplo-clique repõe</div>
     </div>
   );
 }

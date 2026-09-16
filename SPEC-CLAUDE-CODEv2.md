@@ -1306,7 +1306,7 @@ Storage, PWA/push, injeção automática de perguntas pelo Oráculo e transforma
 da Core View em app/wallpaper. Abrem missão apenas quando existir valor e gate
 claro.
 
-## # # Missão 31 — Agenda Viva: Horário, Cadeiras, Notificações, Diário e Oráculo de Aulas
+## # # # Missão 31 — Agenda Viva: Horário, Cadeiras, Notificações, Diário, Oráculo de Aulas e Perfil
 
 (PROPOSTA — acrescentar ao `SPEC-CLAUDE-CODEv2.md`. Antes de começar, seguir o
 protocolo do `CLAUDE.md` e declarar como esta missão se ordena face às Missões 24, 25
@@ -1379,6 +1379,9 @@ inventa matéria, datas ou horários.
      - por cadeira: `Sistema/Estudo/IPCA/<pasta>/Oraculo/` (`Aulas/`, `Pedidos/`,
        `Planos/`, `Programa.md`), que aparece por baixo de `Aulas/` e `Notas/` no
        Obsidian;
+     - por tema de estudo autónomo (`Sistema/Estudo/<Tema>/`, ex.: `ISO27001`):
+       `Sistema/Estudo/<Tema>/Oraculo/Pedidos/` para pedidos feitos a partir dessas
+       notas;
      - geral: `Oraculo/` na raiz (relatórios, `Horario.md`, pedidos sem cadeira).
    - Qualquer caminho que contenha um segmento `Oraculo/` é tratado como output do
      Oráculo: fica excluído da leitura de "estudo", do índice de pesquisa, dos gatilhos
@@ -1392,6 +1395,11 @@ inventa matéria, datas ou horários.
    - Ler o repositório (GitHub API) não gasta créditos Anthropic.
    - Só se chama o modelo quando há trabalho real a fazer: extração confirmável,
      pós-aula com nota, pedido, relatório semanal, radar/sussurro existentes.
+
+11. **Sem calendários externos.** O calendário e as notificações vêm só do Sistema.
+    Não há sincronização nem subscrições com Google Calendar, Outlook ou o Calendário
+    do iPhone. O botão "Exportar .ics" atual fica como está (exportação manual), sem
+    ser desenvolvido.
 
 ## Modelo de dados (Supabase, RLS por `user_id`)
 
@@ -1442,6 +1450,17 @@ inventa matéria, datas ou horários.
 - `attendance`
   - por ocorrência de aula: `vou` | `nao_vou` | `sem_resposta`
   - depois da aula: `fui` | `faltei` (confirmação opcional)
+
+**Calendário escolar e ciclo de vida das cadeiras**
+
+- `academic_calendar`
+  - `kind`: `periodo_letivo` | `feriado` | `pausa` | `evento` (ex.: festas e
+    atividades do CTESP/IPCA) | `epoca_avaliacao` | `fim_aulas_cadeira` | `outro`
+  - `title`, `date_start`, `date_end`, `course_id` (opcional), `priority`, `source`
+  - `suppresses_classes`: verdadeiro para feriados e pausas
+- `courses` ganha:
+  - `classes_from`, `classes_until` (último dia de aulas da cadeira)
+  - `state`: `a_decorrer` | `aulas_terminadas` | `em_avaliacao` | `concluida`
 
 **Exames e planos**
 
@@ -1499,6 +1518,9 @@ inventa matéria, datas ou horários.
    - `horario_ipca`: cadeiras, dia, horas, sala, período de validade.
    - `horario_worten`: APENAS a linha do nome configurado nas definições (o nome tal como
      aparece no documento), com datas e horas. Ignorar os colegas.
+   - `calendario_escolar`: períodos letivos, feriados, pausas, épocas de avaliação,
+     eventos e datas de fim de aulas por cadeira, cada um com o texto de origem.
+     Não inventar datas.
    - `programa`: lista ordenada de temas da cadeira escolhida. Não inventar temas.
      Incluir o nível de confiança e o texto de origem de cada tema.
 4. Validar o JSON (datas válidas, horas coerentes, duplicados). Se falhar, repetir uma
@@ -1507,9 +1529,12 @@ inventa matéria, datas ou horários.
    - "Sáb 26/09: 14:00–22:00 → 10:00–18:00";
    - "+ Tema 4: Normalização".
 6. Eu aceito ou rejeito cada linha, ou tudo de uma vez. Só depois é aplicado.
-7. Apagar o ficheiro:
-   - horários da Worten: logo após a confirmação;
-   - restantes: após 7 dias.
+7. Retenção do ficheiro original (o conteúdo útil já está nas tabelas):
+   - horário da Worten: apagar logo após a confirmação (tem dados de colegas);
+   - horário do IPCA, calendário escolar e FUC: guardar até ao fim do ano letivo
+     (prova para comparar se a extração falhar), com o botão "guardar para sempre";
+   - anexos de pedidos: 30 dias;
+   - o painel de espaço mostra o que ocupa cada tipo e deixa descarregar ou apagar.
 8. Mostrar sempre, lado a lado, a pré-visualização do ficheiro e a proposta extraída.
 
 ## Fase A — Cadeiras, horário, calendário e diário
@@ -1584,6 +1609,67 @@ inventa matéria, datas ou horários.
 - O histórico só existe a partir do arranque desta missão (e dos eventos migrados).
   Não reconstruir o passado.
 
+**Calendário escolar, feriados e fim das cadeiras**
+
+- Upload do calendário escolar (PDF ou imagem: ano letivo, semestres, feriados,
+  pausas, épocas de avaliação, eventos do CTESP/IPCA) pelo pipeline comum, com o
+  esquema `calendario_escolar`. Resultado: propostas em `pending_changes`, que eu
+  confirmo linha a linha.
+- O mesmo vale para horários mensais ou atualizados (IPCA ou Worten) enviados a meio do
+  mês: o diff mostra só o que muda.
+- Dias com `suppresses_classes`: as aulas desse dia aparecem como "sem aulas —
+  <motivo>", sem avisos de início nem pedido de presença. Os turnos da Worten não são
+  afetados.
+- Eventos do calendário escolar entram no calendário com prioridade (definida por
+  mim ou sugerida pelo Oráculo, com a mesma lógica do agendamento) e seguem os perfis
+  de notificação.
+- Fim de uma cadeira:
+  - por data (`classes_until`, vinda do calendário escolar ou definida por mim) ou
+    pelo botão "As aulas desta cadeira acabaram" (com data);
+  - a partir daí, as aulas dessa cadeira deixam de aparecer e de gerar avisos; o
+    histórico fica;
+  - a cadeira passa a `aulas_terminadas`, depois a `em_avaliacao` enquanto houver
+    exames futuros, e a `concluida` quando eu o confirmar (por defeito, proposta no dia
+    a seguir ao último exame);
+  - uma cadeira `concluida` fica arquivada: as notas e os resumos continuam
+    acessíveis, e o Oráculo deixa de a incluir em planos e missões, exceto se eu criar
+    um exame de recurso.
+- Fim do semestre: proposta para fechar todas as regras de aulas com `valid_until` e,
+  quando houver novo horário, criar as novas cadeiras.
+- Avisos: "Última aula de <cadeira> amanhã" no briefing, e "Próxima semana sem aulas
+  (<motivo>)" no briefing de domingo.
+
+**Calendário escolar e fim de aulas**
+
+- Tabela `academic_periods`:
+  - `kind`: `semestre` | `aulas` | `epoca_normal` | `epoca_recurso` | `epoca_especial` |
+    `ferias` | `feriado` | `sem_aulas` | `evento` (ex.: dias especiais do CTESP)
+  - `date_from`, `date_to`, `title`, `course_id` (opcional), `source`
+- Upload do calendário escolar (PDF ou imagem, ano inteiro ou só um mês) pelo pipeline
+  de extração, com a finalidade `calendario_escolar`. Tudo entra como proposta.
+- Feriados nacionais calculados por código (fixos e móveis, incluindo os que dependem
+  da Páscoa). Feriados municipais e dias sem aulas só vêm do calendário escolar ou de
+  mim.
+- Efeitos no calendário:
+  - num `feriado` ou `sem_aulas`, as aulas desse dia não aparecem, não geram avisos
+    nem análise pós-aula, e ficam marcadas "sem aulas (motivo)", sem contar como
+    canceladas;
+  - `schedule_rules` do IPCA terminam em `valid_until` = fim do período `aulas` do
+    semestre;
+  - épocas de exames aparecem como faixa no mês e alimentam os planos.
+- Cadeira que acaba mais cedo:
+  - botão "Esta cadeira terminou" (com data), que fecha as regras dessa cadeira sem
+    apagar o histórico;
+  - o Oráculo também o pode propor quando o calendário escolar ou uma nota minha o
+    indicar, sempre como proposta.
+- Fim de semestre:
+  - 7 dias antes do fim do período de aulas, o briefing pergunta pelo horário do
+    semestre seguinte;
+  - sem horário novo, o calendário mostra só exames, trabalho e eventos, e não inventa
+    aulas.
+- Notificações: seguem o calendário resultante, e as alterações vindas do calendário
+  escolar aparecem no briefing das 22:30 da véspera.
+
 **Espelho e alterações**
 
 - Após qualquer alteração confirmada, reescrever `Oraculo/Horario.md` com a semana atual
@@ -1599,6 +1685,10 @@ inventa matéria, datas ou horários.
 - A reposição fica ligada à aula cancelada.
 - O diário de uma data passada mostra aulas, turnos e atividade no vault.
 - A mudança de hora de outubro não desloca nada.
+- Um calendário escolar com um feriado numa quarta suprime as aulas desse dia,
+  depois de eu confirmar.
+- Uma cadeira com `classes_until` no passado não gera aulas nem avisos, e aparece
+  como arquivada quando `concluida`.
 
 ## Fase B — Notificações (PWA, PC e iPhone)
 
@@ -1663,11 +1753,6 @@ inventa matéria, datas ou horários.
   - Registar se cada notificação foi aberta.
   - No relatório mensal, indicar categorias ignoradas (por exemplo, "abriste 2 de 30
     avisos de aula") e sugerir desligá-las.
-
-**Subscrição de calendário (opcional)**
-
-- URL `.ics` com token aleatório longo, revogável e regenerável.
-- Só inclui título, hora e sala.
 
 **Critérios de aceitação**
 
@@ -1892,6 +1977,115 @@ Nesta fase há uma vista de diferenças simples; o editor completo fica para a F
 - Só online. O Obsidian continua a ser o editor offline no PC e no iPhone.
 
 
+## Fase E — Perfil do Oráculo e missões propostas
+
+(Começa só depois de 2–3 semanas de uso real das Fases A–C, para haver dados.)
+
+### Perfil do Oráculo (memória sobre mim)
+
+Um sítio onde o Oráculo guarda o que sabe de mim, para comparar o meu progresso e
+inspirar propostas. Eu consigo ler, corrigir e apagar tudo.
+
+- Tabela `oracle_profile`, com entradas de cinco tipos:
+  - `facto`: algo que eu disse ou escrevi (ex.: "quer ser ISO 27001 Lead Auditor");
+  - `objetivo`: metas que eu declarei, com prazo se existir;
+  - `padrao`: algo medido nos dados, com o período e os números (ex.: "nas últimas 4
+    semanas, 70% da atividade no vault foi entre as 21h e as 23h");
+  - `preferencia`: aprendida com as minhas respostas (ex.: "rejeitou 3 missões de
+    estudo ao sábado");
+  - `hipotese`: uma suposição do Oráculo. Expira ao fim de 30 dias se eu não a
+    confirmar, e nunca é usada como facto.
+- Campos: texto, tipo, evidência (datas, ligações, números), origem, confiança,
+  criado em, última confirmação, validade, estado (`ativo` | `rejeitado` |
+  `arquivado`).
+- Regras:
+  - cada `padrao` e cada `hipotese` mostra a evidência de onde veio;
+  - os padrões são recalculados periodicamente e desaparecem se deixarem de ser
+    verdade;
+  - nada de rótulos de personalidade nem de inferências sobre saúde, psicologia ou
+    outras categorias sensíveis; só entra nessas áreas o que eu escrever como `facto`;
+  - o que eu corrigir ou rejeitar tem prioridade, e o Oráculo não volta a propor o
+    mesmo;
+  - não duplicar a Living Memory (Missão 15): a Living Memory trata efemérides, o
+    Perfil trata padrões e objetivos.
+- Página "O que o Oráculo sabe de mim" no Sistema: lista por tipo, com editar,
+  confirmar, apagar, adicionar um facto e exportar tudo. Também "apagar tudo".
+- Espelho só de leitura em `Oraculo/Perfil.md`. Entradas que eu marcar como
+  "privadas" não são espelhadas no vault.
+- Comparações: o relatório semanal e as missões usam linhas de base (média das
+  últimas 4 semanas) e dizem sempre com que entradas do Perfil estão a comparar.
+
+### Missões propostas pelo Oráculo
+
+O Oráculo propõe missões para o sistema de objetivos que já existe (`S.objectives`,
+com `area` = um dos 6 atributos: Ofício, Saber, Corpo, Mente, Vínculos, Disciplina).
+
+- Fontes: calendário (exames, eventos, feriados, pausas, horas livres), programa e
+  progresso das cadeiras, notas e resumos, recall, atributos e níveis, objetivos
+  existentes, sono e treino, e o Perfil.
+- Quando:
+  - no relatório semanal;
+  - quando acontece algo relevante: exame confirmado, cadeira terminada, pausa ou
+    feriado a chegar, âmbito do exame definido, objetivo concluído, atributo parado há
+    muito tempo segundo os dados.
+- Cada proposta tem: título, atributo, prioridade, prazo, dificuldade, e um "porquê"
+  com a evidência (ex.: "teste de Base de Dados em 12 dias; 4 temas por dar; tens
+  3 noites livres esta semana").
+- A proposta aparece como cartão no Sistema: Aceitar / Editar / Rejeitar (com motivo
+  opcional, que alimenta as `preferencia`). Ao aceitar, o cliente cria o objetivo pela
+  função que já existe. O servidor nunca escreve diretamente no `app_state`.
+- Limites:
+  - no máximo 5 propostas pendentes e 3 novas por semana (configurável);
+  - nunca duplicar objetivos existentes;
+  - propostas não respondidas expiram ao fim de 7 dias;
+  - equilíbrio entre atributos, mas só com evidência; nada de missões genéricas para
+    "encher" um atributo;
+  - as regras de XP não mudam: uma proposta aceite vale o mesmo que um objetivo criado
+    por mim;
+  - nada de metas de saúde, dieta ou treino que eu não tenha declarado como objetivo.
+- No relatório mensal: quantas propostas aceitei, rejeitei e concluí. Se a taxa de
+  aceitação for baixa, o Oráculo propõe menos e pergunta porquê.
+
+### Critérios de aceitação
+
+- Cada entrada `padrao` mostra números e período verificáveis.
+- Uma `hipotese` não confirmada desaparece ao fim de 30 dias.
+- Uma missão proposta cita a evidência, e aceitá-la cria um objetivo igual aos
+  criados à mão.
+- Rejeitar uma missão com motivo impede propostas iguais durante 60 dias.
+- "Apagar tudo" remove o Perfil do Supabase e do espelho no vault.
+
+## Cópias de segurança (Fase A, antes de qualquer dado novo)
+
+O plano gratuito do Supabase não tem backups. Esta missão cria dados que não existem
+em mais lado nenhum (horário, exceções, exames, histórico), por isso o backup vem
+primeiro.
+
+- **Nível 1 — diário, automático, grátis:**
+  - Workflow do GitHub Actions (cron diário, de madrugada) num repositório privado
+    novo, `kamappa/sistema-backups`.
+  - Faz `pg_dump` (ou `supabase db dump`) da base de dados, com a ligação guardada
+    nos Secrets do GitHub.
+  - Cifra o dump com `age` usando uma chave pública. A chave privada NUNCA vai para o
+    GitHub; fica no meu gestor de palavras-passe e no computador de casa.
+  - Guarda os últimos 14 diários e 1 por mês durante 12 meses.
+  - Inclui os ficheiros do bucket marcados "guardar" (calendário escolar, FUC,
+    horário do IPCA).
+  - Efeito secundário útil: a atividade diária evita a pausa do projeto gratuito por
+    inatividade. Confirmar que conta.
+  - Se o backup falhar, envia uma notificação ("Saúde do sistema").
+- **Nível 2 — cópia fora da cloud (opcional, recomendado):**
+  - Script para o computador de casa (Windows, Agendador de Tarefas) que descarrega
+    semanalmente o último backup para um disco local.
+  - Cumpre a regra 3-2-1: 3 cópias, 2 suportes, 1 fora do sítio.
+- **Restauro:**
+  - Procedimento escrito no SPEC: criar projeto novo, decifrar, `psql`/restore,
+    reconfigurar Secrets e Edge Functions.
+  - Testar o restauro num projeto de teste no fim da Fase A e depois a cada 3 meses.
+    Um backup nunca testado não conta como backup.
+- **Custos:** o GitHub Actions em repositórios privados tem minutos gratuitos
+  limitados. Medir a duração do job e confirmar que fica muito abaixo do limite.
+
 ## Correções ao código existente
 
 - `soEstudo` passa a excluir caminhos com um segmento `Oraculo/`.
@@ -1920,7 +2114,6 @@ Nesta fase há uma vista de diferenças simples; o editor completo fica para a F
   - apagados conforme o pipeline.
 - Worten: só a minha linha.
 - Notificações sem conteúdo das notas.
-- `.ics` revogável.
 - Webhook do GitHub configurado só no `vault-sistema`, só para o evento `push`, com
   segredo próprio.
 - `VAULT_TOKEN` fine-grained, só com permissão `contents` no `vault-sistema`, e com
@@ -1934,7 +2127,8 @@ Nesta fase há uma vista de diferenças simples; o editor completo fica para a F
 
 ## Ordem e método
 
-A → B → C → D. Em cada fase:
+A → B → C → E → D. A Fase E vem antes do editor porque dá mais valor ao uso diário;
+o editor (D) pode avançar mais cedo se eu decidir. Em cada fase:
 
 1. apresentar um plano curto para eu aprovar;
 2. implementar;

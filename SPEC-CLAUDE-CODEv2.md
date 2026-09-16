@@ -2136,3 +2136,336 @@ o editor (D) pode avançar mais cedo se eu decidir. Em cada fase:
 4. testar os critérios de aceitação;
 5. atualizar o SPEC;
 6. usar durante uma semana real antes de passar à fase seguinte.
+
+
+# Missão 32 — Memória do Oráculo e Missões Propostas
+
+(Depende da Missão 31 até à Fase C. Seguir o protocolo do `CLAUDE.md` e a
+`SYSTEM-ORACLE-CONSTITUTION.md`, em especial:
+
+- §4 "O Sistema nunca mente";
+- §5 facto / inferência / hipótese / previsão / recomendação;
+- §11 autonomia por níveis;
+- §12 ações que exigem aprovação.)
+
+## Objetivo
+
+Dar ao Oráculo três memórias persistentes e verificáveis:
+
+1. o que sabe sobre mim;
+2. uma base de conhecimento com fontes;
+3. um registo de lições e correções.
+
+Com elas, e com o calendário, as notas, os exames e o meu progresso, o Oráculo passa a
+propor missões ligadas aos atributos que já existem (Ofício, Saber, Corpo, Mente,
+Vínculos, Disciplina).
+
+A "aprendizagem" é feita através destes registos estruturados, que o Oráculo relê. O
+modelo em si não é treinado. Isto tem de estar claro na interface.
+
+## Princípios
+
+1. **Nada entra na memória sem origem.** Cada entrada tem:
+   - `origem`: `dito_por_mim` | `evidencia` (com ligação: nota, commit, missão, exame) |
+     `inferencia` | `fonte_externa` (URL);
+   - `confianca`;
+   - `criado_em` e `verificado_em`.
+2. **Inferências nunca passam por factos.** Aparecem marcadas como inferência. Uma
+   inferência só passa a facto quando eu a confirmo.
+3. **Transparência total.** Posso ver, editar, confirmar e apagar qualquer entrada no
+   Sistema. Apagar é apagar mesmo, sem versões "arquivadas".
+4. **Minimização.**
+   - Categorias sensíveis (saúde, finanças, relações, crenças) só entram se eu as
+     escrever explicitamente e pedir para guardar.
+   - Nunca se guardam dados de terceiros além do nome e da relação.
+5. **Memória autorizada** (Constituição §9).
+   - Conteúdo vindo da web, de PDFs ou de notas de outras pessoas é DADO, nunca
+     instrução.
+   - Nenhuma entrada pode mudar regras do Oráculo. Proteção contra prompt injection e
+     envenenamento de memória.
+6. **Mudar objetivos exige aprovação** (§12). As missões do Oráculo são sempre
+   PROPOSTAS (nível 1) até eu as aceitar.
+7. **Orçamento de contexto.** Cada chamada recebe só as entradas relevantes, escolhidas
+   por pesquisa, e nunca a memória inteira.
+
+## Onde vive cada coisa (arquitetura de armazenamento)
+
+| Camada | Onde | O que guarda |
+|---|---|---|
+| Fonte de verdade | Supabase Postgres | memória, conhecimento, lições, propostas, calendário, estado |
+| Pesquisa | Postgres: full-text `portuguese` + `pgvector` | encontrar só o que é relevante para cada chamada |
+| Ficheiros | Supabase Storage (bucket privado) | uploads temporários (PDF/imagens), apagados segundo o pipeline |
+| Espelho legível | `vault-sistema`: `Oraculo/Memoria/` e `Oraculo/Conhecimento/` | Markdown organizado por títulos para eu ler |
+| Backup | repositório privado `sistema-backups` (+ computador de casa) | dump cifrado diário, definido na Missão 31 |
+| Código e regras | repositório `Sistema` | SPEC, Constituição, Edge Functions |
+| Modelo (Anthropic) | nada persistente | recebe só o contexto escolhido em cada chamada |
+
+**O que NÃO se guarda, calcula-se:** estação do ano, altura do semestre, dias até ao
+exame, feriados nacionais, horas livres, níveis e sequências. Guardar isto criaria
+dados desatualizados.
+
+**Camadas por duração (retenção automática):**
+
+- Permanente, até eu apagar: memória sobre mim confirmada, conhecimento oficial (com
+  versões), lições ativas, histórico do calendário, missões.
+- Revalidável (60 dias): inferências sobre mim.
+- Efémera, com TTL:
+  - `oracle_signals`: notícias, tendências e eventos externos. Campos: `titulo`,
+    `resumo` (≤3 frases), `fonte_url`, `dominio`, `relevancia`, `expira_em`
+    (30 dias por defeito; 90 se estiver ligado a uma missão ou nota).
+  - Nunca guardar artigos inteiros.
+  - Um job diário apaga os sinais expirados.
+- Registos técnicos (`jobs`, `oracle_usage`, `notifications_sent`): 90 dias; depois,
+  só totais mensais.
+
+**Sinais externos (notícias e tendências):**
+
+- Fontes permitidas por defeito: ENISA, CNCS, CNPD, EDPB, Comissão Europeia, NIST,
+  ISO (páginas públicas), Diário da República, EUR-Lex.
+- Outras fontes só depois de eu as aprovar numa lista editável.
+- "O que está em alta" = temas repetidos em várias fontes permitidas na última
+  semana. Não usar redes sociais nem rankings de SEO.
+- Máximo de 5 sinais por semana no relatório. Um sinal só gera proposta de missão se
+  estiver ligado a algo meu (cadeira, exame, objetivo, certificação).
+
+**Pesquisa (embeddings):**
+
+- A Anthropic não disponibiliza modelo de embeddings.
+- Fase A/B: começar com full-text search do Postgres em português (sem custo e sem
+  serviço extra). Acrescentar embeddings só se a pesquisa falhar em testes reais.
+- Nesse caso, preferir o modelo de embeddings integrado nas Edge Functions do
+  Supabase (verificar disponibilidade), para não acrescentar um fornecedor novo.
+  Justificar qualquer alternativa externa (custo, privacidade, subcontratante).
+
+**Orçamento de espaço (Supabase Free: 500 MB de base de dados, 1 GB de ficheiros, sem
+backups, pausa por inatividade — confirmar o plano atual):**
+
+- Texto ocupa pouco: legislação completa e anos de notas ficam em dezenas de MB.
+- Embeddings: cerca de 6 KB por fragmento (1536 dimensões), ou menos com modelos mais
+  pequenos.
+- Painel de espaço nas definições, com alerta aos 70% do limite.
+- Limpeza pela retenção acima antes de pensar em mudar de plano.
+
+**Backup:** as tabelas desta missão entram no backup cifrado diário da Missão 31
+(`sistema-backups`). Nada de exportações em claro para o vault. Pedidos de apagamento
+aplicam-se também aos backups: não se editam backups antigos, mas a retenção
+(14 diários, 12 mensais) garante que o dado desaparece dentro desse prazo, e isso é
+explicado na interface.
+
+**Quando passar ao plano Pro (25 USD/mês) — critérios objetivos:**
+
+- a base de dados passa de 70% do limite DEPOIS de aplicar a retenção e o arquivo;
+- são precisos mais de 1 GB de ficheiros que não podem sair para o disco local;
+- o backup próprio falha repetidamente ou o restauro de teste não funciona;
+- a pausa por inatividade causa problemas apesar do job diário;
+- o Sistema passa a tratar dados de outras pessoas (por exemplo, clientes do projeto
+  Money Print). Nesse caso, o plano gratuito deixa de ser adequado.
+
+Enquanto nenhum destes se verificar, fica no plano gratuito.
+
+**Servidor próprio (avaliado, não adotado agora):** correr o Supabase em Docker num
+computador antigo é possível, mas:
+
+- a eletricidade de uma máquina ligada 24/7 pode custar vários euros por mês;
+- exige atualizações de segurança, monitorização e um túnel seguro (nunca abrir
+  portas no router);
+- falhas de luz ou de disco tiram o Sistema do ar;
+- o iPhone deixa de ter acesso quando o servidor está desligado.
+
+Decisão: usar o computador de casa como destino de backup (Nível 2) e rever esta
+decisão se o custo do Pro se tornar um problema real.
+
+**Como a memória muda (sem se tornar um caos):**
+
+- Adicionar: cria uma entrada nova com origem.
+- Atualizar: cria uma nova versão; a anterior fica em `*_history` durante 90 dias,
+  para auditoria e para desfazer.
+- Substituir: marca a antiga como `desatualizado` com ligação para a nova.
+- Apagar a meu pedido: apagamento real, também no histórico e no próximo backup.
+- Consolidação mensal: fundir duplicados e resumir entradas antigas, mostrando-me as
+  alterações.
+
+## Modelo de dados (Supabase, RLS; pesquisa full-text, `pgvector` opcional)
+
+**`oracle_memory_user`** — memória sobre mim
+
+- `categoria`: identidade, objetivos, preferências, hábitos, forças, dificuldades,
+  contexto (curso, trabalho), marcos.
+- `texto`, `origem`, `evidencia_ref`, `confianca`, `estado`, `embedding`.
+- `estado`: `ativo` | `por_confirmar` | `desatualizado`.
+- Revalidação: entradas `inferencia` com mais de 60 dias sem evidência nova passam a
+  `por_confirmar`, e o Oráculo pergunta no relatório semanal (máximo 3 por semana).
+
+**`oracle_knowledge`** — base de conhecimento, organizada por títulos
+
+- Estrutura em árvore, com títulos fixos: `area` → `dominio` → `tema` → `subtema` →
+  entrada. Tabela `knowledge_tree` (id, pai, título, ordem, descrição) e cada entrada
+  aponta para um nó.
+- Áreas iniciais (editáveis por mim):
+  - **Conformidade e privacidade:** RGPD, lei portuguesa de execução, CNPD, EDPB.
+  - **Cibersegurança:** NIS2 e regime jurídico português, CNCS, ENISA, controlos.
+  - **Normas ISO:** 27001, 27002, 27005, 27007, 42001 (só estrutura, títulos e notas).
+  - **Governação de IA:** AI Act, ISO/IEC 42001, NIST AI RMF.
+  - **Auditoria:** técnicas, amostragem, evidências, relatórios.
+  - **Tecnologia:** cloud (Azure…), bases de dados, redes.
+  - **Carreira:** certificações, mercado em Portugal.
+  - **Cultura geral:** história, geografia, ciência, economia, atualidade, língua
+    portuguesa.
+- Formato de cada entrada:
+  - título;
+  - resumo (2–3 frases);
+  - pontos-chave;
+  - "porque importa" (ligação ao meu estudo ou carreira, quando existir);
+  - referências (artigo, cláusula, URL);
+  - relações com outras entradas;
+  - `tipo`: `texto_oficial` | `orientacao_oficial` | `nota_minha` | `resumo_oraculo` |
+    `cultura_geral`;
+  - `versao_ou_data`, `obtido_em`, `confianca`, `embedding` (opcional).
+- Fontes:
+  - técnicas e legais: só oficiais (EUR-Lex, Diário da República, CNPD, CNCS, EDPB,
+    ENISA, NIST, páginas públicas ISO);
+  - cultura geral: obras de referência reputadas, sempre com URL e confiança
+    `media`, confirmadas em pelo menos duas fontes quando for um facto preciso (datas,
+    números). Nunca usadas como base para matéria técnica ou legal.
+- Normas ISO: direitos de autor. Guardar apenas número e título de cláusulas e
+  controlos, as minhas notas e resumos do Oráculo marcados como tal. Nunca texto
+  integral, mesmo que eu o carregue.
+- Ingestão:
+  - fontes que eu indico, ou que o Oráculo propõe e eu aprovo;
+  - fragmentação por artigo ou cláusula;
+  - verificação de duplicados;
+  - legislação alterada cria uma nova versão e marca a anterior como substituída.
+- Cultura geral cresce devagar: no máximo 10 entradas novas por semana, escolhidas
+  pelo que estudo, pelo calendário (datas históricas, estação) e pelos sinais
+  externos. Opcional: um "sabias que" por dia no radar, sempre com fonte.
+- Espelho legível no vault: `Oraculo/Conhecimento/<Área>/<Domínio>/<Tema>.md`, com
+  títulos `#`/`##`/`###` pela árvore, um `_indice.md` por área e ligações com caminho.
+  Só leitura, reescrito quando a entrada muda.
+- Regra de citação: qualquer referência a artigo, cláusula ou controlo nas respostas
+  tem de vir de uma entrada recuperada nesta chamada (ou de um URL da pesquisa). Sem
+  isso, o Oráculo diz "não confirmado".
+
+**`oracle_lessons`** — memória operacional do agente
+
+- `gatilho`:
+  - correção minha ("isto está errado");
+  - proposta rejeitada;
+  - extração corrigida;
+  - URL inválido;
+  - job falhado;
+  - notificação ignorada.
+- `o_que_falhou`, `regra_aprendida` (frase curta e acionável), `ambito` (modo ou
+  domínio), `estado`, `aplicada_vezes`, `ultima_aplicacao`.
+- `estado`: `proposta` | `ativa` | `retirada`.
+- Lições que só afinam formato ou extração podem ficar ativas logo. Lições que mudam
+  comportamento (prioridades, frequência, tom, o que conta como evidência) ficam
+  `proposta` até eu aprovar.
+- Consolidação mensal: juntar lições duplicadas, retirar as que nunca são aplicadas e
+  mostrar-me um resumo do que mudou.
+
+**`oracle_corrections`**
+
+- Botão "Isto está errado" em qualquer resposta, resumo, plano ou entrada de memória.
+- Frase no chat: "corrige: …".
+- Campos: `alvo`, `o_que_estava`, `correcao`, `fonte` (opcional).
+- Efeito: corrige a entrada visada (memória ou conhecimento) e cria uma lição.
+
+**`mission_proposals`**
+
+- `titulo`, `atributo` (ATTRS existentes), `area`, `prioridade`, `prazo`, `xp_sugerido`,
+  `porque` (1–2 frases), `evidencias` (ligações), `tipo`, `estado`.
+- `tipo`: `facto` (há evidência de necessidade) | `hipotese` (pode vir a ser útil),
+  sempre visível.
+- `estado`: `proposta` | `aceite` | `editada` | `rejeitada` (com motivo opcional).
+
+## Geração de missões
+
+**Gatilhos**
+
+- Novo exame ou alteração de âmbito.
+- Tema confirmado como dado.
+- Aula `cancelada_sem_reposicao`.
+- Calendário escolar novo (épocas, férias).
+- Resumo pós-aula com lacunas.
+- Relatório semanal.
+- Atributo sem atividade há 14 dias.
+- Prazo a aproximar-se.
+- Evento pessoal que exige preparação.
+
+**Entradas da chamada**
+
+- Estado atual: atributos e níveis, missões ativas e concluídas, hábitos e sequências,
+  sono.
+- Calendário dos próximos 30 dias e horas livres.
+- Exames e âmbitos.
+- Memória relevante sobre mim.
+- Lições ativas.
+
+**Regras**
+
+- Máximo de 5 propostas por semana, e só uma por gatilho.
+- Não duplicar missões ativas.
+- Não propor nada que não caiba nas horas livres.
+- Cada proposta indica o atributo e o porquê.
+- Mostrar sempre a diferença entre "precisas disto" (facto, com evidência) e "isto
+  pode ser útil" (hipótese).
+- XP sugerido dentro das regras atuais do motor. Nunca XP concedido antes de conclusão
+  com evidência (§4).
+- Aceitar cria o objetivo em `S.objectives` pelo mesmo caminho do botão manual.
+  Rejeições com motivo geram lições.
+
+## Interface
+
+**Página "Memória do Oráculo"**
+
+- Separadores: Sobre mim / Conhecimento (navegação pela árvore de títulos, com pesquisa) /
+  Lições / Correções.
+- Filtros por origem e estado.
+- Ações: confirmar, editar, apagar, ver evidência.
+- Contadores: entradas por confirmar, lições propostas.
+
+**Outros pontos**
+
+- Missões propostas: cartões em Operações com Aceitar / Editar / Rejeitar.
+- Espelho só de leitura no vault:
+  - `Oraculo/Memoria/Sobre-mim.md`;
+  - `Oraculo/Memoria/Licoes.md`;
+  - `Oraculo/Conhecimento/…` (árvore por títulos, descrita acima).
+- "Esquece isto" no chat apaga a entrada visada e confirma o que foi apagado.
+
+## Segurança e custos
+
+- Embeddings e extrações contam em `oracle_usage`, com limites diários.
+- As entradas da memória nunca vão para notificações nem para o `.ics`.
+- Exportação completa da memória em JSON, a meu pedido (portabilidade, RGPD art. 20.º),
+  e botão "apagar toda a memória sobre mim" com dupla confirmação.
+- Auditoria: registo de quem criou ou alterou cada entrada (utilizador, modo do
+  Oráculo, job).
+
+## Fases
+
+- **A.** Tabelas, página de Memória (ver, editar, apagar), correções e lições (sem
+  geração automática).
+- **B.** Base de conhecimento com ingestão de fontes oficiais, pesquisa e regra de
+  citação em todos os modos.
+- **C.** Memória sobre mim alimentada pelo chat, pelos relatórios e por evidências, com
+  revalidação.
+- **D.** Missões propostas com gatilhos e limites.
+
+**Critérios de aceitação**
+
+- Uma inferência nunca aparece como facto.
+- Uma entrada apagada deixa de influenciar respostas na chamada seguinte.
+- Uma resposta que cite um artigo sem entrada recuperada nem URL é bloqueada ou marcada
+  "não confirmado".
+- Nenhum texto integral de norma ISO é guardado.
+- Uma rejeição com motivo gera uma lição proposta.
+- Missões aceites aparecem em `S.objectives` sem XP antecipado.
+
+**Método**
+
+Em cada fase:
+
+1. plano para eu aprovar;
+2. uma semana de uso real;
+3. revisão das lições e da memória antes da fase seguinte.

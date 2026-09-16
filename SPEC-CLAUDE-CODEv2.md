@@ -1305,3 +1305,412 @@ Ideias recuperáveis que continuam fora da fila principal: Evidence Locker com
 Storage, PWA/push, injeção automática de perguntas pelo Oráculo e transformação
 da Core View em app/wallpaper. Abrem missão apenas quando existir valor e gate
 claro.
+
+## Missão 31 — Agenda Viva: Horário, Cadeiras, Notificações, Diário e Oráculo de Aulas
+Antes de começar, seguir o protocolo do CLAUDE.md e declarar como esta missão se ordena face às Missões 24, 25 e 30. A Missão 30 migra o frontend para React: toda a lógica nova vive no Supabase (tabelas, RPC e Edge Functions), e o frontend vanilla só consome. Assim a migração herda tudo sem reescrever regras.)
+
+Objetivo
+
+O Sistema passa a conhecer o meu horário real (aulas do IPCA e turnos da Worten), as minhas cadeiras e os seus programas, e os meus exames. Mostra tudo num calendário com horas e salas, guarda o histórico de cada dia, avisa-me no PC e no iPhone, e o Oráculo usa esta informação para resumir aulas, responder a pedidos e planear exames. Nunca inventa matéria, datas ou horários.
+
+Princípios invioláveis
+Uma única verdade.
+Horário, turnos, exceções, cadeiras, programas e exames vivem no Supabase e editam-se no Sistema.
+O texto (notas de aula) vive no vault (kamappa/vault-sistema).
+O Obsidian recebe espelhos só de leitura em Oraculo/.
+As linhas de Sistema/Horario/alteracoes.md entram sempre como PENDENTES.
+O código preenche o calendário, não o modelo.
+O modelo só é usado para:
+extrair informação de PDFs e imagens (horários, programas);
+interpretar pedidos de agendamento em linguagem natural.
+O resultado é sempre JSON estrito, validado por código, e só entra no calendário através das mesmas funções que os botões usam.
+A extração de ficheiros é sempre uma proposta que eu confirmo. O agendamento segue as regras da secção "Agendamento pelo Oráculo".
+Sem fonte, sem afirmação.
+O Oráculo só fala de matéria que exista no programa confirmado de uma cadeira ou nas minhas notas.
+Sem programa confirmado, diz isso e não teoriza.
+O progresso ("tema dado") só conta depois de eu o confirmar.
+A cadeira é a pasta.
+A nota Sistema/Estudo/IPCA/<pasta>/Aulas/AAAA-MM-DD[-n].md pertence à cadeira cujo vault_folder é <pasta>, e à aula dessa data.
+Nenhum metadado é obrigatório dentro da nota.
+Análise pós-aula só com prova.
+Só corre se existir a nota da aula com commit posterior ao início da aula.
+Sem nota, não faz nada e não envia notificação.
+Hora de Lisboa.
+As horas guardam-se como hora local com o fuso Europe/Lisbon.
+Conversão para UTC só no momento de agendar.
+Testar a mudança de hora de 25/10/2026.
+Minimização de dados (RGPD art. 5.º, n.º 1, al. c) e art. 25.º). Ver a secção de segurança.
+Custo controlado.
+Ler o repositório (GitHub API) não gasta créditos Anthropic.
+Só se chama o modelo quando há trabalho real a fazer: extração confirmável, pós-aula com nota, pedido, relatório semanal, radar/sussurro existentes.
+Modelo de dados (Supabase, RLS por user_id)
+
+Cadeiras e programa
+
+courses
+name, short_name
+vault_folder (único)
+semester, academic_year
+color (opcional)
+active
+syllabus_topics
+course_id, position (numeração automática), title
+status: proposto | confirmado
+source: manual | upload:<id>
+topic_progress
+topic_id
+state: dado | por_dar | recuperado
+confirmed_at
+evidence: data da aula ou do resumo que o sugeriu
+
+Horário
+
+schedule_rules
+kind: ipca | worten
+course_id (quando for IPCA)
+weekday, start_time, end_time, room
+valid_from, valid_until
+source
+schedule_events — ocorrências avulsas
+kind, cada um com regras próprias:
+ipca_reposicao: obriga a replaces_occurrence, que é a aula cancelada que repõe;
+ipca_extra: aula nova que não repõe nada;
+worten_turno_extra;
+prazo e evento: migrados de S.events;
+pessoal, tarefa, estudo: criados por mim ou pelo agendamento do Oráculo.
+course_id, date, start_time, end_time (opcionais nos prazos e tarefas), room/local, note
+priority: alta | media | baixa (por defeito media)
+priority_reason: frase curta, obrigatória quando é o Oráculo a decidir
+notify_offsets: minutos antes do evento; se vazio, usa o perfil da prioridade
+recurrence: opcional (regra simples: dias da semana + data de fim)
+created_by: manual | oraculo | upload | alteracoes_md
+source_request_id: ligação ao pedido que o criou
+schedule_exceptions — aplicadas a uma ocorrência de uma regra
+IPCA: cancelada_por_repor, cancelada_sem_reposicao
+Worten: nao_vou_trabalhar, horas_ajustadas (hora real de entrada e saída)
+attendance
+por ocorrência de aula: vou | nao_vou | sem_resposta
+depois da aula: fui | faltei (confirmação opcional)
+
+Exames e planos
+
+exams
+course_id, kind (teste | exame | recurso | trabalho), date, time, room
+scope_mode: desconhecido (valor por defeito) | tudo | ate_tema
+scope_topic_id (só quando ate_tema)
+status: confirmado | pendente
+histórico de alterações
+study_plans
+versionados por exame; nunca sobrescrever uma versão
+provisional: verdadeiro quando o âmbito do exame é desconhecido
+
+Propostas, ficheiros e Oráculo
+
+pending_changes
+origin: upload_horario | upload_programa | alteracoes_md | progresso_pos_aula | agendamento
+diff legível
+state: pendente | aceite | rejeitada
+uploads
+ficheiro no bucket privado, tipo, finalidade
+delete_after
+oracle_requests
+origem (sistema | etiqueta), notas envolvidas, pedido, anexos, estado
+caminho da resposta
+class_summaries — uma análise por ocorrência de aula
+push_subscriptions — por dispositivo, com preferências por categoria
+oracle_usage — chamadas por modo, tokens e data
+
+Migração
+
+Migrar S.events do app_state para schedule_events sem perda de dados.
+Documentar o passo de reversão.
+Pipeline comum de extração (PDF e imagem)
+Upload no Sistema para o bucket privado.
+Validar o tipo (PDF, PNG, JPG, HEIC convertido) e o tamanho.
+Uma Edge Function envia o ficheiro ao Claude como document (PDF) ou image, com um pedido de JSON estrito e um esquema por finalidade:
+horario_ipca: cadeiras, dia, horas, sala, período de validade.
+horario_worten: APENAS a linha do nome configurado nas definições (o nome tal como aparece no documento), com datas e horas. Ignorar os colegas.
+programa: lista ordenada de temas da cadeira escolhida. Não inventar temas. Incluir o nível de confiança e o texto de origem de cada tema.
+Validar o JSON (datas válidas, horas coerentes, duplicados). Se falhar, repetir uma vez; se voltar a falhar, mostrar o erro e não adivinhar.
+Comparar com o estado atual e criar pending_changes com um diff legível, por exemplo:
+"Sáb 26/09: 14:00–22:00 → 10:00–18:00";
+"+ Tema 4: Normalização".
+Eu aceito ou rejeito cada linha, ou tudo de uma vez. Só depois é aplicado.
+Apagar o ficheiro:
+horários da Worten: logo após a confirmação;
+restantes: após 7 dias.
+Mostrar sempre, lado a lado, a pré-visualização do ficheiro e a proposta extraída.
+Fase A — Cadeiras, horário, calendário e diário
+
+Cadeiras
+
+Criadas a partir do horário do IPCA ou à mão.
+O campo vault_folder sugere as pastas que existem em Sistema/Estudo/IPCA/. Avisar se uma pasta não tiver cadeira ou se uma cadeira não tiver pasta.
+
+Programa
+
+Na página da cadeira há duas formas de o preencher:
+colar texto (uma linha por tema, numeração automática);
+upload de PDF ou imagem (FUC, slide do professor), pelo pipeline.
+Os temas podem ser reordenados, editados e apagados.
+Espelho em Oraculo/Programas/<pasta>.md, com o estado de cada tema.
+
+Calendário
+
+Vista dupla no desktop:
+mês à esquerda;
+grelha semanal ou diária por horas à direita, com clique no mês para saltar.
+No mobile: seletor Hoje / Semana / Mês, com "Hoje" em lista por defeito.
+Cores:
+Worten = vermelho;
+IPCA = verde;
+as restantes à escolha, coerentes com a identidade visual.
+A cor nunca é o único sinal: cada tipo tem uma letra ou ícone.
+Estilos por estado:
+reposição: contorno tracejado, com a indicação "repõe dd/mm";
+aula extra: rótulo "extra";
+cancelada: cinzento e riscado;
+cancelada por repor: com badge.
+
+Ações nos blocos
+
+Aula do IPCA:
+"cancelada, vai haver reposição";
+"cancelada, sem reposição";
+"não vou";
+"pedir ao Oráculo" (só aulas passadas).
+Criar "reposição": obriga a escolher a aula cancelada que repõe, sugerida a partir das aulas cancelada_por_repor dessa cadeira. A aula original passa a "reposta", e os temas dessa aula passam a recuperado quando confirmados.
+Criar "aula extra": cadeira, data, horas e sala.
+Botão "Começou uma aula agora": cadeira, duração por defeito da cadeira e botão "terminar".
+Turno da Worten:
+"não vou trabalhar";
+"ajustar horas" (entrei ou saí a outra hora);
+"turno extra".
+Definições da Worten:
+"data de saída" (valid_until): os turnos futuros desaparecem, o histórico mantém-se.
+
+Diário do dia (histórico)
+
+Nada é apagado: os dias passados ficam navegáveis sem limite.
+Ao abrir um dia passado, a vista mostra:
+aulas: fui, faltei, cancelada, reposta, extra;
+turnos, com as horas previstas e as reais;
+notas escritas nesse dia (commits do vault com essa data, com ligação para o editor ou para o GitHub);
+resumos e respostas do Oráculo desse dia;
+sessões de recall, missões e hábitos concluídos, se o app_state tiver datas.
+Não apresentar "horas de estudo" como facto: commits não medem tempo. Mostrar "atividade no vault às HH:MM".
+Totais por semana e por mês:
+horas trabalhadas (reais, se ajustadas; previstas, caso contrário, com essa indicação);
+aulas previstas, assistidas, canceladas e repostas.
+O histórico só existe a partir do arranque desta missão (e dos eventos migrados). Não reconstruir o passado.
+
+Espelho e alterações
+
+Após qualquer alteração confirmada, reescrever Oraculo/Horario.md com a semana atual e a seguinte.
+Ler Sistema/Horario/alteracoes.md quando um push o altera e converter cada linha nova em pending_changes.
+Linhas mal formatadas geram um aviso e não são adivinhadas.
+
+Critérios de aceitação
+
+Um PDF da FUC gera uma proposta de temas, e nada fica confirmado sem mim.
+Um horário da Worten com vários colegas só cria entradas para mim.
+A reposição fica ligada à aula cancelada.
+O diário de uma data passada mostra aulas, turnos e atividade no vault.
+A mudança de hora de outubro não desloca nada.
+Fase B — Notificações (PWA, PC e iPhone)
+
+Infraestrutura
+
+Service worker, chaves VAPID nos Secrets e push_subscriptions.
+Definições com a lista de dispositivos e interruptores por categoria:
+aula a começar;
+briefing da noite;
+presença;
+resumo pós-aula pronto;
+pedido pronto;
+propostas pendentes;
+exame a aproximar-se;
+âmbito do exame por definir;
+relatório semanal.
+iPhone:
+o push web só funciona com a PWA no ecrã principal (iOS 16.4+);
+confirmar se o iOS mostra botões de ação; se não mostrar, tocar na notificação abre o cartão de confirmação.
+
+Envios
+
+Briefing às 22:30 (Lisboa)
+Mostra amanhã: aulas, reposições, aulas extra, turnos, exames e prazos, e o que mudou desde o último briefing.
+Pede a presença (VOU / NÃO VOU) para cada aula de amanhã.
+Um evento para amanhã criado depois das 22:30 é notificado logo.
+Presença
+NÃO VOU equivale a nao_vou: não há aviso de início nem análise pós-aula dessa aula.
+Aula a começar
+15 minutos antes (configurável).
+Cron a cada 5 minutos, só SQL e sem IA.
+Âmbito por definir
+Se faltarem 21 dias ou menos para um exame com âmbito desconhecido, lembrar uma vez por semana, dentro do briefing e nunca em notificação própria.
+Eventos com prioridade (pessoais, tarefas, prazos, estudo)
+As notificações dependem da data e hora marcadas no calendário e da prioridade. Perfis por defeito, editáveis nas definições:
+alta: no briefing da véspera, 60 minutos antes e 15 minutos antes; um prazo de alta prioridade também aparece no briefing 3 dias antes;
+média: no briefing da véspera e 15 minutos antes;
+baixa: só no briefing da véspera.
+Eventos sem hora: notificação às 09:00 do próprio dia (hora configurável), além do briefing.
+notify_offsets de um evento sobrepõe-se ao perfil.
+Silêncio noturno configurável (por defeito 23:30–07:30): nada é enviado nesse período, exceto eventos de alta prioridade marcados para essas horas.
+Ecrã bloqueado
+Conteúdo curto, por exemplo "Base de Dados 14:00, B2". Nunca incluir conteúdo de notas.
+
+Subscrição de calendário (opcional)
+
+URL .ics com token aleatório longo, revogável e regenerável.
+Só inclui título, hora e sala.
+
+Critérios de aceitação
+
+Uma notificação real chega ao Windows e ao iPhone.
+As preferências são independentes por dispositivo.
+Uma aula cancelada ou marcada NÃO VOU não gera aviso.
+Fase C — Oráculo de aulas, pedidos e exames
+
+Pós-aula automática
+
+Tenta 30 minutos depois do fim de cada aula (normal, reposição ou extra), exceto se estiver cancelada ou marcada nao_vou.
+Se a nota ainda não existir, o webhook de push volta a tentar quando chegar um commit em Aulas/ dessa cadeira, até às 23:59 desse dia. Máximo de uma análise por ocorrência de aula.
+Condição única: existe a nota com commit posterior ao início da aula.
+Escreve Oraculo/Aulas/<pasta>/AAAA-MM-DD-resumo.md com:
+resumo fiel do que escrevi;
+lacunas ou dúvidas visíveis nas notas;
+3 perguntas de recall;
+se houver programa confirmado: "temas que parecem ter sido dados", criados como pending_changes do tipo progresso_pos_aula.
+Nunca editar a minha nota.
+Notificar, com a opção de confirmar os temas.
+Botão "refazer resumo" no Sistema, para quando continuei a escrever depois.
+
+Pedidos ao Oráculo
+
+Pontos de entrada:
+Sistema, a partir do calendário: bloco de aula passada → "Pedir ao Oráculo". Resolve a nota pela convenção pasta + data; se não existir, diz isso.
+Sistema, a partir da cadeira: lista das notas por data, com seleção múltipla, e temas do programa como contexto opcional.
+Sistema, por pesquisa: nome ou texto das notas em Sistema/. Índice simples mantido a partir dos pushes: caminho, título, data e excerto.
+Obsidian: frontmatter oraculo: pedido e pedido: "...", detetado pelo webhook.
+O pedido pode levar anexos (PDF ou imagem) carregados no Sistema. Os anexos do Obsidian em Anexos/ não chegam ao Oráculo, e isso deve ser explicado na interface.
+Aplicam-se as mesmas regras em todos os pontos de entrada:
+fonte de matéria só do programa confirmado e das notas;
+URLs só da pesquisa web dessa chamada;
+fontes oficiais primeiro (EUR-Lex, DRE, CNPD, CNCS, ENISA, EDPB, documentação oficial).
+Resposta em Oraculo/Pedidos/AAAA-MM-DD-<slug>.md, também visível no Sistema.
+Com a etiqueta, a nota passa a oraculo: feito com ligação para a resposta. É a única escrita permitida numa nota minha, e só no frontmatter, com sha. Se houver conflito, não escrever e registar a resposta na mesma.
+Webhook do GitHub:
+verificar X-Hub-Signature-256;
+responder em menos de 10 s e processar em segundo plano;
+ignorar commits que só tocam Oraculo/;
+processar cada pedido uma única vez.
+
+Exames e planos
+
+Mudar a data de um exame deixa-o pendente até eu confirmar. A confirmação gera uma nova versão do plano.
+Âmbito do exame:
+ate_tema: temas até esse;
+tudo: todo o programa;
+desconhecido: plano provisório com os temas já dados até hoje e os próximos previstos, marcado "PROVISÓRIO — âmbito por confirmar" e refeito quando eu definir o âmbito.
+Aula cancelada_sem_reposicao:
+com programa: "confirma que temas ficaram por dar";
+sem programa: "sem programa registado, não sei que matéria ficou por dar".
+Nunca deduzir.
+O plano cruza a data, o âmbito, os temas por dar ou por recuperar e as horas livres do calendário. Nunca durante aulas ou turnos.
+O plano é escrito em Oraculo/Planos/<pasta>-<exame>.md e mostrado no Sistema.
+Sem programa, o plano é apenas de revisão das notas existentes, e diz porquê.
+
+Agendamento pelo Oráculo
+
+Pontos de entrada:
+Sistema: campo "Pedir ao Oráculo para agendar" no calendário (texto livre), e o chat do Oráculo quando a mensagem é um pedido de agendamento;
+Obsidian: linha AAAA-MM-DD | AGENDAR | texto livre em alteracoes.md (a data é a do dia em que escrevi, para interpretar "amanhã", "sexta", etc.).
+Exemplos de pedidos:
+"marca-me dentista quinta às 15h";
+"tenho de entregar o trabalho de Ética até dia 20";
+"quero estudar SQL 1 hora amanhã à noite";
+"ginásio às terças e quintas às 19h até ao fim do semestre".
+A Edge Function envia ao modelo:
+o pedido;
+a data e hora atuais em Lisboa;
+os eventos, aulas, turnos e exames dos próximos 30 dias;
+a lista de cadeiras.
+O modelo devolve JSON estrito:
+kind, title, date, start_time, end_time, course_id, recurrence;
+priority e priority_reason;
+notify_offsets (só se o pedido o disser, por exemplo "avisa-me 1 hora antes");
+confidence (alta | baixa);
+questions: o que não conseguiu decidir.
+Critérios para a prioridade, que o modelo tem de aplicar e justificar:
+alta: prazos de avaliação, exames, compromissos com terceiros (médico, entrevista, reunião), consequências se falhar, ou palavras como "urgente", "não posso falhar";
+média: compromissos pessoais com hora marcada sem consequência grave, blocos de estudo perto de um exame;
+baixa: lembretes, ideias, tarefas sem prazo nem consequência;
+quando o pedido diz a prioridade, vence o pedido.
+O código valida o resultado e verifica:
+datas no passado → pergunta;
+conflitos com aulas, turnos ou exames → aviso com o nome do conflito;
+blocos de estudo nunca sobre aulas ou turnos → propõe a hora livre mais próxima;
+pedidos que são exames → encaminhados para exams, que exige confirmação;
+pedidos que alteram aulas ou turnos → encaminhados para exceções/reposições, que exigem confirmação.
+Aplicação:
+Por defeito, o Sistema mostra um cartão: "Quinta 24/09, 15:00–16:00 · Dentista · prioridade ALTA (compromisso com terceiros) · avisos: véspera, 60 e 15 min" com os botões Confirmar / Editar / Cancelar.
+Nas definições há a opção "Agendar automaticamente". Com ela ligada, o evento entra logo no calendário quando se cumprem todas as condições:
+confidence alta;
+sem questions;
+sem conflitos;
+não é exame nem alteração a aulas ou turnos.
+Com agendamento automático, recebo uma notificação "Agendado: … · Anular", e a anulação fica disponível durante 24 horas.
+Quando há questions, o Oráculo pergunta antes de criar qualquer coisa.
+A prioridade e os avisos podem ser editados no bloco do evento em qualquer momento.
+Cada pedido fica registado em oracle_requests, com o evento criado ou a razão por que não foi criado.
+
+Relatório semanal (manter)
+
+Acrescentar:
+aulas assistidas, canceladas, por repor e repostas;
+progresso por cadeira;
+exames próximos e âmbitos por definir;
+horas trabalhadas;
+ideias, temas e notícias ligados ao que estudei, com URLs da pesquisa.
+
+Critérios de aceitação
+
+Uma aula sem nota resulta em zero chamadas à Anthropic.
+Cada pedido é processado uma única vez, venha do Sistema ou da etiqueta.
+Com o programa vazio, nenhuma resposta menciona temas.
+Um exame com âmbito desconhecido mostra o plano como provisório.
+"Marca-me dentista sexta às 15h" cria (ou propõe) o evento na sexta certa, com prioridade alta e justificação, e as notificações chegam nas horas do perfil.
+Um pedido que colide com uma aula mostra o conflito e não é agendado automaticamente.
+"Tenho teste de Ética dia 20" vai para exams como pendente, e não para eventos.
+Fase D — Editor de notas no Sistema
+Lê e escreve os mesmos ficheiros Markdown de Sistema/ (e só lê Oraculo/) através da Edge Function e da GitHub Contents API com sha. Não criar uma segunda base de notas.
+Árvore por cadeira, pré-visualização de Markdown e "nova nota de aula" (cria Aulas/<data de hoje>.md na cadeira da aula atual ou da última aula).
+Botão "Pedir ao Oráculo" no próprio editor.
+Conflito de sha: recusar gravar, mostrar "a nota mudou noutro sítio" e oferecer recarregar.
+Só online. O Obsidian continua a ser o editor offline no PC e no iPhone.
+Segurança e privacidade
+Todos os segredos ficam nos Secrets do Supabase: VAULT_TOKEN, VAPID, segredo do webhook e chave Anthropic. Nada no frontend (o GitHub Pages é público).
+Todos os modos novos exigem operador (JWT) ou segredo (cron/webhook).
+Uploads:
+bucket privado;
+URLs assinados de curta duração;
+apagados conforme o pipeline.
+Worten: só a minha linha.
+Notificações sem conteúdo das notas.
+.ics revogável.
+Não expor caminhos locais nem nomes de utilizador no repositório público. Corrigir C:\Users\... no SPEC para %USERPROFILE%.
+Custos:
+oracle_usage por modo;
+limite diário configurável para pós-aula, pedidos e extrações;
+painel simples de consumo mensal nas definições.
+Ordem e método
+
+A → B → C → D. Em cada fase:
+
+apresentar um plano curto para eu aprovar;
+implementar;
+fazer deploy;
+testar os critérios de aceitação;
+atualizar o SPEC;
+usar durante uma semana real antes de passar à fase seguinte.

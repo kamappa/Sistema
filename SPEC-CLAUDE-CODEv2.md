@@ -1306,13 +1306,14 @@ Storage, PWA/push, injeção automática de perguntas pelo Oráculo e transforma
 da Core View em app/wallpaper. Abrem missão apenas quando existir valor e gate
 claro.
 
-## # # # Missão 31 — Agenda Viva: Horário, Cadeiras, Notificações, Diário, Oráculo de Aulas e Perfil
+## # # # # Missão 31 — Agenda Viva: Horário, Cadeiras, Notificações, Diário e Oráculo de Aulas
 
-(PROPOSTA — acrescentar ao `SPEC-CLAUDE-CODEv2.md`. Antes de começar, seguir o
-protocolo do `CLAUDE.md` e declarar como esta missão se ordena face às Missões 24, 25
-e 30. A Missão 30 migra o frontend para React: toda a lógica nova vive no Supabase
-(tabelas, RPC e Edge Functions), e o frontend vanilla só consome. Assim a migração
-herda tudo sem reescrever regras.)
+Estado: planeada. Antes de começar, seguir o protocolo do `CLAUDE.md` e declarar como
+esta missão se ordena face às Missões 24, 25, 30 e 32. A Missão 30 migra o frontend
+para React: toda a lógica nova vive no Supabase (tabelas, RPC e Edge Functions), e o
+frontend vanilla só consome. Assim a migração herda tudo sem reescrever regras.
+O perfil do Oráculo e as missões propostas NÃO fazem parte desta missão: estão na
+Missão 32.
 
 ## Objetivo
 
@@ -1976,84 +1977,37 @@ Nesta fase há uma vista de diferenças simples; o editor completo fica para a F
   recarregar.
 - Só online. O Obsidian continua a ser o editor offline no PC e no iPhone.
 
+**Biblioteca de documentos (PDF e imagens)**
 
-## Fase E — Perfil do Oráculo e missões propostas
+- Página "Biblioteca" com todos os documentos que carreguei: horários, calendários
+  escolares, FUC, slides, PDFs de estudo e anexos de pedidos.
+- Organização:
+  - por cadeira ou área da árvore de conhecimento;
+  - por etiquetas, data e origem;
+  - pesquisa pelo título e pelo texto extraído.
+- Armazenamento:
+  - ficheiros num bucket privado do Backblaze B2, acedidos por URLs assinados de curta
+    duração (10 GB grátis, em vez do 1 GB do Supabase Free);
+  - metadados, texto extraído e anotações no Postgres;
+  - qualquer alternativa tem de ser justificada.
+- Retenção: os documentos da Biblioteca ficam até eu os apagar. As regras de apagamento
+  automático só se aplicam a uploads temporários (horário da Worten, anexos de pedidos
+  não guardados).
+- Trabalhar com um documento:
+  - leitor de PDF no Sistema (PDF.js carregado de cdnjs);
+  - anotações e destaques guardados na base de dados, sem alterar o ficheiro original;
+  - "Perguntar ao Oráculo sobre este documento";
+  - "Criar nota a partir deste documento": o Oráculo propõe uma nota em Markdown para
+    `Sistema/Estudo/.../Notas/`, que só é criada depois de eu aceitar;
+  - "Alimentar o Oráculo" (Missão 32), respeitando direitos de autor: documentos
+    oficiais e meus são indexados; livros pagos e normas ISO ficam guardados como meu
+    ficheiro privado, mas só entram na base de conhecimento como resumo e referências;
+  - substituir por uma nova versão, guardando a anterior;
+  - descarregar.
+- Editar o conteúdo de um PDF (texto dentro do PDF) fica fora do âmbito. A edição faz-se
+  através das anotações ou da nota em Markdown.
+- Painel de espaço: total por tipo e por cadeira, com aviso a 70% dos 10 GB.
 
-(Começa só depois de 2–3 semanas de uso real das Fases A–C, para haver dados.)
-
-### Perfil do Oráculo (memória sobre mim)
-
-Um sítio onde o Oráculo guarda o que sabe de mim, para comparar o meu progresso e
-inspirar propostas. Eu consigo ler, corrigir e apagar tudo.
-
-- Tabela `oracle_profile`, com entradas de cinco tipos:
-  - `facto`: algo que eu disse ou escrevi (ex.: "quer ser ISO 27001 Lead Auditor");
-  - `objetivo`: metas que eu declarei, com prazo se existir;
-  - `padrao`: algo medido nos dados, com o período e os números (ex.: "nas últimas 4
-    semanas, 70% da atividade no vault foi entre as 21h e as 23h");
-  - `preferencia`: aprendida com as minhas respostas (ex.: "rejeitou 3 missões de
-    estudo ao sábado");
-  - `hipotese`: uma suposição do Oráculo. Expira ao fim de 30 dias se eu não a
-    confirmar, e nunca é usada como facto.
-- Campos: texto, tipo, evidência (datas, ligações, números), origem, confiança,
-  criado em, última confirmação, validade, estado (`ativo` | `rejeitado` |
-  `arquivado`).
-- Regras:
-  - cada `padrao` e cada `hipotese` mostra a evidência de onde veio;
-  - os padrões são recalculados periodicamente e desaparecem se deixarem de ser
-    verdade;
-  - nada de rótulos de personalidade nem de inferências sobre saúde, psicologia ou
-    outras categorias sensíveis; só entra nessas áreas o que eu escrever como `facto`;
-  - o que eu corrigir ou rejeitar tem prioridade, e o Oráculo não volta a propor o
-    mesmo;
-  - não duplicar a Living Memory (Missão 15): a Living Memory trata efemérides, o
-    Perfil trata padrões e objetivos.
-- Página "O que o Oráculo sabe de mim" no Sistema: lista por tipo, com editar,
-  confirmar, apagar, adicionar um facto e exportar tudo. Também "apagar tudo".
-- Espelho só de leitura em `Oraculo/Perfil.md`. Entradas que eu marcar como
-  "privadas" não são espelhadas no vault.
-- Comparações: o relatório semanal e as missões usam linhas de base (média das
-  últimas 4 semanas) e dizem sempre com que entradas do Perfil estão a comparar.
-
-### Missões propostas pelo Oráculo
-
-O Oráculo propõe missões para o sistema de objetivos que já existe (`S.objectives`,
-com `area` = um dos 6 atributos: Ofício, Saber, Corpo, Mente, Vínculos, Disciplina).
-
-- Fontes: calendário (exames, eventos, feriados, pausas, horas livres), programa e
-  progresso das cadeiras, notas e resumos, recall, atributos e níveis, objetivos
-  existentes, sono e treino, e o Perfil.
-- Quando:
-  - no relatório semanal;
-  - quando acontece algo relevante: exame confirmado, cadeira terminada, pausa ou
-    feriado a chegar, âmbito do exame definido, objetivo concluído, atributo parado há
-    muito tempo segundo os dados.
-- Cada proposta tem: título, atributo, prioridade, prazo, dificuldade, e um "porquê"
-  com a evidência (ex.: "teste de Base de Dados em 12 dias; 4 temas por dar; tens
-  3 noites livres esta semana").
-- A proposta aparece como cartão no Sistema: Aceitar / Editar / Rejeitar (com motivo
-  opcional, que alimenta as `preferencia`). Ao aceitar, o cliente cria o objetivo pela
-  função que já existe. O servidor nunca escreve diretamente no `app_state`.
-- Limites:
-  - no máximo 5 propostas pendentes e 3 novas por semana (configurável);
-  - nunca duplicar objetivos existentes;
-  - propostas não respondidas expiram ao fim de 7 dias;
-  - equilíbrio entre atributos, mas só com evidência; nada de missões genéricas para
-    "encher" um atributo;
-  - as regras de XP não mudam: uma proposta aceite vale o mesmo que um objetivo criado
-    por mim;
-  - nada de metas de saúde, dieta ou treino que eu não tenha declarado como objetivo.
-- No relatório mensal: quantas propostas aceitei, rejeitei e concluí. Se a taxa de
-  aceitação for baixa, o Oráculo propõe menos e pergunta porquê.
-
-### Critérios de aceitação
-
-- Cada entrada `padrao` mostra números e período verificáveis.
-- Uma `hipotese` não confirmada desaparece ao fim de 30 dias.
-- Uma missão proposta cita a evidência, e aceitá-la cria um objetivo igual aos
-  criados à mão.
-- Rejeitar uma missão com motivo impede propostas iguais durante 60 dias.
-- "Apagar tudo" remove o Perfil do Supabase e do espelho no vault.
 
 ## Cópias de segurança (Fase A, antes de qualquer dado novo)
 
@@ -2061,16 +2015,27 @@ O plano gratuito do Supabase não tem backups. Esta missão cria dados que não 
 em mais lado nenhum (horário, exceções, exames, histórico), por isso o backup vem
 primeiro.
 
+- **Nível 0 — vault completo (configurado por mim, fora do código):**
+  - O `vault-sistema` só contém `Sistema/` e `Oraculo/`. `Pessoal/`, `Anexos/` e
+    `Diario/` só existem no PC.
+  - Backup cifrado do lado do cliente (Kopia ou restic) de toda a pasta
+    `ObsidianVault` para armazenamento cloud pessoal (por exemplo, Backblaze B2 ou
+    Cloudflare R2), com snapshots diários.
+  - Nunca usar o OneDrive institucional do IPCA.
+  - O Claude Code documenta os passos no SPEC, mas não guarda credenciais.
 - **Nível 1 — diário, automático, grátis:**
-  - Workflow do GitHub Actions (cron diário, de madrugada) num repositório privado
-    novo, `kamappa/sistema-backups`.
-  - Faz `pg_dump` (ou `supabase db dump`) da base de dados, com a ligação guardada
-    nos Secrets do GitHub.
-  - Cifra o dump com `age` usando uma chave pública. A chave privada NUNCA vai para o
-    GitHub; fica no meu gestor de palavras-passe e no computador de casa.
-  - Guarda os últimos 14 diários e 1 por mês durante 12 meses.
-  - Inclui os ficheiros do bucket marcados "guardar" (calendário escolar, FUC,
-    horário do IPCA).
+  - Um workflow do GitHub Actions (cron diário, de madrugada) num repositório privado,
+    `kamappa/sistema-backups`, que só guarda o CÓDIGO do workflow e do restauro.
+  - Faz `pg_dump` (ou `supabase db dump`), com a ligação guardada nos Secrets do GitHub.
+  - Cifra o dump com `age`, usando uma chave pública. A chave privada NUNCA vai para o
+    GitHub; fica no gestor de palavras-passe e numa cópia offline.
+  - Envia o ficheiro cifrado para o Backblaze B2 (região UE, bucket privado, chave de
+    aplicação só com permissão de escrita nesse bucket).
+  - NÃO guarda dumps dentro do Git: o histórico do Git nunca encolhe, e dumps diários
+    fariam o repositório crescer sem limite.
+  - Retenção por regras de ciclo de vida do B2: 14 diários e 12 mensais.
+  - Inclui também os ficheiros da Biblioteca e os documentos marcados "guardar" (ver
+    Fase D).
   - Efeito secundário útil: a atividade diária evita a pausa do projeto gratuito por
     inatividade. Confirmar que conta.
   - Se o backup falhar, envia uma notificação ("Saúde do sistema").
@@ -2127,8 +2092,7 @@ primeiro.
 
 ## Ordem e método
 
-A → B → C → E → D. A Fase E vem antes do editor porque dá mais valor ao uso diário;
-o editor (D) pode avançar mais cedo se eu decidir. Em cada fase:
+A → B → C → D. Em cada fase:
 
 1. apresentar um plano curto para eu aprovar;
 2. implementar;
@@ -2137,6 +2101,9 @@ o editor (D) pode avançar mais cedo se eu decidir. Em cada fase:
 5. atualizar o SPEC;
 6. usar durante uma semana real antes de passar à fase seguinte.
 
+As cópias de segurança são feitas no início da Fase A, antes de qualquer dado novo.
+A Missão 32 começa depois da Fase C, com 2–3 semanas de uso real, para haver dados.
+O editor (D) pode avançar em paralelo com a Missão 32, se eu decidir.
 
 # Missão 32 — Memória do Oráculo e Missões Propostas
 
@@ -2196,7 +2163,7 @@ modelo em si não é treinado. Isto tem de estar claro na interface.
 | Pesquisa | Postgres: full-text `portuguese` + `pgvector` | encontrar só o que é relevante para cada chamada |
 | Ficheiros | Supabase Storage (bucket privado) | uploads temporários (PDF/imagens), apagados segundo o pipeline |
 | Espelho legível | `vault-sistema`: `Oraculo/Memoria/` e `Oraculo/Conhecimento/` | Markdown organizado por títulos para eu ler |
-| Backup | repositório privado `sistema-backups` (+ computador de casa) | dump cifrado diário, definido na Missão 31 |
+| Backup | Backblaze B2 (UE), job no GitHub Actions (+ computador de casa) | dump cifrado diário, definido na Missão 31 |
 | Código e regras | repositório `Sistema` | SPEC, Constituição, Edge Functions |
 | Modelo (Anthropic) | nada persistente | recebe só o contexto escolhido em cada chamada |
 
@@ -2247,7 +2214,7 @@ backups, pausa por inatividade — confirmar o plano atual):**
 - Limpeza pela retenção acima antes de pensar em mudar de plano.
 
 **Backup:** as tabelas desta missão entram no backup cifrado diário da Missão 31
-(`sistema-backups`). Nada de exportações em claro para o vault. Pedidos de apagamento
+(dumps cifrados no Backblaze B2). Nada de exportações em claro para o vault. Pedidos de apagamento
 aplicam-se também aos backups: não se editam backups antigos, mas a retenção
 (14 diários, 12 mensais) garante que o dado desaparece dentro desse prazo, e isso é
 explicado na interface.
@@ -2291,6 +2258,23 @@ decisão se o custo do Pro se tornar um problema real.
 
 - `categoria`: identidade, objetivos, preferências, hábitos, forças, dificuldades,
   contexto (curso, trabalho), marcos.
+- `tipo`:
+  - `facto`: algo que eu disse ou escrevi (ex.: "quer ser ISO 27001 Lead Auditor");
+  - `objetivo`: meta declarada por mim, com prazo se existir;
+  - `padrao`: algo medido nos dados, sempre com período e números (ex.: "nas últimas
+    4 semanas, 70% da atividade no vault foi entre as 21h e as 23h"); recalculado
+    periodicamente, desaparece quando deixa de ser verdade;
+  - `preferencia`: aprendida com as minhas respostas (ex.: "rejeitou 3 missões de
+    estudo ao sábado");
+  - `hipotese`: suposição do Oráculo; expira ao fim de 30 dias se eu não a confirmar,
+    e nunca é usada como facto.
+- Proibido: rótulos de personalidade e inferências sobre saúde, psicologia ou outras
+  categorias sensíveis. Nessas áreas só entra o que eu escrever como `facto`.
+- Entradas que eu marcar como "privadas" não são espelhadas no vault.
+- Não duplicar a Living Memory (Missão 15): a Living Memory trata efemérides; esta
+  memória trata factos, objetivos, padrões e preferências.
+- Comparações: o relatório semanal e as missões usam linhas de base (média das últimas
+  4 semanas) e dizem com que entradas estão a comparar.
 - `texto`, `origem`, `evidencia_ref`, `confianca`, `estado`, `embedding`.
 - `estado`: `ativo` | `por_confirmar` | `desatualizado`.
 - Revalidação: entradas `inferencia` com mais de 60 dias sem evidência nova passam a
@@ -2354,8 +2338,16 @@ decisão se o custo do Pro se tornar um problema real.
   - URL inválido;
   - job falhado;
   - notificação ignorada.
-- `o_que_falhou`, `regra_aprendida` (frase curta e acionável), `ambito` (modo ou
-  domínio), `estado`, `aplicada_vezes`, `ultima_aplicacao`.
+- Campos:
+  - `o_que_falhou`: o que aconteceu;
+  - `como_falhou`: sequência concreta;
+  - `causa`: provável, marcada como inferência se não for certa;
+  - `impacto`;
+  - `regra_aprendida`: frase curta e acionável;
+  - `evitar`: o que não voltar a fazer;
+  - `como_verificar`: sinal de que a lição está a funcionar;
+  - `ambito`: modo ou domínio;
+  - `estado`, `aplicada_vezes`, `ultima_aplicacao`.
 - `estado`: `proposta` | `ativa` | `retirada`.
 - Lições que só afinam formato ou extração podem ficar ativas logo. Lições que mudam
   comportamento (prioridades, frequência, tom, o que conta como evidência) ficam
@@ -2377,6 +2369,196 @@ decisão se o custo do Pro se tornar um problema real.
 - `tipo`: `facto` (há evidência de necessidade) | `hipotese` (pode vir a ser útil),
   sempre visível.
 - `estado`: `proposta` | `aceite` | `editada` | `rejeitada` (com motivo opcional).
+
+## O Oráculo como mestre de jogo pessoal
+
+**Papel.** O Oráculo age como mestre de jogo e treinador do "jogador" (eu): conhece a
+personagem, o mapa (calendário), as quests (missões) e o histórico, e desenha a
+progressão para eu evoluir. Segue a Constituição: honestidade, autonomia, aprovação
+para mudar objetivos.
+
+Regras de progressão:
+
+- Dificuldade ajustada ao que as evidências mostram. Nem demasiado fácil, nem
+  impossível.
+- Respeita o sono, o trabalho e o descanso.
+- Sem punições nem culpa por sequências quebradas.
+- Sem padrões manipuladores (urgência falsa, recompensas aleatórias para prender a
+  atenção).
+- Incentiva a relação com pessoas reais e não se apresenta como substituto delas.
+- Desafia-me quando estou errado e aponta quando estou a "construir em vez de usar".
+
+**Leitura das minhas notas pessoais (com consentimento explícito)**
+
+- Pasta nova `Sistema/Eu/`. Só o que eu puser lá é lido pelo Oráculo. `Pessoal/`,
+  `Vida/` e `Diario/` continuam privados e fora do GitHub.
+- Sugestão de conteúdo: reflexões, objetivos pessoais, balanços mensais, o que me
+  motiva ou bloqueia.
+- Antes de escrever lá, lembrar:
+  - evitar dados de terceiros (nomes de outras pessoas, colegas, família);
+  - categorias sensíveis (saúde, finanças) só se eu quiser que o Oráculo as use;
+  - tudo o que está nesta pasta vai para o GitHub (privado) e é enviado à API da
+    Anthropic quando for relevante (confirmar nos termos comerciais em vigor se os
+    dados da API são usados para treino).
+- O Oráculo nunca cita as notas de `Sistema/Eu/` em notificações nem no ecrã
+  bloqueado.
+
+**Ficha do Jogador (`Sistema/Eu/Ficha-do-Jogador.md`, escrita e mantida por mim)**
+
+Secções:
+
+- quem sou;
+- visão a 1, 3 e 5 anos;
+- valores;
+- o que me motiva;
+- o que me desmotiva;
+- como quero ser desafiado;
+- tom que prefiro;
+- limites (o que o Oráculo não deve fazer);
+- padrões que conheço em mim;
+- temporada atual (objetivos dos próximos 3 meses);
+- recursos e restrições (tempo, dinheiro, trabalho).
+
+O Oráculo pode propor alterações à ficha, mas nunca a edita sozinho (usa o fluxo
+"Editar com o Oráculo").
+
+**Arquitetura de contexto** (não é um "contexto gigante", é o contexto certo em cada
+chamada). Cada chamada é montada por camadas, com um orçamento de tokens por camada:
+
+1. **Identidade (fixa):** a Constituição resumida para o modelo, o papel de mestre de
+   jogo e as regras acima. Com prompt caching da API, para reduzir custo e latência.
+2. **Retrato do jogador (compacto, cerca de 1–2 páginas):** gerado a partir da Ficha
+   do Jogador e da memória confirmada; regenerado uma vez por semana e quando a ficha
+   muda. Versionado e visível para mim.
+3. **Estado atual (calculado na hora):** atributos e níveis, missões ativas, hábitos,
+   sono, calendário dos próximos 7–14 dias, exames, temporada.
+4. **Memória recuperada:** apenas as entradas relevantes para o pedido (memória sobre
+   mim, conhecimento, notas de `Sistema/Eu/` e de estudo), com fonte.
+5. **Lições ativas** do âmbito da chamada.
+6. **Pedido ou gatilho.**
+
+- Se o orçamento for ultrapassado, cortar de baixo para cima nas camadas 4 e 5, nunca
+  a 1.
+- Registar em `oracle_usage` os tokens por camada.
+
+## Alimentar o Oráculo
+
+**Entradas (tudo passa por uma fila `knowledge_inbox`):**
+
+- Sistema: página "Alimentar", onde colo texto, um URL ou um PDF e escolho, se quiser,
+  a área da árvore.
+- Biblioteca (Missão 31, Fase D): qualquer documento sobre NIS2, RGPD, governação de
+  IA, ISO 27001, auditoria, etc., arquivado por área da árvore (não só por cadeira),
+  com o botão "Alimentar o Oráculo".
+- Obsidian: pasta `Sistema/Alimentar/`. Qualquer nota lá colocada entra na fila no
+  próximo push. O Oráculo nunca edita nem apaga essas notas.
+- Chat: "guarda isto: …".
+
+**Processamento:**
+
+1. Classificar na árvore.
+2. Dividir em entradas.
+3. Verificar duplicados e contradições com o que já existe.
+4. Verificar a fonte.
+5. Resultado:
+   - fontes oficiais e as minhas notas: entram diretamente, e aparecem no resumo
+     semanal;
+   - cultura geral e fontes não oficiais: entram como `proposta` até eu aprovar em
+     lote (revisão semanal de cerca de 15 minutos).
+   - Material protegido por direitos de autor (livros pagos, normas ISO, cursos): só
+     resumo e referências, nunca texto integral.
+
+**Registo de mudanças do Sistema (`system_events`):**
+
+- Registo auditável do que mudou: horário, exames, missões, memória, lições,
+  definições e deploys (versão/commit).
+- Campos: data, origem (eu, Oráculo, job, deploy), resumo e ligação.
+- O Oráculo usa este registo para comparar o antes e o depois.
+
+**Reflexão mensal (`improvement_proposals`):**
+
+- O Oráculo lê `system_events`, `oracle_lessons`, `oracle_usage` e o uso das
+  notificações, e propõe melhorias:
+  - de processo ("o resumo pós-aula é aberto 20% das vezes: reduzir para 3 linhas?");
+  - de código.
+- Propostas de código não são aplicadas pelo Oráculo. Ficam num texto pronto a colar
+  no Claude Code, como candidata a missão, que eu aprovo.
+- O Oráculo não tem permissões de escrita no repositório `Sistema`.
+
+**Volatilidade e reverificação nas fontes**
+
+Cada entrada de conhecimento e cada entrada crítica tem `volatilidade`, que define se
+e quando o Oráculo volta à fonte para confirmar:
+
+| Volatilidade | Exemplos | Reverificação |
+|---|---|---|
+| `estavel` | factos históricos, definições consolidadas, cultura geral antiga | nunca automática; só se eu a marcar como errada |
+| `baixa` | texto de leis e regulamentos em vigor, estrutura de normas | trimestral, e sempre que um sinal externo indicar alteração |
+| `media` | orientações (EDPB, CNPD, ENISA), requisitos de certificações, programas | mensal |
+| `alta` | preços, datas, formatos de exame, prazos, estado de propostas legislativas, notícias | semanal, e sempre antes de ser usada numa resposta, plano ou missão |
+
+- A volatilidade é proposta pelo Oráculo na ingestão e editável por mim. Tudo o que
+  eu marcar "vou seguir isto" fica pelo menos `media`.
+- A reverificação volta ao URL guardado (ou pesquisa a fonte oficial, se o URL
+  morreu), compara com o que está guardado e regista `verificado_em`, o resultado
+  (`igual` | `alterado` | `fonte_indisponivel`) e as diferenças.
+- `alterado`: cria uma proposta de correção e marca a entrada `por_confirmar`. Até eu
+  confirmar, as respostas usam-na com aviso.
+- `fonte_indisponivel` duas vezes seguidas: procura uma fonte oficial alternativa e
+  avisa.
+- Custos: reverificações agrupadas num job semanal, com limite em `oracle_usage`. As
+  de volatilidade `alta` usadas numa resposta contam para o limite desse modo.
+
+**Revisão semanal (15–20 min, página "Revisão")** — tudo num só ecrã, por esta
+ordem:
+
+0. **Classe de volatilidade** (campo `volatilidade` em cada entrada, proposto pelo
+   Oráculo e ajustável por mim). Decide quando o Oráculo volta à fonte:
+   - `volatil` — muda com frequência ou sem aviso: preços, formatos e requisitos de
+     certificações, datas, orientações em revisão, legislação em transposição,
+     programas. Verificação semanal, ou antes de cada uso num plano ou missão.
+   - `periodica` — muda em ciclos conhecidos: normas ISO (revisões), regulamentos com
+     atos delegados, guias anuais. Verificação trimestral e sempre que um sinal externo
+     indicar alteração.
+   - `estavel` — não muda: factos históricos, conceitos consolidados, textos revogados
+     guardados como histórico. Sem verificação periódica; só volta a ser verificada se
+     surgir uma contradição ou se eu pedir.
+   - A verificação faz pesquisa real (web fetch da fonte guardada e, se falhar, uma
+     pesquisa pela fonte oficial atual). Nunca "confirma" a partir da própria memória.
+   - Registo de cada verificação: data, URL consultado, resultado (`confirmado` |
+     `alterado` | `fonte_indisponivel` | `contradicao`).
+   - Limite de custo: número máximo de verificações por semana, começando pelas
+     entradas críticas e voláteis.
+1. **Verificação de informação crítica.** Entradas marcadas `critica: true`:
+   - os meus objetivos e percurso (certificações-alvo, requisitos, pré-requisitos,
+     preços, formatos de exame, validade);
+   - as datas dos meus exames e o âmbito;
+   - os programas das cadeiras;
+   - os artigos e controlos usados em planos ou missões ativas;
+   - a memória sobre mim que influencia recomendações.
+
+   Para cada uma, o Oráculo:
+   - volta a abrir a fonte oficial (URL guardado) e compara com a versão guardada
+     (hash e resumo das diferenças);
+   - assinala as desatualizadas (mais de 90 dias sem verificação), as sem fonte, as
+     contraditórias e as alteradas na origem;
+   - propõe a correção, que eu confirmo ou corrijo. Nada crítico é alterado sem mim.
+   - O que eu marcar como "vou seguir isto" passa automaticamente a crítico.
+2. **Propostas de conhecimento** (cultura geral e fontes não oficiais), aprovadas em
+   lote.
+3. **Lições propostas.**
+4. **Inferências sobre mim por confirmar** (máximo 3).
+5. **Resumo:** o que entrou, o que mudou e o que foi fundido.
+
+Se eu não fizer a revisão, nada crítico fica "verificado" por omissão: o estado passa
+a `por_verificar`, e as respostas que dependam disso avisam.
+
+**Qualidade acima de quantidade:**
+
+- Painel com o total de entradas por área, as propostas pendentes, os duplicados
+  fundidos e as contradições por resolver.
+- Contradição entre entradas: nenhuma é apagada automaticamente; a mais recente com
+  fonte oficial prevalece, e eu sou avisado.
 
 ## Geração de missões
 
@@ -2411,8 +2593,16 @@ decisão se o custo do Pro se tornar um problema real.
   pode ser útil" (hipótese).
 - XP sugerido dentro das regras atuais do motor. Nunca XP concedido antes de conclusão
   com evidência (§4).
-- Aceitar cria o objetivo em `S.objectives` pelo mesmo caminho do botão manual.
-  Rejeições com motivo geram lições.
+- Aceitar cria o objetivo em `S.objectives` no cliente, pela função que já existe. O
+  servidor nunca escreve diretamente no `app_state`.
+- Rejeições com motivo geram lições e uma `preferencia`, e bloqueiam propostas iguais
+  durante 60 dias.
+- Propostas não respondidas expiram ao fim de 7 dias. No máximo 5 pendentes ao mesmo
+  tempo.
+- Equilíbrio entre atributos só com evidência: nada de missões genéricas para "encher"
+  um atributo, nem metas de saúde, dieta ou treino que eu não tenha declarado.
+- Relatório mensal: propostas aceites, rejeitadas e concluídas. Se a taxa de aceitação
+  for baixa, o Oráculo propõe menos e pergunta porquê.
 
 ## Interface
 

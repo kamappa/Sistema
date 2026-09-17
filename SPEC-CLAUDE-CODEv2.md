@@ -2654,6 +2654,132 @@ a `por_verificar`, e as respostas que dependam disso avisam.
 
 **Método**
 
+
+
+
+
+
+# Missão 33 — Ritual de Entrada
+
+Estado: planeada. Missão pequena (1–2 sessões). Seguir o protocolo do `CLAUDE.md` e
+declarar onde se encaixa face às Missões 24, 25, 30, 31 e 32. Proposta de ordem: depois
+da Fase A da Missão 31 (backups e calendário já feitos), antes da Fase B.
+
+## Objetivo
+
+Sempre que abro o Sistema, aparece uma introdução curta e bonita: animação, saudação,
+data de hoje, hora e uma citação filosófica ou motivacional. Depois dá lugar à app sem
+atrasar nada.
+
+## O que já existe (reutilizar, não duplicar)
+
+- `js/hud.js`: saudações por altura do dia (ex.: "Boa tarde — ritmo, não pressa.") e
+  citação do dia escolhida por `hashStr('q'+today())`.
+- `js/data.js`: `QUOTES` com 16 citações `[texto, autor]`.
+- Orbe/logótipo "E" e efeitos em `js/fx.js` e no palco Three.js (Missão 12).
+- Padrão de `prefers-reduced-motion` já usado em `conselho.js` e `fx.js`.
+
+A introdução usa estas mesmas fontes. A saudação e a citação mostradas na introdução
+são as mesmas que depois aparecem no HUD, sem dois sorteios diferentes.
+
+## Comportamento
+
+**Quando aparece** (definição "Introdução", com valor por defeito "sempre"):
+
+- `sempre`: em cada abertura da app (arranque a frio da PWA ou novo separador);
+- `ao voltar`: também quando a app volta ao primeiro plano depois de X minutos
+  ausente (por defeito 30);
+- `1x por dia`: só na primeira abertura do dia;
+- `desligada`.
+
+**Sequência** (total ≤ 3,5 s, com saltar a qualquer momento por toque, clique ou
+tecla):
+
+1. 0,0–0,8 s: o orbe "E" acende-se (brilho e respiração), com fundo do céu atual
+   (paleta da hora do dia do Solar Engine, se já estiver disponível; senão, gradiente
+   estático equivalente).
+2. 0,6–1,6 s: saudação com o nome, por exemplo "Boa tarde, Daniel — ritmo, não pressa."
+3. 1,0–2,0 s: data por extenso e hora ao vivo, em `Europe/Lisbon`, por exemplo
+   "quinta-feira, 17 de setembro de 2026 · 15:42".
+4. 1,6–3,0 s: citação do dia com o autor (efeito de escrita, como o `sysType`).
+5. Opcional, se a Missão 31 já existir: uma linha "Hoje: …" com o primeiro compromisso
+   (ex.: "Base de Dados às 14:00, B2"). Nunca conteúdo de notas nem memória do Oráculo.
+6. 3,0–3,5 s: transição suave (dissolver e subir) para a app.
+
+**Regras:**
+
+- Não bloqueia o arranque: a app carrega em paralelo por trás. Se o carregamento
+  demorar mais do que a introdução, a introdução fica em "respiração" até estar
+  pronta (máximo 6 s; depois mostra a app na mesma).
+- Funciona offline (PWA): tudo local, sem chamadas de rede nem à Anthropic.
+- `prefers-reduced-motion`: sem movimento; só aparecer e desaparecer, com o mesmo
+  conteúdo.
+- Acessibilidade: texto com contraste suficiente, `aria-live="polite"` para a
+  saudação e a citação, botão "Saltar" focável, e `Esc` para saltar.
+- Som: desligado por defeito (opção nas definições).
+- Não aparece em ecrãs abertos por notificação que apontem para um cartão concreto
+  (ex.: confirmar VOU/NÃO VOU): nesses casos entra diretamente no destino.
+- Duração da última introdução registada localmente, para confirmar que não passa dos
+  limites.
+
+## Citações (rigor: "o Sistema nunca mente")
+
+- Alargar `QUOTES` para pelo menos 120 citações em português de Portugal, organizadas
+  por categoria: estoicismo, filosofia clássica, filosofia moderna, disciplina e
+  hábito, aprendizagem, coragem, trabalho, serenidade.
+- Novo formato de cada citação: texto, autor, obra ou fonte, categoria e `atribuicao`:
+  - `verificada`: existe fonte primária identificável (obra, carta, capítulo);
+  - `popular`: é frequentemente atribuída ao autor, mas sem fonte primária clara.
+    Mostrar como "— atribuída a Confúcio".
+- Rever as 16 citações atuais. Algumas atribuições conhecidas são duvidosas. Exemplos:
+  - "Somos o que fazemos repetidamente…" é uma paráfrase de Will Durant sobre
+    Aristóteles, e não uma frase de Aristóteles;
+  - "Escolhe um trabalho que ames…" não tem fonte conhecida em Confúcio.
+
+  Corrigir o autor ou marcar como `popular`. Não inventar fontes: na dúvida,
+  `popular`.
+- Seleção: determinística por dia (como hoje), sem repetir nenhuma citação nos
+  últimos 60 dias.
+- Frequência "sempre": a citação é a do dia (a mesma durante o dia inteiro). A
+  saudação pode variar entre as opções da hora do dia.
+- Opção nas definições: categorias preferidas.
+- Integração futura (Missão 32): o Oráculo pode PROPOR novas citações para a lista, com
+  fonte. Só entram depois de eu aprovar.
+
+## Definições
+
+- Introdução: sempre / ao voltar (minutos) / 1x por dia / desligada.
+- Duração: curta (~2 s) / normal (~3,5 s).
+- Mostrar a linha "Hoje".
+- Som.
+- Categorias de citações.
+
+As definições são guardadas no estado local, por dispositivo (o PC e o iPhone podem ser
+diferentes).
+
+## Implementação
+
+- Módulo isolado `js/intro.js`, sem dependências novas, que consome `QUOTES` e as
+  saudações. Deve ser fácil de portar para a Missão 30 (React).
+- CSS no ficheiro de estilos existente, com as variáveis de cor do tema atual.
+- Não carregar Three.js só para a introdução. Se o palco ainda não estiver pronto, usar
+  CSS/Canvas 2D leve.
+- Atualizar o service worker/cache da PWA, se existir, para a introdução funcionar
+  offline.
+
+## Critérios de aceitação
+
+- Ao abrir o Sistema no PC e no iPhone, a introdução aparece com saudação, data por
+  extenso, hora certa de Lisboa e citação do dia.
+- Um toque salta de imediato. `Esc` também.
+- Com "reduzir movimento" ativo, não há animações.
+- O tempo até a app ficar utilizável não aumenta mais do que a duração da introdução,
+  e é zero quando salto.
+- A mesma citação aparece na introdução e no HUD no mesmo dia, e não se repete em 60
+  dias.
+- Todas as citações têm autor e `atribuicao`. As 16 antigas foram revistas.
+- Sem pedidos de rede durante a introdução.
+- Abrir a partir de uma notificação com destino não mostra a introdução.
 Em cada fase:
 
 1. plano para eu aprovar;

@@ -1306,7 +1306,7 @@ Storage, PWA/push, injeção automática de perguntas pelo Oráculo e transforma
 da Core View em app/wallpaper. Abrem missão apenas quando existir valor e gate
 claro.
 
-## # # # # Missão 31 — Agenda Viva: Horário, Cadeiras, Notificações, Diário e Oráculo de Aulas
+## Missão 31 — Agenda Viva: Horário, Cadeiras, Notificações, Diário e Oráculo de Aulas
 
 Estado: planeada. Antes de começar, seguir o protocolo do `CLAUDE.md` e declarar como
 esta missão se ordena face às Missões 24, 25, 30 e 32. A Missão 30 migra o frontend
@@ -1345,11 +1345,15 @@ inventa matéria, datas ou horários.
    - Sem programa confirmado, diz isso e não teoriza.
    - O progresso ("tema dado") só conta depois de eu o confirmar.
 4. **A cadeira é a pasta.**
-   - A nota `Sistema/Estudo/IPCA/<pasta>/Aulas/AAAA-MM-DD[-n].md` pertence à cadeira
-     cujo `vault_folder` é `<pasta>`, e à aula dessa data.
+   - A nota `Sistema/Estudo/IPCA/<pasta>/Aulas/<nome>.md` pertence à cadeira cujo
+     `vault_folder` é `<pasta>`.
+   - O nome do ficheiro COMEÇA sempre por `AAAA-MM-DD`; o resto é livre e serve para
+     eu ler (ex.: `2026-09-22 — Aula 03 — Base-de-Dados.md`). O Oráculo lê a data do
+     prefixo e ignora o resto.
+   - Os ficheiros do Oráculo usam o mesmo nome base: `<nome>-resumo.md` e
+     `<nome>-pedido.md`.
    - Nenhum metadado é obrigatório dentro da nota.
-   - Várias aulas da mesma cadeira no mesmo dia: `AAAA-MM-DD.md`, `AAAA-MM-DD-2.md`,
-     `-3`, … (o modelo Templater numera sozinho). Correspondência com as ocorrências
+   - Várias aulas da mesma cadeira no mesmo dia: nomes diferentes com o mesmo prefixo de data (o modelo Templater numera a aula). Correspondência com as ocorrências
      do calendário:
      1. se o número de notas e o de aulas assistidas (sem `cancelada`/`nao_vou`)
         coincidem, emparelhar por ordem (sem sufixo = 1.ª aula, `-2` = 2.ª, …);
@@ -1543,6 +1547,23 @@ inventa matéria, datas ou horários.
 **Cadeiras**
 
 - Criadas a partir do horário do IPCA ou à mão.
+- `status`: `ativa` | `arquivada`, com `semestre` e `ano_letivo`.
+- Só as cadeiras `ativa` entram em resumos pós-aula, planos e relatórios. As
+  arquivadas continuam pesquisáveis e disponíveis em pedidos.
+
+**Sincronizar a estrutura do vault (com aprovação)**
+
+- Ao criar uma cadeira nova, o Sistema propõe criar
+  `Sistema/Estudo/IPCA/<pasta>/Aulas/` e `.../Notas/` no repositório (com um
+  `_index.md` mínimo, para o Git guardar a pasta). Só cria depois de eu aceitar.
+- No fim do semestre (ou quando marco "Esta cadeira terminou"), propõe arquivar:
+  mover `IPCA/<Cadeira>/` para `IPCA/_Arquivo/<ano-letivo>-S<semestre>/<Cadeira>/`.
+  - Mostra a lista de ficheiros a mover e as ligações afetadas.
+  - Só executa depois de eu aceitar, e nunca move ficheiros alterados nas últimas
+    24 horas.
+  - Corrige as ligações com caminho e regista tudo em `system_events`.
+  - `_Arquivo/` não é apanhado pelo padrão do Templater nem tratado como cadeira ativa.
+- Nunca apaga notas minhas.
 - O campo `vault_folder` sugere as pastas que existem em `Sistema/Estudo/IPCA/`.
   Avisar se uma pasta não tiver cadeira ou se uma cadeira não tiver pasta.
 

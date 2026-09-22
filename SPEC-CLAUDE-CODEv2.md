@@ -1306,7 +1306,7 @@ Storage, PWA/push, injeção automática de perguntas pelo Oráculo e transforma
 da Core View em app/wallpaper. Abrem missão apenas quando existir valor e gate
 claro.
 
-## Missão 31 — Agenda Viva: Horário, Cadeiras, Notificações, Diário e Oráculo de Aulas
+# Missão 31 — Agenda Viva: Horário, Cadeiras, Notificações, Diário e Oráculo de Aulas
 
 Estado: planeada. Antes de começar, seguir o protocolo do `CLAUDE.md` e declarar como
 esta missão se ordena face às Missões 24, 25, 30 e 32. A Missão 30 migra o frontend
@@ -1314,6 +1314,19 @@ para React: toda a lógica nova vive no Supabase (tabelas, RPC e Edge Functions)
 frontend vanilla só consome. Assim a migração herda tudo sem reescrever regras.
 O perfil do Oráculo e as missões propostas NÃO fazem parte desta missão: estão na
 Missão 32.
+
+## Ordem proposta (Missões 31 a 34)
+
+1. **Missão 34 — Sessões de Estudo** (cronómetro). Pequena, independente, útil no
+   primeiro dia. Serve para eu começar a usar o Sistema antes de construir mais.
+2. **Missão 31 — Agenda Viva**, Fase A (cópias de segurança primeiro), depois B e C.
+3. **Missão 33 — Ritual de Entrada**, entre a Fase A e a Fase B da 31.
+4. **Missão 31**, Fase D (editor e Biblioteca).
+5. **Missão 32 — Memória do Oráculo**, só depois da Fase C da 31 e de 2–3 semanas de
+   uso real.
+
+A decisão sobre como isto se ordena face às Missões 24, 25 e 30 é do Daniel, e o Claude
+Code propõe antes de avançar.
 
 ## Objetivo
 
@@ -1347,12 +1360,17 @@ inventa matéria, datas ou horários.
 4. **A cadeira é a pasta.**
    - A nota `Sistema/Estudo/IPCA/<pasta>/Aulas/<nome>.md` pertence à cadeira cujo
      `vault_folder` é `<pasta>`.
-   - O nome do ficheiro COMEÇA sempre por `AAAA-MM-DD`; o resto é livre e serve para
-     eu ler (ex.: `2026-09-22 — Aula 03 — Base-de-Dados.md`). O Oráculo lê a data do
-     prefixo e ignora o resto.
-   - Os ficheiros do Oráculo usam o mesmo nome base: `<nome>-resumo.md` e
-     `<nome>-pedido.md`.
-   - Nenhum metadado é obrigatório dentro da nota.
+   - **Id da aula.** Cada nota de aula tem um id estável: `AAAA-MM-DD`, com sufixo
+     `-2`, `-3`… quando há mais do que uma aula dessa cadeira no mesmo dia. O id está
+     no frontmatter (`id:`) e é também o prefixo do nome do ficheiro.
+   - O resto do nome é livre e serve para eu ler
+     (ex.: `2026-09-22 — Aula 03 — Base-de-Dados.md`). Posso mudá-lo quando quiser.
+   - **Tudo o que o Oráculo escreve é nomeado pelo id, nunca pelo nome completo:**
+     `<id>-resumo.md`, `<id>-pedido.md`, `<id>-transcricao.md`. Assim, renomear a
+     minha nota nunca parte nada.
+   - Ordem de leitura do id: frontmatter `id:` primeiro; se faltar, o prefixo
+     `AAAA-MM-DD[-n]` do nome do ficheiro.
+   - Nenhum outro metadado é obrigatório dentro da nota.
    - Várias aulas da mesma cadeira no mesmo dia: nomes diferentes com o mesmo prefixo de data (o modelo Templater numera a aula). Correspondência com as ocorrências
      do calendário:
      1. se o número de notas e o de aulas assistidas (sem `cancelada`/`nao_vou`)
@@ -1514,7 +1532,8 @@ inventa matéria, datas ou horários.
 
 ## Pipeline comum de extração (PDF e imagem)
 
-1. Upload no Sistema para o bucket privado.
+1. Upload no Sistema para o bucket privado (o MESMO bucket B2 da Biblioteca, com
+   prefixo `temp/`; não usar o Supabase Storage, para não haver dois armazenamentos).
 2. Validar o tipo (PDF, PNG, JPG, WEBP) e o tamanho. Imagens HEIC do iPhone são
    convertidas no browser antes do upload, ou recusadas com uma mensagem clara.
    Nada de conversões no servidor.
@@ -1622,8 +1641,12 @@ inventa matéria, datas ou horários.
     ou para o GitHub);
   - resumos e respostas do Oráculo desse dia;
   - sessões de recall, missões e hábitos concluídos, se o `app_state` tiver datas.
-- Não apresentar "horas de estudo" como facto: commits não medem tempo. Mostrar
-  "atividade no vault às HH:MM".
+- Não apresentar "horas de estudo" como facto: commits não medem tempo, e com o
+  Obsidian Sync a nota pode chegar ao repositório dias depois de escrita. A data da
+  nota vem do id; a hora do commit é apresentada apenas como
+  "chegou ao repositório às HH:MM", nunca como "estudaste às HH:MM".
+- A medição real de tempo é a Missão 34. Enquanto ela não existir, o diário não mostra
+  horas de estudo; depois, mostra as sessões medidas e as estimadas em separado.
 - Totais por semana e por mês:
   - horas trabalhadas (reais, se ajustadas; previstas, caso contrário, com essa
     indicação);
@@ -1691,6 +1714,40 @@ inventa matéria, datas ou horários.
     aulas.
 - Notificações: seguem o calendário resultante, e as alterações vindas do calendário
   escolar aparecem no briefing das 22:30 da véspera.
+
+**Quadros à mão (Excalidraw) e transcrição**
+
+- Os desenhos vivem em `Sistema/<Domínio>/<Item>/Quadros/<id>.excalidraw.md`, ao lado
+  de `Aulas/` e `Notas/`, mas FORA do repositório. Duas linhas no `.gitignore`, depois
+  da que inclui `Sistema/`:
+  - `Sistema/**/Quadros/`
+  - `*.excalidraw.md` (segunda barreira, caso um desenho apareça noutro sítio)
+  Razões para ficarem fora do Git:
+  - o Excalidraw guarda os traços como coordenadas, não como texto: o Oráculo não os
+    consegue ler;
+  - cada gravação reescreve o ficheiro inteiro, e o Git guarda todas as versões —
+    com commits de 15 em 15 minutos, o repositório crescia sem limite;
+  - imagens coladas vão para `Anexos/`, que também está fora do repositório.
+- O desenho é protegido pelo Obsidian Sync e pelo backup Kopia, como o resto do vault.
+- A nota de aula (essa sim, no repositório) incorpora o desenho:
+  `![[<raiz do item>/Quadros/<id>.excalidraw]]`. Vejo tudo junto no Obsidian; para o
+  Oráculo é apenas uma linha de texto.
+- O Claude Code verifica, na Fase A, que nenhum `.excalidraw.md` chegou ao repositório,
+  e avisa se algum aparecer.
+- **Transcrição (é o que dá o conteúdo ao Oráculo):**
+  - exporto o quadro como PNG (o Excalidraw tem exportação automática ao gravar) e
+    carrego-o na Biblioteca, ou uso o botão "Transcrever quadro" na aula;
+  - o Oráculo lê a imagem e escreve
+    `Sistema/Estudo/IPCA/<pasta>/Oraculo/Transcricoes/<id>.md`, que a nota de aula
+    também incorpora;
+  - a transcrição é marcada como `origem: transcricao_manuscrita`, com as palavras
+    duvidosas entre `[?]`. NUNCA é tratada como facto verificado: reconhecimento de
+    manuscrito erra, e o princípio 3 aplica-se na íntegra;
+  - a partir daí, tudo o que existe (resumo pós-aula, pedidos, recall, planos,
+    relatório) usa a transcrição como se fosse texto meu.
+- Sem transcrição, o Oráculo diz que a aula só tem quadro e não inventa conteúdo.
+- Nunca converter todas as notas para Excalidraw: perderia pesquisa, ligações e
+  leitura pelo Oráculo. Manuscrito para compreender e diagramas; texto para recuperar.
 
 **Espelho e alterações**
 
@@ -1786,14 +1843,16 @@ inventa matéria, datas ou horários.
 
 **Pós-aula automática**
 
-- Cada ocorrência de aula tem o seu resumo (`AAAA-MM-DD-resumo.md`,
-  `AAAA-MM-DD-2-resumo.md`, …), com o mesmo nome base da nota correspondente.
+- Cada ocorrência de aula tem o seu resumo, nomeado pelo id (`<id>-resumo.md`).
 - Tenta 30 minutos depois do fim de cada aula (normal, reposição ou extra), exceto se
   estiver cancelada ou marcada `nao_vou`.
-- Se a nota ainda não existir, o webhook de push volta a tentar quando chegar um commit
-  em `Aulas/` dessa cadeira, até às 23:59 desse dia. Máximo de uma análise por
-  ocorrência de aula.
-- Condição única: existe a nota com commit posterior ao início da aula.
+- Se a nota ainda não existir, o webhook de push volta a tentar sempre que chegar um
+  commit em `Aulas/` dessa cadeira, até 7 dias depois da aula. Este prazo largo é
+  necessário porque, com o Obsidian Sync, posso escrever no telemóvel e o commit só
+  acontecer quando ligar o PC. Máximo de uma análise por ocorrência de aula (a menos
+  que eu peça "refazer resumo").
+- Condição única: existe a nota cujo id corresponde à aula. Não exigir que o commit
+  seja posterior ao início da aula: a hora do commit não prova quando escrevi.
 - Escreve `Sistema/Estudo/IPCA/<pasta>/Oraculo/Aulas/AAAA-MM-DD-resumo.md` (com a ligação, com caminho,
   para a nota original) com:
   - resumo fiel do que escrevi;
@@ -1824,23 +1883,43 @@ inventa matéria, datas ou horários.
   - URLs só da pesquisa web dessa chamada;
   - fontes oficiais primeiro (EUR-Lex, DRE, CNPD, CNCS, ENISA, EDPB, documentação
     oficial).
-- Onde fica a resposta:
-  - pedido feito a partir de uma nota: `Sistema/Estudo/IPCA/<pasta>/Oraculo/Pedidos/<nome-da-nota>-pedido.md`;
-    - o nome é fixo, porque o modelo de aula incorpora este ficheiro
-      (`![[.../Oraculo/Pedidos/<nome>-pedido]]`) e a resposta aparece no fundo da
-      minha nota;
-    - vários pedidos sobre a mesma nota ficam no mesmo ficheiro, o mais recente no
-      topo, cada um com data, hora, o pedido e as fontes;
-  - pedido sem nota (feito no Sistema sobre várias notas ou um tema):
-    `.../Oraculo/Pedidos/AAAA-MM-DD-<slug>.md`, ou `Oraculo/Pedidos/` quando não é de
-    uma cadeira;
-  - em todos os casos: visível no Sistema e com notificação "Resposta pronta".
+- Onde fica a resposta — duas arrumações, escolhidas por regra e não por intuição:
+  - **Por aula** (`.../Oraculo/Pedidos/<id>-pedido.md`): quando o pedido parte de uma
+    nota de aula ou do bloco dessa aula no calendário. É o ficheiro que a nota de aula
+    incorpora, por isso o nome é fixo (o id).
+  - **Por tema** (`.../Oraculo/Temas/<slug-do-tema>.md`): quando o pedido parte da
+    página da cadeira, da pesquisa, ou nomeia um tema do programa. Um ficheiro por
+    tema, para o assunto não ficar espalhado por dez aulas.
+  - Um pedido sem cadeira vai para `Oraculo/Temas/` na raiz.
+  - Em qualquer dos casos, a entrada nova é acrescentada ao FICHEIRO QUE JÁ EXISTE, no
+    topo, com data, hora, a pergunta em texto integral, a resposta e as fontes. Nunca
+    se cria um ficheiro novo para o mesmo tema ou para a mesma aula.
+  - Ligações cruzadas obrigatórias: a entrada por tema liga às aulas envolvidas, e a
+    entrada por aula liga ao ficheiro do tema.
+- Continuidade (antes de responder, o Oráculo procura):
+  1. pesquisa nas respostas anteriores da mesma cadeira e do mesmo tema
+     (`oracle_requests` + índice de texto);
+  2. se encontrar uma resposta muito semelhante, começa por dizer "já tinha respondido
+     a isto em <ligação>" e continua a partir daí, em vez de repetir;
+  3. o que for novo entra como `## Atualização — AAAA-MM-DD` no MESMO ficheiro;
+  4. se a resposta antiga passou a estar errada (lei alterada, programa mudado, eu
+     corrigi), a entrada antiga é marcada `[desatualizada → ver AAAA-MM-DD]` e fica
+     lá. Nunca se apaga nem se reescreve uma resposta antiga em silêncio.
+  - Isto não é memória do modelo: é a pesquisa feita antes de cada chamada. Sem esse
+    passo, o Oráculo responderia do zero e criaria ficheiros repetidos.
+- Índice: `.../Oraculo/_indice.md` por cadeira, com data, tema, tipo (aula ou tema) e
+  ligação, gerado a cada escrita. É por aqui que encontro tudo.
+- Em todos os casos: visível no Sistema e com notificação "Resposta pronta".
 - Pedidos pela etiqueta: o estado fica em `oracle_requests`, identificado pelo caminho
   da nota e por um hash do campo `pedido`.
   - O mesmo pedido nunca é processado duas vezes.
   - Para voltar a pedir, altero o texto do `pedido`.
-  - A nota original nunca é editada. A ligação para a resposta aparece no Sistema e em
-    `Oraculo/Pedidos/_indice.md`.
+  - A nota original nunca é editada por um `pedido`. A ligação para a resposta aparece
+    no Sistema e no `_indice.md` da cadeira.
+  - Para ele escrever DENTRO da minha nota existe só um caminho: `oraculo: editar` ou o
+    botão "Editar com o Oráculo", que produz uma proposta que eu aceito. Funciona em
+    qualquer ficheiro meu dentro de `Sistema/` (aula, nota, ficha, programa), nunca
+    fora, e nunca sem eu aceitar.
 - Webhook do GitHub:
   - verificar `X-Hub-Signature-256`;
   - responder em menos de 10 s e processar em segundo plano;
@@ -2074,7 +2153,12 @@ primeiro.
 
 ## Correções ao código existente
 
-- `soEstudo` passa a excluir caminhos com um segmento `Oraculo/`.
+- `VPATH` está fixo em `Sistema/Estudo`, por isso `Sistema/Horario/`, `Sistema/Eu/` e
+  `Sistema/Alimentar/` NÃO são lidos hoje, apesar de estas missões dependerem deles.
+  Passar `VPATH` para `Sistema` e filtrar por lista de pastas permitidas
+  (`Estudo/`, `Horario/`, `Eu/`, `Alimentar/`), com limites de tamanho por pasta.
+- `soEstudo` passa a excluir caminhos com um segmento `Oraculo/` (os outputs do
+  Oráculo nunca entram como "estudo meu"), e a aceitar `.excalidraw.md` nunca.
 - `vaultChanges` pede `commits?path=Sistema/Estudo&per_page=100` sem paginação. Com
   commits de 15 em 15 minutos e várias cadeiras, uma semana pode passar os 100 commits,
   e o relatório semanal perderia atividade. Paginar até cobrir o intervalo pedido.
@@ -2082,6 +2166,28 @@ primeiro.
   alargar o resto do acesso.
 - O relatório e o radar devem agrupar a atividade por cadeira (pasta), e não só listar
   caminhos.
+
+## Escalabilidade (atividades novas no futuro)
+
+Para acrescentar uma atividade nova (uma certificação, um bootcamp, um projeto, um
+estágio) sem reescrever nada, vale sempre a mesma forma:
+
+```
+Sistema/<Domínio>/<Item>/
+  Aulas/     ← sessões datadas (id no nome), com o modelo Templater
+  Notas/     ← o resto
+  Oraculo/   ← só o Oráculo escreve
+  _index.md
+```
+
+- `<Domínio>` é `Estudo/IPCA`, `Estudo/Cursos`, `Carreira`, `Projetos`, … e cria-se
+  à vontade.
+- O padrão do Templater é genérico: `^Sistema/.*/Aulas/[^/]+\.md$`. Qualquer domínio
+  novo funciona no dia em que a pasta `Aulas/` existe.
+- No Sistema, `courses` ganha `dominio` e passa a representar qualquer item com
+  sessões (cadeira, curso, certificação). Nada no código deve assumir "IPCA".
+- Os `_index.md` são gerados por uma consulta Dataview única (lista as notas da pasta),
+  e não por contagens escritas à mão, que ficam desatualizadas. Instalar o Dataview.
 
 ## Pré-requisitos no Obsidian (verificar comigo antes da Fase C)
 
@@ -2135,6 +2241,19 @@ O editor (D) pode avançar em paralelo com a Missão 32, se eu decidir.
 - §5 facto / inferência / hipótese / previsão / recomendação;
 - §11 autonomia por níveis;
 - §12 ações que exigem aprovação.)
+
+## Ordem proposta (Missões 31 a 34)
+
+1. **Missão 34 — Sessões de Estudo** (cronómetro). Pequena, independente, útil no
+   primeiro dia. Serve para eu começar a usar o Sistema antes de construir mais.
+2. **Missão 31 — Agenda Viva**, Fase A (cópias de segurança primeiro), depois B e C.
+3. **Missão 33 — Ritual de Entrada**, entre a Fase A e a Fase B da 31.
+4. **Missão 31**, Fase D (editor e Biblioteca).
+5. **Missão 32 — Memória do Oráculo**, só depois da Fase C da 31 e de 2–3 semanas de
+   uso real.
+
+A decisão sobre como isto se ordena face às Missões 24, 25 e 30 é do Daniel, e o Claude
+Code propõe antes de avançar.
 
 ## Objetivo
 
@@ -2675,6 +2794,12 @@ a `por_verificar`, e as respostas que dependam disso avisam.
 
 **Método**
 
+Em cada fase:
+
+1. plano para eu aprovar;
+2. uma semana de uso real;
+3. revisão das lições e da memória antes da fase seguinte.
+
 
 
 
@@ -2685,6 +2810,19 @@ a `por_verificar`, e as respostas que dependam disso avisam.
 Estado: planeada. Missão pequena (1–2 sessões). Seguir o protocolo do `CLAUDE.md` e
 declarar onde se encaixa face às Missões 24, 25, 30, 31 e 32. Proposta de ordem: depois
 da Fase A da Missão 31 (backups e calendário já feitos), antes da Fase B.
+
+## Ordem proposta (Missões 31 a 34)
+
+1. **Missão 34 — Sessões de Estudo** (cronómetro). Pequena, independente, útil no
+   primeiro dia. Serve para eu começar a usar o Sistema antes de construir mais.
+2. **Missão 31 — Agenda Viva**, Fase A (cópias de segurança primeiro), depois B e C.
+3. **Missão 33 — Ritual de Entrada**, entre a Fase A e a Fase B da 31.
+4. **Missão 31**, Fase D (editor e Biblioteca).
+5. **Missão 32 — Memória do Oráculo**, só depois da Fase C da 31 e de 2–3 semanas de
+   uso real.
+
+A decisão sobre como isto se ordena face às Missões 24, 25 e 30 é do Daniel, e o Claude
+Code propõe antes de avançar.
 
 ## Objetivo
 
@@ -2801,8 +2939,138 @@ diferentes).
 - Todas as citações têm autor e `atribuicao`. As 16 antigas foram revistas.
 - Sem pedidos de rede durante a introdução.
 - Abrir a partir de uma notificação com destino não mostra a introdução.
-Em cada fase:
 
-1. plano para eu aprovar;
-2. uma semana de uso real;
-3. revisão das lições e da memória antes da fase seguinte.
+# Missão 34 — Sessões de Estudo (tempo real, medido)
+
+Estado: planeada. Missão pequena e independente. Pode ser feita ANTES da Missão 31,
+porque dá valor no primeiro dia e não depende de nada: é a forma de eu começar a usar o
+Sistema já, em vez de esperar pelas missões grandes.
+
+## Ordem proposta (Missões 31 a 34)
+
+1. **Missão 34 — Sessões de Estudo** (cronómetro). Pequena, independente, útil no
+   primeiro dia. Serve para eu começar a usar o Sistema antes de construir mais.
+2. **Missão 31 — Agenda Viva**, Fase A (cópias de segurança primeiro), depois B e C.
+3. **Missão 33 — Ritual de Entrada**, entre a Fase A e a Fase B da 31.
+4. **Missão 31**, Fase D (editor e Biblioteca).
+5. **Missão 32 — Memória do Oráculo**, só depois da Fase C da 31 e de 2–3 semanas de
+   uso real.
+
+A decisão sobre como isto se ordena face às Missões 24, 25 e 30 é do Daniel, e o Claude
+Code propõe antes de avançar.
+
+## Problema
+
+Hoje o Sistema não sabe quanto tempo estudo. Os commits do vault dizem que um ficheiro
+mudou, não quanto tempo estive a trabalhar nele, e com o Obsidian Sync a nota pode
+chegar ao repositório dias depois. Qualquer número de "horas de estudo" tirado daí
+seria inventado, o que a Constituição proíbe (§4, §5).
+
+## Objetivo
+
+Passar a ter tempo de estudo medido, separando claramente:
+
+- **facto**: sessões que eu iniciei e terminei;
+- **inferência**: atividade deduzida dos commits, sempre marcada como tal.
+
+## Princípios
+
+1. Nada de tempo inventado. Uma sessão só é facto se eu a tiver iniciado.
+2. Uma sessão esquecida não pode poluir os dados: há limites e confirmação.
+3. Sem culpa. Não estudar não gera avisos nem penalizações automáticas.
+4. XP só de sessões confirmadas, nunca de inferências.
+
+## Modelo de dados
+
+- `study_sessions`
+  - `started_at`, `ended_at` (hora de Lisboa), `duration_min` (calculado);
+  - `course_id` (opcional), `topic_id` (opcional), `class_id` (o id da aula, opcional);
+  - `kind`: `aula` | `revisao` | `exercicios` | `recall` | `leitura` | `projeto`;
+  - `source`: `cronometro` | `manual` | `recall_automatico`;
+  - `note` (uma linha, opcional);
+  - `state`: `ativa` | `terminada` | `por_confirmar` | `descartada`.
+- `inferred_activity` (só leitura, recalculada)
+  - janelas deduzidas dos commits: início, fim, ficheiros tocados, cadeira;
+  - `confianca`: `alta` quando há vários commits espaçados; `baixa` quando tudo chegou
+    num só commit (típico de sincronização atrasada).
+
+## Fase A — Cronómetro
+
+- Botão grande no Núcleo: **Iniciar sessão**. Escolho a cadeira (pré-preenchida a
+  partir do calendário: se agora houver aula ou um bloco de estudo, sugere essa) e o
+  tipo.
+- Enquanto corre: contador visível, botões Pausar e Terminar, e o estado sobrevive a
+  fechar a app (fica no servidor, não só no browser).
+- Funciona no PC e no iPhone, porque o Sistema é PWA.
+- Regras anti-lixo:
+  - aviso às 2 h ("ainda estás a estudar?");
+  - fecho automático às 4 h, com a sessão marcada `por_confirmar`;
+  - fecho automático à meia-noite;
+  - uma sessão `por_confirmar` aparece no dia seguinte para eu aceitar, corrigir a
+    duração ou descartar;
+  - só pode haver uma sessão ativa de cada vez.
+- Registo manual: "adicionar sessão" com início, fim e cadeira, para quando me esqueço
+  de ligar o cronómetro. Fica `source: manual`, e conta como facto (fui eu que a
+  declarei), mas é distinguível nos relatórios.
+- Editar e apagar sessões passadas, sempre.
+
+**Critérios de aceitação**
+
+- Fecho a app a meio de uma sessão e ela continua ao voltar.
+- Uma sessão esquecida durante a noite não produz 9 horas de estudo.
+- Nenhuma sessão é criada sem eu carregar em iniciar ou em adicionar.
+
+## Fase B — Ligar ao resto
+
+- **Diário do dia**: as sessões aparecem na linha do tempo, ao lado das aulas e dos
+  turnos, com a duração real.
+- **Aulas**: se a sessão decorre dentro do horário de uma aula, fica ligada a essa aula
+  (`class_id`) e é sugerida como presença.
+- **Planos de estudo**: um bloco de estudo planeado passa a ter estado `cumprido`
+  quando existe uma sessão sobreposta dessa cadeira. O relatório semanal compara
+  planeado com feito em minutos, com números e sem julgamentos.
+- **Recall**: uma sessão de repetição espaçada no Sistema cria automaticamente uma
+  sessão `recall_automatico`, com a duração real do exercício.
+- **XP**: regra simples e resistente a batota — XP por sessão confirmada, com um teto
+  diário (por exemplo, 4 h contabilizáveis) e nada de XP retroativo em massa. As regras
+  atuais do motor não mudam; acrescenta-se uma fonte.
+- **Atributos**: Saber para estudo, Ofício para trabalho de carreira, Disciplina pela
+  consistência (dias com sessão, não minutos).
+
+## Fase C — Inferência a partir dos commits
+
+- Uma janela inferida nasce de commits consecutivos que tocam os mesmos ficheiros com
+  intervalos de até 30 minutos. Início = primeiro commit; fim = último.
+- Granularidade mínima de 15 minutos, porque é essa a cadência do Obsidian Git.
+- Se tudo chegou num só commit, não se infere sessão nenhuma: `confianca: baixa` e não
+  entra nos totais.
+- Apresentação: sempre separada do tempo medido, com a palavra "estimado", e nunca
+  somada às horas reais sem dizer que são duas coisas.
+- Serve para uma pergunta útil: "houve atividade em Base de Dados na quinta à noite que
+  não registaste — queres adicionar uma sessão?". Proposta, nunca criação automática.
+
+**Critérios de aceitação**
+
+- Nenhum número de horas mistura facto e inferência sem o dizer.
+- Uma sincronização atrasada não gera sessões falsas.
+
+## Fase D — Ver os números
+
+- Totais por semana, mês e cadeira: minutos medidos, minutos estimados, dias com
+  sessão.
+- Distribuição por hora do dia, para eu perceber quando rendo mais (facto, a partir das
+  sessões).
+- No relatório semanal: tempo por cadeira, comparação com a semana anterior e com o
+  plano, e nada mais. Sem elogios nem repreensões.
+
+## O que fica de fora
+
+- Deteção automática de "estou a estudar" a partir da aplicação aberta: exigiria um
+  agente a correr no PC a vigiar janelas. Não compensa, e é vigilância de mim próprio.
+- Contar tempo a partir de plugins de terceiros do Obsidian: mais uma dependência, com
+  dados presos no PC.
+
+## Método
+
+A → B → C → D, com uma semana de uso real entre fases. A Fase A sozinha já é útil e
+pode ficar assim durante muito tempo.

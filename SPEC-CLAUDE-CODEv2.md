@@ -2299,6 +2299,31 @@ primeiro.
 - O relatório e o radar devem agrupar a atividade por cadeira (pasta), e não só listar
   caminhos.
 
+**Estado (Lote 2, 2026-09-23, ramo `lote-2/oraculo-commits-e-seguranca`, por publicar):**
+as cinco correções estão feitas e testadas, junto com o achado prioritário da auditoria
+(commits apresentados como estudo em 8 sítios do Oráculo).
+
+- Lista de leitura em `supabase/functions/oraculo/vault-lista.ts`, aplicada em cada
+  leitura (`vaultFile` recusa o que estiver fora) e não só nas listagens. Conteúdo:
+  `Estudo/`, `Horario/alteracoes.md`, `_MAPA.md`; `Modelos/` só a pedido da forma; fora
+  `Eu/`, `Alimentar/`, qualquer segmento `Oraculo/` e `*.excalidraw.md`. Do `Horario/`
+  entra só `alteracoes.md` — o quarto ponto pede "sem alargar o resto do acesso", e é o
+  único ficheiro que lá existe.
+- Commits não são estudo: o modelo recebe quantas sincronizações houve, as notas com
+  texto novo por cadeira e a reorganização à parte, com o aviso de que commits não medem
+  tempo, dias nem frequência de estudo; os instantes de cada commit deixaram de ir.
+- Paginação dos commits até 10 páginas por caminho, com a truncagem declarada; o
+  limite de 300 ficheiros da comparação do GitHub também é declarado.
+- O repositório `vault-sistema` tem `Sistema/Eu/Ficha-do-Jogador.md` desde 17/09 (o
+  `.gitignore` do vault deixa entrar todo o `Sistema/`). O Oráculo não o lê — nem antes
+  nem depois deste lote —, mas o `VAULT_TOKEN` tem acesso: é a lista que o separa.
+- Achado de segurança, corrigido no mesmo lote: o Radar e o relatório (texto do
+  modelo, escrito a partir da web) iam para o `innerHTML` sem escape, e uma missão
+  aceite levava o título para objetivos, sombras, registo e prazos. `escHTML` e
+  `urlSegura` em `js/engine.js`; prova em `node testes/seguranca/xss-oraculo.mjs`.
+- Testes: `deno test --no-prompt testes/oraculo/vault-lista.test.ts` (lógica pura) e
+  `node testes/fumo/fumo.mjs --so-oraculo` (a função inteira, em modo de teste).
+
 ## Escalabilidade (atividades novas no futuro)
 
 Para acrescentar uma atividade nova (uma certificação, um bootcamp, um projeto, um

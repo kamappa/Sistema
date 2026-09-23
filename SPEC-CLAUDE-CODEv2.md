@@ -2261,10 +2261,22 @@ primeiro.
 
 ## Correções ao código existente
 
-- `VPATH` está fixo em `Sistema/Estudo`, por isso `Sistema/Horario/`, `Sistema/Eu/` e
-  `Sistema/Alimentar/` NÃO são lidos hoje, apesar de estas missões dependerem deles.
-  Passar `VPATH` para `Sistema` e filtrar por lista de pastas permitidas
-  (`Estudo/`, `Horario/`, `Eu/`, `Alimentar/`), com limites de tamanho por pasta.
+- `VPATH` está fixo em `Sistema/Estudo`, por isso `Sistema/Horario/` NÃO é lido hoje,
+  apesar de esta missão depender dele. Passar `VPATH` para `Sistema` e filtrar por uma
+  lista de pastas permitidas, escrita como decisão e não deduzida do que existe, com
+  limites de tamanho por pasta.
+  - **Permitidas na Missão 31:** `Estudo/` (com `IPCA/`, `Temas/` e `Cursos/`),
+    `Horario/`, `_MAPA.md`, e `Modelos/` só para conhecer a forma esperada das notas —
+    nunca enumerado como conteúdo.
+  - **Fora até à Missão 32:** `Eu/` e `Alimentar/`. São dela, não desta.
+  - **`Eu/` tem uma condição a mais.** Hoje a Ficha do Jogador está fora do alcance do
+    Oráculo por construção: o `VPATH` não chega lá. Alargar o `VPATH` troca essa
+    garantia por uma lista, e é a lista que passa a decidir. A Ficha tem montantes de
+    rendimento e orçamento que decidi tirar antes de o Oráculo a ler; `Eu/` só entra na
+    lista depois de eu confirmar que saíram. Não é obrigação legal — é tratamento meu,
+    em atividade pessoal (RGPD, art. 2.º, n.º 2, al. c)) —, é minimização que decidi
+    aplicar a mim próprio, e a ordem de execução não a pode ultrapassar em silêncio.
+  - Código que leia `Sistema/` inteiro sem lista é um defeito, não uma simplificação.
 - `soEstudo` passa a excluir caminhos com um segmento `Oraculo/` (os outputs do
   Oráculo nunca entram como "estudo meu"), e a aceitar `.excalidraw.md` nunca.
 - `vaultChanges` pede `commits?path=Sistema/Estudo&per_page=100` sem paginação. Com

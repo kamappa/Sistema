@@ -2287,8 +2287,8 @@ README desse repositório é o manual de configurar, repor e testar).
 - `age` 1.3.2 com o hash fixado; `actions/checkout` fixado por commit. B2: `diario/`
   todos os dias e `mensal/` no dia 1; a retenção são regras do bucket.
 - Testes: `node testes/testar.mjs` nesse repositório — dois PostgreSQL locais, a
-  estrutura real com dados sintéticos, 38 verificações, 7 mutações apanhadas, workflow
-  validado pelo `actionlint`.
+  estrutura real com dados sintéticos, 39 verificações, 7 mutações apanhadas, workflow
+  validado pelo `actionlint` e o bit de execução dos scripts verificado (o runner é Linux).
 - Por fazer, do Daniel: a chave age, o bucket B2 (regras e chave só de escrita), o
   repositório privado com os segredos e as variáveis, e a primeira corrida manual.
   Depois: o teste de restauro num projeto descartável, que fecha a Fase A.

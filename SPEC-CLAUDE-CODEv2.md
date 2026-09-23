@@ -2271,6 +2271,30 @@ primeiro.
 - **Custos:** o GitHub Actions em repositórios privados tem minutos gratuitos
   limitados. Medir a duração do job e confirmar que fica muito abaixo do limite.
 
+**Estado (Lote 3, 2026-09-24): nível 1 preparado e testado localmente; por configurar.**
+O código vive num repositório à parte, pronto para o privado `kamappa/sistema-backups`
+(`%USERPROFILE%\Documents\sistema-backups`, ramo `lote-3/copias-de-seguranca`; o
+README desse repositório é o manual de configurar, repor e testar).
+
+- O dump usa os filtros do `supabase db dump` (CLI v2.109.1) copiados para um script e
+  corridos com o `pg_dump` 17 do repositório oficial do PostgreSQL: o mesmo caminho nos
+  testes e no GitHub Actions (o CLI precisa de Docker).
+- Os dados deixam de fora o `cron.job` (tem o token do Oráculo), o histórico do cron,
+  as sessões, os refresh tokens, a auditoria e o pg_net; uma guarda recusa a cópia se
+  algum aparecer. Numa reposição, os crons recriam-se com um token novo.
+- `acls.sql`: as permissões exatas da API. Sem ele, repor num projeto novo devolvia
+  EXECUTE ao `anon` nas funções das sessões — o teste apanhou-o.
+- `age` 1.3.2 com o hash fixado; `actions/checkout` fixado por commit. B2: `diario/`
+  todos os dias e `mensal/` no dia 1; a retenção são regras do bucket.
+- Testes: `node testes/testar.mjs` nesse repositório — dois PostgreSQL locais, a
+  estrutura real com dados sintéticos, 38 verificações, 7 mutações apanhadas, workflow
+  validado pelo `actionlint`.
+- Por fazer, do Daniel: a chave age, o bucket B2 (regras e chave só de escrita), o
+  repositório privado com os segredos e as variáveis, e a primeira corrida manual.
+  Depois: o teste de restauro num projeto descartável, que fecha a Fase A.
+- Nível 2 por fazer (opcional). Se a ligação diária evita a pausa por inatividade do
+  plano gratuito: por confirmar.
+
 ## Correções ao código existente
 
 - `VPATH` está fixo em `Sistema/Estudo`, por isso `Sistema/Horario/` NÃO é lido hoje,

@@ -64,13 +64,35 @@ export function baseInicial(): Record<string, Linha[]> {
   };
 }
 
-/* ---------- vault sintético (repositório kamappa/vault-sistema) ---------- */
+/* ---------- vault sintético (repositório kamappa/vault-sistema) ----------
+ * Imita a semana real de 20/09: sincronizações de 15 em 15 minutos (mais de 100 na
+ * janela de 7 dias — obriga a paginar), uma reorganização (renomear sem mudar texto,
+ * apagar), uma alteração SÓ à Ficha em Eu/ (tem de ficar invisível), saídas do Oráculo
+ * dentro de uma cadeira, um quadro do Excalidraw, um modelo e o Horario/alteracoes.md. */
+
+export const CAMINHO = {
+  aula: "Sistema/Estudo/IPCA/Cadeira-Sintetica/Aulas/2026-01-05.md",
+  tema: "Sistema/Estudo/Temas/Tema-Sintetico/Nota.md",
+  velha: "Sistema/Estudo/Temas/Tema-Velho/Velha.md",
+  antigaOrigem: "Sistema/Estudo/IPCA/Cadeira-Antiga/Notas/Resumo.md",
+  antigaDestino: "Sistema/Estudo/IPCA/_Arquivo/2025-26-S2/Cadeira-Antiga/Notas/Resumo.md",
+  oraculoNaCadeira: "Sistema/Estudo/IPCA/Cadeira-Sintetica/Oraculo/resumo.md",
+  quadro: "Sistema/Estudo/Temas/Tema-Sintetico/Quadro.excalidraw.md",
+  modelo: "Sistema/Modelos/aula.md",
+  ficha: "Sistema/Eu/Ficha-do-Jogador.md",
+  horario: "Sistema/Horario/alteracoes.md",
+} as const;
 
 export const NOTAS: Record<string, string> = {
-  "Sistema/Estudo/IPCA/Cadeira-Sintetica/Aulas/2026-01-05.md":
-    "---\ntags: [tipo/aula]\nid: 2026-01-05\n---\n# 2026-01-05 — Aula 01 — Cadeira-Sintetica\n## Tema sintético\nTexto inventado para teste. #exame\n",
-  "Sistema/Estudo/Temas/Tema-Sintetico/Nota.md":
-    "# Nota sintética\n## Secção 1\nTexto inventado para teste.\n",
+  [CAMINHO.aula]: "---\ntags: [tipo/aula]\nid: 2026-01-05\n---\n# 2026-01-05 — Aula 01 — Cadeira-Sintetica\n## Tema sintético\nTexto inventado para teste. #exame\n",
+  [CAMINHO.tema]: "# Nota sintética\n## Secção 1\nTexto inventado para teste.\n",
+  [CAMINHO.horario]: "# Alterações ao horário (sintético)\n## Semana sintética\n- Aula sintética adiada.\n",
+  [CAMINHO.antigaDestino]: "# Resumo sintético arquivado\n",
+  // Estes existem no repositório sintético e NUNCA podem ser lidos pela função:
+  [CAMINHO.ficha]: "# Ficha sintética — NÃO DEVE SER LIDA\nMontante sintético: 0 €\n",
+  [CAMINHO.oraculoNaCadeira]: "# Saída sintética do Oráculo — NÃO É ESTUDO\n",
+  [CAMINHO.quadro]: "# Quadro sintético — NÃO DEVE SER LIDO\n",
+  [CAMINHO.modelo]: "# Modelo sintético de aula\n",
 };
 
 export interface CommitSintetico {
@@ -78,34 +100,38 @@ export interface CommitSintetico {
   pai: string | null;
   horas: number; // relativo a agora
   mensagem: string;
-  ficheiros: Array<{ filename: string; status: "added" | "modified" | "removed" }>;
+  ficheiros: Array<{ filename: string; status: "added" | "modified" | "removed" | "renamed"; changes?: number; previous_filename?: string }>;
 }
 
-/** Do mais recente para o mais antigo, como a API devolve. C2 toca num ficheiro FORA
- *  de Sistema/Estudo, para provar que o filtro da função o deixa de fora. */
-export const COMMITS: CommitSintetico[] = [
-  {
-    sha: "2222222222222222222222222222222222222222", pai: "1111111111111111111111111111111111111111", horas: -2,
-    mensagem: "vault: alteração sintética C2",
-    ficheiros: [
-      { filename: "Sistema/Estudo/Temas/Tema-Sintetico/Nota.md", status: "modified" },
-      { filename: "Oraculo/relatorio-2026-01-04.md", status: "added" },
-    ],
-  },
-  {
-    sha: "1111111111111111111111111111111111111111", pai: "0000000000000000000000000000000000000001", horas: -72,
-    mensagem: "vault: alteração sintética C1",
-    ficheiros: [
-      { filename: "Sistema/Estudo/IPCA/Cadeira-Sintetica/Aulas/2026-01-05.md", status: "added" },
-      { filename: "Sistema/Estudo/Temas/Tema-Sintetico/Nota.md", status: "modified" },
-    ],
-  },
-  {
-    sha: "0000000000000000000000000000000000000001", pai: null, horas: -240,
-    mensagem: "vault: base sintética C0",
-    ficheiros: [{ filename: "Sistema/Estudo/Temas/Tema-Sintetico/Nota.md", status: "added" }],
-  },
-];
+/** Sincronizações entre -70 h e -30 h: fora da janela de 24 h, dentro da de 7 dias. */
+export const SINCRONIZACOES = 110;
+
+/** Do mais recente para o mais antigo, como a API devolve. */
+export const COMMITS: CommitSintetico[] = (() => {
+  const lista: CommitSintetico[] = [];
+  let n = 0;
+  const juntar = (horas: number, mensagem: string, ficheiros: CommitSintetico["ficheiros"]) => {
+    n++;
+    lista.push({ sha: n.toString(16).padStart(40, "0"), pai: lista.length ? lista[lista.length - 1].sha : null, horas, mensagem, ficheiros });
+  };
+  juntar(-240, "vault: base sintética C0", [
+    { filename: CAMINHO.tema, status: "added" }, { filename: CAMINHO.velha, status: "added" }, { filename: CAMINHO.antigaOrigem, status: "added" },
+  ]);
+  juntar(-72, "vault: alteração sintética C1", [{ filename: CAMINHO.aula, status: "added" }, { filename: CAMINHO.tema, status: "modified" }]);
+  for (let i = 0; i < SINCRONIZACOES; i++) juntar(-70 + i * (40 / SINCRONIZACOES), `vault: sincronização sintética ${i + 1}`, [{ filename: CAMINHO.tema, status: "modified" }]);
+  juntar(-6, "vault: só a ficha (sintético)", [{ filename: CAMINHO.ficha, status: "modified" }]);
+  juntar(-4, "vault: reorganização sintética", [
+    { filename: CAMINHO.antigaDestino, previous_filename: CAMINHO.antigaOrigem, status: "renamed", changes: 0 },
+    { filename: CAMINHO.velha, status: "removed" },
+    { filename: CAMINHO.oraculoNaCadeira, status: "added" },
+    { filename: CAMINHO.quadro, status: "added" },
+    { filename: CAMINHO.modelo, status: "modified" },
+  ]);
+  juntar(-2, "vault: alteração sintética C2", [
+    { filename: CAMINHO.tema, status: "modified" }, { filename: "Oraculo/relatorio-2026-01-04.md", status: "added" }, { filename: CAMINHO.horario, status: "modified" },
+  ]);
+  return lista.reverse();
+})();
 
 export const dataDoCommit = (c: CommitSintetico) => instante(c.horas);
 

@@ -44,8 +44,10 @@ function criarMundo(porta: number) {
       total: 0,
       porModo: Object.fromEntries(MODOS.map((m) => [m, 0])) as Record<string, number>,
       ultimoPedido: {} as Record<string, string>,
+      ultimoSistema: {} as Record<string, string>,
     },
-    github: { leituras: 0, escritasBloqueadas: [] as Array<{ caminho: string; conteudo: string; mensagem: string }> },
+    // lidos: todos os ficheiros cujo conteúdo a função pediu — prova da lista de leitura
+    github: { leituras: 0, lidos: [] as string[], escritasBloqueadas: [] as Array<{ caminho: string; conteudo: string; mensagem: string }> },
     bd: {
       radar_items: { inserts: 0, inseridos: [] as Linha[], deletes: 0, urlsApagados: [] as string[], linhas: 0 },
       oracle_reports: { inserts: 0, inseridos: [] as Linha[], linhas: 0 },
@@ -79,6 +81,7 @@ function criarMundo(porta: number) {
     registo.anthropic.total++;
     registo.anthropic.porModo[modo]++;
     registo.anthropic.ultimoPedido[modo] = (corpo.messages ?? []).map((m: { content?: unknown }) => String(m.content ?? "")).join("\n");
+    registo.anthropic.ultimoSistema[modo] = String(corpo.system ?? "");
     const r = RESPOSTAS_DO_MODELO[modo];
     const content: unknown[] = [];
     if (r.pesquisa) {
@@ -141,11 +144,15 @@ function criarMundo(porta: number) {
     if (resto === "/commits") {
       const alvo = url.searchParams.get("path") ?? "";
       const desde = Date.parse(url.searchParams.get("since") ?? "1970-01-01T00:00:00Z");
+      const toca = (p: string | undefined) => !!p && (p === alvo || p.startsWith(alvo + "/"));
       const lista = COMMITS
         .filter((c) => Date.parse(dataDoCommit(c)) >= desde)
-        .filter((c) => !alvo || c.ficheiros.some((f) => f.filename === alvo || f.filename.startsWith(alvo + "/")))
+        .filter((c) => !alvo || c.ficheiros.some((f) => toca(f.filename) || toca(f.previous_filename)))
         .map(commitApi);
-      return Response.json(lista);
+      // Paginação como a da API real: per_page (30 por omissão, 100 no máximo) e page.
+      const porPagina = Math.min(100, Math.max(1, Number(url.searchParams.get("per_page") ?? "30")));
+      const pagina = Math.max(1, Number(url.searchParams.get("page") ?? "1"));
+      return Response.json(lista.slice((pagina - 1) * porPagina, pagina * porPagina));
     }
     const cmp = resto.match(/^\/compare\/([0-9a-f]{40})\.\.\.([0-9a-f]{40})$/);
     if (cmp) {
@@ -154,13 +161,18 @@ function criarMundo(porta: number) {
       const iBase = COMMITS.findIndex((c) => c.sha === base);
       if (iCabeca < 0 || iBase < 0 || iBase <= iCabeca) return naoEncontrado();
       const intervalo = COMMITS.slice(iCabeca, iBase).reverse(); // do mais antigo ao mais recente
-      const estado = new Map<string, string>();
+      // Estado final de cada ficheiro no intervalo, como a comparação real o resume.
+      const estado = new Map<string, { status: string; changes: number; previous_filename?: string }>();
       for (const c of intervalo) for (const f of c.ficheiros) {
         const antes = estado.get(f.filename);
-        estado.set(f.filename, antes === "added" && f.status === "modified" ? "added" : f.status);
+        const changes = (antes?.changes ?? 0) + (f.changes ?? 1);
+        const status = antes?.status === "added" && f.status === "modified" ? "added" : f.status;
+        estado.set(f.filename, { status, changes, previous_filename: f.previous_filename ?? antes?.previous_filename });
       }
-      const files = [...estado.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([filename, status]) => ({
-        sha: "f".repeat(40), filename, status, additions: 1, deletions: status === "removed" ? 1 : 0, changes: 1,
+      const files = [...estado.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([filename, e]) => ({
+        sha: "f".repeat(40), filename, status: e.status, additions: e.status === "removed" ? 0 : e.changes,
+        deletions: e.status === "removed" ? e.changes : 0, changes: e.changes,
+        ...(e.previous_filename ? { previous_filename: e.previous_filename } : {}),
         blob_url: `https://github.com/${VREPO}/blob/${cabeca}/${filename}`, raw_url: `https://github.com/${VREPO}/raw/${cabeca}/${filename}`,
         contents_url: `${api}/contents/${filename}?ref=${cabeca}`, patch: "@@ sintético @@",
       }));
@@ -173,6 +185,7 @@ function criarMundo(porta: number) {
     }
     if (resto.startsWith("/contents/")) {
       const alvo = resto.slice("/contents/".length);
+      registo.github.lidos.push(alvo);
       const texto = NOTAS[alvo];
       if (texto === undefined) return naoEncontrado();
       return Response.json({

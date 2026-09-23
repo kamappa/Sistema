@@ -1784,6 +1784,30 @@ inventa matéria, datas ou horários.
 - Notificações: seguem o calendário resultante, e as alterações vindas do calendário
   escolar aparecem no briefing das 22:30 da véspera.
 
+**A fronteira do repositório: garantia estrutural, não padrão**
+
+O `.gitignore` é lista branca: só `Sistema/`, `Oraculo/`, `README.md` e o próprio
+`.gitignore` entram. Tudo o que esteja fora dessas pastas de topo — `Anexos/`,
+`Diario/`, `Vida/`, `Pessoal/` — **não consegue** chegar ao GitHub. Não é uma regra a
+funcionar bem: é uma impossibilidade estrutural.
+
+Regra: nada que seja criado automaticamente pelo Obsidian entra em `Sistema/`.
+
+A distinção que esta regra protege é entre uma garantia e uma convenção. Os `Quadros/`
+são exceção admissível porque sou eu que crio a pasta, deliberadamente, quando decido
+desenhar. Uma pasta de anexos criada sozinha a cada imagem colada é outra coisa: o dia
+em que eu colar uma fotografia, um documento ou uma captura com algo pessoal, hoje isso
+cai fora por construção; se os anexos vivessem dentro de `Sistema/`, passaria a cair
+dentro, protegido por um padrão que tem de continuar a funcionar — e que depende de
+definições (o nome da subpasta no Obsidian, o `core.ignorecase` do Git) que se mudam
+sem pensar no `.gitignore`.
+
+Trocar uma garantia por uma convenção é aceitável às vezes. Nunca é aceitável fazê-lo
+sem dar por isso, como efeito secundário de uma decisão de arrumação.
+
+Verificação periódica, barata, que confirma que a fronteira se mantém: nada além de
+markdown rastreado dentro de `Sistema/` (`git ls-files`).
+
 **Quadros à mão (Excalidraw) e transcrição**
 
 - Os desenhos vivem em `Sistema/<Domínio>/<Item>/Quadros/<id>.excalidraw.md`, ao lado

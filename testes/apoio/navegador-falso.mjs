@@ -28,6 +28,23 @@ export async function abrirComFalso(chrome, site, nome, cfg, opcoes = {}) {
   s.ouvir('Network.responseReceived', (p) => { const u = p.response.url; if (!u.startsWith(local) && !/^(data|blob):/.test(u)) respostasDeFora.push(u); });
   await s.enviar('Fetch.enable', { patterns: [{ urlPattern: '*' }] });
   await s.enviar('Storage.clearDataForOrigin', { origin: new URL(site.url).origin, storageTypes: 'all' });
+  // opcoes.relogio: desvio em ms aplicado ao relógio da página (Date e Date.now) ANTES de
+  // qualquer script — a app e o Supabase falso veem a mesma hora, que avança em tempo
+  // real a partir daí. Serve para os testes não dependerem da hora a que correm.
+  if (opcoes.relogio) {
+    await s.enviar('Page.addScriptToEvaluateOnNewDocument', { source: `(() => {
+      const DESVIO = ${Number(opcoes.relogio)}, Real = Date;
+      function Desviada(...a) {
+        if (!new.target) return new Real(Real.now() + DESVIO).toString();
+        return a.length ? new Real(...a) : new Real(Real.now() + DESVIO);
+      }
+      Desviada.prototype = Real.prototype;
+      Desviada.now = () => Real.now() + DESVIO;
+      Desviada.parse = Real.parse;
+      Desviada.UTC = Real.UTC;
+      window.Date = Desviada;
+    })();` });
+  }
   await s.enviar('Page.addScriptToEvaluateOnNewDocument', { source: `window.__CFG_FALSO=${JSON.stringify(cfg)};\n${FALSO}` });
   if (opcoes.movel) await s.enviar('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
   if (opcoes.reduzido) await s.enviar('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });

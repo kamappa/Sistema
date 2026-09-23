@@ -15,7 +15,16 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { servirEstatico, lancarChrome, sleep } from '../fumo/apoio.mjs';
-import { abrirComFalso as abrir, esperar, texto, clicar, clicarTexto } from '../apoio/navegador-falso.mjs';
+import { abrirComFalso, esperar, texto, clicar, clicarTexto } from '../apoio/navegador-falso.mjs';
+
+// Relógio fixo: a página vive em 23/09/2026 às 15:00 de Lisboa (a avançar em tempo real
+// a partir daí), longe da meia-noite e das mudanças de hora. Sem isto, entre as 00:00 e
+// as ~02:05 de Lisboa as sessões semeadas "há 2 h" atravessavam a meia-noite e o limite
+// fechava-as (medido a 2026-09-24, 00:19: 6 falhas).
+const RELOGIO = Date.parse('2026-09-23T14:00:00Z');
+const DESVIO = RELOGIO - Date.now();
+const agora = () => Date.now() + DESVIO;
+const abrir = (chrome, site, nome, cfg, opcoes = {}) => abrirComFalso(chrome, site, nome, cfg, { relogio: DESVIO, ...opcoes });
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const SAIDA = fs.mkdtempSync(path.join(os.tmpdir(), 'sistema-sessoes-ui-'));
@@ -32,7 +41,7 @@ const CADEIRAS = [
   { id: 'c0000000-0000-4000-8000-000000000003', user_id: UID, name: HOSTIL, short_name: null, active: true },
 ];
 const CSA = CADEIRAS[0].id;
-const antes = (ms) => new Date(Math.floor((Date.now() - ms) / 60000) * 60000).toISOString(); // alinhado ao minuto
+const antes = (ms) => new Date(Math.floor((agora() - ms) / 60000) * 60000).toISOString(); // alinhado ao minuto
 const H = 3600e3, MIN = 60e3;
 const sessao = (v) => ({ id: v.id, user_id: UID, course_id: CSA, topic_id: null, class_id: null, kind: 'revisao', source: 'cronometro', state: 'ativa',
   note: null, closed_reason: null, ended_at: null, paused_at: null, paused_seconds: 0, created_at: v.started_at, updated_at: v.started_at,
@@ -332,7 +341,7 @@ async function main() {
     // ── 11. O relógio não treme: a largura fica igual enquanto os segundos passam
     // (de 1:11:07 a 1:11:13 passam 0, 1, 7, 8, 9 — os algarismos de larguras mais diferentes).
     await cenario('Relógio estável', async (abrir) => {
-      const inicio = new Date(Date.now() - (H + 11 * MIN + 6500)).toISOString();
+      const inicio = new Date(agora() - (H + 11 * MIN + 6500)).toISOString();
       const s = await abrir(chrome, site, 'relogio', { semente: { courses: CADEIRAS, study_sessions: [sessao({ id: 's0000000-0000-4000-8000-000000000011', started_at: inicio })] } });
       await painelPronto(s); await esperar(s, `!!document.getElementById('ss-relogio')`);
       const amostras = [];

@@ -8,7 +8,10 @@
 -- Este ficheiro NÃO vive em supabase/migrations/: a CLI aplicá-lo-ia a seguir à
 -- migração e desfazia o trabalho no mesmo `db push`.
 
-drop function if exists public.normalizar_sessoes();       -- depende do tipo da tabela
+drop function if exists public.normalizar_sessoes();       -- dependem do tipo da tabela
+drop function if exists public.terminar_sessao(uuid);
+drop function if exists public.retomar_sessao(uuid);
+drop function if exists public.pausar_sessao(uuid);
 drop function if exists public.limite_sessao(timestamptz);
 drop function if exists public.meia_noite_lisboa(timestamptz);
 drop table if exists public.study_sessions;                -- leva o trigger, os índices e a política

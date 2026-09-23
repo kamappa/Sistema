@@ -55,7 +55,9 @@ create table if not exists public.study_sessions (
   kind text not null constraint sessao_tipo_valido check (kind in ('aula', 'revisao', 'exercicios', 'recall', 'leitura', 'projeto')),
   source text not null constraint sessao_origem_valida check (source in ('cronometro', 'manual', 'recall_automatico')),
   state text not null constraint sessao_estado_valido check (state in ('ativa', 'terminada', 'por_confirmar', 'descartada')),
-  started_at timestamptz not null,
+  -- A hora é a do servidor: o cronómetro começa com default now(), e pausar, retomar e
+  -- terminar são funções (abaixo). Um telemóvel com o relógio errado não mede estudo.
+  started_at timestamptz not null default now(),
   ended_at timestamptz,
   -- Pausas: o início da pausa em curso e o total já acumulado. A Missão 34 pede o
   -- botão Pausar e o modelo dela não tinha onde o guardar (lacuna resolvida no lote).
@@ -112,40 +114,85 @@ language sql stable set search_path = '' as $$
   select least(inicio + interval '4 hours', public.meia_noite_lisboa(inicio))
 $$;
 
--- Fecha as sessões ativas do próprio utilizador cujo limite já passou, como
--- por_confirmar: o Daniel aceita, corrige ou descarta no dia seguinte. Chamada pelo
--- cliente ao abrir a app e enquanto ela está aberta — sem cron novo. Uma sessão
--- esquecida durante a noite fecha no limite, não na hora em que a app voltou a abrir.
--- SECURITY INVOKER: corre com os direitos de quem chama, e a RLS aplica-se.
-create or replace function public.normalizar_sessoes() returns setof public.study_sessions
+-- ============================================ pausar, retomar e terminar
+-- Todas com a hora do servidor e só sobre sessões do próprio (SECURITY INVOKER: corre
+-- com os direitos de quem chama, e a RLS aplica-se). Sem sessão elegível, não devolvem
+-- nada — nunca um erro silencioso nem uma linha inventada.
+
+create or replace function public.pausar_sessao(sessao uuid) returns setof public.study_sessions
+language sql security invoker set search_path = '' as $$
+  update public.study_sessions set paused_at = now()
+  where id = sessao and user_id = (select auth.uid()) and state = 'ativa' and paused_at is null
+  returning *
+$$;
+
+create or replace function public.retomar_sessao(sessao uuid) returns setof public.study_sessions
+language sql security invoker set search_path = '' as $$
+  update public.study_sessions
+  set paused_seconds = paused_seconds + floor(extract(epoch from (now() - paused_at)))::integer,
+      paused_at = null
+  where id = sessao and user_id = (select auth.uid()) and state = 'ativa' and paused_at is not null
+  returning *
+$$;
+
+-- Terminar antes do limite: terminada. Depois do limite (4 h ou meia-noite): fecha NO
+-- limite, como por_confirmar — a regra anti-lixo vale por todos os caminhos, não só
+-- pelo fecho automático. Uma pausa em curso conta como pausa até ao fim.
+create or replace function public.terminar_sessao(sessao uuid) returns setof public.study_sessions
 language plpgsql security invoker set search_path = '' as $$
 declare
   s public.study_sessions;
   lim timestamptz;
+  fim timestamptz;
+  passou boolean;
+begin
+  select * into s from public.study_sessions
+  where id = sessao and user_id = (select auth.uid()) and state = 'ativa'
+  for update;
+  if not found then return; end if;
+  lim := public.limite_sessao(s.started_at);
+  passou := now() >= lim;
+  fim := least(now(), lim);
+  update public.study_sessions set
+    ended_at = fim,
+    paused_seconds = s.paused_seconds
+      + case when s.paused_at is not null and s.paused_at < fim
+             then floor(extract(epoch from (fim - s.paused_at)))::integer else 0 end,
+    paused_at = null,
+    state = case when passou then 'por_confirmar' else 'terminada' end,
+    closed_reason = case when not passou then null
+                         when lim = public.meia_noite_lisboa(s.started_at) then 'meia_noite'
+                         else 'limite_4h' end
+  where id = s.id
+  returning * into s;
+  return next s;
+end $$;
+
+-- Fecha as sessões esquecidas do próprio utilizador cujo limite já passou — é o
+-- terminar_sessao aplicado a cada uma, logo fecham no limite como por_confirmar: o
+-- Daniel aceita, corrige ou descarta no dia seguinte. Chamada pelo cliente ao abrir a
+-- app e enquanto ela está aberta — sem cron novo. Uma sessão esquecida durante a noite
+-- fecha no limite, não na hora em que a app voltou a abrir.
+create or replace function public.normalizar_sessoes() returns setof public.study_sessions
+language plpgsql security invoker set search_path = '' as $$
+declare
+  s record;
 begin
   for s in
-    select * from public.study_sessions
-    where user_id = (select auth.uid()) and state = 'ativa'
-    for update
+    select id from public.study_sessions
+    where user_id = (select auth.uid()) and state = 'ativa' and now() >= public.limite_sessao(started_at)
   loop
-    lim := public.limite_sessao(s.started_at);
-    if now() >= lim then
-      update public.study_sessions set
-        ended_at = lim,
-        paused_seconds = s.paused_seconds
-          + case when s.paused_at is not null and s.paused_at < lim
-                 then floor(extract(epoch from (lim - s.paused_at)))::integer else 0 end,
-        paused_at = null,
-        state = 'por_confirmar',
-        closed_reason = case when lim = public.meia_noite_lisboa(s.started_at) then 'meia_noite' else 'limite_4h' end
-      where id = s.id
-      returning * into s;
-      return next s;
-    end if;
+    return query select * from public.terminar_sessao(s.id);
   end loop;
 end $$;
 
 -- Só utilizadores autenticados. O Supabase dá EXECUTE a anon por omissão.
+revoke all on function public.pausar_sessao(uuid) from public, anon;
+grant execute on function public.pausar_sessao(uuid) to authenticated;
+revoke all on function public.retomar_sessao(uuid) from public, anon;
+grant execute on function public.retomar_sessao(uuid) to authenticated;
+revoke all on function public.terminar_sessao(uuid) from public, anon;
+grant execute on function public.terminar_sessao(uuid) to authenticated;
 revoke all on function public.normalizar_sessoes() from public, anon;
 grant execute on function public.normalizar_sessoes() to authenticated;
 revoke all on function public.meia_noite_lisboa(timestamptz) from public, anon;

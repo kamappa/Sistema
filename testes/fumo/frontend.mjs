@@ -36,6 +36,15 @@ const JS_FORA_DO_ECRA = `(() => {
   return pior;
 })()`;
 
+// O painel das sessões de estudo (Missão 34 · Fase A) sem conta: explica que as sessões
+// vivem na conta e não oferece o cronómetro — a hora do aparelho não serve de prova.
+const JS_SESSOES = `(() => {
+  const el = document.getElementById('sessoes');
+  if (!el) return null;
+  return { visivel: !el.hidden, semConta: (el.innerText || '').includes('As sessões guardam-se na tua conta'),
+    iniciar: !!el.querySelector('.ss-iniciar'), entrar: [...el.querySelectorAll('button')].some((b) => b.textContent.trim() === 'Entrar') };
+})()`;
+
 async function entrarOffline(sep) {
   const ecraEntrada = await sep.avaliar(`!!document.querySelector('#auth-ov.show')`);
   if (ecraEntrada) {
@@ -86,6 +95,7 @@ export async function correrFrontend({ raiz, pastaSaida }) {
       v.desktop = {
         ecraEntrada, semSessao,
         zonas: await s.avaliar(JS_ZONAS),
+        sessoes: await s.avaliar(JS_SESSOES),
         foraDoEcra: await s.avaliar(JS_FORA_DO_ECRA),
         arranqueCorreu: (await s.avaliar(`sessionStorage.getItem('sysboot')`)) === '1',
       };
@@ -114,6 +124,7 @@ export async function correrFrontend({ raiz, pastaSaida }) {
       v.mobile = {
         ecraEntrada,
         zonas: await s.avaliar(JS_ZONAS),
+        sessoes: await s.avaliar(JS_SESSOES),
         foraDoEcra: await s.avaliar(JS_FORA_DO_ECRA),
         botaoEstacao: await s.avaliar(`!!document.querySelector('.station-fab')`),
       };
@@ -152,7 +163,7 @@ export async function correrFrontend({ raiz, pastaSaida }) {
       await s.enviar('Network.setBlockedURLs', { urls: ['*cdn.jsdelivr.net*'] });
       await s.navegar(site.url, 5000);
       const ecraEntrada = await entrarOffline(s);
-      v.semCdn = { ecraEntrada, zonas: await s.avaliar(JS_ZONAS) };
+      v.semCdn = { ecraEntrada, zonas: await s.avaliar(JS_ZONAS), sessoes: await s.avaliar(JS_SESSOES) };
       await s.captura(path.join(pastaSaida, 'sem-cdn.png'));
     }
   } finally {

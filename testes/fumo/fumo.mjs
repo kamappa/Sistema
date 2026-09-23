@@ -44,6 +44,12 @@ function verificarFrontend(v) {
   if (!v.mobile.ecraEntrada || !zonasTodasComConteudo(v.mobile.zonas)) falha('mobile: entrada ou ecrãs principais: ' + JSON.stringify(v.mobile));
   if (v.mobile.foraDoEcra) falha('mobile: conteúdo em fluxo mais largo do que o ecrã (ficaria cortado): ' + JSON.stringify(v.mobile.foraDoEcra));
   if (!v.mobile.botaoEstacao) falha('mobile: sem botão da estação (a única entrada por toque)');
+  // Sessões de estudo sem conta: o painel explica e não mede. Com o supabase-js carregado
+  // oferece Entrar; sem ele (sem CDN) não oferece — não há onde entrar.
+  const sessoesSemConta = (x, entrar) => x && x.visivel && x.semConta && !x.iniciar && x.entrar === entrar;
+  if (!sessoesSemConta(v.desktop.sessoes, true)) falha('sessões (desktop): sem conta, o painel devia explicar e oferecer Entrar, sem cronómetro: ' + JSON.stringify(v.desktop.sessoes));
+  if (!sessoesSemConta(v.mobile.sessoes, true)) falha('sessões (mobile): ' + JSON.stringify(v.mobile.sessoes));
+  if (!sessoesSemConta(v.semCdn.sessoes, false)) falha('sessões (sem CDN): sem a biblioteca, explica sem oferecer Entrar: ' + JSON.stringify(v.semCdn.sessoes));
   if (!zonasTodasComConteudo(v.movimentoReduzido.zonas)) falha('movimento reduzido: ecrãs principais');
   if (!v.movimentoReduzido.arranqueSaltado) falha('movimento reduzido: a sequência de arranque correu — reduced motion não é respeitado');
   if (!v.semSupabase.ecraEntrada || !zonasTodasComConteudo(v.semSupabase.zonas)) falha('sem Supabase: a app não arrancou offline');

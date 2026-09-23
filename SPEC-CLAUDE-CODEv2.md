@@ -1357,9 +1357,16 @@ inventa matéria, datas ou horários.
      nas minhas notas.
    - Sem programa confirmado, diz isso e não teoriza.
    - O progresso ("tema dado") só conta depois de eu o confirmar.
-4. **A cadeira é a pasta.**
-   - A nota `Sistema/Estudo/IPCA/<pasta>/Aulas/<nome>.md` pertence à cadeira cujo
-     `vault_folder` é `<pasta>`.
+4. **A cadeira é a pasta que contém `Aulas/`.**
+   - Regra estrutural, não posicional: dado o caminho de uma nota de aula, a cadeira é
+     a pasta imediatamente acima de `Aulas/`. Não é "a pasta dentro de `IPCA/`".
+   - `IPCA/Base-de-Dados/Aulas/x.md` → cadeira `Base-de-Dados`, semestre corrente.
+   - `IPCA/_Arquivo/2025-26-S2/Etica/Aulas/x.md` → cadeira `Etica`,
+     semestre `2025-26-S2`.
+   - O que estiver entre `IPCA/` e a pasta da cadeira é o semestre; se não houver nada,
+     é o semestre corrente. Uma cadeira arquivada continua legível e identificada.
+   - Isto vale para qualquer domínio, não só `IPCA/`: a regra é a mesma em
+     `Sistema/<Domínio>/<Item>/Aulas/`.
    - **Id da aula.** Cada nota de aula tem um id estável: `AAAA-MM-DD`, com sufixo
      `-2`, `-3`… quando há mais do que uma aula dessa cadeira no mesmo dia. O id está
      no frontmatter (`id:`) e é também o prefixo do nome do ficheiro.
@@ -1430,8 +1437,18 @@ inventa matéria, datas ou horários.
 
 - `courses`
   - `name`, `short_name`
-  - `vault_folder` (único)
+  - `vault_folder` — o **nome** da pasta da cadeira (ex.: `Base-de-Dados`), não o
+    caminho. Único dentro do mesmo `academic_year` + `semester`, não globalmente:
+    a mesma cadeira pode repetir-se em anos diferentes.
   - `semester`, `academic_year`
+  - `ects` — o peso da cadeira. Não é decoração: é o critério de distribuição de
+    tempo nos planos de estudo. Uma cadeira de 6 ECTS pesa o dobro de uma de 3 na
+    alocação proposta, e o Oráculo diz o peso quando propõe um plano, para eu poder
+    discordar. Não gera avisos nem urgência por si só.
+  - `has_classes` (booleano) — falso para cadeiras que faço só por exame ou que não
+    têm aulas no horário. Uma cadeira com `has_classes: false` nunca aparece na agenda,
+    nunca gera resumo pós-aula, e a ausência de notas nela **não** é assinalada como
+    lacuna. Continua a poder ter `Notas/`, plano de exame e recall.
   - `color` (opcional)
   - `active`
 - `syllabus_topics`
@@ -1581,10 +1598,13 @@ inventa matéria, datas ou horários.
   - Só executa depois de eu aceitar, e nunca move ficheiros alterados nas últimas
     24 horas.
   - Corrige as ligações com caminho e regista tudo em `system_events`.
-  - `_Arquivo/` não é apanhado pelo padrão do Templater nem tratado como cadeira ativa.
+  - `_Arquivo/` não é apanhado pelo padrão do Templater nem tratado como cadeira ativa,
+    mas continua **legível**: pela regra do princípio 4, o Oráculo identifica a cadeira
+    e o semestre de qualquer nota arquivada. Arquivar esconde da agenda, não da memória.
 - Nunca apaga notas minhas.
-- O campo `vault_folder` sugere as pastas que existem em `Sistema/Estudo/IPCA/`.
-  Avisar se uma pasta não tiver cadeira ou se uma cadeira não tiver pasta.
+- O campo `vault_folder` sugere as pastas que contêm `Aulas/` dentro de
+  `Sistema/Estudo/IPCA/`, a qualquer profundidade. Avisar se uma pasta não tiver
+  cadeira ou se uma cadeira ativa não tiver pasta.
 
 **Programa**
 
@@ -2713,6 +2733,14 @@ a `por_verificar`, e as respostas que dependam disso avisam.
 - Atributo sem atividade há 14 dias.
 - Prazo a aproximar-se.
 - Evento pessoal que exige preparação.
+- **Acontecimento externo**, só de uma lista de fontes que eu aprovei (CNPD, EDPB,
+  Diário da República, ISO, ENISA, CNCS, e o que eu acrescentar). Exemplos: uma coima
+  publicada, uma norma revista, um diploma de transposição.
+  - Sem ligação à fonte, não existe. Se o Oráculo não puder citar onde leu, não propõe.
+  - O acontecimento é facto (tem fonte); a missão que dele decorre é proposta dele, e é
+    apresentada como tal.
+  - Fontes acrescentam-se e retiram-se por mim, e a lista vive em
+    `oracle_memory_user` como `preferencia`.
 
 **Entradas da chamada**
 
@@ -2723,9 +2751,29 @@ a `por_verificar`, e as respostas que dependam disso avisam.
 - Memória relevante sobre mim.
 - Lições ativas.
 
+**Relevância**
+
+A relevância não é uma nota que o Oráculo inventa. É composta de três coisas que eu
+consigo ver e contestar uma a uma, e todas as três aparecem na proposta:
+
+1. **Peso** — os ECTS da cadeira (`courses.ects`). Uma cadeira de 6 pesa o dobro de uma
+   de 3. Fora do IPCA, o peso é o que eu tiver declarado para esse tema.
+2. **Proximidade** — dias até à avaliação ou ao prazo. Facto, vem do calendário.
+3. **Distância ao alvo** — a que objetivo de carreira isto serve (ISO 27001 Lead
+   Auditor, DPO, governação de IA). Vem da Ficha do Jogador, não de suposição.
+
+Na proposta, isto lê-se assim: "6 ECTS, exame daqui a 18 dias, liga-se a ISO 27001 Lead
+Auditor". Se eu discordar de um dos três, digo qual, e isso gera uma lição.
+
+Sem os três, a proposta não é feita. Uma missão sem peso conhecido, sem prazo e sem
+ligação a um alvo é uma missão que o Oráculo quer propor por querer propor.
+
 **Regras**
 
-- Máximo de 5 propostas por semana, e só uma por gatilho.
+- Máximo de **3 propostas por semana**, e só uma por gatilho. Missões são escassas, não
+  são um caudal: se forem cinco por dia porque aconteceram cinco coisas no mundo do GRC,
+  eu deixo de as ler ao fim de uma semana. O limite obriga-o a escolher, e a escolha
+  dele diz-me o que ele considera importante — isso é informação que eu quero ver.
 - Não duplicar missões ativas.
 - Não propor nada que não caiba nas horas livres.
 - Cada proposta indica o atributo e o porquê.
@@ -2799,9 +2847,6 @@ Em cada fase:
 1. plano para eu aprovar;
 2. uma semana de uso real;
 3. revisão das lições e da memória antes da fase seguinte.
-
-
-
 
 
 

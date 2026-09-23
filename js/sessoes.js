@@ -142,8 +142,9 @@ window.Sessoes=(function(){
         <div class="ss-relogio" id="ss-relogio" role="timer" aria-live="off" aria-label="${L.formatarRelogio(seg)}">${relogioHtml(seg)}</div>
         <div class="ss-meta">${quem?quem+' · ':''}${desde} · <span title="4 h depois de começar ou à meia-noite, o que vier primeiro">fecho automático às ${L.horaLisboa(lim)}</span></div>
         <div class="ss-acoes">
-          ${ativa.paused_at?`<button class="btn" onclick="Sessoes.retomar()">Retomar</button>`:`<button class="btn ghost2" onclick="Sessoes.pausar()">Pausar</button>`}
-          <button class="btn" onclick="Sessoes.terminar()">Terminar</button>
+          ${ativa.paused_at // a ação principal muda com o estado: em pausa é retomar
+            ?`<button class="btn" onclick="Sessoes.retomar()">Retomar</button><button class="btn ghost2" onclick="Sessoes.terminar()">Terminar</button>`
+            :`<button class="btn ghost2" onclick="Sessoes.pausar()">Pausar</button><button class="btn" onclick="Sessoes.terminar()">Terminar</button>`}
         </div>
         ${aviso?`<div class="ss-aviso" role="status"><span>Duas horas de estudo. Ainda estás a estudar?</span>
           <button class="mini" onclick="Sessoes.continuo()">Continuo</button><button class="mini warm" onclick="Sessoes.terminar()">Terminar</button></div>`:''}

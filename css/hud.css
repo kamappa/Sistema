@@ -789,3 +789,59 @@
   .rd-vaga{border:1px solid rgba(52,211,153,.45)!important;background:rgba(52,211,153,.05);
     padding:9px 11px!important;margin:7px 0;
     clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+
+  /* ===== SESSÕES DE ESTUDO — Missão 34 · Fase A (js/sessoes.js) =====
+     O relógio é o único elemento grande; o resto é baixo e calmo. Com uma sessão a
+     decorrer, o traço de canto do painel estende-se e respira devagar — o estado "a
+     medir" vê-se sem ler. Em pausa fica âmbar e parado. Movimento reduzido: parado. */
+  .ss{margin-bottom:16px}
+  .ss-nota{font-size:13px;color:var(--mut);line-height:1.5;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .ss-nota:empty{display:none}
+  #ss-rede{margin-bottom:12px;color:var(--orange);font-size:12px}
+  .ss-arranque{display:flex;flex-wrap:wrap;gap:8px}
+  .ss-arranque select{flex:1 1 170px;min-width:0;border:1px solid var(--line);color:var(--ink);font-family:var(--body);font-size:13.5px;padding:10px 12px;outline:none;transition:border-color .15s}
+  .ss-arranque select:focus{border-color:var(--sky)}
+  .btn.ss-iniciar{font-size:14px;letter-spacing:.14em;padding:11px 28px}
+  @media(max-width:620px){.btn.ss-iniciar{flex:1 1 100%}}
+  .ss-erro{font-family:var(--mono);font-size:11px;color:#fca5a5;margin-top:6px;line-height:1.4}
+  .ss-erro:empty{display:none}
+  .ss-ativa{display:flex;flex-direction:column;gap:10px}
+  .ss-relogio{font-family:var(--disp);font-weight:600;font-size:clamp(44px,9vw,68px);line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .ss-pausa .ss-relogio{color:var(--mut)}
+  .ss-relogio span{display:inline-block;text-align:center}
+  .ss-rd{width:.6em}.ss-rc{width:.3em}
+  .ss-meta{font-size:13px;color:var(--mut);line-height:1.5}
+  .ss-acoes{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .ss-aviso{display:flex;flex-wrap:wrap;align-items:center;gap:8px;border:1px dashed rgba(251,146,60,.5);padding:10px 12px;font-size:13px;background:rgba(251,146,60,.05)}
+  .ss-aviso span{flex:1 1 220px}
+  .ss-linha{border:1px solid var(--line);padding:9px 11px;margin-bottom:6px;background:rgba(255,255,255,.012)}
+  .ss-pend{border-color:rgba(251,146,60,.35)}
+  .ss-edicao{border-color:var(--line2)}
+  .ss-l1{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;font-size:13px}
+  .ss-dia{font-family:var(--disp);font-weight:600;font-size:14px;min-width:84px}
+  .ss-int{font-family:var(--mono);font-size:11.5px;color:var(--mut)}
+  .ss-desc{flex:1;min-width:120px}
+  .ss-dur{font-family:var(--disp);font-weight:600;font-size:14.5px}
+  .ss-tag{font-family:var(--mono);font-size:9.5px;color:var(--cyan);border:1px solid var(--line2);padding:0 5px;margin-left:8px;vertical-align:1px}
+  .ss-ops{display:inline-flex;gap:2px}
+  .ss-op{background:none;border:none;color:var(--mut2);cursor:pointer;font-size:13px;padding:2px 6px}
+  .ss-op:hover,.ss-op:focus-visible{color:var(--sky)}
+  .ss-op-x:hover,.ss-op-x:focus-visible{color:#f87171}
+  .ss-l2{font-size:12px;color:var(--mut);margin-top:5px}
+  .ss-linha .ss-acoes,.ss-conf{margin-top:8px}
+  .ss-conf{font-size:12.5px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .ss-vazio{font-size:12.5px;color:var(--mut2);font-style:italic}
+  .ss-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:4px 0 8px}
+  .ss-form label{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--mut)}
+  .ss-form .ss-larga{grid-column:1/-1}
+  .ss-form input,.ss-form select{border:1px solid var(--line);background:var(--bg2);color:var(--ink);font-family:var(--body);font-size:13px;padding:8px 10px;outline:none;min-width:0}
+  .ss-form input:focus,.ss-form select:focus{border-color:var(--sky)}
+  .ss-form input[type=datetime-local]{color-scheme:dark}
+  .ss-dica{font-size:11.5px;color:var(--mut2);margin-bottom:8px;line-height:1.45}
+  .ss-manual{margin-top:14px}
+  .ss-ocupado button{pointer-events:none;opacity:.55}
+  .ss.ss-viva::before{width:120px;animation:ssviva 7.1s ease-in-out infinite}
+  @keyframes ssviva{0%,100%{opacity:.5;box-shadow:0 0 8px var(--sky)}50%{opacity:1;box-shadow:0 0 16px var(--sky)}}
+  .ss.ss-pausa::before{width:120px;background:var(--orange);box-shadow:none;animation:none;opacity:.8}
+  /* o * do movimento reduzido não apanha pseudo-elementos: o traço para aqui */
+  @media (prefers-reduced-motion: reduce){.ss::before,.ss.ss-viva::before{animation:none}}

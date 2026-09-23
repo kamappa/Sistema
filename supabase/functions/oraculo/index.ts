@@ -6,6 +6,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { ativar as ativarModoTeste } from "./teste/modo-teste.ts";
+import { type Alteracao, type Atividade, CAMINHOS_DE_ATIVIDADE, classificar, podeLer, porGrupo, resumoDaAtividade } from "./vault-lista.ts";
 
 const SB_URL = Deno.env.get("SUPABASE_URL")!;
 const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_SECRET_KEY") ?? "";
@@ -28,13 +29,14 @@ const supabase = (): ReturnType<typeof criarCliente> =>
   TESTE ? (TESTE.supabase() as unknown as ReturnType<typeof criarCliente>) : criarCliente();
 
 /* ===== PONTE DO VAULT — leitura do repo privado do Obsidian =====
-   O Oráculo só vê a árvore Sistema/Estudo/ do repo vault-sistema (privacidade
-   por desenho: o resto do vault do Daniel nunca entra nesse repo). Token
-   fine-grained VAULT_TOKEN nos Secrets. Falha de leitura nunca derruba um
+   O repositório vault-sistema tem mais do que o Oráculo pode ver (desde 17/09 entra
+   todo o Sistema/, incluindo Eu/). O que ele lê decide-o a LISTA DE LEITURA em
+   vault-lista.ts, aplicada em cada leitura — não o token. Commits não são estudo:
+   dizem que notas mudaram, não quanto tempo ele estudou (Lote 2, 2026-09-23).
+   Token fine-grained VAULT_TOKEN nos Secrets. Falha de leitura nunca derruba um
    modo: o report recebe um aviso honesto, o radar/sussurro seguem sem vault. */
 const VTOKEN = (Deno.env.get("VAULT_TOKEN") ?? "").trim();
 const VREPO = "kamappa/vault-sistema";
-const VPATH = "Sistema/Estudo";
 const VAULT_DEEP_CHARS = 30000; // ~8k tokens
 const VAULT_LIGHT_CHARS = 6000; // ~1.5k tokens
 
@@ -51,30 +53,56 @@ async function gh(path: string): Promise<any> {
   return r.json();
 }
 
-// ficheiros .md alterados em Sistema/Estudo desde `sinceIso` + timestamps dos
-// commits (registo de atividade real de estudo). 2-3 chamadas via compare API.
-async function vaultChanges(sinceIso: string): Promise<{ files: string[]; commits: Array<{ d: string; msg: string }> }> {
-  const commits = await gh(`/repos/${VREPO}/commits?path=${encodeURIComponent(VPATH)}&since=${encodeURIComponent(sinceIso)}&per_page=100`);
-  if (!Array.isArray(commits) || !commits.length) return { files: [], commits: [] };
+// Os commits de um caminho desde `sinceIso`, todas as páginas (a API dá no máximo 100
+// por página; uma semana de sincronizações de 15 em 15 minutos passa disso).
+const MAX_PAGINAS = 10;
+async function commitsDe(caminho: string, sinceIso: string): Promise<{ lista: any[]; truncado: boolean }> {
+  const lista: any[] = [];
+  for (let pagina = 1; pagina <= MAX_PAGINAS; pagina++) {
+    const lote = await gh(`/repos/${VREPO}/commits?path=${encodeURIComponent(caminho)}&since=${encodeURIComponent(sinceIso)}&per_page=100&page=${pagina}`);
+    if (!Array.isArray(lote) || !lote.length) return { lista, truncado: false };
+    lista.push(...lote);
+    if (lote.length < 100) return { lista, truncado: false };
+  }
+  return { lista, truncado: true };
+}
+
+// O que mudou no vault desde `sinceIso`, só nos caminhos de conteúdo da lista de leitura:
+// quantas sincronizações houve (não quanto tempo se estudou), as notas com texto novo ou
+// alterado, e quantos ficheiros só foram movidos, renomeados ou apagados.
+async function vaultChanges(sinceIso: string): Promise<Atividade> {
+  const porSha = new Map<string, any>();
+  let truncado = false;
+  for (const caminho of CAMINHOS_DE_ATIVIDADE) {
+    const r = await commitsDe(caminho, sinceIso);
+    truncado ||= r.truncado;
+    for (const c of r.lista) porSha.set(String(c.sha), c);
+  }
+  const data = (c: any) => String(c.commit?.author?.date ?? "");
+  const commits = [...porSha.values()].sort((a, b) => data(b).localeCompare(data(a)));
+  if (!commits.length) return { sincronizacoes: [], truncado, comparacaoTruncada: false, conteudo: [], organizacao: 0 };
   const head = commits[0].sha;
   const base = commits[commits.length - 1].parents?.[0]?.sha;
-  const soEstudo = (p: string) => p.startsWith(VPATH + "/") && p.endsWith(".md");
-  let files: string[] = [];
+  let files: Alteracao[] = [];
+  let comparacaoTruncada = false;
   if (base) {
     const cmp = await gh(`/repos/${VREPO}/compare/${base}...${head}`);
-    files = (cmp.files ?? []).map((f: any) => String(f.filename)).filter(soEstudo);
+    files = (cmp.files ?? []).map((f: any) => ({
+      filename: String(f.filename), status: String(f.status), changes: Number(f.changes ?? 1),
+      previous_filename: f.previous_filename ? String(f.previous_filename) : undefined,
+    }));
+    comparacaoTruncada = files.length >= 300; // a comparação do GitHub pára nos 300 ficheiros
   } else {
     // a janela apanhou o primeiro commit do repo: sem pai para comparar, lista a árvore
     const tree = await gh(`/repos/${VREPO}/git/trees/${head}?recursive=1`);
-    files = (tree.tree ?? []).map((t: any) => String(t.path)).filter(soEstudo);
+    files = (tree.tree ?? []).filter((t: any) => t.type === "blob").map((t: any) => ({ filename: String(t.path), status: "added" }));
   }
-  return {
-    files,
-    commits: commits.map((c: any) => ({ d: String(c.commit?.author?.date ?? ""), msg: String(c.commit?.message ?? "").split("\n")[0] })),
-  };
+  return { sincronizacoes: commits.map(data), truncado, comparacaoTruncada, ...classificar(files) };
 }
 
-async function vaultFile(path: string): Promise<string> {
+// Só lê o que a lista de leitura deixa — a guarda está aqui, e não só nas listagens.
+async function vaultFile(path: string, opcoes: { forma?: boolean } = {}): Promise<string> {
+  if (!podeLer(path, opcoes)) throw new Error("fora da lista de leitura do vault");
   const j = await gh(`/repos/${VREPO}/contents/` + path.split("/").map(encodeURIComponent).join("/"));
   const bin = atob(String(j.content ?? "").replace(/\n/g, ""));
   return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
@@ -85,12 +113,13 @@ async function vaultFile(path: string): Promise<string> {
 async function vaultContextDeep(days = 7, maxChars = VAULT_DEEP_CHARS): Promise<string> {
   try {
     if (!VTOKEN) return "";
-    const { files, commits } = await vaultChanges(new Date(Date.now() - days * 864e5).toISOString());
-    if (!files.length) return "";
-    let out = "ATIVIDADE (commits do vault — registo real de quando estudou):\n" +
-      commits.slice(0, 40).map((c) => c.d.slice(0, 16).replace("T", " ") + " — " + c.msg).join("\n") +
-      `\n\nNOTAS ALTERADAS (últimos ${days} dias):\n`;
-    for (const f of files.slice(0, 15)) {
+    const a = await vaultChanges(new Date(Date.now() - days * 864e5).toISOString());
+    if (!a.sincronizacoes.length) return "";
+    // O resumo diz o que mudou, por cadeira, e avisa que commits não medem estudo; os
+    // instantes de cada commit já não vão para o modelo (davam "frequência" inventada).
+    let out = resumoDaAtividade(a, days) + "\n";
+    if (a.conteudo.length) out += "\nCONTEÚDO DAS NOTAS ALTERADAS (o que mudou, não quanto tempo levou):\n";
+    for (const f of a.conteudo.slice(0, 15)) {
       if (out.length >= maxChars) { out += "\n[TRUNCADO: há mais notas alteradas do que o teto de leitura permite]"; break; }
       let txt = "";
       try { txt = await vaultFile(f); } catch { continue; }
@@ -103,20 +132,21 @@ async function vaultContextDeep(days = 7, maxChars = VAULT_DEEP_CHARS): Promise<
   }
 }
 
-// leitura leve (radar diário e sussurro): só ficheiros alterados 24h + headings.
-// Falha = string vazia — o radar/sussurro seguem sem mencionar estudo.
+// leitura leve (radar diário e sussurro): só as notas com texto novo nas últimas horas
+// + headings — a reorganização fica de fora. Falha = string vazia — o radar/sussurro
+// seguem sem vault.
 async function vaultContextLight(hours = 24): Promise<string> {
   try {
     if (!VTOKEN) return "";
-    const { files } = await vaultChanges(new Date(Date.now() - hours * 3600e3).toISOString());
-    if (!files.length) return "";
+    const { conteudo } = await vaultChanges(new Date(Date.now() - hours * 3600e3).toISOString());
+    if (!conteudo.length) return "";
     let out = "";
-    for (const f of files.slice(0, 10)) {
+    for (const f of conteudo.slice(0, 10)) {
       let heads: string[] = [];
       try {
         heads = (await vaultFile(f)).split("\n").filter((l) => /^#{1,4}\s/.test(l)).slice(0, 8).map((l) => l.replace(/^#+\s*/, "").trim());
       } catch { /* lista o ficheiro na mesma, sem headings */ }
-      out += "- " + f.slice(VPATH.length + 1) + (heads.length ? " · " + heads.join(" | ") : "") + "\n";
+      out += "- " + f.slice("Sistema/".length) + (heads.length ? " · " + heads.join(" | ") : "") + "\n";
       if (out.length >= VAULT_LIGHT_CHARS) { out = out.slice(0, VAULT_LIGHT_CHARS) + "\n[truncado]"; break; }
     }
     return out;
@@ -357,7 +387,7 @@ async function chatHandler(req: Request): Promise<Response> {
     const system = CONSTITUICAO + VOZ +
       "\n\nESTADO REAL DO DANIEL (única fonte legítima de números):\n" + JSON.stringify(resumoEstado(st)) +
       "\n\nÚLTIMOS RELATÓRIOS SEMANAIS:\n" + JSON.stringify(relatorios) +
-      (vaultDeep ? "\n\nNOTAS DE ESTUDO REAIS DO VAULT (últimos 7 dias — usa-as quando a conversa tocar no estudo dele):\n" + vaultDeep : "");
+      (vaultDeep ? "\n\nO VAULT NOS ÚLTIMOS 7 DIAS (usa-o quando a conversa tocar no estudo dele; lê o aviso — as datas são de sincronização, não de estudo):\n" + vaultDeep : "");
     const reply = await chatClaude(system, msgs);
     return new Response(JSON.stringify({ reply }), { status: 200, headers: H });
   } catch (e) {
@@ -380,8 +410,8 @@ async function sussurroHandler(req: Request): Promise<Response> {
     const st = (row?.state ?? {}) as Record<string, any>;
     // vault só para o operador real (tem estado no Sistema) — não para contas soltas
     const vaultLight = row ? await vaultContextLight(24) : "";
-    const sys = "És o Oráculo do Sistema do Daniel. Recebes o estado real dele e escreves NO MÁXIMO UMA linha (≤140 caracteres, pt-PT) verdadeiramente útil para HOJE — por exemplo um prazo próximo cruzado com um tema fraco no recall, um obrigatório em risco, uma sequência a proteger, ou uma ponte entre o que ele estudou ontem no vault e o dia de hoje. Regras: só factos presentes no estado ou nas notas; nada de números inventados; sem saudações, sem emojis, sem aspas. Fala como o Guardião do Núcleo: sóbrio, específico, sem elogios vazios; podes usar a linguagem das constelações quando iluminar o dado. Se não houver nada digno de nota, responde exatamente SILENCIO.";
-    const linha = (await chatClaude(sys, [{ role: "user", content: "ESTADO:\n" + JSON.stringify(resumoEstado(st)) + (vaultLight ? "\n\nESTUDO NAS ÚLTIMAS 24H (vault):\n" + vaultLight : "") }], 150)).trim();
+    const sys = "És o Oráculo do Sistema do Daniel. Recebes o estado real dele e escreves NO MÁXIMO UMA linha (≤140 caracteres, pt-PT) verdadeiramente útil para HOJE — por exemplo um prazo próximo cruzado com um tema fraco no recall, um obrigatório em risco, uma sequência a proteger, ou uma ponte entre uma nota que mudou no vault nas últimas 24h e o dia de hoje (uma nota alterada não prova que ele estudou, nem quanto — não o afirmes). Regras: só factos presentes no estado ou nas notas; nada de números inventados; sem saudações, sem emojis, sem aspas. Fala como o Guardião do Núcleo: sóbrio, específico, sem elogios vazios; podes usar a linguagem das constelações quando iluminar o dado. Se não houver nada digno de nota, responde exatamente SILENCIO.";
+    const linha = (await chatClaude(sys, [{ role: "user", content: "ESTADO:\n" + JSON.stringify(resumoEstado(st)) + (vaultLight ? "\n\nNOTAS ALTERADAS NO VAULT NAS ÚLTIMAS 24H (sincronizações do Obsidian; reorganizações excluídas):\n" + vaultLight : "") }], 150)).trim();
     const out = /^sil[êe]ncio\.?$/i.test(linha) || !linha ? null : linha.slice(0, 200);
     return new Response(JSON.stringify({ linha: out }), { status: 200, headers: H });
   } catch (e) {
@@ -456,12 +486,12 @@ async function gerarReport(st: Record<string, unknown>): Promise<Record<string, 
       " Respondes APENAS com JSON válido.",
     "Estado atual do Sistema dele (JSON): " + JSON.stringify(st).slice(0, 60000) +
       (vault
-        ? "\n\nESTUDO REAL NO VAULT (notas Obsidian em Sistema/Estudo, com timestamps dos commits):\n" + vault
-        : "\n\nVAULT: sem alterações em Sistema/Estudo nos últimos 7 dias.") +
+        ? "\n\n" + vault
+        : "\n\nVAULT: sem sincronizações nas pastas de estudo nos últimos 7 dias.") +
       '\n\nEscreve o relatório semanal em pt-PT, formato JSON: ' +
       '{"resumo":"3-4 frases sobre a semana","treino":"análise + 1 ajuste concreto (ou nota de dados insuficientes)",' +
       '"sono":"análise do padrão de sono",' +
-      '"estudo":"o que ele realmente estudou no vault esta semana: temas, frequência real (timestamps dos commits), ligação aos objetivos e ao recall — ou nota honesta de que não há notas novas",' +
+      '"estudo":"o que mudou nas notas do vault esta semana, por cadeira ou tema, e a ligação aos objetivos e ao recall — nunca horas, dias nem frequência de estudo (os commits não os medem; o tempo de estudo medido vem das sessões do Sistema, que este relatório ainda não recebe); se só houve reorganização, diz isso; sem notas novas, di-lo com honestidade",' +
       '"alerta":"anomalia detetada ou null",' +
       '"propostas":[{"t":"título curto","why":"porquê, ligado aos dados"}],' +
       '"missoes_propostas":[{"t":"missão concreta e criativa","why":"ligação aos dados/objetivos dele","area":"oficio|saber|corpo|mente|vinculos|disciplina","pri":"P1|P2|P3","deadline":"YYYY-MM-DD ou null"}],' +
@@ -471,7 +501,7 @@ async function gerarReport(st: Record<string, unknown>): Promise<Record<string, 
       '"recompensa":"uma recompensa criativa, proporcional ao que ele conquistou esta semana",' +
       '"titulo":"um título honorífico da semana, criativo/humorístico (narrativo, nunca uma credencial)",' +
       '"legado":"uma pergunta de reflexão para a semana"}' +
-      "\n\nPara a secção recursos: usa a pesquisa web para encontrar 2-3 recursos concretos DIRETAMENTE ligados ao que o vault mostra que ele anda a estudar — legislação no EUR-Lex, guias ENISA/CNCS/CNPD/EDPB, cursos, artigos técnicos. REGRA INVIOLÁVEL: só incluis URLs devolvidos pela pesquisa web nesta conversa; nunca escrevas um URL de memória. Sem vault novo ou sem resultados dignos, devolve recursos:[].",
+      "\n\nPara a secção recursos: usa a pesquisa web para encontrar 2-3 recursos concretos DIRETAMENTE ligados aos temas das notas que mudaram no vault — legislação no EUR-Lex, guias ENISA/CNCS/CNPD/EDPB, cursos, artigos técnicos. REGRA INVIOLÁVEL: só incluis URLs devolvidos pela pesquisa web nesta conversa; nunca escrevas um URL de memória. Sem vault novo ou sem resultados dignos, devolve recursos:[].",
     true,
   );
   return (jsonFrom(txt) as Record<string, any>) || { resumo: txt.slice(0, 900) };
@@ -496,9 +526,12 @@ async function vaultCheckHandler(req: Request): Promise<Response> {
   try {
     if (!(await operador(req))) return new Response(JSON.stringify({ error: "só o operador" }), { status: 403, headers: H });
     const out: Record<string, unknown> = { tokenConfigurado: VTOKEN.length > 0 };
-    const info = await vaultChanges(new Date(Date.now() - 7 * 864e5).toISOString());
-    out.commits7d = info.commits.length;
-    out.ficheiros7d = info.files;
+    const a = await vaultChanges(new Date(Date.now() - 7 * 864e5).toISOString());
+    out.sincronizacoes7d = a.sincronizacoes.length;
+    out.conteudo7d = a.conteudo;
+    out.organizacao7d = a.organizacao;
+    out.porCadeira7d = Object.fromEntries(porGrupo(a.conteudo).map(([g, l]) => [g, l.length]));
+    out.truncado = a.truncado || a.comparacaoTruncada;
     out.light24h = (await vaultContextLight(24)) || null;
     if (new URL(req.url).searchParams.get("write") === "1")
       out.escrita = await vaultWriteReport({ resumo: "Teste de escrita da Ponte do Vault — pode apagar esta nota." }, "teste");
@@ -551,7 +584,7 @@ const handler = async (req: Request): Promise<Response> => {
       const txt = await claude(
         "És o Radar do 'Sistema' de " + PERFIL + " Respondes APENAS com JSON válido, sem texto fora do JSON.",
         (vaultLight
-          ? "O QUE ELE ESTUDOU NAS ÚLTIMAS 24H (notas do vault Obsidian — usa isto para afinar a relevância; quando um item se ligar a algo que ele estudou ontem, di-lo na relevance):\n" + vaultLight + "\n\n"
+          ? "TEMAS DAS NOTAS ALTERADAS NO VAULT NAS ÚLTIMAS 24H (sincronizações do Obsidian — não provam que ele estudou): usa-os para afinar a relevância; quando um item tocar um destes temas, di-lo na relevance, sem afirmar que ele estudou:\n" + vaultLight + "\n\n"
           : "") +
         "Pesquisa na web as novidades das últimas 24-72 horas mais relevantes para os objetivos dele, em duas categorias: " +
           "(1) NOTÍCIAS: cibersegurança (incidentes/vulnerabilidades relevantes), NIS2, RGPD/privacidade (CNPD, EDPB), " +

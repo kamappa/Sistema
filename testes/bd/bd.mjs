@@ -151,6 +151,36 @@ try {
   r = como(null, `select count(*) from public.normalizar_sessoes()`, 'anon');
   verificar('normalizar: anon não a pode chamar', !r.ok && /permission denied/.test(r.err), r.err);
 
+  // ── iniciar / pausar / retomar / terminar: a hora é a do servidor, nunca a do telemóvel
+  r = psql(`delete from public.study_sessions`);
+  r = como(A, `insert into public.study_sessions (kind, source, state) values ('revisao','cronometro','ativa')
+               returning abs(extract(epoch from (started_at - now()))) < 5`);
+  verificar('iniciar: started_at por omissão é a hora do servidor', r.ok && r.out.split('\n').includes('t'), r.out || r.err);
+  const idAtiva = psql(`select id from public.study_sessions where state = 'ativa'`).out;
+  r = como(A, `select (paused_at is not null) from public.pausar_sessao('${idAtiva}')`);
+  verificar('pausar: marca o início da pausa', r.ok && r.out.split('\n').includes('t'), r.out || r.err);
+  r = como(A, `select count(*) from public.pausar_sessao('${idAtiva}')`);
+  verificar('pausar: pausar outra vez não reinicia a pausa', r.ok && r.out.split('\n').includes('0'), r.out || r.err);
+  r = psql(`update public.study_sessions set paused_at = now() - interval '10 minutes' where id = '${idAtiva}'`);
+  r = como(A, `select paused_seconds between 598 and 602 from public.retomar_sessao('${idAtiva}')`);
+  verificar('retomar: soma os 10 min de pausa (600 s)', r.ok && r.out.split('\n').includes('t'), r.out || r.err);
+  r = psql(`update public.study_sessions set started_at = now() - interval '30 minutes', paused_seconds = 0, paused_at = now() - interval '5 minutes' where id = '${idAtiva}'`);
+  r = como(A, `select state || '|' || duration_min from public.terminar_sessao('${idAtiva}')`);
+  verificar('terminar: pausada há 5 min de 30 — conta 25 min, terminada', r.ok && r.out.split('\n').includes('terminada|25'), r.out || r.err);
+  r = como(A, `insert into public.study_sessions (kind, source, state, started_at) values ('revisao','cronometro','ativa', ${ontem('00:10')}) returning id`);
+  const idVelha = r.out.split('\n').find((l) => /^[0-9a-f-]{36}$/.test(l));
+  r = como(A, `select state || '|' || closed_reason || '|' || duration_min from public.terminar_sessao('${idVelha}')`);
+  verificar('terminar: depois do limite fecha NO limite, como por_confirmar (240 min)', r.ok && r.out.split('\n').includes('por_confirmar|limite_4h|240'), r.out || r.err);
+  r = como(A, `insert into public.study_sessions (kind, source, state) values ('leitura','cronometro','ativa') returning id`);
+  const idDeA = r.out.split('\n').find((l) => /^[0-9a-f-]{36}$/.test(l));
+  r = como(B, `select count(*) from public.terminar_sessao('${idDeA}')`);
+  const r4 = psql(`select state from public.study_sessions where id = '${idDeA}'`);
+  verificar('terminar: B não termina a sessão de A', r.ok && r.out.split('\n').includes('0') && r4.out === 'ativa', (r.out || r.err) + ' / ' + r4.out);
+  for (const fn of ['pausar_sessao', 'retomar_sessao', 'terminar_sessao']) {
+    r = como(null, `select count(*) from public.${fn}('${idDeA}')`, 'anon');
+    verificar(`${fn}: anon não a pode chamar`, !r.ok && /permission denied/.test(r.err), r.err);
+  }
+
   // ── apagar uma cadeira não apaga o histórico de sessões
   r = psql(`delete from public.study_sessions`);
   r = como(A, `with c as (select id from public.courses where vault_folder = 'Cadeira-Sintetica')
@@ -166,12 +196,12 @@ try {
 
   // ── rollback: tudo o que a migração criou desaparece, o resto fica. Primeiro, prova
   // de que existia — sem isto o teste do rollback passaria em vazio.
-  r = psql(`select (to_regclass('public.courses') is not null)::int + (to_regclass('public.study_sessions') is not null)::int + (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('normalizar_sessoes','limite_sessao','meia_noite_lisboa','study_sessions_tocar'))`);
-  verificar('rollback: antes dele, as 2 tabelas e as 4 funções existem', r.out === '6', r.out || r.err);
+  r = psql(`select (to_regclass('public.courses') is not null)::int + (to_regclass('public.study_sessions') is not null)::int + (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('normalizar_sessoes','limite_sessao','meia_noite_lisboa','study_sessions_tocar','pausar_sessao','retomar_sessao','terminar_sessao'))`);
+  verificar('rollback: antes dele, as 2 tabelas e as 7 funções existem', r.out === '9', r.out || r.err);
   const rb = psqlFicheiro(ROLLBACK);
   verificar('rollback: aplica-se', rb.ok, rb.err);
   r = psql(`select coalesce(to_regclass('public.courses')::text,'-') || '|' || coalesce(to_regclass('public.study_sessions')::text,'-') || '|' ||
-            (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('normalizar_sessoes','limite_sessao','meia_noite_lisboa','study_sessions_tocar'))`);
+            (select count(*) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('normalizar_sessoes','limite_sessao','meia_noite_lisboa','study_sessions_tocar','pausar_sessao','retomar_sessao','terminar_sessao'))`);
   verificar('rollback: tabelas e funções da migração desaparecem', r.out === '-|-|0', r.out || r.err);
   r = psql(`select count(*) from public.app_state`);
   verificar('rollback: não toca no que já existia (app_state intacta)', r.out === '1', r.out || r.err);

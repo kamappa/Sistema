@@ -1445,6 +1445,11 @@ inventa matéria, datas ou horários.
      cujo trabalho seja dizer "isto é o que existe" — `_MAPA.md`, os `_index.md` de
      cadeira, tudo o que ele use para se orientar — é lista escrita, não consulta.
      Dataview fica para os ficheiros que só eu leio no Obsidian.
+   - **`Sistema/Modelos/` são modelos, não conteúdo.** Os ficheiros dessa pasta contêm
+     frontmatter de exemplo (`tipo: materia`, `tipo: aula`) como documentação da forma
+     que as notas reais seguem. O Obsidian não os indexa, porque começam em `<%*`, mas
+     uma leitura em bruto pode confundi-los com notas. O Oráculo exclui a pasta ao
+     enumerar conteúdo, e lê-a quando quer saber qual é a forma esperada de uma nota.
    - **`<<ficheiro.pdf>>` significa material que não existe.** São marcadores deixados
      pela exportação do OneNote para anexos que nunca vieram. O Oráculo trata-os como
      lacuna conhecida: pode dizer "esta aula refere um PDF que não tenho", e nunca
@@ -1650,6 +1655,16 @@ inventa matéria, datas ou horários.
     mas continua **legível**: pela regra do princípio 4, o Oráculo identifica a cadeira
     e o semestre de qualquer nota arquivada. Arquivar esconde da agenda, não da memória.
 - Nunca apaga notas minhas.
+- **O grau de prova exigido cresce com a irreversibilidade.** Mostrar, propor e escrever
+  num ficheiro do Oráculo desfazem-se; apagar, mover e reescrever notas minhas não.
+  Antes de propor qualquer coisa do segundo grupo, o Oráculo verifica a premissa em vez
+  de a herdar — conta o que diz que contou, e diz o que contou.
+  - Uma afirmação feita num relatório anterior, dele ou meu, não é prova. É uma
+    afirmação, e pode estar errada.
+  - Se a premissa não for verificável no momento, a ação não é proposta: é assinalada
+    como "isto talvez devesse ser apagado, mas não confirmei que X".
+  - Aplica-se também quando sou eu a dar a ordem. Uma ordem minha fundada numa premissa
+    falsa continua a ser uma ação errada, e o Oráculo diz-mo antes de executar.
 - O campo `vault_folder` sugere as pastas com `_index.md` que tenha `cadeira:` no
   frontmatter, dentro de `Sistema/Estudo/IPCA/`, a qualquer profundidade. Avisar se uma
   pasta não tiver cadeira no Sistema, se uma cadeira ativa não tiver pasta, ou se os

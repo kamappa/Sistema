@@ -5,11 +5,27 @@
 // Chaves vivem nos Secrets, nunca no código do site.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { ativar as ativarModoTeste } from "./teste/modo-teste.ts";
 
 const SB_URL = Deno.env.get("SUPABASE_URL")!;
 const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_SECRET_KEY") ?? "";
 const AK = Deno.env.get("ANTHROPIC_API_KEY") ?? "";
 const TOKEN = (Deno.env.get("ORACLE_TOKEN") ?? "").trim();
+
+/* ===== MODO DE TESTE (Lote 0, 2026-09-23) =====
+   Com ORACLE_TEST_MODE=fixtures E um SUPABASE_URL local, a função corre sobre dados
+   fixos e sintéticos (teste/): a rede para a Anthropic e o GitHub e o cliente
+   Supabase são substituídos por duplos — zero chamadas pagas, zero escrita no vault.
+   Em produção o SUPABASE_URL é o do projeto, por isso o modo não pode ligar-se lá:
+   `TESTE` é null e `net`, `supabase()` e o `Deno.serve` são exatamente os de antes.
+   Corre-se com `node testes/fumo/fumo.mjs --so-oraculo`. */
+const TESTE = ativarModoTeste(Deno.env.get("ORACLE_TEST_MODE"), SB_URL, Number(Deno.env.get("ORACLE_TEST_PORT") ?? "8787"));
+const net: typeof fetch = TESTE ? TESTE.fetch : fetch;
+// O wrapper sem genéricos preserva o tipo que a chamada original inferia
+// (ReturnType<typeof createClient> resolvia o esquema para `never`).
+const criarCliente = () => createClient(SB_URL, SB_KEY);
+const supabase = (): ReturnType<typeof criarCliente> =>
+  TESTE ? (TESTE.supabase() as unknown as ReturnType<typeof criarCliente>) : criarCliente();
 
 /* ===== PONTE DO VAULT — leitura do repo privado do Obsidian =====
    O Oráculo só vê a árvore Sistema/Estudo/ do repo vault-sistema (privacidade
@@ -23,7 +39,7 @@ const VAULT_DEEP_CHARS = 30000; // ~8k tokens
 const VAULT_LIGHT_CHARS = 6000; // ~1.5k tokens
 
 async function gh(path: string): Promise<any> {
-  const r = await fetch("https://api.github.com" + path, {
+  const r = await net("https://api.github.com" + path, {
     headers: {
       authorization: "Bearer " + VTOKEN,
       accept: "application/vnd.github+json",
@@ -121,7 +137,7 @@ async function claude(system: string, user: string, useSearch = false): Promise<
     messages: [{ role: "user", content: user }],
   };
   if (useSearch) body.tools = [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }];
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
+  const r = await net("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -289,7 +305,7 @@ function resumoEstado(st: Record<string, any>): Record<string, unknown> {
 
 // chamada multi-turno própria do chat — não toca no claude() do radar/report
 async function chatClaude(system: string, messages: Array<{ role: string; content: string }>, maxTokens = CHAT_MAX_TOKENS): Promise<string> {
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
+  const r = await net("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": AK, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: maxTokens, system, messages }),
@@ -304,7 +320,7 @@ async function chatHandler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
   try {
     const jwt = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-    const sb = createClient(SB_URL, SB_KEY);
+    const sb = supabase();
     const { data: userData } = await sb.auth.getUser(jwt);
     const user = userData?.user;
     if (!user) return new Response(JSON.stringify({ error: "não autenticado" }), { status: 401, headers: H });
@@ -357,7 +373,7 @@ async function sussurroHandler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: H });
   try {
     const jwt = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-    const sb = createClient(SB_URL, SB_KEY);
+    const sb = supabase();
     const { data: userData } = await sb.auth.getUser(jwt);
     if (!userData?.user) return new Response(JSON.stringify({ error: "não autenticado" }), { status: 401, headers: H });
     const { data: row } = await sb.from("app_state").select("state").eq("user_id", userData.user.id).maybeSingle();
@@ -413,7 +429,7 @@ async function vaultWriteReport(rep: Record<string, any>, d: string): Promise<st
   const path = `Oraculo/relatorio-${d}.md`;
   let sha: string | undefined;
   try { sha = (await gh(`/repos/${VREPO}/contents/${path}`)).sha; } catch { /* nota nova */ }
-  const r = await fetch(`https://api.github.com/repos/${VREPO}/contents/${path}`, {
+  const r = await net(`https://api.github.com/repos/${VREPO}/contents/${path}`, {
     method: "PUT",
     headers: {
       authorization: "Bearer " + VTOKEN,
@@ -467,7 +483,7 @@ async function gerarReport(st: Record<string, unknown>): Promise<Record<string, 
    vault — para testar a ponta a ponta sem sujar o histórico real. */
 async function operador(req: Request): Promise<Record<string, any> | null> {
   const jwt = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-  const sb = createClient(SB_URL, SB_KEY);
+  const sb = supabase();
   const { data: userData } = await sb.auth.getUser(jwt);
   if (!userData?.user) return null;
   const { data: row } = await sb.from("app_state").select("state").eq("user_id", userData.user.id).maybeSingle();
@@ -505,7 +521,7 @@ async function reportDryHandler(req: Request): Promise<Response> {
   }
 }
 
-Deno.serve(async (req) => {
+const handler = async (req: Request): Promise<Response> => {
   const url = new URL(req.url);
   const mode = url.searchParams.get("mode") || "radar";
   // modos de browser (JWT + CORS) — tratados à parte; radar/report intocados abaixo
@@ -522,7 +538,7 @@ Deno.serve(async (req) => {
       "| secret existe:", TOKEN.length > 0, "| anthropic key existe:", AK.length > 0);
     return new Response("forbidden", { status: 403 });
   }
-  const sb = createClient(SB_URL, SB_KEY);
+  const sb = supabase();
 
   const { data: users, error } = await sb.from("app_state").select("user_id,state");
   if (error) return new Response("db: " + error.message, { status: 500 });
@@ -606,4 +622,7 @@ Deno.serve(async (req) => {
     }
   }
   return new Response("ok " + mode, { status: 200 });
-});
+};
+
+if (TESTE) TESTE.servir(handler);
+else Deno.serve(handler);

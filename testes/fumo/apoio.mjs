@@ -76,6 +76,7 @@ export async function abrirSeparador(chrome) {
   const pendentes = new Map();
   const eventos = [];
   const pedidos = new Map();
+  const ouvintes = new Map(); // método CDP → função (ex.: Fetch.requestPaused, para filtrar a rede)
   let fase = 'inicio';
   ws.onmessage = (ev) => {
     const m = JSON.parse(ev.data);
@@ -84,6 +85,7 @@ export async function abrirSeparador(chrome) {
       return m.error ? rej(new Error(m.error.message)) : res(m.result);
     }
     const p = m.params;
+    if (ouvintes.has(m.method)) ouvintes.get(m.method)(p);
     switch (m.method) {
       case 'Runtime.consoleAPICalled': {
         const texto = (p.args || []).map((a) => (a.value !== undefined ? String(a.value) : (a.description || a.type))).join(' ');
@@ -118,6 +120,7 @@ export async function abrirSeparador(chrome) {
     get fase() { return fase; },
     enviar,
     avaliar,
+    ouvir(metodo, fn) { ouvintes.set(metodo, fn); },
     async navegar(url, esperaMs) { await enviar('Page.navigate', { url }); await sleep(esperaMs); },
     async captura(ficheiro) {
       const r = await enviar('Page.captureScreenshot', { format: 'png' });

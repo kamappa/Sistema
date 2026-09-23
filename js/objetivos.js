@@ -77,11 +77,11 @@ function renderObjectives(){
       dl=`<span class="up-x" style="color:${c}">${d<0?'atrasado':d===0?'hoje':d+'d'}</span>`;}
     return`<div class="obj-row ${o.status}" data-oid="${o.id}">
       <span class="obj-st" onclick="cycleObj('${o.id}',event)" title="pendente → em curso → feito">${OSTL[o.status]}</span>
-      <span class="obj-t">${o.title}</span>
+      <span class="obj-t">${escHTML(o.title)}</span>
       <span class="wchip" style="border-color:${AM[o.area].color};color:${AM[o.area].color};padding:2px 8px">${AM[o.area].name}</span>
       <span class="wchip" style="border-color:${p.c};color:${p.c};padding:2px 8px">${TIER_LABEL[o.pri]}</span>
       ${(o.arc&&o.arc===curArc)?`<span class="wchip" style="padding:1px 7px;font-size:9px;border-color:var(--line2);color:var(--mut)">${curArcLabel}</span>`:''}
-      ${(o.tags||[]).map(tg=>`<span class="wchip" style="padding:1px 7px;font-size:9px;border-color:var(--line2);color:var(--mut)">${tg}</span>`).join('')}
+      ${(o.tags||[]).map(tg=>`<span class="wchip" style="padding:1px 7px;font-size:9px;border-color:var(--line2);color:var(--mut)">${escHTML(tg)}</span>`).join('')}
       ${dl}<span class="up-del" onclick="delObjective('${o.id}',event)">✕</span></div>`}).join('');
   el.innerHTML=`
    <div class="obj-filters">
@@ -103,7 +103,7 @@ function renderShadows(){
    <div class="shd-grid">${S.shadows.length?S.shadows.slice().reverse().map(s=>{
      /* raridade determinística por nível (F5 v3): 3=Comum, 6=Rara, 10=Épica, 15=Lendária */
      const r=s.lvl>=15?['len','Lendária']:s.lvl>=10?['epi','Épica']:s.lvl>=6?['rar','Rara']:['com','Comum'];
-     return`<div class="shd shd-${r[0]}"><div class="shd-n">🗡 ${s.name}</div><div class="shd-r">${r[1]} · Nv ${s.lvl}</div><div class="shd-l">Ergueu-se a ${s.d.slice(8,10)}/${s.d.slice(5,7)}/${s.d.slice(0,4)}</div></div>`;
+     return`<div class="shd shd-${r[0]}"><div class="shd-n">🗡 ${escHTML(s.name)}</div><div class="shd-r">${r[1]} · Nv ${s.lvl}</div><div class="shd-l">Ergueu-se a ${s.d.slice(8,10)}/${s.d.slice(5,7)}/${s.d.slice(0,4)}</div></div>`;
    }).join(''):'<div class="up-empty">O exército aguarda. Conclui objetivos — e eles erguem-se para trabalhar por ti.</div>'}</div>`;
 }
 

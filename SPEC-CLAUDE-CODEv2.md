@@ -1367,6 +1367,15 @@ inventa matéria, datas ou horários.
      é o semestre corrente. Uma cadeira arquivada continua legível e identificada.
    - Isto vale para qualquer domínio, não só `IPCA/`: a regra é a mesma em
      `Sistema/<Domínio>/<Item>/Aulas/`.
+   - **Atribuir e enumerar são duas coisas diferentes.** A regra acima atribui uma nota
+     de aula à sua cadeira. Para *enumerar* as cadeiras que existem, o marcador é outro:
+     uma pasta é cadeira quando tem um `_index.md` com o campo `cadeira:` no
+     frontmatter. Esse ficheiro traz também `ects:`, `semestre:` e `aulas:`.
+   - A razão é concreta: uma cadeira que eu faça só por exame não tem `Aulas/` nenhuma,
+     e pela regra de atribuição seria invisível. O `_index.md` é declaração explícita,
+     não inferência a partir da forma da pasta.
+   - Em caso de divergência entre o `_index.md` do vault e a tabela `courses`, manda a
+     tabela. O `_index.md` é etiqueta para eu ler; o Sistema é a fonte operacional.
    - **Id da aula.** Cada nota de aula tem um id estável: `AAAA-MM-DD`, com sufixo
      `-2`, `-3`… quando há mais do que uma aula dessa cadeira no mesmo dia. O id está
      no frontmatter (`id:`) e é também o prefixo do nome do ficheiro.
@@ -1378,6 +1387,26 @@ inventa matéria, datas ou horários.
    - Ordem de leitura do id: frontmatter `id:` primeiro; se faltar, o prefixo
      `AAAA-MM-DD[-n]` do nome do ficheiro.
    - Nenhum outro metadado é obrigatório dentro da nota.
+   - **Marcas inline.** Dentro do corpo da nota posso escrever duas marcas, no sítio
+     exato a que se referem:
+     - `#exame` — o professor disse que isto sai, ou eu percebi que é matéria de
+       avaliação;
+     - `#duvida` — não percebi isto, ou ficou por esclarecer.
+   - São marcas, não categorias, e por isso são planas em vez de seguirem a hierarquia
+     `tipo/` e `estudo/` do resto. A consistência perde aqui de propósito: isto é
+     escrito enquanto alguém está a falar, e duas sílabas é o máximo de atrito
+     aceitável.
+   - O Oráculo lê cada marca **com o parágrafo à volta**, não só o facto de existir.
+     Um `#exame` sem contexto não vale nada; o que vale é "o parágrafo sobre a cláusula
+     6.1.2 está marcado como matéria de exame".
+   - O que as marcas alimentam: `#exame` entra nos planos de estudo e na priorização
+     (ver `ects` e a relevância na Missão 32); `#duvida` é gatilho de proposta de
+     missão e aparece no resumo pós-aula como lacuna por fechar.
+   - Uma marca nunca é apagada nem alterada pelo Oráculo. Se eu resolver uma dúvida,
+     sou eu que tiro o `#duvida`.
+   - **Datas de exame não vivem no vault.** Vivem na tabela do Sistema, e só lá. Uma
+     data em dois sítios é uma data que um dia vai divergir, e neste caso a divergência
+     custa-me um exame.
    - Várias aulas da mesma cadeira no mesmo dia: nomes diferentes com o mesmo prefixo de data (o modelo Templater numera a aula). Correspondência com as ocorrências
      do calendário:
      1. se o número de notas e o de aulas assistidas (sem `cancelada`/`nao_vou`)
@@ -1602,9 +1631,10 @@ inventa matéria, datas ou horários.
     mas continua **legível**: pela regra do princípio 4, o Oráculo identifica a cadeira
     e o semestre de qualquer nota arquivada. Arquivar esconde da agenda, não da memória.
 - Nunca apaga notas minhas.
-- O campo `vault_folder` sugere as pastas que contêm `Aulas/` dentro de
-  `Sistema/Estudo/IPCA/`, a qualquer profundidade. Avisar se uma pasta não tiver
-  cadeira ou se uma cadeira ativa não tiver pasta.
+- O campo `vault_folder` sugere as pastas com `_index.md` que tenha `cadeira:` no
+  frontmatter, dentro de `Sistema/Estudo/IPCA/`, a qualquer profundidade. Avisar se uma
+  pasta não tiver cadeira no Sistema, se uma cadeira ativa não tiver pasta, ou se os
+  `ects` divergirem entre o `_index.md` e a tabela.
 
 **Programa**
 

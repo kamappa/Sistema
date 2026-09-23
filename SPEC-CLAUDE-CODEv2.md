@@ -1370,7 +1370,9 @@ inventa matéria, datas ou horários.
    - **Atribuir e enumerar são duas coisas diferentes.** A regra acima atribui uma nota
      de aula à sua cadeira. Para *enumerar* as cadeiras que existem, o marcador é outro:
      uma pasta é cadeira quando tem um `_index.md` com o campo `cadeira:` no
-     frontmatter. Esse ficheiro traz também `ects:`, `semestre:` e `aulas:`.
+     frontmatter. Nas cadeiras ativas traz também `ects:`, `semestre:` e `aulas:`; nas
+     arquivadas só `cadeira:` e `semestre:` (decisão de 2026-09-23: manda o contrato do
+     vault — o ECTS e as aulas de uma cadeira acabada não têm uso, e vazio é honesto).
    - A razão é concreta: uma cadeira que eu faça só por exame não tem `Aulas/` nenhuma,
      e pela regra de atribuição seria invisível. O `_index.md` é declaração explícita,
      não inferência a partir da forma da pasta.
@@ -1503,7 +1505,13 @@ inventa matéria, datas ou horários.
     nunca gera resumo pós-aula, e a ausência de notas nela **não** é assinalada como
     lacuna. Continua a poder ter `Notas/`, plano de exame e recall.
   - `color` (opcional)
-  - `active`
+  - `active` (booleano) — o único estado guardado da cadeira (decisão de 2026-09-23).
+    "A decorrer", "aulas terminadas", "em avaliação" e "concluída" calculam-se de
+    `classes_until` e dos exames; não se guardam.
+  - Construída no Lote 1 (Missão 34 · Fase A), com os nomes de coluna da migração
+    `20260923120000`: `name`, `short_name`, `vault_folder` (o nome da pasta, nunca o
+    caminho), `academic_year`, `semester`, `ects` e `has_classes` (vazios nas
+    arquivadas), `active`, `color`, `classes_from`, `classes_until`.
 - `syllabus_topics`
   - `course_id`, `position` (numeração automática), `title`
   - `status`: `proposto` | `confirmado`
@@ -1552,8 +1560,10 @@ inventa matéria, datas ou horários.
   - `title`, `date_start`, `date_end`, `course_id` (opcional), `priority`, `source`
   - `suppresses_classes`: verdadeiro para feriados e pausas
 - `courses` ganha:
-  - `classes_from`, `classes_until` (último dia de aulas da cadeira)
-  - `state`: `a_decorrer` | `aulas_terminadas` | `em_avaliacao` | `concluida`
+  - `classes_from`, `classes_until` (último dia de aulas da cadeira) — já criadas no
+    Lote 1, vazias até haver calendário.
+  - ~~`state`~~ — retirado (decisão de 2026-09-23): o ciclo de vida da cadeira
+    calcula-se de `classes_until` e dos exames; o único estado guardado é `active`.
 
 **Exames e planos**
 
@@ -1636,8 +1646,10 @@ inventa matéria, datas ou horários.
 **Cadeiras**
 
 - Criadas a partir do horário do IPCA ou à mão.
-- `status`: `ativa` | `arquivada`, com `semestre` e `ano_letivo`.
-- Só as cadeiras `ativa` entram em resumos pós-aula, planos e relatórios. As
+- `active` (booleano): verdadeiro nas ativas, falso nas arquivadas, com `semester` e
+  `academic_year` (decisão de 2026-09-23: um só campo de estado; o antigo `status`
+  saiu).
+- Só as cadeiras ativas entram em resumos pós-aula, planos e relatórios. As
   arquivadas continuam pesquisáveis e disponíveis em pedidos.
 
 **Sincronizar a estrutura do vault (com aprovação)**
@@ -3087,7 +3099,11 @@ diferentes).
 
 # Missão 34 — Sessões de Estudo (tempo real, medido)
 
-Estado: planeada. Missão pequena e independente. Pode ser feita ANTES da Missão 31,
+Estado: **Fase A construída no Lote 1** (2026-09-23, ramo `lote-1/m34-sessoes-e-courses`),
+testada e **por aplicar** — a migração `20260923120000` só corre com o dump feito e por
+ordem do Daniel. Decisões do lote no fim desta secção.
+
+Missão pequena e independente. Pode ser feita ANTES da Missão 31,
 porque dá valor no primeiro dia e não depende de nada: é a forma de eu começar a usar o
 Sistema já, em vez de esperar pelas missões grandes.
 
@@ -3219,3 +3235,48 @@ Passar a ter tempo de estudo medido, separando claramente:
 
 A → B → C → D, com uma semana de uso real entre fases. A Fase A sozinha já é útil e
 pode ficar assim durante muito tempo.
+
+## Lote 1 — o que foi construído e as decisões dentro do âmbito (2026-09-23)
+
+Ramo `lote-1/m34-sessoes-e-courses`, empilhado sobre o Lote 0. Nada aplicado em
+produção.
+
+- Migração `supabase/migrations/20260923120000_courses-e-sessoes-de-estudo.sql`, com o
+  rollback em `supabase/rollback/` e RLS com política na mesma migração. Testada num
+  PostgreSQL local e descartável: `node testes/bd/bd.mjs`.
+- Painel "Sessões de Estudo" no HUD, logo a seguir à saudação (`js/sessoes.js`, contas
+  de tempo em `js/sessoes-logica.js`): iniciar, pausar, retomar e terminar; aviso das
+  2 h; por confirmar (aceitar, corrigir, descartar); últimos 7 dias (editar, apagar);
+  sessão manual.
+- Testes: `node testes/sessoes/logica.test.mjs` (lógica pura) e
+  `node testes/sessoes/ui.mjs` (Chrome real, Supabase falso, rede fechada).
+
+Lacunas da missão resolvidas dentro do âmbito:
+
+1. **Pausas.** A Fase A pede o botão Pausar e o modelo não tinha onde o guardar:
+   `paused_at` e `paused_seconds`. A `duration_min` desconta as pausas.
+2. **A hora é a do servidor.** `started_at` por omissão `now()`; pausar, retomar e
+   terminar são funções SQL. O relógio no ecrã usa a hora do aparelho só para mostrar;
+   a duração guardada é a do servidor.
+3. **Fecho automático sem cron novo.** A app chama `normalizar_sessoes()` ao abrir, de
+   minuto a minuto e ao voltar ao separador. Uma sessão esquecida fecha **no limite**
+   (4 h ou meia-noite de Lisboa, o que vier primeiro), não na hora em que a app
+   reabriu; terminar depois do limite dá o mesmo resultado. `closed_reason`
+   (`limite_4h` | `meia_noite`) diz porque o Sistema a fechou.
+4. `topic_id` sem chave estrangeira até existir `syllabus_topics` (Missão 31).
+5. **Corrigir as horas torna a sessão `manual`**: passa a contar o que foi declarado.
+   Só se envia o campo que mudou.
+6. **O mesmo tempo não conta duas vezes.** Uma sessão manual ou editada que se sobreponha
+   a outra é recusada (verificado contra a base antes de gravar). Uma restrição de
+   exclusão na própria base fica como proposta: exigiria a extensão `btree_gist`.
+7. **Descartar** mantém a linha, marcada `descartada` e fora das contas; **apagar**
+   apaga. Os dois pedem confirmação no próprio painel.
+8. O aviso das 2 h é só dentro da app ("Continuo" fica guardado neste aparelho). A
+   notificação push chega com a Missão 31 B.
+9. Até haver calendário (Missão 31 A) para sugerir a aula em curso, vem pré-escolhida a
+   última cadeira e o último tipo usados neste aparelho.
+10. Sem conta, o painel explica que as sessões vivem na conta e não mede. Sem a migração
+    aplicada, não aparece.
+11. O seed das cadeiras gera-se do vault no momento de aplicar e fica fora do
+    repositório (público). As arquivadas entram com o nome tal como está no vault
+    (`cadeira:` = nome da pasta) — não se inventa o nome por extenso.

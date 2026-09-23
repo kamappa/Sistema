@@ -55,8 +55,10 @@ const verificar = (nome, cond, detalhe = '') => resultados.push({ nome, ok: !!co
 try {
   let r = correr('initdb', ['-D', dados, '-U', 'postgres', '-A', 'trust', '-E', 'UTF8', '--no-locale']);
   if (r.status !== 0) throw new Error('initdb: ' + r.stderr);
-  r = correr('pg_ctl', ['-D', dados, '-o', `-p ${porta} -h 127.0.0.1`, '-l', path.join(pasta, 'log.txt'), '-w', 'start']);
-  if (r.status !== 0) throw new Error('pg_ctl start: ' + r.stderr + fs.readFileSync(path.join(pasta, 'log.txt'), 'utf8'));
+  // stdio 'ignore': no Windows o servidor herda os canais do pg_ctl e um spawnSync com
+  // 'pipe' esperava o timeout inteiro (120 s) antes de seguir — medido a 2026-09-24.
+  r = spawnSync(bin('pg_ctl'), ['-D', dados, '-o', `-p ${porta} -h 127.0.0.1`, '-l', path.join(pasta, 'log.txt'), '-w', 'start'], { stdio: 'ignore', timeout: 120000 });
+  if (r.status !== 0) throw new Error('pg_ctl start: ' + fs.readFileSync(path.join(pasta, 'log.txt'), 'utf8'));
   const calco = psqlFicheiro(path.join(aqui, 'calco-supabase.sql'));
   if (!calco.ok) throw new Error('calço: ' + calco.err);
 
@@ -165,8 +167,14 @@ try {
   r = como(A, `select paused_seconds between 598 and 602 from public.retomar_sessao('${idAtiva}')`);
   verificar('retomar: soma os 10 min de pausa (600 s)', r.ok && r.out.split('\n').includes('t'), r.out || r.err);
   r = psql(`update public.study_sessions set started_at = now() - interval '30 minutes', paused_seconds = 0, paused_at = now() - interval '5 minutes' where id = '${idAtiva}'`);
-  r = como(A, `select state || '|' || duration_min from public.terminar_sessao('${idAtiva}')`);
-  verificar('terminar: pausada há 5 min de 30 — conta 25 min, terminada', r.ok && r.out.split('\n').includes('terminada|25'), r.out || r.err);
+  // O now() do PostgreSQL não se pode fixar: entre as 00:00 e as 00:30 de Lisboa esta
+  // janela de 30 min atravessa a meia-noite, e o certo é fechar NA meia-noite (medido a
+  // 2026-09-24, 00:15). Nos dois casos a expectativa é literal, não recalculada.
+  const cruzaMeiaNoite = psql(`select public.limite_sessao(now() - interval '30 minutes') <= now()`).out === 't';
+  r = como(A, `select state || '|' || duration_min || '|' || coalesce(closed_reason, '') || '|' || (ended_at = public.meia_noite_lisboa(started_at)) from public.terminar_sessao('${idAtiva}')`);
+  // (um booleano concatenado com || passa a texto como true/false, não t/f)
+  if (!cruzaMeiaNoite) verificar('terminar: pausada há 5 min de 30 — conta 25 min, terminada', r.ok && r.out.split('\n').includes('terminada|25||false'), r.out || r.err);
+  else verificar('terminar: 30 min a atravessar a meia-noite — fecha NA meia-noite, por confirmar', r.ok && r.out.split('\n').some((l) => /^por_confirmar\|\d+\|meia_noite\|true$/.test(l)), r.out || r.err);
   r = como(A, `insert into public.study_sessions (kind, source, state, started_at) values ('revisao','cronometro','ativa', ${ontem('00:10')}) returning id`);
   const idVelha = r.out.split('\n').find((l) => /^[0-9a-f-]{36}$/.test(l));
   r = como(A, `select state || '|' || closed_reason || '|' || duration_min from public.terminar_sessao('${idVelha}')`);
@@ -208,7 +216,7 @@ try {
 } catch (e) {
   resultados.push({ nome: 'arranque do teste', ok: false, detalhe: String(e) });
 } finally {
-  correr('pg_ctl', ['-D', dados, '-m', 'fast', '-w', 'stop']);
+  spawnSync(bin('pg_ctl'), ['-D', dados, '-m', 'fast', '-w', 'stop'], { stdio: 'ignore', timeout: 60000 });
   try { fs.rmSync(pasta, { recursive: true, force: true }); } catch { /* o Windows pode segurar ficheiros um instante */ }
 }
 

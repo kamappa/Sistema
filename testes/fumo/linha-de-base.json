@@ -1,0 +1,89 @@
+{
+  "frontend": {
+    "gerada": "2026-09-23",
+    "base": "8938223",
+    "nota": "medida com a aplicação intacta (origin/main 3bca82b + .gitignore)",
+    "verificacoes": {
+      "calibracao": {
+        "consolaErro": true,
+        "consolaAviso": true,
+        "excecao": true,
+        "http404": true
+      },
+      "desktop": {
+        "ecraEntrada": true,
+        "semSessao": true,
+        "zonas": {
+          "greet-h": 97,
+          "oblig": 683,
+          "objs": 395,
+          "constel-cv": 285,
+          "training": 1226,
+          "recall": 365,
+          "oc-log": 101
+        },
+        "foraDoEcra": null,
+        "arranqueCorreu": true
+      },
+      "estacao": {
+        "abre": true,
+        "planetas": 7,
+        "fechaComEsc": true
+      },
+      "mobile": {
+        "ecraEntrada": true,
+        "zonas": {
+          "greet-h": 97,
+          "oblig": 683,
+          "objs": 395,
+          "constel-cv": 285,
+          "training": 1226,
+          "recall": 420,
+          "oc-log": 101
+        },
+        "foraDoEcra": null,
+        "botaoEstacao": true
+      },
+      "movimentoReduzido": {
+        "ecraEntrada": true,
+        "zonas": {
+          "greet-h": 97,
+          "oblig": 683,
+          "objs": 395,
+          "constel-cv": 285,
+          "training": 1226,
+          "recall": 370,
+          "oc-log": 101
+        },
+        "arranqueSaltado": true
+      },
+      "semSupabase": {
+        "ecraEntrada": true,
+        "zonas": {
+          "greet-h": 97,
+          "oblig": 683,
+          "objs": 395,
+          "constel-cv": 285,
+          "training": 1226,
+          "recall": 386,
+          "oc-log": 101
+        }
+      },
+      "semCdn": {
+        "ecraEntrada": false,
+        "zonas": {
+          "greet-h": 97,
+          "oblig": 683,
+          "objs": 395,
+          "constel-cv": 285,
+          "training": 1226,
+          "recall": 405,
+          "oc-log": 101
+        }
+      }
+    },
+    "assinaturasDeErro": [
+      "rede|error| bloqueado:inspector|https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    ]
+  }
+}

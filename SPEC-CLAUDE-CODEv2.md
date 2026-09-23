@@ -1374,6 +1374,15 @@ inventa matéria, datas ou horários.
    - A razão é concreta: uma cadeira que eu faça só por exame não tem `Aulas/` nenhuma,
      e pela regra de atribuição seria invisível. O `_index.md` é declaração explícita,
      não inferência a partir da forma da pasta.
+   - **A regra só funciona se os dados a acompanharem.** Toda a pasta de cadeira tem
+     `_index.md` com `cadeira:`, incluindo as arquivadas — se faltar numa, essa cadeira
+     deixa de existir para o Oráculo, em silêncio. Duas consequências operacionais:
+     arquivar uma cadeira nunca lhe tira o `_index.md`, e uma cadeira nova sem
+     `_index.md` é um erro que o Sistema assinala em vez de tolerar.
+   - Isto também é o que torna a regra utilizável hoje: o Git não guarda pastas vazias,
+     por isso uma cadeira recém-criada não tem `Aulas/` no repositório até eu escrever
+     a primeira nota. Pela regra de atribuição, o Oráculo veria zero cadeiras. Pelo
+     `_index.md`, vê-as todas desde o primeiro dia.
    - Em caso de divergência entre o `_index.md` do vault e a tabela `courses`, manda a
      tabela. O `_index.md` é etiqueta para eu ler; o Sistema é a fonte operacional.
    - **Id da aula.** Cada nota de aula tem um id estável: `AAAA-MM-DD`, com sufixo
@@ -1430,6 +1439,16 @@ inventa matéria, datas ou horários.
    - Várias cadeiras terão ficheiros com o mesmo nome (`2026-09-16.md`).
    - Tudo o que o Oráculo escreve no vault usa ligações com caminho, por exemplo
      `[[Sistema/Estudo/IPCA/Etica/Aulas/2026-09-16]]`, nunca `[[2026-09-16]]`.
+   - **O que o Oráculo lê tem de ser estático.** Ele lê markdown em bruto do GitHub, não
+     o Obsidian a renderizar. Um bloco Dataview, para ele, é uma cerca de código com uma
+     pergunta lá dentro: vê a pergunta, nunca a resposta. Por isso qualquer ficheiro
+     cujo trabalho seja dizer "isto é o que existe" — `_MAPA.md`, os `_index.md` de
+     cadeira, tudo o que ele use para se orientar — é lista escrita, não consulta.
+     Dataview fica para os ficheiros que só eu leio no Obsidian.
+   - **`<<ficheiro.pdf>>` significa material que não existe.** São marcadores deixados
+     pela exportação do OneNote para anexos que nunca vieram. O Oráculo trata-os como
+     lacuna conhecida: pode dizer "esta aula refere um PDF que não tenho", e nunca
+     supõe o conteúdo a partir do nome do ficheiro.
 9. **O Oráculo nunca escreve nas minhas notas por iniciativa própria.**
    - Única exceção: "Editar com o Oráculo" (Fase C), pedido por etiqueta
      (`oraculo: editar`) ou por botão, e só gravado depois de eu aceitar a alteração

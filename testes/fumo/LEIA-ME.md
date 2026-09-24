@@ -53,7 +53,8 @@ mão no teste, a partir dos dados fixos.
 
 - Os caminhos com dados reais: sincronização com o Supabase, Oráculo com sessão, radar
   e relatório com itens reais.
-- A função **publicada** (continua a v19 até haver um deploy aprovado) e o cron real.
+- A função **publicada** e o cron real: o teste corre a função do repositório, no modo
+  de teste.
 - Regressões visuais finas: as capturas ficam na pasta temporária para quem as quiser
   ver, mas não há comparação de píxeis.
 

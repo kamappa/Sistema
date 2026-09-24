@@ -1508,10 +1508,11 @@ inventa matéria, datas ou horários.
   - `active` (booleano) — o único estado guardado da cadeira (decisão de 2026-09-23).
     "A decorrer", "aulas terminadas", "em avaliação" e "concluída" calculam-se de
     `classes_until` e dos exames; não se guardam.
-  - Construída no Lote 1 (Missão 34 · Fase A), com os nomes de coluna da migração
-    `20260923120000`: `name`, `short_name`, `vault_folder` (o nome da pasta, nunca o
-    caminho), `academic_year`, `semester`, `ects` e `has_classes` (vazios nas
-    arquivadas), `active`, `color`, `classes_from`, `classes_until`.
+  - Construída no Lote 1 (Missão 34 · Fase A) e em produção desde 2026-09-24, com os
+    nomes de coluna da migração `20260923120000`: `name`, `short_name`, `vault_folder`
+    (o nome da pasta, nunca o caminho), `academic_year`, `semester`, `ects` e
+    `has_classes` (vazios nas arquivadas), `active`, `color`, `classes_from`,
+    `classes_until`.
 - `syllabus_topics`
   - `course_id`, `position` (numeração automática), `title`
   - `status`: `proposto` | `confirmado`
@@ -2289,6 +2290,10 @@ README desse repositório é o manual de configurar, repor e testar).
 - Testes: `node testes/testar.mjs` nesse repositório — dois PostgreSQL locais, a
   estrutura real com dados sintéticos, 39 verificações, 7 mutações apanhadas, workflow
   validado pelo `actionlint` e o bit de execução dos scripts verificado (o runner é Linux).
+- 2026-09-24: primeira corrida do `dump.sh` e da guarda contra a base real — um dump
+  manual antes da migração do Lote 1, feito no portátil com o `pg_dump` 18 pelo Session
+  pooler (porta 5432) e guardado fora do repositório: guarda ok, sem `cron.job` nem
+  token. Não substitui a corrida no GitHub Actions.
 - Por fazer, do Daniel: a chave age, o bucket B2 (regras e chave só de escrita), o
   repositório privado com os segredos e as variáveis, e a primeira corrida manual.
   Depois: o teste de restauro num projeto descartável, que fecha a Fase A.
@@ -2323,7 +2328,7 @@ README desse repositório é o manual de configurar, repor e testar).
 - O relatório e o radar devem agrupar a atividade por cadeira (pasta), e não só listar
   caminhos.
 
-**Estado (Lote 2, 2026-09-23, ramo `lote-2/oraculo-commits-e-seguranca`, por publicar):**
+**Estado (Lote 2, 2026-09-23; publicado a 2026-09-24 — `main` `bc0cbb0` e Oráculo v20):**
 as cinco correções estão feitas e testadas, junto com o achado prioritário da auditoria
 (commits apresentados como estudo em 8 sítios do Oráculo).
 
@@ -2347,6 +2352,15 @@ as cinco correções estão feitas e testadas, junto com o achado prioritário d
   `urlSegura` em `js/engine.js`; prova em `node testes/seguranca/xss-oraculo.mjs`.
 - Testes: `deno test --no-prompt testes/oraculo/vault-lista.test.ts` (lógica pura) e
   `node testes/fumo/fumo.mjs --so-oraculo` (a função inteira, em modo de teste).
+- Publicado a 2026-09-24: o Oráculo v20 (era a v19, de 2026-07-19) saiu de um export do
+  commit `bc0cbb0`, e os ficheiros publicados são byte a byte os do commit.
+- **O Oráculo não completa nenhuma corrida desde 2026-08-15** (último radar a
+  2026-08-14, último relatório a 2026-08-09) — causa provável o saldo da Anthropic, por
+  confirmar. A prova de que voltou: itens novos em `radar_items` minutos depois das
+  06:30 UTC (`radar-diario`) e um relatório novo ao domingo depois das 19:00 UTC
+  (`oraculo-semanal`). O `Timeout of 5000 ms` que o `pg_net` regista não é a avaria: é o
+  limite do próprio `pg_net`; até 14/08 os itens nasciam 1–2 min depois do disparo, com
+  a função a continuar depois de o `pg_net` desligar.
 
 ## Escalabilidade (atividades novas no futuro)
 
@@ -3148,9 +3162,11 @@ diferentes).
 
 # Missão 34 — Sessões de Estudo (tempo real, medido)
 
-Estado: **Fase A construída no Lote 1** (2026-09-23, ramo `lote-1/m34-sessoes-e-courses`),
-testada e **por aplicar** — a migração `20260923120000` só corre com o dump feito e por
-ordem do Daniel. Decisões do lote no fim desta secção.
+Estado: **Fase A em produção desde 2026-09-24** (construída no Lote 1 a 2026-09-23; em
+`main` desde `bc0cbb0`). A migração `20260923120000` foi aplicada por ordem do Daniel,
+depois de um dump guardado fora do repositório; o seed pôs as 14 cadeiras do vault (8
+ativas, 6 arquivadas). Falta a prova de uso: o painel com a conta real. O que foi
+aplicado e verificado, e as decisões do lote, estão no fim desta secção.
 
 Missão pequena e independente. Pode ser feita ANTES da Missão 31,
 porque dá valor no primeiro dia e não depende de nada: é a forma de eu começar a usar o
@@ -3287,8 +3303,9 @@ pode ficar assim durante muito tempo.
 
 ## Lote 1 — o que foi construído e as decisões dentro do âmbito (2026-09-23)
 
-Ramo `lote-1/m34-sessoes-e-courses`, empilhado sobre o Lote 0. Nada aplicado em
-produção.
+Ramo `lote-1/m34-sessoes-e-courses`, empilhado sobre o Lote 0; em `main` desde
+2026-09-24 (`bc0cbb0`, com os lotes 0, 2 e 3) e aplicado em produção no mesmo dia —
+ver "Aplicado em produção" no fim desta secção.
 
 - Migração `supabase/migrations/20260923120000_courses-e-sessoes-de-estudo.sql`, com o
   rollback em `supabase/rollback/` e RLS com política na mesma migração. Testada num
@@ -3329,3 +3346,30 @@ Lacunas da missão resolvidas dentro do âmbito:
 11. O seed das cadeiras gera-se do vault no momento de aplicar e fica fora do
     repositório (público). As arquivadas entram com o nome tal como está no vault
     (`cadeira:` = nome da pasta) — não se inventa o nome por extenso.
+
+### Aplicado em produção (2026-09-24)
+
+Cada passo foi corrido pelo Daniel e verificado só com leituras antes do seguinte.
+
+1. **Dump** da base real antes de tocar em nada, com os scripts das cópias (`dump.sh` e
+   a guarda), guardado fora do repositório: somas SHA-256 e guarda ok, sem `cron.job`
+   nem token.
+2. **Migração** `20260923120000` com `supabase db push` — a primeira entrada do
+   histórico `supabase_migrations` (antes, tudo tinha entrado pelo painel). `courses` e
+   `study_sessions` com RLS ligada e a política de dono (`for all to authenticated`,
+   `user_id = (select auth.uid())`); as 7 funções com `SECURITY INVOKER` e
+   `search_path` vazio, sem EXECUTE para o `anon`; `study_sessions_tocar` só como
+   gatilho. As tabelas que já existiam ficaram com as mesmas contagens.
+3. **Seed** das cadeiras, gerado do vault e fora do repositório: 14 (8 ativas de 2026-27
+   S1, 6 arquivadas de 2025-26 S2), iguais ao seed campo a campo, acentos incluídos.
+4. **Frontend**: `main` = `bc0cbb0`, publicado pelo GitHub Pages; os ficheiros servidos
+   são byte a byte os do commit, e um Chrome com perfil vazio arranca sem erros de
+   consola, em desktop e mobile.
+5. **Oráculo v20**, publicado de um export do commit — ver o estado do Lote 2.
+
+Antes do push, os testes correram sobre a junção: fumo completo verde (sem erros novos
+face à linha de base), `bd.mjs` 49/49, `sessoes/ui.mjs` 67/67, `sessoes/logica.test.mjs`
+41/41, `xss-oraculo.mjs` 9/9 e `vault-lista.test.ts` 8/8.
+
+A mesma verificação encontrou **11 tabelas** no `public` de produção, não as 3 que o
+README das migrações descrevia — corrigido lá.

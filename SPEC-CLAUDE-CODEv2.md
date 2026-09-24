@@ -1370,7 +1370,9 @@ inventa matéria, datas ou horários.
    - **Atribuir e enumerar são duas coisas diferentes.** A regra acima atribui uma nota
      de aula à sua cadeira. Para *enumerar* as cadeiras que existem, o marcador é outro:
      uma pasta é cadeira quando tem um `_index.md` com o campo `cadeira:` no
-     frontmatter. Esse ficheiro traz também `ects:`, `semestre:` e `aulas:`.
+     frontmatter. Nas cadeiras ativas traz também `ects:`, `semestre:` e `aulas:`; nas
+     arquivadas só `cadeira:` e `semestre:` (decisão de 2026-09-23: manda o contrato do
+     vault — o ECTS e as aulas de uma cadeira acabada não têm uso, e vazio é honesto).
    - A razão é concreta: uma cadeira que eu faça só por exame não tem `Aulas/` nenhuma,
      e pela regra de atribuição seria invisível. O `_index.md` é declaração explícita,
      não inferência a partir da forma da pasta.
@@ -1503,7 +1505,13 @@ inventa matéria, datas ou horários.
     nunca gera resumo pós-aula, e a ausência de notas nela **não** é assinalada como
     lacuna. Continua a poder ter `Notas/`, plano de exame e recall.
   - `color` (opcional)
-  - `active`
+  - `active` (booleano) — o único estado guardado da cadeira (decisão de 2026-09-23).
+    "A decorrer", "aulas terminadas", "em avaliação" e "concluída" calculam-se de
+    `classes_until` e dos exames; não se guardam.
+  - Construída no Lote 1 (Missão 34 · Fase A), com os nomes de coluna da migração
+    `20260923120000`: `name`, `short_name`, `vault_folder` (o nome da pasta, nunca o
+    caminho), `academic_year`, `semester`, `ects` e `has_classes` (vazios nas
+    arquivadas), `active`, `color`, `classes_from`, `classes_until`.
 - `syllabus_topics`
   - `course_id`, `position` (numeração automática), `title`
   - `status`: `proposto` | `confirmado`
@@ -1552,8 +1560,10 @@ inventa matéria, datas ou horários.
   - `title`, `date_start`, `date_end`, `course_id` (opcional), `priority`, `source`
   - `suppresses_classes`: verdadeiro para feriados e pausas
 - `courses` ganha:
-  - `classes_from`, `classes_until` (último dia de aulas da cadeira)
-  - `state`: `a_decorrer` | `aulas_terminadas` | `em_avaliacao` | `concluida`
+  - `classes_from`, `classes_until` (último dia de aulas da cadeira) — já criadas no
+    Lote 1, vazias até haver calendário.
+  - ~~`state`~~ — retirado (decisão de 2026-09-23): o ciclo de vida da cadeira
+    calcula-se de `classes_until` e dos exames; o único estado guardado é `active`.
 
 **Exames e planos**
 
@@ -1636,8 +1646,10 @@ inventa matéria, datas ou horários.
 **Cadeiras**
 
 - Criadas a partir do horário do IPCA ou à mão.
-- `status`: `ativa` | `arquivada`, com `semestre` e `ano_letivo`.
-- Só as cadeiras `ativa` entram em resumos pós-aula, planos e relatórios. As
+- `active` (booleano): verdadeiro nas ativas, falso nas arquivadas, com `semester` e
+  `academic_year` (decisão de 2026-09-23: um só campo de estado; o antigo `status`
+  saiu).
+- Só as cadeiras ativas entram em resumos pós-aula, planos e relatórios. As
   arquivadas continuam pesquisáveis e disponíveis em pedidos.
 
 **Sincronizar a estrutura do vault (com aprovação)**
@@ -2259,6 +2271,30 @@ primeiro.
 - **Custos:** o GitHub Actions em repositórios privados tem minutos gratuitos
   limitados. Medir a duração do job e confirmar que fica muito abaixo do limite.
 
+**Estado (Lote 3, 2026-09-24): nível 1 preparado e testado localmente; por configurar.**
+O código vive num repositório à parte, pronto para o privado `kamappa/sistema-backups`
+(`%USERPROFILE%\Documents\sistema-backups`, ramo `lote-3/copias-de-seguranca`; o
+README desse repositório é o manual de configurar, repor e testar).
+
+- O dump usa os filtros do `supabase db dump` (CLI v2.109.1) copiados para um script e
+  corridos com o `pg_dump` 17 do repositório oficial do PostgreSQL: o mesmo caminho nos
+  testes e no GitHub Actions (o CLI precisa de Docker).
+- Os dados deixam de fora o `cron.job` (tem o token do Oráculo), o histórico do cron,
+  as sessões, os refresh tokens, a auditoria e o pg_net; uma guarda recusa a cópia se
+  algum aparecer. Numa reposição, os crons recriam-se com um token novo.
+- `acls.sql`: as permissões exatas da API. Sem ele, repor num projeto novo devolvia
+  EXECUTE ao `anon` nas funções das sessões — o teste apanhou-o.
+- `age` 1.3.2 com o hash fixado; `actions/checkout` fixado por commit. B2: `diario/`
+  todos os dias e `mensal/` no dia 1; a retenção são regras do bucket.
+- Testes: `node testes/testar.mjs` nesse repositório — dois PostgreSQL locais, a
+  estrutura real com dados sintéticos, 39 verificações, 7 mutações apanhadas, workflow
+  validado pelo `actionlint` e o bit de execução dos scripts verificado (o runner é Linux).
+- Por fazer, do Daniel: a chave age, o bucket B2 (regras e chave só de escrita), o
+  repositório privado com os segredos e as variáveis, e a primeira corrida manual.
+  Depois: o teste de restauro num projeto descartável, que fecha a Fase A.
+- Nível 2 por fazer (opcional). Se a ligação diária evita a pausa por inatividade do
+  plano gratuito: por confirmar.
+
 ## Correções ao código existente
 
 - `VPATH` está fixo em `Sistema/Estudo`, por isso `Sistema/Horario/` NÃO é lido hoje,
@@ -2286,6 +2322,31 @@ primeiro.
   alargar o resto do acesso.
 - O relatório e o radar devem agrupar a atividade por cadeira (pasta), e não só listar
   caminhos.
+
+**Estado (Lote 2, 2026-09-23, ramo `lote-2/oraculo-commits-e-seguranca`, por publicar):**
+as cinco correções estão feitas e testadas, junto com o achado prioritário da auditoria
+(commits apresentados como estudo em 8 sítios do Oráculo).
+
+- Lista de leitura em `supabase/functions/oraculo/vault-lista.ts`, aplicada em cada
+  leitura (`vaultFile` recusa o que estiver fora) e não só nas listagens. Conteúdo:
+  `Estudo/`, `Horario/alteracoes.md`, `_MAPA.md`; `Modelos/` só a pedido da forma; fora
+  `Eu/`, `Alimentar/`, qualquer segmento `Oraculo/` e `*.excalidraw.md`. Do `Horario/`
+  entra só `alteracoes.md` — o quarto ponto pede "sem alargar o resto do acesso", e é o
+  único ficheiro que lá existe.
+- Commits não são estudo: o modelo recebe quantas sincronizações houve, as notas com
+  texto novo por cadeira e a reorganização à parte, com o aviso de que commits não medem
+  tempo, dias nem frequência de estudo; os instantes de cada commit deixaram de ir.
+- Paginação dos commits até 10 páginas por caminho, com a truncagem declarada; o
+  limite de 300 ficheiros da comparação do GitHub também é declarado.
+- O repositório `vault-sistema` tem `Sistema/Eu/Ficha-do-Jogador.md` desde 17/09 (o
+  `.gitignore` do vault deixa entrar todo o `Sistema/`). O Oráculo não o lê — nem antes
+  nem depois deste lote —, mas o `VAULT_TOKEN` tem acesso: é a lista que o separa.
+- Achado de segurança, corrigido no mesmo lote: o Radar e o relatório (texto do
+  modelo, escrito a partir da web) iam para o `innerHTML` sem escape, e uma missão
+  aceite levava o título para objetivos, sombras, registo e prazos. `escHTML` e
+  `urlSegura` em `js/engine.js`; prova em `node testes/seguranca/xss-oraculo.mjs`.
+- Testes: `deno test --no-prompt testes/oraculo/vault-lista.test.ts` (lógica pura) e
+  `node testes/fumo/fumo.mjs --so-oraculo` (a função inteira, em modo de teste).
 
 ## Escalabilidade (atividades novas no futuro)
 
@@ -3087,7 +3148,11 @@ diferentes).
 
 # Missão 34 — Sessões de Estudo (tempo real, medido)
 
-Estado: planeada. Missão pequena e independente. Pode ser feita ANTES da Missão 31,
+Estado: **Fase A construída no Lote 1** (2026-09-23, ramo `lote-1/m34-sessoes-e-courses`),
+testada e **por aplicar** — a migração `20260923120000` só corre com o dump feito e por
+ordem do Daniel. Decisões do lote no fim desta secção.
+
+Missão pequena e independente. Pode ser feita ANTES da Missão 31,
 porque dá valor no primeiro dia e não depende de nada: é a forma de eu começar a usar o
 Sistema já, em vez de esperar pelas missões grandes.
 
@@ -3219,3 +3284,48 @@ Passar a ter tempo de estudo medido, separando claramente:
 
 A → B → C → D, com uma semana de uso real entre fases. A Fase A sozinha já é útil e
 pode ficar assim durante muito tempo.
+
+## Lote 1 — o que foi construído e as decisões dentro do âmbito (2026-09-23)
+
+Ramo `lote-1/m34-sessoes-e-courses`, empilhado sobre o Lote 0. Nada aplicado em
+produção.
+
+- Migração `supabase/migrations/20260923120000_courses-e-sessoes-de-estudo.sql`, com o
+  rollback em `supabase/rollback/` e RLS com política na mesma migração. Testada num
+  PostgreSQL local e descartável: `node testes/bd/bd.mjs`.
+- Painel "Sessões de Estudo" no HUD, logo a seguir à saudação (`js/sessoes.js`, contas
+  de tempo em `js/sessoes-logica.js`): iniciar, pausar, retomar e terminar; aviso das
+  2 h; por confirmar (aceitar, corrigir, descartar); últimos 7 dias (editar, apagar);
+  sessão manual.
+- Testes: `node testes/sessoes/logica.test.mjs` (lógica pura) e
+  `node testes/sessoes/ui.mjs` (Chrome real, Supabase falso, rede fechada).
+
+Lacunas da missão resolvidas dentro do âmbito:
+
+1. **Pausas.** A Fase A pede o botão Pausar e o modelo não tinha onde o guardar:
+   `paused_at` e `paused_seconds`. A `duration_min` desconta as pausas.
+2. **A hora é a do servidor.** `started_at` por omissão `now()`; pausar, retomar e
+   terminar são funções SQL. O relógio no ecrã usa a hora do aparelho só para mostrar;
+   a duração guardada é a do servidor.
+3. **Fecho automático sem cron novo.** A app chama `normalizar_sessoes()` ao abrir, de
+   minuto a minuto e ao voltar ao separador. Uma sessão esquecida fecha **no limite**
+   (4 h ou meia-noite de Lisboa, o que vier primeiro), não na hora em que a app
+   reabriu; terminar depois do limite dá o mesmo resultado. `closed_reason`
+   (`limite_4h` | `meia_noite`) diz porque o Sistema a fechou.
+4. `topic_id` sem chave estrangeira até existir `syllabus_topics` (Missão 31).
+5. **Corrigir as horas torna a sessão `manual`**: passa a contar o que foi declarado.
+   Só se envia o campo que mudou.
+6. **O mesmo tempo não conta duas vezes.** Uma sessão manual ou editada que se sobreponha
+   a outra é recusada (verificado contra a base antes de gravar). Uma restrição de
+   exclusão na própria base fica como proposta: exigiria a extensão `btree_gist`.
+7. **Descartar** mantém a linha, marcada `descartada` e fora das contas; **apagar**
+   apaga. Os dois pedem confirmação no próprio painel.
+8. O aviso das 2 h é só dentro da app ("Continuo" fica guardado neste aparelho). A
+   notificação push chega com a Missão 31 B.
+9. Até haver calendário (Missão 31 A) para sugerir a aula em curso, vem pré-escolhida a
+   última cadeira e o último tipo usados neste aparelho.
+10. Sem conta, o painel explica que as sessões vivem na conta e não mede. Sem a migração
+    aplicada, não aparece.
+11. O seed das cadeiras gera-se do vault no momento de aplicar e fica fora do
+    repositório (público). As arquivadas entram com o nome tal como está no vault
+    (`cadeira:` = nome da pasta) — não se inventa o nome por extenso.

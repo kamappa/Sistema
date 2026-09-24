@@ -1,0 +1,140 @@
+{
+  "frontend": {
+    "gerada": "2026-09-23",
+    "base": "8938223",
+    "nota": "medida com a aplicação intacta (origin/main 3bca82b + .gitignore)",
+    "verificacoes": {
+      "calibracao": {
+        "consolaErro": true,
+        "consolaAviso": true,
+        "excecao": true,
+        "http404": true
+      },
+      "desktop": {
+        "ecraEntrada": true,
+        "semSessao": true,
+        "zonas": {
+          "greet-h": 97,
+          "oblig": 683,
+          "objs": 395,
+          "constel-cv": 285,
+          "training": 1226,
+          "recall": 365,
+          "oc-log": 101
+        },
+        "foraDoEcra": null,
+        "arranqueCorreu": true
+      },
+      "estacao": {
+        "abre": true,
+        "planetas": 7,
+        "fechaComEsc": true
+      },
+      "mobile": {
+        "ecraEntrada": true,
+        "zonas": {
+          "greet-h": 97,
+          "oblig": 683,
+          "objs": 395,
+          "constel-cv": 285,
+          "training": 1226,
+          "recall": 420,
+          "oc-log": 101
+        },
+        "foraDoEcra": null,
+        "botaoEstacao": true
+      },
+      "movimentoReduzido": {
+        "ecraEntrada": true,
+        "zonas": {
+          "greet-h": 97,
+          "oblig": 683,
+          "objs": 395,
+          "constel-cv": 285,
+          "training": 1226,
+          "recall": 370,
+          "oc-log": 101
+        },
+        "arranqueSaltado": true
+      },
+      "semSupabase": {
+        "ecraEntrada": true,
+        "zonas": {
+          "greet-h": 97,
+          "oblig": 683,
+          "objs": 395,
+          "constel-cv": 285,
+          "training": 1226,
+          "recall": 386,
+          "oc-log": 101
+        }
+      },
+      "semCdn": {
+        "ecraEntrada": false,
+        "zonas": {
+          "greet-h": 97,
+          "oblig": 683,
+          "objs": 395,
+          "constel-cv": 285,
+          "training": 1226,
+          "recall": 405,
+          "oc-log": 101
+        }
+      }
+    },
+    "assinaturasDeErro": [
+      "rede|error| bloqueado:inspector|https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    ]
+  },
+  "oraculo": {
+    "gerada": "2026-09-23",
+    "base": "d65a344",
+    "verificacoes": {
+      "isolamento: rede externa recusada pelo Deno": true,
+      "guarda: fixtures nunca liga com SUPABASE_URL de produção": true,
+      "arranque: a função escuta em 127.0.0.1 no modo de teste": true,
+      "radar: token errado dá 403": true,
+      "radar: token errado não chama o modelo nem escreve": true,
+      "radar: responde 200 \"ok radar\"": true,
+      "radar: exatamente 2 chamadas ao modelo (radar + vigia)": true,
+      "radar: os temas das notas alteradas em 24 h chegam sem os dar como estudados": true,
+      "radar: insere os 3 itens novos e salta o já visto": true,
+      "radar: itens com o dia de hoje": true,
+      "radar: alto impacto guarda impact e missão": true,
+      "radar: a vaga da Vigia traz a missão Candidatar": true,
+      "radar: apaga só o item com mais de 30 dias": true,
+      "relatório: responde 200 \"ok report\"": true,
+      "relatório: 1 chamada ao modelo": true,
+      "relatório: grava 1 relatório com o JSON do modelo": true,
+      "relatório: tenta escrever Oraculo/relatorio-<hoje>.md e a escrita é bloqueada": true,
+      "relatório: a nota teria as secções certas": true,
+      "relatório: o vault vem com o aviso de que commits não são estudo": true,
+      "relatório: o campo estudo proíbe horas, dias e frequência tirados dos commits": true,
+      "relatório: 113 sincronizações em 7 dias — as duas páginas da API lidas": true,
+      "relatório: notas com texto novo agrupadas por cadeira e tema": true,
+      "relatório: a reorganização conta-se à parte e não é estudo": true,
+      "relatório: lê o conteúdo das 3 notas alteradas e de mais nenhuma": true,
+      "relatório: nada de Eu/, saídas do Oráculo, quadros nem modelos": true,
+      "chat: sem JWT dá 401": true,
+      "chat: responde com o texto do modelo": true,
+      "chat: sobre estudo, o vault chega com o aviso e sem \"notas de estudo reais\"": true,
+      "sussurro: devolve a linha do modelo": true,
+      "sussurro: as notas alteradas em 24 h não são apresentadas como estudo": true,
+      "vault-check: utilizador sem estado dá 403": true,
+      "vault-check: 113 sincronizações, 3 notas com texto novo e 2 reorganizadas em 7 dias": true,
+      "vault-check: agrupado por cadeira e tema": true,
+      "vault-check: leitura leve só com o texto que mudou em 24 h (a reorganização fica de fora)": true,
+      "vault-check: a escrita de teste é bloqueada": true,
+      "report-dry: devolve o relatório": true,
+      "report-dry: não grava na base nem no vault": true,
+      "lista de leitura: nenhum ficheiro lido fora dela (Eu/, Oráculo, quadros, modelos)": true,
+      "lista de leitura: a Ficha do Jogador nunca foi pedida": true,
+      "isolamento: nenhum pedido de rede fora dos dados fixos": true,
+      "totais": {
+        "chamadasAoModeloSimuladas": 7,
+        "leiturasGithubSimuladas": 60,
+        "escritasNoVaultBloqueadas": 2
+      }
+    }
+  }
+}

@@ -113,6 +113,7 @@ async function bootState(){
   processDayClose();
   render();localSave();
   if(USER){cloudSave();loadOracleData();}else setSync('local');
+  if(window.Sessoes)Sessoes.arrancar(); // Missão 34 · Fase A — o painel decide se aparece
   if(pendingPenalty>0){setTimeout(()=>toast('Dia fechado','Perdeste '+pendingPenalty+' XP por obrigatórios em falta','#ef4444',true),700);pendingPenalty=0;}
 }
 async function init(){

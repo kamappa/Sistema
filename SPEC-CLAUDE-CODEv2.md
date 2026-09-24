@@ -2355,12 +2355,21 @@ as cinco correções estão feitas e testadas, junto com o achado prioritário d
 - Publicado a 2026-09-24: o Oráculo v20 (era a v19, de 2026-07-19) saiu de um export do
   commit `bc0cbb0`, e os ficheiros publicados são byte a byte os do commit.
 - **O Oráculo não completa nenhuma corrida desde 2026-08-15** (último radar a
-  2026-08-14, último relatório a 2026-08-09) — causa provável o saldo da Anthropic, por
-  confirmar. A prova de que voltou: itens novos em `radar_items` minutos depois das
-  06:30 UTC (`radar-diario`) e um relatório novo ao domingo depois das 19:00 UTC
+  2026-08-14, último relatório a 2026-08-09) — causa o saldo da Anthropic, confirmada a
+  2026-09-24 nos logs da corrida das 06:30 UTC (v20; a invocação `POST` devolveu 500):
+
+  ```
+  Error: {"type":"invalid_request_error","message":"Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits."}
+  ```
+
+  Até o saldo ser reposto, cada corrida falha assim: é o esperado, não uma regressão. A
+  prova de que voltou: itens novos em `radar_items` minutos depois das 06:30 UTC
+  (`radar-diario`) e um relatório novo ao domingo depois das 19:00 UTC
   (`oraculo-semanal`). O `Timeout of 5000 ms` que o `pg_net` regista não é a avaria: é o
   limite do próprio `pg_net`; até 14/08 os itens nasciam 1–2 min depois do disparo, com
-  a função a continuar depois de o `pg_net` desligar.
+  a função a continuar depois de o `pg_net` desligar. A 24/09 a função falhou às
+  06:30:06, cerca de um segundo depois de o `pg_net` desistir — por isso o 500 só
+  aparece nos logs da função, nunca no `net._http_response`.
 
 ## Escalabilidade (atividades novas no futuro)
 

@@ -2251,7 +2251,7 @@ primeiro.
   - Cifra o dump com `age`, usando uma chave pública. A chave privada NUNCA vai para o
     GitHub; fica no gestor de palavras-passe e numa cópia offline.
   - Envia o ficheiro cifrado para o Backblaze B2 (região UE, bucket privado, chave de
-    aplicação só com permissão de escrita nesse bucket).
+    aplicação limitada a esse bucket, que escreve e lista mas não lê nem apaga).
   - NÃO guarda dumps dentro do Git: o histórico do Git nunca encolhe, e dumps diários
     fariam o repositório crescer sem limite.
   - Retenção por regras de ciclo de vida do B2: 14 diários e 12 mensais.
@@ -2272,10 +2272,11 @@ primeiro.
 - **Custos:** o GitHub Actions em repositórios privados tem minutos gratuitos
   limitados. Medir a duração do job e confirmar que fica muito abaixo do limite.
 
-**Estado (Lote 3, 2026-09-24): nível 1 preparado e testado localmente; por configurar.**
-O código vive num repositório à parte, pronto para o privado `kamappa/sistema-backups`
-(`%USERPROFILE%\Documents\sistema-backups`, ramo `lote-3/copias-de-seguranca`; o
-README desse repositório é o manual de configurar, repor e testar).
+**Estado (2026-09-26): nível 1 em produção, provado por leitura de volta; falta o teste
+de restauro num projeto descartável, que fecha a Fase A.** O código vive no privado
+`kamappa/sistema-backups` (`main` bf1913d; cópia local em
+`%USERPROFILE%\Documents\sistema-backups`); o README desse repositório é o manual de
+configurar, verificar, descarregar, repor e testar.
 
 - O dump usa os filtros do `supabase db dump` (CLI v2.109.1) copiados para um script e
   corridos com o `pg_dump` 17 do repositório oficial do PostgreSQL: o mesmo caminho nos
@@ -2288,17 +2289,38 @@ README desse repositório é o manual de configurar, repor e testar).
 - `age` 1.3.2 com o hash fixado; `actions/checkout` fixado por commit. B2: `diario/`
   todos os dias e `mensal/` no dia 1; a retenção são regras do bucket.
 - Testes: `node testes/testar.mjs` nesse repositório — dois PostgreSQL locais, a
-  estrutura real com dados sintéticos, 39 verificações, 7 mutações apanhadas, workflow
-  validado pelo `actionlint` e o bit de execução dos scripts verificado (o runner é Linux).
+  estrutura real com dados sintéticos, 44 verificações (com um `aws` falso que imita o B2
+  com Object Lock), workflow validado pelo `actionlint` e o bit de execução dos scripts
+  verificado (o runner é Linux).
 - 2026-09-24: primeira corrida do `dump.sh` e da guarda contra a base real — um dump
   manual antes da migração do Lote 1, feito no portátil com o `pg_dump` 18 pelo Session
   pooler (porta 5432) e guardado fora do repositório: guarda ok, sem `cron.job` nem
   token. Não substitui a corrida no GitHub Actions.
-- Por fazer, do Daniel: a chave age, o bucket B2 (regras e chave só de escrita), o
-  repositório privado com os segredos e as variáveis, e a primeira corrida manual.
-  Depois: o teste de restauro num projeto descartável, que fecha a Fase A.
-- Nível 2 por fazer (opcional). Se a ligação diária evita a pausa por inatividade do
-  plano gratuito: por confirmar.
+- Configurado (24–26/09): chave age com cópia offline; B2 na UE (`eu-central-003`),
+  bucket privado com SSE-B2, ciclo de vida de 14 diárias e 12 mensais, **Object Lock em
+  compliance, 14 dias** (o site só oferece esse modo: ninguém apaga nem encurta uma cópia
+  trancada, nem o dono da conta nem o suporte), e tectos com alerta por email (10 GB,
+  1 GB/dia de descarregamento, 2 500 transações Class B e C por dia).
+- Chaves: a do workflow (`writeFiles`, `listFiles`, `listAllBucketNames`, só o bucket)
+  nas Secrets do GitHub; uma só de leitura, que nunca vai para o GitHub, em DPAPI no PC,
+  para verificar e descarregar. Os métodos dos segredos estão no README e em
+  `ferramentas/`.
+- **Incidente de 24 a 26/09:** depois de ligado o Object Lock, três corridas verdes (#2 a
+  #4) não guardaram cópia nenhuma. O envio antigo ia sem soma (`when_required`); com
+  retenção por omissão, o B2 exige-a e respondeu logo; o aws-cli 2.36.49 leu mal a
+  resposta, repetiu três vezes, e um erro interno dele engoliu a falha — código 0.
+  Correção: envio com `Content-MD5` e prova depois do envio (a versão criada tem de estar
+  na lista, com o tamanho e o md5; senão a corrida falha). Enquanto durou, a única cópia
+  no B2 foi a de 24/09. Regra que fica: **só a leitura de volta prova uma cópia**.
+- Prova em produção (26/09, corrida #5): `enviado e confirmado`; as duas vistas do bucket
+  (nativa e S3) iguais ao registo; a cópia descarregada com as somas do runner; e
+  `repor.sh --so-verificar` com a chave privada — decifrou, somas certas, contagens iguais
+  às da produção (app_state 1, courses 14, oracle_reports 5, radar_items 85, auth.users 1).
+- Por fazer: o teste de restauro num projeto descartável (fecha a Fase A); o nível 2
+  (opcional); confirmar se a ligação diária evita a pausa por inatividade do plano
+  gratuito; e os pendentes do README (guarda anti-OneDrive dos dumps manuais, mudar para
+  `C:\sistema`, defesa técnica contra cópias forjadas, tecto de descarregamento antes de
+  uma reposição a sério).
 
 ## Correções ao código existente
 

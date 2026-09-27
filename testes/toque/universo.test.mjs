@@ -30,6 +30,8 @@ const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const TEXTO_RATO = 'Passa o cursor por um domínio para o despertar; clica para leres os nomes.';
 const TEXTO_TOQUE = 'Toca num domínio para o despertar; toca outra vez para leres os nomes.';
 const DICA_RATO = 'Arrasta para olhar · Ctrl+roda aprofunda · Escape centra';
+// D6 (Daniel, 2026-09-27): dois dedos para olhar, um dedo rola a página.
+const DICA_TOQUE = 'Dois dedos para olhar · pinça aprofunda · toque duplo centra';
 
 // A página: o Universo real com um estado da app (fresh) e níveis variados; um registo de
 // eventos de ponteiro para o controlo do instrumento; e leituras do que se vê.
@@ -53,6 +55,10 @@ for (const t of ['pointerdown', 'click']) {
 const raiz = document.createElement('div');
 document.body.appendChild(raiz);
 createRoot(raiz).render(createElement(UniverseScene, { S }));
+// Conteúdo por baixo, como na zona real: a página tem de poder rolar por cima do céu.
+const resto = document.createElement('div');
+resto.style.height = '2000px';
+document.body.appendChild(resto);
 
 window.__u = {
   pronto: () => !!document.querySelector('.us .us-terr-hit'),
@@ -67,7 +73,23 @@ window.__u = {
       aceso: [...document.querySelectorAll('.us-terr[data-lit="true"]')].map((t) => t.dataset.sig),
       aberto: [...document.querySelectorAll('.us-terr[data-sel="true"]')].map((t) => t.dataset.sig),
       x: us.style.getPropertyValue('--free-x'), y: us.style.getPropertyValue('--free-y'),
+      rolagem: Math.round(window.scrollY),
     };
+  },
+  // Um ponto de céu vazio perto do fundo da cena, com espaço para um dedo subir.
+  ceuEmBaixo: () => {
+    const us = document.querySelector('.us');
+    const r = us.getBoundingClientRect();
+    for (const fx of [0.06, 0.94, 0.03, 0.97, 0.12, 0.88]) {
+      const x = Math.round(r.left + fx * r.width); const y = Math.round(r.top + 0.9 * r.height);
+      const e = document.elementFromPoint(x, y);
+      if (e && us.contains(e) && !e.closest('.us-terr, .us-hud, button, a')) return { x, y };
+    }
+    return null;
+  },
+  centroDaCena: () => {
+    const r = document.querySelector('.us').getBoundingClientRect();
+    return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
   },
   textos: () => ({
     texto: [...document.querySelectorAll('.us-hud-s')].map((p) => p.textContent).join(' '),
@@ -158,6 +180,35 @@ async function tocar(s, { x, y }) {
   await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [{ x, y }] });
 }
 async function toqueDuplo(s, p) { await tocar(s, p); await sleep(120); await tocar(s, p); }
+async function arrastarDedo(s, { x, y }, dx, dy) {
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+  for (let i = 1; i <= 10; i++) {
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + (dx * i) / 10, y: y + (dy * i) / 10 }] });
+    await sleep(16);
+  }
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [{ x: x + dx, y: y + dy }] });
+}
+// Dois dedos a `raio` do ponto médio. O ponto médio anda (dx, dy); a distância entre os
+// dedos passa de 2·raio a 2·raioFim; e os dedos rodam `graus` à volta do ponto médio —
+// assim o dedo que o browser trata como principal percorre um caminho diferente do ponto
+// médio, e um arrasto de UM dedo não consegue passar por arrasto de dois.
+async function doisDedos(s, { x, y }, { dx = 0, dy = 0, raio = 50, raioFim = raio, graus = 0 } = {}) {
+  const pontos = (t) => {
+    const mx = x + dx * t; const my = y + dy * t; const r = raio + (raioFim - raio) * t;
+    const a = (graus * t * Math.PI) / 180;
+    return [
+      { x: mx - r * Math.cos(a), y: my - r * Math.sin(a), id: 0 },
+      { x: mx + r * Math.cos(a), y: my + r * Math.sin(a), id: 1 },
+    ];
+  };
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: pontos(0) });
+  for (let i = 1; i <= 12; i++) {
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: pontos(i / 12) });
+    await sleep(16);
+  }
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: pontos(1) });
+}
+const px = (v) => parseFloat(v);
 const moverRato = (s, { x, y }) => s.enviar('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
 async function clicarRato(s, { x, y }) {
   await moverRato(s, { x, y });
@@ -233,9 +284,7 @@ for (const [nome, cenario] of [['num ecrã largo (iPad deitado)', TOQUE_LARGO], 
       const { texto, dica } = await u(s, 'textos()');
       assert.ok(texto.includes(TEXTO_TOQUE), 'texto do toque em falta: ' + texto.slice(-120));
       assert.ok(!/cursor/i.test(texto), 'o texto ainda fala de cursor');
-      // A primeira parte da dica («Arrasta para olhar») espera pela decisão D6.
-      assert.ok(dica.includes('pinça aprofunda') && dica.includes('toque duplo centra'), dica);
-      assert.ok(!/Ctrl|Escape/.test(dica), 'a dica ainda fala de Ctrl ou Escape: ' + dica);
+      assert.equal(dica, DICA_TOQUE);
     } finally { await s.fechar(); }
   });
 }
@@ -374,6 +423,49 @@ test('toque duplo no céu vazio, sem desvio, recua um passo', async () => {
     await toqueDuplo(s, ceu);
     e = await esperarEstado(s, 'OVERVIEW', 3000);
     assert.equal(e.estado, 'OVERVIEW', 'o toque duplo não recuou, estado ' + e.estado);
+  } finally { await s.fechar(); }
+});
+
+// ── D6: DOIS DEDOS PARA OLHAR, UM DEDO ROLA A PÁGINA ───────────────────────────────────
+
+test('toque: a pinça a abrir aprofunda — dois dedos chegam à cena (controlo positivo)', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    await doisDedos(s, await u(s, 'centroDaCena()'), { raio: 30, raioFim: 90 });
+    let e;
+    for (let t = 0; t < 2500; t += 100) {
+      e = await u(s, 'estado()');
+      if (e.estado === 'CORE_APPROACH' || e.estado === 'CORE_INSIDE') break;
+      await sleep(100);
+    }
+    assert.ok(e.estado === 'CORE_APPROACH' || e.estado === 'CORE_INSIDE', 'a pinça não aprofundou, estado ' + e.estado);
+  } finally { await s.fechar(); }
+});
+
+test('toque: um dedo no céu rola a página e não mexe o céu', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    const p = await u(s, 'ceuEmBaixo()');
+    assert.ok(p, 'não encontrei céu vazio em baixo');
+    await arrastarDedo(s, p, 0, -220);
+    await sleep(500);
+    const e = await u(s, 'estado()');
+    // A rolagem prova que o gesto chegou; sem ela, «o céu não se mexeu» não provava nada.
+    assert.ok(e.rolagem > 40, 'a página não rolou (' + e.rolagem + ' px)');
+    assert.equal(e.x, '0.0px', 'um dedo mexeu o céu (x)');
+    assert.equal(e.y, '0.0px', 'um dedo mexeu o céu (y)');
+  } finally { await s.fechar(); }
+});
+
+test('toque: dois dedos arrastam o céu pelo ponto médio', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    await doisDedos(s, await u(s, 'centroDaCena()'), { dx: 50, dy: 20, raio: 50, graus: 90 });
+    await sleep(300);
+    const e = await u(s, 'estado()');
+    assert.ok(Math.abs(px(e.x) - 50) <= 8, 'o céu não seguiu o ponto médio em x: ' + e.x);
+    assert.ok(Math.abs(px(e.y) - 20) <= 8, 'o céu não seguiu o ponto médio em y: ' + e.y);
+    assert.equal(e.estado, 'OVERVIEW', 'dois dedos à mesma distância não podiam mudar de escala');
   } finally { await s.fechar(); }
 });
 

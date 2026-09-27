@@ -1,8 +1,8 @@
 # CLAUDE.md — Sistema (Daniel)
 
 > Este ficheiro é o bootloader permanente do projeto. É carregado no início
-> de cada sessão. O estado de execução e a história das missões vivem em
-> `SPEC-CLAUDE-CODE.md`; a visão-mãe vive em
+> de cada sessão. O estado de execução vive em `SPEC-CLAUDE-CODEv2.md`; a
+> história da M25 e da M26 em `SPEC-CLAUDE-CODE.md`; a visão-mãe em
 > `SYSTEM-EVOLUTION-ROADMAP.md`.
 
 ## Fontes de verdade e precedência
@@ -15,7 +15,7 @@ Quando duas fontes se contradizem, prevalece a que estiver mais acima:
 2. Daniel;
 3. `SYSTEM-ORACLE-CONSTITUTION.md`;
 4. `CLAUDE.md`;
-5. `SPEC-CLAUDE-CODE.md`;
+5. `SPEC-CLAUDE-CODEv2.md` e `SPEC-CLAUDE-CODE.md` — sobre o estado, manda o v2;
 6. `SYSTEM-EVOLUTION-ROADMAP.md`;
 7. `docs/oracle-governance/`;
 8. `ORACULO-ROADMAP.md`, como documento histórico;
@@ -28,8 +28,8 @@ redefine; os que precisem dela apontam para aqui.
 ### Ordem de leitura ao arrancar
 
 1. `CLAUDE.md` — regras permanentes, identidade, segurança e método.
-2. `SPEC-CLAUDE-CODE.md` — estado real das missões, decisões fechadas,
-   backlog e próxima fase elegível.
+2. `SPEC-CLAUDE-CODEv2.md` — estado real das missões, decisões fechadas e a
+   fase em curso; `SPEC-CLAUDE-CODE.md` para a história da M25 e da M26.
 3. `SYSTEM-EVOLUTION-ROADMAP.md` — visão de longo prazo e leis do mundo;
    não é autorização para executar tudo de uma vez.
 4. Código, `git status`, histórico e branch atual — prova final do que existe.
@@ -38,9 +38,12 @@ Precedência e leitura são coisas diferentes. A lista acima resolve conflitos;
 esta ordena o arranque. O código e o histórico confirmam o estado que existe,
 mas não decidem o que deve ser — para isso vale a precedência. Nunca adivinhar.
 
-Estes três nomes são os canónicos. Ficheiros com sufixo `v2` foram fontes de
-uma reconciliação e não devem ser recriados nem tratados como autoridade
-paralela — ver `SPEC-CLAUDE-CODE.md`, secção da reconciliação de 2026-07-25.
+Estes nomes são os canónicos. Ficheiros com sufixo `v2` foram fontes de uma
+reconciliação e não devem ser recriados nem tratados como autoridade paralela —
+ver `SPEC-CLAUDE-CODE.md`, secção da reconciliação de 2026-07-25. **A exceção é
+o `SPEC-CLAUDE-CODEv2.md`:** o Daniel passou a escrever lá o estado e, a
+2026-09-23, fez dele o registo; a 2026-09-27 trouxe-o para o ramo da Órbita, e é
+só aí que se edita até a Órbita entrar no `main`.
 
 ## Frase de recuperação
 
@@ -61,7 +64,8 @@ Quando o Daniel disser **"vamos começar o verdadeiro sistema"**:
    baseline visual, consola e estado de rede.
 7. Identificar a missão ativa e a próxima fase elegível. A Missão 24 está
    formalmente PAUSADA desde 2026-07-25 e não deve ser retomada sem decisão
-   explícita; a missão corrente é a Missão 26.
+   explícita; a missão corrente é a Missão 26, e desde 2026-09-27 o trabalho em
+   curso é publicá-la, em cinco etapas — ver o SPEC v2.
 8. Apresentar diagnóstico, ficheiros afetados, riscos, plano por fases e diff
    proposto.
 9. Esperar concordância antes de alterar código.
@@ -142,6 +146,10 @@ estado real, a 2026-07-25:
   referência standalone.
 - **`mission-26/renaissance-visual`** deriva de `react-migration` e é a branch
   de trabalho corrente (Missão 26 — Renaissance Visual).
+- **Decisão de 2026-09-27:** a Órbita (o React deste ramo) passa a ser a
+  interface, para usar e para construir; o Vanilla deixa de ser trabalhado. Até
+  ser publicada, o Daniel usa-a pelo servidor local do Vite, e o Pages continua a
+  servir o Vanilla do `main`.
 
 Consequências para o método:
 
@@ -218,8 +226,13 @@ explicar sozinho, e por isso vive neste ficheiro:
   `src/stage/` e alimentado por uma ponte de globais (`window.S`,
   `window.__store`), porque ele corre num rAF fora do ciclo React. Quem mexer
   nele tem de preservar essa ponte.
-- **O Vanilla inteiro está em `legacy/` com histórico** (`git mv`), e não se
-  apaga enquanto o React não estiver validado em produção.
+- **O Vanilla de 2026-07-20 está em `legacy/` com histórico** (`git mv`), e não
+  se apaga enquanto o React não estiver validado em produção. Não é o Vanilla
+  inteiro: os lotes 0 a 3 de setembro (o painel das sessões, a correção de XSS)
+  só existem no `main`.
+- **Os testes do Oráculo em Deno correm com `DENO_NO_PACKAGE_JSON=1`.** A raiz
+  tem o `package.json` do Vite, e sem isso o Deno resolve os pacotes npm pelo
+  `node_modules` do frontend. O `testes/fumo/fumo.mjs` já a define.
 - **A anon key do Supabase em `src/lib/supabase.js` é pública por desenho** —
   quem a vir no código não encontrou uma fuga; o RLS é que protege.
 - **O workflow de deploy está preparado e inativo** de propósito. Só dispara em
@@ -228,13 +241,20 @@ explicar sozinho, e por isso vive neste ficheiro:
 
 ## Estado de execução
 
-**Ler sempre `SPEC-CLAUDE-CODE.md`.** Um resumo do estado aqui divergiria do
-SPEC à primeira fase concluída, e este ficheiro não tem como saber que ficou
-desatualizado.
+**Ler sempre `SPEC-CLAUDE-CODEv2.md`**, o registo do estado, e o
+`SPEC-CLAUDE-CODE.md` para a história da M25 e da M26. Um resumo do estado aqui
+divergiria do SPEC à primeira fase concluída, e este ficheiro não tem como saber
+que ficou desatualizado.
 
 Duas decisões de numeração que o SPEC regista e que NÃO se voltam a discutir: a
 Missão 30 da documentação está SUPERADA pela Missão 25 e o número fica
 reservado; a Missão 24 está PAUSADA e não se retoma desenvolvimento Vanilla.
+
+Em aberto, e só o Daniel o fecha: as Missões 31 a 34 do SPEC v2 (Agenda Viva,
+Memória do Oráculo, Ritual de Entrada, Sessões de Estudo) colidem com a M31
+(Compliance) deste ramo e a M32 (Analista de Documentos) do ramo
+`mission-32/…`. Até ele renumerar, as do v2 são as do registo e as outras são
+trabalho fora dele (decisão de 2026-09-23).
 
 ## Autoridade da migração frontend
 

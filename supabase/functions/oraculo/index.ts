@@ -7,6 +7,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { ativar as ativarModoTeste } from "./teste/modo-teste.ts";
 import { type Alteracao, type Atividade, CAMINHOS_DE_ATIVIDADE, classificar, podeLer, porGrupo, resumoDaAtividade } from "./vault-lista.ts";
+import { recursosSeguros, urlSegura } from "./url-segura.ts";
 
 const SB_URL = Deno.env.get("SUPABASE_URL")!;
 const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_SECRET_KEY") ?? "";
@@ -525,7 +526,14 @@ async function gerarReport(st: Record<string, unknown>): Promise<Record<string, 
       "\n\nPara a secção recursos: usa a pesquisa web para encontrar 2-3 recursos concretos DIRETAMENTE ligados aos temas das notas que mudaram no vault — legislação no EUR-Lex, guias ENISA/CNCS/CNPD/EDPB, cursos, artigos técnicos. REGRA INVIOLÁVEL: só incluis URLs devolvidos pela pesquisa web nesta conversa; nunca escrevas um URL de memória. Sem vault novo ou sem resultados dignos, devolve recursos:[].",
     true,
   );
-  return (jsonFrom(txt) as Record<string, any>) || { resumo: txt.slice(0, 900) };
+  const rep = (jsonFrom(txt) as Record<string, any>) || { resumo: txt.slice(0, 900) };
+  /* Só recursos com link http(s) — ver url-segura.ts. Os que saem ficam no registo. */
+  if (Array.isArray(rep.recursos)) {
+    const { recursos, recusados } = recursosSeguros(rep.recursos);
+    rep.recursos = recursos;
+    if (recusados) console.log(`relatório: ${recusados} recurso(s) sem URL http(s), fora do relatório`);
+  }
+  return rep;
 }
 
 /* ===== DIAGNÓSTICO DA PONTE — JWT + operador (linha em app_state) =====
@@ -628,9 +636,14 @@ const handler = async (req: Request): Promise<Response> => {
       const cutoff30 = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
       const { data: seenRows } = await sb.from("radar_items").select("url")
         .eq("user_id", u.user_id).gte("d", cutoff30);
-      const seen = new Set((seenRows ?? []).map((r: { url: string | null }) => r.url).filter(Boolean));
+      const seen = new Set((seenRows ?? []).map((r: { url: string | null }) => urlSegura(r.url)).filter(Boolean));
       const insertItem = async (it: Record<string, unknown>) => {
-        const itUrl = String(it.url ?? "");
+        /* só http(s) — ver url-segura.ts. Um URL recusado não apaga a notícia: o item
+           fica, sem link, e a recusa fica no registo da função. */
+        const itUrl = urlSegura(it.url) ?? "";
+        if (!itUrl && String(it.url ?? "").trim()) {
+          console.log("radar: url recusada (não é http/https), o item fica sem link:", String(it.title ?? "").slice(0, 80));
+        }
         if (itUrl && seen.has(itUrl)) return;
         if (itUrl) seen.add(itUrl);
         await sb.from("radar_items").insert({

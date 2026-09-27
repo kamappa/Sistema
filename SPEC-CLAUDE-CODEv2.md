@@ -69,6 +69,92 @@ servidor de desenvolvimento local do Vite, em `http://localhost:5173/Sistema/`. 
   um grava inteira — o último a gravar substitui o outro), o Oráculo (Edge Function) e as
   cópias diárias da base.
 
+**Publicação da Órbita (decidida pelo Daniel a 2026-09-27).** A Órbita passa a ser a
+interface, para usar e para construir; o Vanilla deixa de ser trabalhado. Desde esse dia há
+duas cópias de trabalho: `Sistema-orbita`, onde o Daniel corre o servidor, e `Sistema`, onde
+o Claude Code trabalha. O objetivo desta fase é a Órbita publicada em
+`kamappa.github.io/Sistema`, usável no iPhone sem terminal aberto. Cinco etapas, por esta
+ordem; nenhuma começa sem a anterior fechada e confirmada pelo Daniel:
+
+1. backend e documentos do `main` para o ramo da Órbita, com o Oráculo reconciliado —
+   ficheiro a ficheiro, nunca por merge;
+2. filtro de links e testes;
+3. toque em toda a Órbita, começando pelo Universo, testado num iPhone real via Preview;
+4. preparar a publicação: workflow, CSP, interruptor do service worker, plano de reversão,
+   teste de fumo em 390×844;
+5. publicar: o Daniel muda a fonte do Pages para «GitHub Actions», a entrada no `main` é
+   preparada, e o push é dele — por esta ordem.
+
+Regras da fase: nada muda no aspeto da Órbita até estar publicada (só o filtro, o backend, o
+toque e o necessário para publicar); as melhorias encontradas não se fazem — vão para
+`MELHORIAS.md`, revisto depois de publicar; os problemas de segurança são a exceção e vão
+logo ao Daniel, com o risco. Todo o teste novo leva controlo positivo. Nada vai para
+produção sem prova do lado do destino: um código de saída 0 não é evidência.
+
+Decisões do Daniel, com a razão:
+
+- **Publicar sem o painel das sessões de estudo.** Nunca o usou, porque só existe no Vanilla,
+  e ter o Sistema no iPhone vale mais do que esperar por ele. A regra da migração pede
+  paridade antes de substituir a produção; esta é a exceção, decidida por ele. O painel vem
+  para a Órbita depois de publicar.
+- **O saldo do Oráculo só é reposto depois da etapa 2**, a do filtro de links. A regra era
+  «depois do filtro»; com a ordem nova o filtro passou para a etapa 2, e a regra acompanha-o.
+- **O filtro também no servidor:** o Oráculo passa a guardar só URLs http(s). Se a única
+  barreira fosse o frontend, cada interface nova voltava a herdar o problema, e o `legacy/`
+  continua no repositório.
+- **Na etapa 2, além do filtro:** escapar os dois valores do estado que o `constellation.js`
+  mete em `innerHTML` (o mesmo defeito: dados guardados tratados como código), e tirar os
+  ícones do Google do Radar (fuga de dados pessoais a um terceiro sem necessidade; perder os
+  ícones é aceitável).
+- **A CSP passa para a etapa 4:** só se testa a sério com o build de produção.
+- **O SPEC v2 edita-se só no ramo da Órbita** até à etapa 5.
+- **O limite de 12 mensagens de chat por dia** fica em aberto (`MELHORIAS.md`): decide quando
+  estiver a usar e souber se chega para as sessões de estudo da regra 7.
+
+Achados, registados como tal:
+
+- **A nota de reversão do `.github/workflows/deploy-react.yml` estava errada — duas vezes.**
+  A linha 16 diz «reverter o merge → o Pages volta ao Vanilla»: com a fonte em «GitHub
+  Actions», reverter deixa o `main` sem `package.json`, o build falha e a Órbita continua
+  publicada. Reverter a sério é desfazer a entrada no `main` **e** voltar a fonte a «Deploy
+  from a branch» — e só funciona com o interruptor do service worker, senão o iPhone fica
+  preso aos ficheiros velhos. As linhas 9–10 dizem que, sem mudar a fonte, o Pages
+  «continua a servir o Vanilla»: serviria o `index.html` do Vite sem build (`/src/main.jsx`),
+  e o site partia-se. O mesmo padrão dos outros achados: um procedimento escrito que não
+  funcionava e que ninguém teria descoberto até precisar dele. Corrige-se na etapa 4.
+- **O servidor guardava os URLs tal como o modelo os escrevia** (`radar_items.url` e os
+  recursos do relatório), sem ver o esquema. Corrigido na etapa 1; ainda não publicado.
+- **O Radar da Órbita mandava ao Google os domínios dos itens** (`RadarNews.jsx`, ícones por
+  `google.com/s2/favicons`), incluindo as vagas da Vigia. Sai na etapa 2.
+- **`constellation.js`, verificado:** nenhum texto do Oráculo nem do Radar chega aos
+  `innerHTML` — só constantes do código e dois campos do `app_state`
+  (`constellation.choices` e a data de nascimento das estrelas), que a função nunca escreve.
+  Não é explorável por esse caminho; os dois valores escapam-se na etapa 2.
+- **O relatório escrito no vault leva o texto do modelo em markdown, sem neutralizar
+  links.** O filtro do servidor limpa os URLs dos recursos, não o texto livre: um título ou
+  um resumo podem trazer `[texto](javascript:…)` para a nota. O risco depende de como o
+  Obsidian trata esses links, que não foi verificado. Por decidir pelo Daniel.
+
+Estado da etapa 1 (2026-09-27), no ramo `orbita/1-backend-e-docs`:
+
+- `supabase/` do `main`, por caminho: os 4 ficheiros da função entraram byte a byte iguais
+  aos publicados (descarregados do Supabase e comparados por hash), mais a migração de
+  23/09, o rollback e o README das migrações.
+- O Oráculo reconciliado em dois passos: primeiro a v20, exatamente como está publicada;
+  depois a regra 7 da c94513f (2026-08-17, três modos pedagógicos), **não publicada**. A
+  junção dá o mesmo ficheiro por dois caminhos independentes (`git apply --3way` e
+  `git merge-file`).
+- O filtro de URLs no servidor (`url-segura.ts`), com testes que falharam antes da correção:
+  um item do Radar com URL que não é http(s) fica, sem link; um recurso sem link seguro sai
+  do relatório; cada recusa fica no registo da função. Só vale para itens novos. **Não
+  publicado:** a v21 (regra 7 + filtro) publica-a o Daniel, e depois descarrega-se a função
+  e comparam-se os hashes.
+- Os testes do backend, por caminho: `bd/`, `oraculo/vault-lista.test.ts` e o fumo do
+  Oráculo. Os 6 que testam o Vanilla ficam no `main`. Na Órbita o fumo corre só o Oráculo
+  até a etapa 4 criar o fumo da Órbita. Os testes do Deno correm com `DENO_NO_PACKAGE_JSON=1`,
+  porque o `package.json` do Vite na raiz faz o Deno resolver pacotes pelo `node_modules`
+  do frontend.
+
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)
 

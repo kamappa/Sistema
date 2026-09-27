@@ -154,6 +154,10 @@ Estado da etapa 1 (2026-09-27), no ramo `orbita/1-backend-e-docs`:
   até a etapa 4 criar o fumo da Órbita. Os testes do Deno correm com `DENO_NO_PACKAGE_JSON=1`,
   porque o `package.json` do Vite na raiz faz o Deno resolver pacotes pelo `node_modules`
   do frontend.
+- Corrido sobre o último commit da etapa (`f0e5792`): `bd.mjs` 49/49,
+  `deno test testes/oraculo/` 13/13, fumo do Oráculo 47/47 (as 40 de antes e as 7 do
+  filtro), e o `typecheck` e o `build` do frontend sem erros. A linha de base do fumo não
+  foi regravada: o LEIA-ME exige a aceitação do Daniel.
 
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)

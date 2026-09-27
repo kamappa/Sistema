@@ -123,7 +123,8 @@ Achados, registados como tal:
   e o site partia-se. O mesmo padrão dos outros achados: um procedimento escrito que não
   funcionava e que ninguém teria descoberto até precisar dele. Corrige-se na etapa 4.
 - **O servidor guardava os URLs tal como o modelo os escrevia** (`radar_items.url` e os
-  recursos do relatório), sem ver o esquema. Corrigido na etapa 1; ainda não publicado.
+  recursos do relatório), sem ver o esquema. Corrigido na etapa 1 e publicado na v21
+  (2026-09-27).
 - **O Radar da Órbita mandava ao Google os domínios dos itens** (`RadarNews.jsx`, ícones por
   `google.com/s2/favicons`), incluindo as vagas da Vigia. Sai na etapa 2.
 - **`constellation.js`, verificado:** nenhum texto do Oráculo nem do Radar chega aos
@@ -134,6 +135,17 @@ Achados, registados como tal:
   links.** O filtro do servidor limpa os URLs dos recursos, não o texto livre: um título ou
   um resumo podem trazer `[texto](javascript:…)` para a nota. O risco depende de como o
   Obsidian trata esses links, que não foi verificado. Por decidir pelo Daniel.
+- **Publicar a partir de uma pasta com código diferente** (registado a pedido do Daniel,
+  2026-09-27). A primeira tentativa de publicar a v21 correu numa janela do PowerShell
+  aberta em `C:\WINDOWS\system32`, fora desta sessão. O CLI trabalhou na pasta do terminal
+  em vez da exportação — o mais provável é a linha, muito longa, ter-se partido ao colar e o
+  `--workdir` ter-se perdido —, não encontrou `supabase/functions/oraculo`, e falhou: nada
+  foi publicado. Se esse terminal estivesse na `Sistema-orbita`, o CLI teria encontrado lá o
+  Oráculo desse ramo, sem nada da v20, e tê-lo-ia publicado por cima da produção a
+  responder «Deployed Functions». A falha evitou-o por acaso. É a mesma classe dos outros
+  achados: o comando responde bem, e o que fica publicado não é o que se pensa. Regra que
+  fica: publicar só com `!` nesta sessão, a partir de `Documents\Sistema`, e provar a
+  seguir com o descarregamento da função e a comparação dos hashes.
 
 Estado da etapa 1 (2026-09-27), no ramo `orbita/1-backend-e-docs`:
 
@@ -141,14 +153,20 @@ Estado da etapa 1 (2026-09-27), no ramo `orbita/1-backend-e-docs`:
   aos publicados (descarregados do Supabase e comparados por hash), mais a migração de
   23/09, o rollback e o README das migrações.
 - O Oráculo reconciliado em dois passos: primeiro a v20, exatamente como está publicada;
-  depois a regra 7 da c94513f (2026-08-17, três modos pedagógicos), **não publicada**. A
+  depois a regra 7 da c94513f (2026-08-17, três modos pedagógicos), publicada na v21. A
   junção dá o mesmo ficheiro por dois caminhos independentes (`git apply --3way` e
   `git merge-file`).
 - O filtro de URLs no servidor (`url-segura.ts`), com testes que falharam antes da correção:
   um item do Radar com URL que não é http(s) fica, sem link; um recurso sem link seguro sai
-  do relatório; cada recusa fica no registo da função. Só vale para itens novos. **Não
-  publicado:** a v21 (regra 7 + filtro) publica-a o Daniel, e depois descarrega-se a função
-  e comparam-se os hashes.
+  do relatório; cada recusa fica no registo da função. Só vale para itens novos.
+- **A v21 (regra 7 + filtro) foi publicada a 2026-09-27**, pelo Daniel, com `!` nesta
+  sessão, a partir da exportação LF do commit `9ab6ccc`. Verificada do lado do destino: a
+  função descarregada é byte a byte o `9ab6ccc` (5 de 5 ficheiros; três não existem assim na
+  v20 — dois mudaram e um é novo —, o que prova que a versão mudou), versão 21 `ACTIVE` com
+  `verify_jwt: false`, um
+  `OPTIONS` dá 204 e o radar com um token errado dá 403 `forbidden` — a função arranca e
+  recusa antes de fazer o que quer que seja. Continua sem saldo: nenhuma corrida completa
+  até ele ser reposto, depois da etapa 2.
 - Os testes do backend, por caminho: `bd/`, `oraculo/vault-lista.test.ts` e o fumo do
   Oráculo. Os 6 que testam o Vanilla ficam no `main`. Na Órbita o fumo corre só o Oráculo
   até a etapa 4 criar o fumo da Órbita. Os testes do Deno correm com `DENO_NO_PACKAGE_JSON=1`,
@@ -2480,7 +2498,9 @@ as cinco correções estão feitas e testadas, junto com o achado prioritário d
 - Testes: `deno test --no-prompt testes/oraculo/vault-lista.test.ts` (lógica pura) e
   `node testes/fumo/fumo.mjs --so-oraculo` (a função inteira, em modo de teste).
 - Publicado a 2026-09-24: o Oráculo v20 (era a v19, de 2026-07-19) saiu de um export do
-  commit `bc0cbb0`, e os ficheiros publicados são byte a byte os do commit.
+  commit `bc0cbb0`, e os ficheiros publicados são byte a byte os do commit. *Nota de
+  2026-09-27:* em produção está agora a v21 (a regra 7 e o filtro de URLs no servidor),
+  verificada da mesma forma — ver «Publicação da Órbita», no início deste SPEC.
 - **O Oráculo não completa nenhuma corrida desde 2026-08-15** (último radar a
   2026-08-14, último relatório a 2026-08-09) — causa o saldo da Anthropic, confirmada a
   2026-09-24 nos logs da corrida das 06:30 UTC (v20; a invocação `POST` devolveu 500):

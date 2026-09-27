@@ -8,6 +8,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { ativar as ativarModoTeste } from "./teste/modo-teste.ts";
 import { type Alteracao, type Atividade, CAMINHOS_DE_ATIVIDADE, classificar, podeLer, porGrupo, resumoDaAtividade } from "./vault-lista.ts";
 import { recursosSeguros, urlSegura } from "./url-segura.ts";
+import { reportMd } from "./nota-vault.ts";
 
 const SB_URL = Deno.env.get("SUPABASE_URL")!;
 const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_SECRET_KEY") ?? "";
@@ -449,31 +450,8 @@ function b64utf8(s: string): string {
   return btoa(bin);
 }
 
-function reportMd(rep: Record<string, any>, d: string): string {
-  const L: string[] = ["---", "tipo: relatorio-oraculo", "data: " + d, "---", "", "# Relatório do Oráculo — " + d, ""];
-  const sec = (t: string, v: unknown) => { if (v && v !== "null") L.push("## " + t, "", String(v), ""); };
-  sec("Resumo", rep.resumo);
-  sec("Estudo", rep.estudo);
-  sec("Treino", rep.treino);
-  sec("Sono", rep.sono);
-  sec("Alerta", rep.alerta);
-  if (Array.isArray(rep.missoes_propostas) && rep.missoes_propostas.length) {
-    L.push("## Missões propostas", "");
-    for (const m of rep.missoes_propostas) L.push("- **" + (m.t ?? "") + "** — " + (m.why ?? ""));
-    L.push("");
-  }
-  if (Array.isArray(rep.recursos) && rep.recursos.length) {
-    L.push("## Para complementar o estudo", "");
-    for (const r of rep.recursos) L.push("- [" + (r.titulo ?? r.url) + "](" + (r.url ?? "") + ") · " + (r.fonte ?? "") + " — " + (r.porque ?? ""));
-    L.push("");
-  }
-  sec("Efeméride", rep.efemeride);
-  sec("Profecia", rep.profecia);
-  sec("Recompensa", rep.recompensa);
-  sec("Título da semana", rep.titulo);
-  sec("Legado", rep.legado);
-  return L.join("\n");
-}
+// A nota em si (reportMd) vive em nota-vault.ts: o texto do modelo entra como texto,
+// porque o Templater corre os comandos de qualquer nota nova no PC do Daniel.
 
 // PUT via contents API; se a nota do dia já existir (re-corrida), substitui-a (sha)
 async function vaultWriteReport(rep: Record<string, any>, d: string): Promise<string> {

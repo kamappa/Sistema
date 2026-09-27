@@ -51,6 +51,8 @@ window.__teste = {
       srcs: [...el.querySelectorAll('[src]')].map((e) => e.getAttribute('src')),
       icoTag: ico ? ico.tagName.toLowerCase() : null,
       icoCorFundo: ico ? (ico.style.background || ico.style.backgroundColor || '') : '',
+      pontoCor: ico && ico.firstElementChild ? (ico.firstElementChild.style.background || ico.firstElementChild.style.backgroundColor || '') : '',
+      pontoLado: ico && ico.firstElementChild ? ico.firstElementChild.style.width : '',
     };
     raiz.unmount();
     el.remove();
@@ -168,6 +170,9 @@ for (const c of CASOS) {
 // Os ícones do Radar não podem pedir nada a terceiros: até aqui cada item pedia o favicon
 // a google.com/s2/favicons, o que dava ao Google os domínios que o Radar mostra ao Daniel
 // (incluindo as vagas da Vigia). Sai; a área passa a um ponto na cor local (RAREA).
+// Forma escolhida pelo Daniel a 2026-09-27, entre duas imagens: um ponto de 8 px dentro da
+// caixa escura do ícone antigo, e não um disco cheio de 30 px — o disco repetia o que o chip
+// da área já mostra e destoava da linguagem da Órbita.
 test('RadarNews não pede ícones a terceiros', async () => {
   const cor = '#c084fc'; // RAREA.ai — a área do item de teste
   const r = await montar('RadarNews', { radar: [itemRadar(SEGURO)] });
@@ -175,7 +180,11 @@ test('RadarNews não pede ícones a terceiros', async () => {
   assert.deepEqual(fora, [], 'o Radar carregou algo de um servidor externo (ícone de terceiros)');
   assert.ok(!r.srcs.some((u) => /google/i.test(u)), 'ainda pede o favicon ao Google');
   assert.notEqual(r.icoTag, 'img', 'o ícone ainda é uma imagem — devia ser um ponto local');
-  assert.ok(r.icoCorFundo.includes('192') || r.icoCorFundo.toLowerCase().includes(cor), 'o ponto da área tinha de ter a cor da área');
+  // Controlo positivo: o ponto TEM de existir, com a cor da área; sem isto, as asserções de
+  // cima passavam também com um Radar que não desenhou nada.
+  assert.ok(r.pontoCor.includes('192') || r.pontoCor.toLowerCase().includes(cor), 'o ponto da área tinha de existir dentro da caixa, com a cor da área');
+  assert.equal(r.pontoLado, '8px', 'o ponto tem 8 px');
+  assert.equal(r.icoCorFundo, '', 'a caixa do ícone ficou pintada com a cor da área — o ponto é pequeno, dentro da caixa escura');
 });
 
 test('nenhuma resposta veio de fora da página de teste (rede fechada)', () => {

@@ -294,12 +294,35 @@ desenhado, um sítio em três. Regras que ficam:
 - **O que é assíncrono espera antes de se ler:** um `onerror` só dispara depois de o pedido
   da imagem falhar.
 
-**Quase uma quarta vez (etapa 2b, 2026-09-27), apanhada antes de dar uma afirmação falsa.**
-A comparação da exportação da v22 com o commit deu «ok» a ficheiros com CRLF: o
-`git archive` segue o `core.autocrlf` deste Windows, e o `git hash-object` normaliza o fim de
-linha antes de calcular. Apanhou-a o controlo positivo da contagem de CR. Regra: bytes
-comparam-se crus (`git hash-object --no-filters`), e exporta-se com `-c core.autocrlf=false`.
-A v21 publicada foi recomparada assim: é o `9ab6ccc` byte a byte (5 de 5, 0 CR).
+Um primo desta lição, nos instrumentos de verificação e não nos testes, tem secção
+própria logo abaixo.
+
+### Lição — os instrumentos de verificação precisam do seu próprio controlo positivo
+
+Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de hashes que
+normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
+código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — quatro instâncias
+do mesmo padrão nesta migração, todas em instrumentos de verificação:
+
+1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
+   guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
+2. **O teste que não desenhava** (etapa 2, `9295357`): o teste dos links, desenhado no
+   servidor, mostrava «Entra com a tua conta», e «nenhum `javascript:`» passava sem nada
+   desenhado.
+3. **«Permissões: nenhuma»** (cópias, 24–25/09): o teste das chaves de teste escreveu-o
+   quando os ficheiros das chaves nem existiam; na mesma noite, o `s3-leitura.ps1` escreveu
+   «nenhuma versão» sem o pedido ter chegado ao B2.
+4. **A comparação de hashes que normaliza** (etapa 2b, 2026-09-27): a comparação da
+   exportação da v22 com o commit deu «ok» a ficheiros com CRLF — o `git archive` segue o
+   `core.autocrlf` deste Windows, e o `git hash-object` normaliza o fim de linha antes de
+   calcular. Apanhou-a uma contagem de CR que tinha o seu próprio controlo (um ficheiro com
+   CR tem de dar 1), antes de chegar a afirmação falsa nenhuma.
+
+A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
+apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
+`git -c core.autocrlf=false -c core.eol=lf archive` e compara-se com
+`git hash-object --no-filters` (controlo: CRLF e LF dão hashes diferentes). A v21 publicada
+foi recomparada assim: é o `9ab6ccc` byte a byte (5 de 5, 0 CR).
 
 ### Achado da etapa 2b — o Templater corria o texto do modelo, sem abrir a nota e sem clique
 
@@ -348,9 +371,15 @@ código dos plugins instalados e nas definições do vault:
 - Exportação LF do `50691ae` para publicar (scratchpad da sessão, `deploy-v22`): 6
   ficheiros, bytes iguais ao commit, 0 CR. Face à v21: `index.ts` e `teste/fixtures.ts`
   mudam, `nota-vault.ts` é novo, os outros 3 ficam iguais.
-- Falta: a v22 publicada pelo Daniel com `!` nesta sessão; a verificação do lado do destino
-  (descarregamento = `50691ae` em bytes crus, versão 22 `ACTIVE`, `verify_jwt: false`,
-  `OPTIONS` 204, radar com token errado 403); e só depois o saldo.
+- **A v22 foi publicada a 2026-09-27** pelo Daniel, a partir da exportação LF do `50691ae`.
+  Correu numa janela do PowerShell à parte, não com `!` nesta sessão — lapso dele, que o
+  registou; a regra mantém-se, porque a saída devia ficar na transcrição. Verificada do lado
+  do destino: a função descarregada é o `50691ae` em bytes crus (6 de 6, 0 CR; o
+  `nota-vault.ts`, novo, está lá), versão 22 `ACTIVE` com `verify_jwt: false` (13:21:34 UTC),
+  um `OPTIONS` dá 204 e o radar com um token errado dá 403 `forbidden`.
+- O saldo: o Daniel repõe-no amanhã ou depois (28 ou 29/09), não hoje.
+- Falta: trazer a 2b para a `Sistema-orbita` (o avanço e o push são do Daniel) e confirmar
+  do lado do destino.
 
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)

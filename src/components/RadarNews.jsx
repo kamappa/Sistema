@@ -11,7 +11,9 @@ import { urlSegura } from '../lib/urlSegura';
 // O ícone de cada item era um favicon pedido a google.com/s2/favicons — o que dava ao
 // Google os domínios que o Radar mostra ao Daniel (incluindo as vagas da Vigia), sem
 // necessidade nenhuma. Saiu (etapa 2 da publicação, 2026-09-27): a área passa a um ponto
-// na cor local (RAREA), que mantém a informação sem pedir nada a terceiros.
+// na cor local (RAREA), que mantém a informação sem pedir nada a terceiros. Um ponto de
+// 8 px dentro da caixa escura do ícone antigo, escolhido pelo Daniel entre duas imagens;
+// um disco cheio de 30 px repetia o chip da área e destoava da Órbita.
 
 export default function RadarNews({ S }) {
   const { user, radar, acceptRadarMission } = useStore();
@@ -43,7 +45,9 @@ export default function RadarNews({ S }) {
             const isNew = ct && (Date.now() - ct.getTime()) < 12 * 3600000;
             return (
               <div className={`rd-item ${i.impact === 'alto' ? 'rd-hot' : ''} ${i.area === 'vaga' ? 'rd-vaga' : ''}`} key={i.id}>
-                <span className="rd-ico" style={{ background: a.c, borderRadius: '50%', border: 'none' }} title={a.l} aria-hidden="true" />
+                <span className="rd-ico" style={{ display: 'grid', placeItems: 'center' }} title={a.l} aria-hidden="true">
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: a.c, boxShadow: `0 0 6px ${a.c}` }} />
+                </span>
                 <div className="rd-b">
                   {i.impact === 'alto' && <div className="rd-hotlbl">⚡ ALTO IMPACTO</div>}
                   {urlSegura(i.url) ? <a className="rd-t" href={urlSegura(i.url)} target="_blank" rel="noopener">{i.title}</a> : <span className="rd-t">{i.title}</span>}{isNew && <span className="rd-new">NOVA</span>}

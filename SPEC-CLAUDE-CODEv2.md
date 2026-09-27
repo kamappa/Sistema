@@ -133,8 +133,22 @@ Achados, registados como tal:
   Não é explorável por esse caminho; os dois valores escapam-se na etapa 2.
 - **O relatório escrito no vault leva o texto do modelo em markdown, sem neutralizar
   links.** O filtro do servidor limpa os URLs dos recursos, não o texto livre: um título ou
-  um resumo podem trazer `[texto](javascript:…)` para a nota. O risco depende de como o
-  Obsidian trata esses links, que não foi verificado. Por decidir pelo Daniel.
+  um resumo podem trazer `[texto](javascript:…)` para a nota. Verificado a 2026-09-27 numa
+  instância isolada do Obsidian 1.13.7 (pasta de configuração e vault temporários,
+  `--user-data-dir`, rede só para 127.0.0.1; a configuração real ficou byte a byte igual):
+  - **Modo de leitura** (é como o resumo aparece embebido na nota de aula): tudo
+    neutralizado. Os `[texto](javascript:…)` e `[texto](data:…)` ficam sem `href`, o
+    `<img onerror>`, o `<script>`, o `<iframe>` e o `<svg onload>` são removidos ou perdem
+    os atributos. Nenhum dos marcadores de teste disparou. É seguro.
+  - **Live Preview** (o editor por omissão, se ele abrir a nota diretamente): um clique num
+    link `javascript:` ou `data:` faz chegar o esquema cru ao `window.open`. No arného
+    intercetei o `window.open`, por isso vi o esquema a passar mas não o passo final; os
+    marcadores não dispararam no contexto da nota. O que ficou provado: a leitura é segura,
+    e no Live Preview o esquema cru ainda alcança o abridor — exige clique do Daniel numa
+    nota escrita pelo Oráculo.
+  - **Decisão do Daniel, por tomar:** neutralizar a sintaxe de links no texto livre do
+    relatório antes de o gravar no vault (barato, no servidor), ou deixar como está por o
+    caminho realista ser o modo de leitura embebido. Não se mexeu no texto sem a decisão.
 - **Publicar a partir de uma pasta com código diferente** (registado a pedido do Daniel,
   2026-09-27). A primeira tentativa de publicar a v21 correu numa janela do PowerShell
   aberta em `C:\WINDOWS\system32`, fora desta sessão. O CLI trabalhou na pasta do terminal

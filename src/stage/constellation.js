@@ -1,6 +1,11 @@
 import * as THREE from '../vendor/three.module.min.js';
 import {sampleSolar,weatherNow} from './solar.js';
 import {world} from './state.js';
+import {escaparHtml} from '../lib/escaparHtml';
+/* O caminho escolhido e a data de nascimento vêm do app_state (nuvem, gravado pelos dois
+   frontends) e entram nos innerHTML abaixo. Escapam-se para o estado guardado nunca correr
+   como HTML — mesmo defeito do filtro de links. O resto que entra nos cartões (nomes de
+   estrela, do domínio, opções, estado do Núcleo) são constantes do código. */
 
 /* Constelações — o céu do Operador (M12·S4 → M14 → M16).
    Conceito M16 (Fase A): as estrelas NASCEM, não se acendem. O céu só
@@ -149,7 +154,7 @@ function bornInfo(attr,id){
   try{
     const b=S.constellation&&S.constellation.born&&S.constellation.born[attr+':'+id];
     if(!b||!b.d)return null;
-    const dt=b.d.slice(8,10)+'/'+b.d.slice(5,7)+'/'+b.d.slice(0,4);
+    const dt=escaparHtml(b.d.slice(8,10)+'/'+b.d.slice(5,7)+'/'+b.d.slice(0,4));
     return b.o?'Evidência anterior ao registo do céu — observada a '+dt:'★ Nasceu a '+dt;
   }catch(e){return null;}
 }
@@ -518,7 +523,7 @@ function initDomFallback(){
       `<div class="cfb on" style="color:${dcol}">★ ${s.n}</div>`).join('');
     if(!st.c.stars.some(s=>st.lit[s.id]))html+=`<div class="cfb dim">O céu deste domínio ainda espera a primeira estrela.</div>`;
     if(st.choice&&st.choice.state==='chosen')
-      html+=`<div class="cfb on" style="color:${dcol}">◈ Caminho: ${st.choice.chosen}</div>`;
+      html+=`<div class="cfb on" style="color:${dcol}">◈ Caminho: ${escaparHtml(st.choice.chosen)}</div>`;
     else if(st.choice&&st.choice.state==='pending')
       html+=`<div class="cfb">◈ Caminho por escolher: ${st.choice.def.options.map(o=>
         `<button class="mini" data-o="${o}">${o}</button>`).join(' ')}</div>`;
@@ -1150,7 +1155,7 @@ export function initConstellation(){
           <div class="const-opts">${st.choice.def.options.map(o=>`<button class="mini" data-o="${o}">${o}</button>`).join('')}</div>`;
       }else{
         card.innerHTML=`<span class="cx">✕</span><div class="ck">Estrela de Escolha</div>
-          <b>${st.choice.chosen}</b>
+          <b>${escaparHtml(st.choice.chosen)}</b>
           <div class="now">O teu caminho em ${an}.</div>
           <div class="const-opts"><button class="mini" data-r="1">Reconsiderar</button></div>`;
       }

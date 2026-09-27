@@ -130,7 +130,9 @@ Achados, registados como tal:
 - **`constellation.js`, verificado:** nenhum texto do Oráculo nem do Radar chega aos
   `innerHTML` — só constantes do código e dois campos do `app_state`
   (`constellation.choices` e a data de nascimento das estrelas), que a função nunca escreve.
-  Não é explorável por esse caminho; os dois valores escapam-se na etapa 2.
+  Não é explorável por esse caminho; os dois valores escapam-se na etapa 2. **Na etapa 2
+  provou-se que, com o `app_state` adulterado, os dois valores corriam mesmo como HTML** —
+  ver «Achado da etapa 2», abaixo.
 - **O relatório escrito no vault leva o texto do modelo em markdown, sem neutralizar
   links.** O filtro do servidor limpa os URLs dos recursos, não o texto livre: um título ou
   um resumo podem trazer `[texto](javascript:…)` para a nota. Verificado a 2026-09-27 numa
@@ -146,9 +148,29 @@ Achados, registados como tal:
     marcadores não dispararam no contexto da nota. O que ficou provado: a leitura é segura,
     e no Live Preview o esquema cru ainda alcança o abridor — exige clique do Daniel numa
     nota escrita pelo Oráculo.
-  - **Decisão do Daniel, por tomar:** neutralizar a sintaxe de links no texto livre do
-    relatório antes de o gravar no vault (barato, no servidor), ou deixar como está por o
-    caminho realista ser o modo de leitura embebido. Não se mexeu no texto sem a decisão.
+  - **Os plugins do vault, que a instância isolada não tinha** (verificado a 2026-09-27 no
+    código instalado e nas definições do vault, só em leitura): o Templater 2.25.0 e o
+    Dataview 0.5.68 estão ativos.
+    - **Templater:** com o gatilho de criação de ficheiros ligado, uma nota nova com
+      conteúdo que não corresponde a um modelo passa por `overwrite_file_commands`
+      (`on_file_creation` no `main.js` instalado): os comandos `<% … %>` que tiver correm,
+      com acesso ao Node, sem a nota ser aberta. As notas do Oráculo chegam como ficheiros
+      novos em `Oraculo/`, pelo Obsidian Git. O gatilho é uma definição deste computador,
+      guardada pelo Obsidian fora do vault, e não foi lido; o modelo de aula por regex
+      (`Sistema/Estudo/IPCA/*/Aulas/*.md`) só funciona com ele ligado.
+    - **Dataview:** sem `data.json`, valem as predefinições do 0.5.68 — `enableDataviewJs` e
+      `enableInlineDataviewJs` a `false`. Nenhuma nota usa `dataviewjs` nem JS inline. As
+      consultas DQL inline estão ligadas, e só leem.
+    - O relatório semanal usa a pesquisa na web (secção dos recursos): uma página hostil
+      lida pelo modelo pode tentar pôr esse texto no relatório.
+  - **Recomendação do Claude Code (2026-09-27):** neutralizar no servidor, e não só os
+    links. Todo o texto do modelo entra na nota como texto: os caracteres que abrem HTML,
+    links, imagens, embeds, blocos de código, comandos do Templater e campos do Dataview
+    passam a entidades, e os únicos links da nota são os recursos que o servidor validou.
+    Como segunda barreira, do lado do Obsidian e por decisão do Daniel: a pasta `Oraculo`
+    na lista de pastas que o Templater ignora ao criar ficheiros.
+  - **Decisão do Daniel, por tomar antes de repor o saldo:** neutralizar no servidor, ou
+    deixar como está. Não se mexeu no texto sem a decisão.
 - **Publicar a partir de uma pasta com código diferente** (registado a pedido do Daniel,
   2026-09-27). A primeira tentativa de publicar a v21 correu numa janela do PowerShell
   aberta em `C:\WINDOWS\system32`, fora desta sessão. O CLI trabalhou na pasta do terminal
@@ -198,24 +220,77 @@ Estado da etapa 2 (2026-09-27), no ramo `orbita/2-filtro-de-links`:
   mostram: `RadarNews.jsx`, `RadarField.tsx`, `OracleReport.jsx` e `OracleReportLayered.tsx`.
   Quando o endereço não é seguro, o título aparece como texto. Cobre os itens antigos, que
   entraram na base antes do filtro do servidor.
-- O Radar deixa de pedir ícones ao Google: o favicon de cada item passa a um disco de 30 px
-  na cor da área, na caixa do ícone antigo. É a única mudança de aspeto da etapa, autorizada
-  pelo Daniel, e só se vê no HUD anterior (`?hud=1`): o Radar da Órbita (`RadarField`) não
-  tinha ícones.
+- O Radar deixa de pedir ícones ao Google: o favicon de cada item passa a um ponto de 8 px
+  na cor da área, dentro da caixa escura do ícone antigo. É a única mudança de aspeto da
+  etapa, e foi escolhida pelo Daniel entre duas imagens do componente real com o CSS real: a
+  primeira versão, um disco cheio de 30 px, repetia o que o chip da área já mostra e
+  destoava da linguagem da Órbita. O componente final foi comparado pixel a pixel com a
+  imagem escolhida: zero diferenças na zona dos ícones. Só se vê no HUD anterior (`?hud=1`),
+  porque o Radar da Órbita (`RadarField`) não tinha ícones — e só quando houver itens: o
+  frontend carrega os últimos 7 dias, e a base não tem nenhum desde 14/08 (lido a
+  2026-09-27, em transação só de leitura).
 - O céu (`src/stage/constellation.js`) escapa os dois valores do `app_state` que entravam em
   `innerHTML` (`src/lib/escaparHtml.ts`), nos três sítios onde aparecem: o fallback em DOM e
-  os dois cartões do WebGL. Os testes do WebGL mostraram que não era teórico: com o estado
-  adulterado, o `onerror` corria no cartão da Estrela de Escolha, e uma data de nascimento
-  guardada como lista passava o limite de dez caracteres que o código lê. Continua a ser
-  defesa em profundidade: só a conta do Daniel escreve o `app_state` (RLS).
-- Testes escritos a falhar antes das correções (`9295357`, `530bb05`) e verdes depois
-  (`19eb3a1`, `d814777`): `node --test "testes/seguranca/*.test.mjs"`, 84 de 84, cada caso
-  hostil com controlo positivo e rede fechada; os componentes e o céu montados num Chrome
-  real sem cabeça, com perfil temporário. `typecheck` e `build` sem erros. O backend não
-  mudou nesta etapa.
+  os dois cartões do WebGL. Ver «Achado da etapa 2», abaixo.
+- Testes escritos a falhar antes das correções (`9295357`, `530bb05`, `cca461f`) e verdes
+  depois (`19eb3a1`, `d814777`, `7c1efc4`): `node --test "testes/seguranca/*.test.mjs"`, 84
+  de 84, cada caso hostil com controlo positivo e rede fechada; os componentes e o céu
+  montados num Chrome real sem cabeça, com perfil temporário. `typecheck` e `build` sem
+  erros. O backend não mudou nesta etapa.
+- Com os dados reais nada muda à vista na Órbita: os 3 recursos do último relatório passam
+  no `urlSegura` e continuam links.
 - Falta, para a fechar: o avanço do `mission-26/renaissance-visual` na `Sistema-orbita` e o
-  push (do Daniel), a confirmação do lado do destino e a aprovação do aspeto no localhost.
-  Só depois volta o saldo do Oráculo.
+  push (do Daniel), e a confirmação do lado do destino. O saldo do Oráculo volta depois, e só
+  com a decisão sobre o texto do relatório no vault tomada.
+
+### Achado da etapa 2 — o céu corria o estado guardado como HTML, e o primeiro teste só via um de três sítios
+
+Provado a 2026-09-27 num Chrome real sem cabeça, com perfil temporário, rede fechada e o
+`app_state` adulterado de propósito, contra o código sem a correção:
+
+- No **cartão da Estrela de Escolha** (WebGL), um caminho escolhido
+  `<img src=x onerror=…>` **correu**: o `onerror` disparou.
+- No **cartão de uma estrela nascida**, a data de nascimento parecia segura, porque o código
+  só lê dez caracteres — e com dez já nasce um `<b/>`. Guardada como **lista**, o `.slice`
+  devolve elementos inteiros e o limite desaparece: um `<img onerror>` inteiro passou e
+  **correu**.
+- No **fallback em DOM**, os mesmos valores criavam elementos.
+
+Quem o podia explorar: quem escreve o `app_state`, ou seja, só a conta do Daniel (RLS); o
+Oráculo não escreve lá. É defesa em profundidade, mas o defeito era real e não teórico:
+dados guardados tratados como código, o mesmo do filtro de links. Corrigido em `d814777`.
+
+**O teste escrito primeiro (`constelacao-escape.test.mjs`, em `9295357`) só cobria o
+fallback.** A correção mexia em três sítios, e os dois cartões do WebGL — precisamente os
+sítios onde o HTML chegava a correr — ficavam sem prova. A asserção do marcador desse teste
+também lia antes de o `onerror` poder disparar (`MELHORIAS.md`, n.º 6). A falha não foi
+apanhada pelo teste: foi apanhada ao rever a correção antes do commit, e fechada com
+`constelacao-cartoes.test.mjs` (`530bb05`), vermelho antes e verde depois.
+
+### Lição — um teste verde que não testa o que diz testar (terceira vez nesta migração)
+
+1. **Etapa 1 (`c51483a`):** a parte do frontend do teste de fumo verificava o Vanilla
+   servido da raiz. Na Órbita, a raiz é o `index.html` do Vite: o teste abriria outra
+   aplicação e diria que verificou o frontend. Ficou só o Oráculo; o fumo da Órbita é da
+   etapa 4.
+2. **Etapa 2 (`9295357`):** o teste dos links, desenhado no servidor, recebia o estado
+   inicial da store (zustand 5), e os componentes mostravam «Entra com a tua conta».
+   «Nenhum `javascript:`» passava porque não se tinha desenhado nada. Passou para um Chrome
+   real, com um controlo positivo por componente.
+3. **Etapa 2 (`530bb05`):** o céu, acima — um de três sítios.
+
+Nas três, o teste ficou verde por não chegar ao sítio que diz testar: outra aplicação, nada
+desenhado, um sítio em três. Regras que ficam:
+
+- **O controlo positivo passa pelo mesmo caminho que o caso hostil** — o mesmo componente, o
+  mesmo cartão, o mesmo modo de desenho — e falha se nada for desenhado.
+- **Cada sítio que uma correção toca tem um teste que falha sem ela.** Antes do commit,
+  listar os sítios do diff e ligar cada um a um teste. Uma correção em três sítios com teste
+  num só é uma correção por provar em dois.
+- **Ver falhar antes de ver passar, e pela razão certa:** correr contra o código sem a
+  correção (tirada com `git stash`, só ela) e ler a mensagem de cada falha.
+- **O que é assíncrono espera antes de se ler:** um `onerror` só dispara depois de o pedido
+  da imagem falhar.
 
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)

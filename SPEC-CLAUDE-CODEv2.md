@@ -378,8 +378,43 @@ código dos plugins instalados e nas definições do vault:
   `nota-vault.ts`, novo, está lá), versão 22 `ACTIVE` com `verify_jwt: false` (13:21:34 UTC),
   um `OPTIONS` dá 204 e o radar com um token errado dá 403 `forbidden`.
 - O saldo: o Daniel repõe-no amanhã ou depois (28 ou 29/09), não hoje.
-- Falta: trazer a 2b para a `Sistema-orbita` (o avanço e o push são do Daniel) e confirmar
-  do lado do destino.
+- **Fechada a 2026-09-27.** O Daniel trouxe a 2b para a `Sistema-orbita` e publicou-a;
+  confirmado do lado do destino: a `Sistema-orbita` e o GitHub em `8228f77`, a pasta limpa.
+
+### Etapa 3 — o toque, começando pelo Universo (ramo `orbita/3-toque`)
+
+Decisões do Daniel (2026-09-27), com a razão:
+
+- **D1 — despertar por toque.** O 1.º toque num domínio desperta-o e ele fica aceso; o 2.º
+  toque no mesmo mostra os nomes; tocar noutro desperta esse; tocar no céu vazio apaga. É o
+  mesmo par de gestos do computador (passar o rato, clicar), e um toque que fizesse as duas
+  coisas tirava a possibilidade de espreitar um domínio sem o abrir.
+- **D2 — o Escape no toque** é um toque duplo no céu vazio: centra e, sem desvio, recua. Não
+  muda o aspeto; um botão «Centrar» permanente seria a primeira coisa a quebrar a linguagem
+  visual que se decidiu não tocar.
+- **D3 — os textos seguem o tipo de entrada, não a largura.** Rato: «Passa o cursor por um
+  domínio para o despertar; clica para leres os nomes.» · «Arrasta para olhar · Ctrl+roda
+  aprofunda · Escape centra». Toque: «Toca num domínio para o despertar; toca outra vez para
+  leres os nomes.» · «Arrasta para olhar · pinça aprofunda · toque duplo centra» — a primeira
+  parte desta dica depende da D6.
+- **D4 — Vercel.** O Daniel liga o `kamappa/Sistema` no painel, com as pré-visualizações
+  protegidas por login e sem o `main` como produção. Não interfere com o GitHub Pages nem com
+  o workflow de publicação: a Vercel publica em `*.vercel.app`, e o workflow só corre com um
+  push para o `main`. A app da Vercel no GitHub deve ter acesso só a este repositório.
+- **D5 — o iPhone testa com a conta real**, sem o localhost aberto ao mesmo tempo (os dois
+  gravam o `app_state` inteiro, e o último a gravar ganha).
+- **D6 — por decidir: o arrasto do céu por toque.** Medido na fase 1: um dedo move o céu
+  ~24 px e o browser corta o gesto (`pointercancel`), porque fica com ele para rolar ou
+  ampliar a página. Hoje, «Arrasta para olhar» é meia verdade no toque.
+
+**Fase 1 — os testes a falhar** (`30cc377`, `testes/toque/universo.test.mjs`): o componente
+real, com o CSS real, num Chrome sem cabeça com rato e toque simulados, em 4 cenários (rato
+1440 e 900, toque 1366 e 390×844). 16 testes: 7 verdes — os 2 controlos do instrumento, 4 do
+comportamento que fica, a rede fechada — e 9 vermelhos pela ausência da correção. O
+instrumento foi posto à prova antes de se acreditar nele, e deu três defeitos seus, nenhum da
+app: sem emulação de foco, o `focus()` não dispara eventos num separador sem cabeça; sem
+`text`, o Enter do protocolo não ativa o botão; e o teste do segundo toque passava com o
+código de hoje, até passar a exigir o passo intermédio.
 
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)

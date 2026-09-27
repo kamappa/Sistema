@@ -71,7 +71,9 @@ window.__u = {
     return {
       estado: us.dataset.state,
       aceso: [...document.querySelectorAll('.us-terr[data-lit="true"]')].map((t) => t.dataset.sig),
-      aberto: [...document.querySelectorAll('.us-terr[data-sel="true"]')].map((t) => t.dataset.sig),
+      // «Aberto» é ter os nomes desenhados. Não é o data-sel: o modelo guarda o domínio
+      // também quando só está desperto, e o data-sel marca-o nos dois casos.
+      aberto: [...document.querySelectorAll('.us-terr')].filter((t) => t.querySelector('.us-mk-labels')).map((t) => t.dataset.sig),
       x: us.style.getPropertyValue('--free-x'), y: us.style.getPropertyValue('--free-y'),
       rolagem: Math.round(window.scrollY),
     };
@@ -179,7 +181,16 @@ async function tocar(s, { x, y }) {
   await sleep(30);
   await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [{ x, y }] });
 }
-async function toqueDuplo(s, p) { await tocar(s, p); await sleep(120); await tocar(s, p); }
+// O toque duplo leva o seu próprio ritmo — 150 ms entre toques, nos instantes que o
+// protocolo dá aos eventos —, e não o da espera do arnês: com a página ocupada, esperar
+// pela resposta de cada toque afastava-os mais do que qualquer dedo.
+async function toqueDuplo(s, { x, y }) {
+  const t = Date.now() / 1000;
+  for (const dt of [0, 0.15]) {
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }], timestamp: t + dt });
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [{ x, y }], timestamp: t + dt + 0.03 });
+  }
+}
 async function arrastarDedo(s, { x, y }, dx, dy) {
   await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
   for (let i = 1; i <= 10; i++) {
@@ -254,6 +265,24 @@ test('instrumento: o modo toque é toque — hover:none, pointer:coarse e pointe
     const ev = await u(s, 'eventos()');
     assert.ok(ev.includes('pointerdown:touch'), 'o toque não chegou como pointerType "touch": ' + ev.join(', '));
     assert.ok(ev.includes('click:touch'), 'o toque não deu clique: ' + ev.join(', '));
+  } finally { await s.fechar(); }
+});
+
+test('instrumento: o instante dado a cada toque chega ao evento — o ritmo do dedo, não a espera', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    await s.avaliar("window.__ts = []; document.addEventListener('pointerdown', (e) => window.__ts.push(e.timeStamp), true)");
+    const c = await u(s, 'ceu()');
+    const t = Date.now() / 1000;
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [c], timestamp: t });
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [c], timestamp: t + 0.03 });
+    await sleep(600); // uma espera real muito maior do que o intervalo declarado
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [c], timestamp: t + 0.15 });
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [c], timestamp: t + 0.18 });
+    await sleep(100);
+    const ts = await s.avaliar('window.__ts');
+    assert.equal(ts.length, 2, 'não chegaram dois pointerdown');
+    assert.ok(Math.abs(ts[1] - ts[0] - 150) < 20, 'o intervalo entre os toques foi ' + Math.round(ts[1] - ts[0]) + ' ms, não 150');
   } finally { await s.fechar(); }
 });
 

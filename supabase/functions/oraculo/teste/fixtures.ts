@@ -149,6 +149,14 @@ export const RESPOSTAS_DO_MODELO: Record<string, { texto: string; pesquisa: bool
       noticia("a", "nis2"),
       noticia("ja-visto", "rgpd"),
       noticia("c", "aigov", { impact: "alto", missao: { t: "Ler o relatório sintético C", why: "teste", area: "saber", pri: "P2", deadline: null } }),
+      // http simples também é link: o controlo positivo do filtro do servidor (2026-09-27).
+      noticia("http", "ai", { url: "http://exemplo.invalid/http" }),
+      // URLs que o servidor não pode guardar. Uma página hostil nos resultados da pesquisa
+      // pode pô-los na resposta do modelo; o item fica, sem link.
+      noticia("hostil-js", "cyber", { url: "  JavaScript:alert(document.domain)" }),
+      noticia("hostil-data", "cyber", { url: "data:text/html,<script>alert(1)</script>" }),
+      noticia("hostil-tab", "cyber", { url: "java\tscript:alert(1)" }),
+      noticia("sem-esquema", "ai", { url: "www.exemplo.invalid/sem-esquema" }),
     ]),
   },
   vigia: {
@@ -157,6 +165,10 @@ export const RESPOSTAS_DO_MODELO: Record<string, { texto: string; pesquisa: bool
       title: "Vaga sintética", source: "Organização Exemplo", url: "https://exemplo.invalid/vaga",
       summary: "Requisitos inventados.", relevance: "Relevância inventada.", area: "vaga",
       missao: { t: "Candidatar: Vaga sintética (Organização Exemplo)", why: "teste", area: "oficio", pri: "P1", deadline: null },
+    }, {
+      title: "Vaga sintética hostil", source: "Organização Exemplo", url: "vbscript:msgbox(1)",
+      summary: "Requisitos inventados.", relevance: "Relevância inventada.", area: "vaga",
+      missao: { t: "Candidatar: Vaga sintética hostil (Organização Exemplo)", why: "teste", area: "oficio", pri: "P1", deadline: null },
     }]),
   },
   report: {
@@ -165,7 +177,12 @@ export const RESPOSTAS_DO_MODELO: Record<string, { texto: string; pesquisa: bool
       resumo: "(sintético) semana de teste", treino: "(sintético) sem dados de treino.", sono: "(sintético) sem registos de sono.",
       estudo: "(sintético) duas notas alteradas.", alerta: null, propostas: [],
       missoes_propostas: [{ t: "Missão sintética", why: "porque sim, é um teste", area: "saber", pri: "P2", deadline: null }],
-      recursos: [], efemeride: null, profecia: null, recompensa: "(sintético) recompensa",
+      recursos: [
+        { titulo: "Recurso sintético válido", url: "https://exemplo.invalid/recurso", fonte: "ENISA", porque: "teste" },
+        { titulo: "Recurso sintético hostil", url: "javascript:alert(1)", fonte: "artigo", porque: "teste" },
+        { titulo: "Recurso sintético sem esquema", url: "exemplo.invalid/sem-esquema", fonte: "artigo", porque: "teste" },
+      ],
+      efemeride: null, profecia: null, recompensa: "(sintético) recompensa",
       titulo: "(sintético) título", legado: "(sintético) pergunta de reflexão?",
     }),
   },

@@ -99,6 +99,13 @@ export async function correrOraculo({ raiz }) {
     return { status: r.status, texto, json };
   };
   const registo = async () => (await fetch(base + '?mode=teste-registo')).json();
+  // O registo da função (stdout do Deno) chega por outro canal que a resposta HTTP: espera-se
+  // até 3 s pelo número de linhas pedido, em vez de ler uma vez e arriscar uma corrida.
+  const linhasNoRegisto = async (re, n) => {
+    const conta = () => (saida.match(re) || []).length;
+    for (let i = 0; i < 30 && conta() < n; i++) await new Promise((r) => setTimeout(r, 100));
+    return conta();
+  };
 
   try {
     // Autenticação do cron: token errado → 403 e nenhum efeito.
@@ -119,14 +126,24 @@ export async function correrOraculo({ raiz }) {
       pedRadar.includes('TEMAS DAS NOTAS ALTERADAS NO VAULT NAS ÚLTIMAS 24H') && pedRadar.includes('- Estudo/Temas/Tema-Sintetico/Nota.md')
       && pedRadar.includes('- Horario/alteracoes.md') && !pedRadar.includes('O QUE ELE ESTUDOU') && !/Resumo sintético arquivado|Velha\.md|Ficha/.test(pedRadar));
     const novos = r1.bd.radar_items.inseridos.slice(r0.bd.radar_items.inseridos.length);
-    const urls = novos.map((x) => x.url).sort();
-    verificar('radar: insere os 3 itens novos e salta o já visto', JSON.stringify(urls) === JSON.stringify(['https://exemplo.invalid/a', 'https://exemplo.invalid/c', 'https://exemplo.invalid/vaga']), `(${JSON.stringify(urls)})`);
+    const urls = novos.map((x) => x.url).filter((u) => /^https?:\/\//.test(u)).sort();
+    verificar('radar: insere os itens novos com URL http(s) e salta o já visto', JSON.stringify(urls) === JSON.stringify(['http://exemplo.invalid/http', 'https://exemplo.invalid/a', 'https://exemplo.invalid/c', 'https://exemplo.invalid/vaga']), `(${JSON.stringify(urls)})`);
     verificar('radar: itens com o dia de hoje', novos.every((x) => x.d === hoje()));
     const c = novos.find((x) => x.url === 'https://exemplo.invalid/c');
     verificar('radar: alto impacto guarda impact e missão', c?.impact === 'alto' && c?.missao?.t === 'Ler o relatório sintético C');
     const vaga = novos.find((x) => x.url === 'https://exemplo.invalid/vaga');
     verificar('radar: a vaga da Vigia traz a missão Candidatar', vaga?.area === 'vaga' && vaga?.missao?.t === 'Candidatar: Vaga sintética (Organização Exemplo)');
     verificar('radar: apaga só o item com mais de 30 dias', r1.bd.radar_items.urlsApagados.length === 1 && r1.bd.radar_items.urlsApagados[0] === 'https://exemplo.invalid/antigo', `(${JSON.stringify(r1.bd.radar_items.urlsApagados)})`);
+    // Filtro do servidor (2026-09-27): um URL que não é http(s) não é guardado. O item fica,
+    // sem link, e a recusa fica no registo da função — nunca em silêncio. Os 5 itens hostis
+    // têm de chegar à base (prova de que o teste os viu); só o URL fica vazio.
+    const hostis = novos.filter((x) => /HOSTIL|SEM-ESQUEMA|Vaga sintética hostil/.test(String(x.title)));
+    verificar('radar: os 5 itens com URL que não é http(s) entram sem link', hostis.length === 5 && hostis.every((x) => x.url === ''),
+      `(${JSON.stringify(hostis.map((x) => [x.title, x.url]))})`);
+    verificar('radar: nenhum URL guardado fora de http(s)', novos.length > 0 && novos.every((x) => x.url === '' || /^https?:\/\//.test(x.url)),
+      `(${JSON.stringify(novos.map((x) => x.url))})`);
+    const recusasRadar = await linhasNoRegisto(/radar: url recusada/g, 5);
+    verificar('radar: cada recusa fica no registo da função', recusasRadar === 5, `(${recusasRadar} linhas)`);
 
     // Relatório: 1 chamada, 1 linha em oracle_reports, escrita no vault BLOQUEADA.
     r0 = await registo();
@@ -139,6 +156,16 @@ export async function correrOraculo({ raiz }) {
     const esc = r1.github.escritasBloqueadas.slice(r0.github.escritasBloqueadas.length);
     verificar('relatório: tenta escrever Oraculo/relatorio-<hoje>.md e a escrita é bloqueada', esc.length === 1 && esc[0].caminho === `Oraculo/relatorio-${hoje()}.md`, `(${JSON.stringify(esc.map((x) => x.caminho))})`);
     verificar('relatório: a nota teria as secções certas', /# Relatório do Oráculo — \d{4}-\d{2}-\d{2}/.test(esc[0]?.conteudo ?? '') && (esc[0]?.conteudo ?? '').includes('## Resumo\n\n(sintético) semana de teste') && (esc[0]?.conteudo ?? '').includes('- **Missão sintética** — porque sim, é um teste'));
+    // Filtro do servidor (2026-09-27): um recurso é um link — sem link seguro, sai do
+    // relatório (base e vault). O recurso válido tem de ficar: é o controlo positivo.
+    const recs = rel[0]?.report?.recursos;
+    verificar('relatório: só os recursos com URL http(s) são guardados', Array.isArray(recs) && recs.length === 1
+      && recs[0].url === 'https://exemplo.invalid/recurso' && recs[0].titulo === 'Recurso sintético válido', `(${JSON.stringify(recs)})`);
+    const nota = esc[0]?.conteudo ?? '';
+    verificar('relatório: a nota do vault leva o recurso válido e nenhum URL hostil', nota.includes('https://exemplo.invalid/recurso') && !/javascript:|sem-esquema/i.test(nota),
+      `(${(nota.match(/[^\n]*(recurso|javascript)[^\n]*/gi) || []).join(' | ')})`);
+    const recusasRel = await linhasNoRegisto(/relatório: 2 recurso\(s\) sem URL http\(s\)/g, 1);
+    verificar('relatório: os recursos recusados ficam no registo da função', recusasRel >= 1, `(${recusasRel} linhas)`);
     // Commits não são estudo (Lote 2): o relatório recebe o que mudou, por cadeira, com o
     // aviso de que as sincronizações não medem tempo de estudo — e nada fora da lista.
     const pedRel = r1.anthropic.ultimoPedido.report ?? '';
@@ -201,6 +228,8 @@ export async function correrOraculo({ raiz }) {
     r = await pedir('?mode=report-dry', { jwt: JWT_OPERADOR });
     r1 = await registo();
     verificar('report-dry: devolve o relatório', r.status === 200 && r.json?.dry === true && r.json?.report?.resumo === '(sintético) semana de teste', `(${r.status})`);
+    verificar('report-dry: os recursos saem filtrados como no relatório gravado', r.json?.report?.recursos?.length === 1
+      && r.json.report.recursos[0].url === 'https://exemplo.invalid/recurso', `(${JSON.stringify(r.json?.report?.recursos)})`);
     verificar('report-dry: não grava na base nem no vault', r1.bd.oracle_reports.inserts === r0.bd.oracle_reports.inserts && r1.github.escritasBloqueadas.length === r0.github.escritasBloqueadas.length);
 
     // A lista de leitura vale em todas as leituras de todos os modos, não só nas listas.

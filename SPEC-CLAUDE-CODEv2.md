@@ -169,8 +169,8 @@ Achados, registados como tal:
     passam a entidades, e os únicos links da nota são os recursos que o servidor validou.
     Como segunda barreira, do lado do Obsidian e por decisão do Daniel: a pasta `Oraculo`
     na lista de pastas que o Templater ignora ao criar ficheiros.
-  - **Decisão do Daniel, por tomar antes de repor o saldo:** neutralizar no servidor, ou
-    deixar como está. Não se mexeu no texto sem a decisão.
+  - **Decisão do Daniel (2026-09-27): A** — neutralizar no servidor todo o texto que o
+    modelo escreve, e não depender de uma só barreira. Ver «Achado da etapa 2b», abaixo.
 - **Publicar a partir de uma pasta com código diferente** (registado a pedido do Daniel,
   2026-09-27). A primeira tentativa de publicar a v21 correu numa janela do PowerShell
   aberta em `C:\WINDOWS\system32`, fora desta sessão. O CLI trabalhou na pasta do terminal
@@ -239,9 +239,11 @@ Estado da etapa 2 (2026-09-27), no ramo `orbita/2-filtro-de-links`:
   erros. O backend não mudou nesta etapa.
 - Com os dados reais nada muda à vista na Órbita: os 3 recursos do último relatório passam
   no `urlSegura` e continuam links.
-- Falta, para a fechar: o avanço do `mission-26/renaissance-visual` na `Sistema-orbita` e o
-  push (do Daniel), e a confirmação do lado do destino. O saldo do Oráculo volta depois, e só
-  com a decisão sobre o texto do relatório no vault tomada.
+- **Fechada a 2026-09-27.** O Daniel avançou o `mission-26/renaissance-visual` na
+  `Sistema-orbita` e publicou-o. Confirmado do lado do destino: a `Sistema-orbita` e o GitHub
+  em `616a6d1`, a pasta sem alterações por guardar. O Vite não estava a correr, por isso os
+  módulos servidos não foram vistos — a pasta está no commit certo, e é isso que ele serve.
+  O saldo do Oráculo ficou para depois da etapa 2b.
 
 ### Achado da etapa 2 — o céu corria o estado guardado como HTML, e o primeiro teste só via um de três sítios
 
@@ -291,6 +293,64 @@ desenhado, um sítio em três. Regras que ficam:
   correção (tirada com `git stash`, só ela) e ler a mensagem de cada falha.
 - **O que é assíncrono espera antes de se ler:** um `onerror` só dispara depois de o pedido
   da imagem falhar.
+
+**Quase uma quarta vez (etapa 2b, 2026-09-27), apanhada antes de dar uma afirmação falsa.**
+A comparação da exportação da v22 com o commit deu «ok» a ficheiros com CRLF: o
+`git archive` segue o `core.autocrlf` deste Windows, e o `git hash-object` normaliza o fim de
+linha antes de calcular. Apanhou-a o controlo positivo da contagem de CR. Regra: bytes
+comparam-se crus (`git hash-object --no-filters`), e exporta-se com `-c core.autocrlf=false`.
+A v21 publicada foi recomparada assim: é o `9ab6ccc` byte a byte (5 de 5, 0 CR).
+
+### Achado da etapa 2b — o Templater corria o texto do modelo, sem abrir a nota e sem clique
+
+A mesma classe dos outros achados desta publicação — um caminho de dados tratado como código
+—, mas aqui com execução sem interação nenhuma. Verificado a 2026-09-27, só em leitura, no
+código dos plugins instalados e nas definições do vault:
+
+- **O caminho, de ponta a ponta:** o relatório semanal usa a pesquisa na web → o modelo
+  escreve o texto → o Oráculo grava-o como nota **nova** em `Oraculo/` no `vault-sistema` → o
+  Obsidian Git trá-la para o PC → o Templater 2.25.0, com o gatilho de criação de ficheiros
+  ligado, passa qualquer nota nova com conteúdo por `overwrite_file_commands`
+  (`on_file_creation` no `main.js` instalado) → os comandos `<% … %>` correm com acesso ao
+  Node, ou seja, ao PC, **sem a nota ser aberta e sem clique**.
+- O gatilho é uma definição deste computador, guardada pelo Obsidian fora do vault, e não foi
+  lido; o modelo de aula por regex (`Sistema/Estudo/IPCA/*/Aulas/*.md`) só funciona com ele
+  ligado.
+- O teste do Obsidian de antes (instância isolada, sem plugins) tinha dado o modo de leitura
+  seguro e, no Live Preview, o esquema `javascript:`/`data:` a chegar inteiro ao
+  `window.open`, sem se ver o passo seguinte. O Templater muda a natureza do problema: deixa
+  de ser «um clique num link» e passa a ser execução sem interação. O passo final do clique
+  não foi testado — não muda a decisão (Daniel).
+- O Dataview 0.5.68 está sem JavaScript (predefinições, sem `data.json`), e nenhuma nota usa
+  `dataviewjs` nem JavaScript inline.
+
+**Decisão do Daniel (2026-09-27): A, com duas barreiras.**
+
+1. **No servidor** (`nota-vault.ts`, etapa 2b): todo o texto do modelo entra na nota como
+   texto. `<`, `>`, `[`, `]`, o acento grave, `~`, `$`, `\`, `::` e `://` passam a entidades,
+   e os únicos links são os recursos que o servidor validou. O Templater só reconhece
+   comandos por `<%` — a abertura é fixa no código (`new St("<%","%>",…)`), sem definição
+   que a mude —, por isso sem `<` no texto nenhum comando se forma.
+2. **No Obsidian**, feito pelo Daniel: a pasta `Oraculo` nos «Excluded folders» do Templater
+   — verificado no `data.json` do plugin (`ignore_folders_on_creation`, gravado a 27/09
+   13:55).
+
+### Estado da etapa 2b (2026-09-27), no ramo `orbita/2b-texto-do-vault`
+
+- A partir de `616a6d1`. Testes a falhar primeiro (`71d9a02`): o teste unitário
+  `nota-vault.test.ts` pela falta do módulo (TS2307); o fumo com 49 verdes e 1 vermelha — a
+  nova, nas sete categorias —, os totais iguais aos da linha de base.
+- Correção (`50691ae`): `nota-vault.ts` (`textoMd`, `destinoMd` e o `reportMd` que vivia no
+  `index.ts`); o `index.ts` só passa a importá-lo. `deno test testes/oraculo/` 19 de 19,
+  `deno check` sem erros, fumo 49 de 49, totais iguais (7 chamadas ao modelo, 60 leituras,
+  2 escritas bloqueadas). A linha de base do fumo não foi regravada (duas verificações
+  novas; precisa da aceitação do Daniel).
+- Exportação LF do `50691ae` para publicar (scratchpad da sessão, `deploy-v22`): 6
+  ficheiros, bytes iguais ao commit, 0 CR. Face à v21: `index.ts` e `teste/fixtures.ts`
+  mudam, `nota-vault.ts` é novo, os outros 3 ficam iguais.
+- Falta: a v22 publicada pelo Daniel com `!` nesta sessão; a verificação do lado do destino
+  (descarregamento = `50691ae` em bytes crus, versão 22 `ACTIVE`, `verify_jwt: false`,
+  `OPTIONS` 204, radar com token errado 403); e só depois o saldo.
 
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)

@@ -164,6 +164,25 @@ export async function correrOraculo({ raiz }) {
     const nota = esc[0]?.conteudo ?? '';
     verificar('relatório: a nota do vault leva o recurso válido e nenhum URL hostil', nota.includes('https://exemplo.invalid/recurso') && !/javascript:|sem-esquema/i.test(nota),
       `(${(nota.match(/[^\n]*(recurso|javascript)[^\n]*/gi) || []).join(' | ')})`);
+    // A nota nova em Oraculo/ chega ao PC pelo Obsidian Git, e o Templater corre os comandos
+    // de qualquer nota nova, sem a abrir (decisão do Daniel, 2026-09-27): o texto livre do
+    // modelo tem de chegar como texto. O controlo positivo prova que o texto hostil dos dados
+    // fixos chega mesmo à nota — sem ele, «nada ativo» passava com uma nota sem esse texto.
+    const marcasHostis = ['tp.file.create_new', 'onerror', 'pixel.png', 'dataviewjs', 'Ficha-do-Jogador', 'obsidian', 'estudado'];
+    verificar('relatório: o texto hostil do modelo chega à nota do vault (controlo positivo)', marcasHostis.every((m) => nota.includes(m)),
+      `(em falta: ${marcasHostis.filter((m) => !nota.includes(m)).join(', ')})`);
+    const ativos = {
+      templater: nota.includes('<%'),
+      html: /[<>]/.test(nota),
+      codigo: /[`~]/.test(nota),
+      formula: nota.includes('$'),
+      campo: nota.includes('::'),
+      links: (nota.match(/\[/g) || []).length !== 1 || !nota.includes('[Recurso sintético válido](https://exemplo.invalid/recurso)'),
+      esquemas: (nota.match(/:\/\//g) || []).length !== 1,
+    };
+    const presentes = Object.keys(ativos).filter((k) => ativos[k]);
+    verificar('relatório: na nota do vault o texto do modelo não forma comandos, HTML, links, imagens, código nem campos', presentes.length === 0,
+      `(${presentes.join(', ')})`);
     const recusasRel = await linhasNoRegisto(/relatório: 2 recurso\(s\) sem URL http\(s\)/g, 1);
     verificar('relatório: os recursos recusados ficam no registo da função', recusasRel >= 1, `(${recusasRel} linhas)`);
     // Commits não são estudo (Lote 2): o relatório recebe o que mudou, por cadeira, com o

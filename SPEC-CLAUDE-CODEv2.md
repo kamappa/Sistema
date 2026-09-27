@@ -430,6 +430,37 @@ app: sem emulação de foco, o `focus()` não dispara eventos num separador sem 
 `text`, o Enter do protocolo não ativa o botão; e o teste do segundo toque passava com o
 código de hoje, até passar a exigir o passo intermédio.
 
+**Fase 2 — o Universo por toque** (`73be621` testes da D6, `d37116d` correções ao teste,
+`0187d4b` implementação). `src/app/useTipoEntrada.ts` (rato ou toque pela media do aparelho e
+pelo último ponteiro) e os textos da D3; o despertar da D1 lido no `pointerdown`, antes do foco
+que o Android dá ao botão; o toque duplo da D2 medido pelo instante do `pointerdown`; e a D6 —
+um dedo de toque deixa de arrastar o céu e, com `touch-action: pan-y`, rola a página; dois
+dedos arrastam pelo ponto médio, e a distância continua a aprofundar. Toque 20 de 20,
+segurança 84 de 84, `typecheck` e `build` sem erros. Provado vermelho outra vez contra o
+código sem a implementação: 9 verdes e 11 vermelhos, cada um pela ausência da correção.
+
+Achados pelo caminho, investigados com sondas antes de se mexer em código:
+
+- **Um domínio apagado não se podia tocar.** Recua em 3D (`translateZ(-26px)`) e ficava atrás
+  do plano da `.us-scene`, que apanhava o toque (medido: o centro do botão dava `us-scene`
+  enquanto apagado; tirado o recuo, dava o botão). Com o rato nunca se notou — ao sair de um
+  domínio ele apaga-se antes de o outro ser apagado —, mas com o despertar que fica aceso os
+  outros domínios ficavam inalcançáveis. O plano da cena deixou de receber eventos; os
+  territórios têm os seus.
+- **O toque duplo contava o tempo errado:** medido no clique, e com a página ocupada numa
+  viagem da câmara os dois cliques chegavam a 400 ms. Passou a medir o `pointerdown`, o ritmo
+  do dedo. O Chrome respeita o instante dado a cada toque pelo protocolo (controlo novo).
+- **Um erro meu no teste:** «aberto» era o `data-sel`, que marca também o domínio desperto.
+  Passou a ser ter os nomes desenhados.
+
+**Nada muda no aspeto além dos textos aprovados:** imagens do Universo com rato, antes e
+depois, comparadas pixel a pixel. Na vista geral só a zona onde «toca» passou a «clica»
+(confirmado a olhar para o recorte); com o rato num domínio, iguais — 38 píxeis com
+diferença 1, os mesmos de duas corridas do mesmo código (o controlo da comparação).
+
+Falta, na etapa 3: o teste num iPhone real pela pré-visualização da Vercel (o Daniel), e a
+fase 4 — o resto da Órbita.
+
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)
 

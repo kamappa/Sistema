@@ -54,6 +54,21 @@ As ideias foram consolidadas nas Missões 25–29 e na Camada III do ROADMAP.
   separada. Não assumir que substituiu esta baseline sem reconciliação,
   testes, plano de rollback e decisão explícita.
 
+**Uso real, corrigido a 2026-09-27 (dito pelo Daniel).** No dia a dia não uso o GitHub
+Pages: uso a Órbita — o frontend React do ramo `mission-26/renaissance-visual` — pelo
+servidor de desenvolvimento local do Vite, em `http://localhost:5173/Sistema/`. Para mim,
+«produção» é isso. O que implica, verificado a 2026-09-27:
+
+- Só existe enquanto o `npm run dev` corre neste PC, com a pasta do repositório nesse ramo
+  (há uma só cópia de trabalho, e o `main` não tem Vite). Não chega ao iPhone nem a outro
+  computador.
+- O ramo parou a 2026-08-18: **não tem os lotes 0–3** de 2026-09-24 (painel das sessões de
+  estudo, cadeiras, correção de segurança do Radar), que estão no Vanilla do `main`,
+  publicado no Pages.
+- É partilhado pelos dois frontends: a base Supabase (a mesma linha de `app_state`, que cada
+  um grava inteira — o último a gravar substitui o outro), o Oráculo (Edge Function) e as
+  cópias diárias da base.
+
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)
 
@@ -3395,7 +3410,8 @@ Cada passo foi corrido pelo Daniel e verificado só com leituras antes do seguin
    S1, 6 arquivadas de 2025-26 S2), iguais ao seed campo a campo, acentos incluídos.
 4. **Frontend**: `main` = `bc0cbb0`, publicado pelo GitHub Pages; os ficheiros servidos
    são byte a byte os do commit, e um Chrome com perfil vazio arranca sem erros de
-   consola, em desktop e mobile.
+   consola, em desktop e mobile. *Nota de 2026-09-27:* o frontend que uso no dia a dia é a
+   Órbita local (React), que não tem este painel — ver «Uso real» no início do SPEC.
 5. **Oráculo v20**, publicado de um export do commit — ver o estado do Lote 2.
 
 Antes do push, os testes correram sobre a junção: fumo completo verde (sem erros novos

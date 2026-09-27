@@ -1,0 +1,382 @@
+// O Universo por toque — etapa 3 da publicação da Órbita, fase 1: testes primeiro (2026-09-27).
+//
+// Decisões do Daniel:
+//   D1 — o 1.º toque num domínio desperta-o e ele fica aceso; o 2.º toque no mesmo mostra os
+//        nomes; tocar noutro domínio desperta esse; tocar no céu vazio apaga. É o mesmo par do
+//        computador (passar o rato / clicar), e deixa espreitar um domínio sem o abrir.
+//   D2 — o Escape no toque é um toque duplo no céu vazio: centra, e se não houver desvio recua.
+//   D3 — o texto de ajuda segue o TIPO de entrada, não a largura do ecrã.
+// A parte do arrasto por toque fica de fora até à decisão D6: medido, um dedo no céu move-o
+// ~24 px e o browser corta o gesto (pointercancel).
+//
+// O componente REAL (UniverseScene), com o CSS real, num Chrome sem cabeça (perfil temporário,
+// nunca o do Daniel; rede fechada), com rato e com toque simulados pelo protocolo do Chrome.
+// O instrumento tem o seu próprio controlo positivo (lição 9 do A.8.13): no modo toque o
+// Chrome tem de dizer hover:none e pointer:coarse e dar pointerType "touch"; no modo rato, o
+// contrário. Sem isso, um teste de toque podia estar a correr com rato e passar por acaso.
+//
+//   node --test testes/toque/universo.test.mjs
+import { test, before, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { build } from 'esbuild';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { servirEstatico, lancarChrome, abrirSeparador, sleep } from '../fumo/apoio.mjs';
+
+const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+const TEXTO_RATO = 'Passa o cursor por um domínio para o despertar; clica para leres os nomes.';
+const TEXTO_TOQUE = 'Toca num domínio para o despertar; toca outra vez para leres os nomes.';
+const DICA_RATO = 'Arrasta para olhar · Ctrl+roda aprofunda · Escape centra';
+
+// A página: o Universo real com um estado da app (fresh) e níveis variados; um registo de
+// eventos de ponteiro para o controlo do instrumento; e leituras do que se vê.
+const ENTRADA = `
+import './src/design-system/tokens/index.css';
+import './src/styles/base.css';
+import { createElement } from 'react';
+import { createRoot } from 'react-dom/client';
+import UniverseScene from './src/app/universe/UniverseScene';
+import { fresh } from './src/state/fresh.js';
+
+const S = fresh();
+const niveis = { oficio: 6, saber: 4, corpo: 3, mente: 2, vinculos: 2, disciplina: 5 };
+for (const [k, n] of Object.entries(niveis)) { S.attrs[k].level = n; S.attrs[k].xp = 10; }
+
+window.__eventos = [];
+for (const t of ['pointerdown', 'click']) {
+  document.addEventListener(t, (e) => window.__eventos.push(t + ':' + (e.pointerType || '-')), true);
+}
+
+const raiz = document.createElement('div');
+document.body.appendChild(raiz);
+createRoot(raiz).render(createElement(UniverseScene, { S }));
+
+window.__u = {
+  pronto: () => !!document.querySelector('.us .us-terr-hit'),
+  media: () => ({ hover: matchMedia('(hover: hover)').matches, semHover: matchMedia('(hover: none)').matches,
+    fino: matchMedia('(pointer: fine)').matches, grosso: matchMedia('(pointer: coarse)').matches,
+    foco: document.hasFocus() }),
+  eventos: () => window.__eventos.splice(0),
+  estado: () => {
+    const us = document.querySelector('.us');
+    return {
+      estado: us.dataset.state,
+      aceso: [...document.querySelectorAll('.us-terr[data-lit="true"]')].map((t) => t.dataset.sig),
+      aberto: [...document.querySelectorAll('.us-terr[data-sel="true"]')].map((t) => t.dataset.sig),
+      x: us.style.getPropertyValue('--free-x'), y: us.style.getPropertyValue('--free-y'),
+    };
+  },
+  textos: () => ({
+    texto: [...document.querySelectorAll('.us-hud-s')].map((p) => p.textContent).join(' '),
+    dica: document.querySelector('.us-hint')?.textContent ?? null,
+  }),
+  // O centro do botão de um domínio, onde está agora (a câmara mexe).
+  alvo: (id) => {
+    const b = document.querySelector('.us-terr[data-sig="' + id + '"] .us-terr-hit').getBoundingClientRect();
+    return { x: Math.round(b.left + b.width / 2), y: Math.round(b.top + b.height / 2) };
+  },
+  // Um ponto de céu vazio: dentro da cena, fora de domínios, do painel de texto e de botões.
+  ceu: () => {
+    const us = document.querySelector('.us');
+    const r = us.getBoundingClientRect();
+    for (const [fx, fy] of [[0.06, 0.12], [0.94, 0.12], [0.06, 0.9], [0.94, 0.9], [0.5, 0.06], [0.03, 0.5], [0.97, 0.5]]) {
+      const x = Math.round(r.left + fx * r.width); const y = Math.round(r.top + fy * r.height);
+      const e = document.elementFromPoint(x, y);
+      if (e && us.contains(e) && !e.closest('.us-terr, .us-hud, button, a')) return { x, y };
+    }
+    return null;
+  },
+  focar: (id) => { document.querySelector('.us-terr[data-sig="' + id + '"] .us-terr-hit').focus(); },
+};
+`;
+
+let pasta, site, chrome;
+const respostasDeFora = [];
+
+before(async () => {
+  const r = await build({
+    stdin: { contents: ENTRADA, resolveDir: RAIZ, sourcefile: 'entrada-teste.js', loader: 'js' },
+    bundle: true, platform: 'browser', format: 'iife', target: 'es2020', write: false, outdir: 'saida', jsx: 'automatic',
+    loader: { '.js': 'jsx', '.png': 'empty', '.svg': 'empty', '.jpg': 'empty', '.webp': 'empty', '.woff2': 'empty', '.woff': 'empty' },
+    define: { 'import.meta.env': JSON.stringify({ DEV: false, PROD: true, MODE: 'production', BASE_URL: '/Sistema/' }), 'process.env.NODE_ENV': '"production"' },
+    logLevel: 'silent',
+  });
+  pasta = await mkdtemp(path.join(tmpdir(), 'orbita-toque-'));
+  for (const f of r.outputFiles) await writeFile(path.join(pasta, path.basename(f.path)), f.contents);
+  await writeFile(path.join(pasta, 'index.html'),
+    '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
+    + '<title>teste do toque no Universo</title><link rel="stylesheet" href="stdin.css">'
+    + '<body style="margin:0;background:#000"><script src="stdin.js"></script></body>');
+  site = await servirEstatico(pasta);
+  chrome = await lancarChrome();
+});
+
+after(async () => {
+  await chrome?.fechar();
+  site?.fechar();
+  if (pasta) await rm(pasta, { recursive: true, force: true });
+});
+
+// Um separador novo por cenário, com a emulação posta ANTES de a página carregar.
+async function abrir({ toque, largura, altura }) {
+  const s = await abrirSeparador(chrome);
+  const local = new URL(site.url).origin + '/';
+  s.ouvir('Fetch.requestPaused', (p) => {
+    if (p.request.url.startsWith(local)) s.enviar('Fetch.continueRequest', { requestId: p.requestId }).catch(() => {});
+    else s.enviar('Fetch.failRequest', { requestId: p.requestId, errorReason: 'BlockedByClient' }).catch(() => {});
+  });
+  s.ouvir('Network.responseReceived', (p) => {
+    const u = p.response.url;
+    if (!u.startsWith(local) && !/^(data|blob):/.test(u)) respostasDeFora.push(u);
+  });
+  await s.enviar('Fetch.enable', { patterns: [{ urlPattern: '*' }] });
+  await s.enviar('Emulation.setDeviceMetricsOverride', { width: largura, height: altura, deviceScaleFactor: 1, mobile: !!toque });
+  await s.enviar('Emulation.setTouchEmulationEnabled', toque ? { enabled: true, maxTouchPoints: 5 } : { enabled: false });
+  // Um separador sem cabeça não tem o foco da janela: o focus() muda o elemento ativo mas
+  // não dispara o evento (medido: 0 eventos focusin). Com isto, a página comporta-se como a
+  // janela que o Daniel tem à frente.
+  await s.enviar('Emulation.setFocusEmulationEnabled', { enabled: true });
+  await s.enviar('Page.navigate', { url: site.url });
+  for (let i = 0; i < 100 && !(await s.avaliar('!!window.__u && window.__u.pronto()')); i++) await sleep(100);
+  assert.ok(await s.avaliar('!!window.__u && window.__u.pronto()'), 'o Universo não arrancou');
+  await sleep(300);
+  return s;
+}
+
+const u = (s, expr) => s.avaliar('window.__u.' + expr);
+const RATO = { toque: false, largura: 1440, altura: 900 };
+const RATO_ESTREITO = { toque: false, largura: 900, altura: 900 };
+const TOQUE_LARGO = { toque: true, largura: 1366, altura: 1024 };
+const TOQUE_TELEMOVEL = { toque: true, largura: 390, altura: 844 };
+
+async function tocar(s, { x, y }) {
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+  await sleep(30);
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [{ x, y }] });
+}
+async function toqueDuplo(s, p) { await tocar(s, p); await sleep(120); await tocar(s, p); }
+const moverRato = (s, { x, y }) => s.enviar('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+async function clicarRato(s, { x, y }) {
+  await moverRato(s, { x, y });
+  await s.enviar('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
+  await s.enviar('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+}
+async function arrastarRato(s, { x, y }, dx, dy) {
+  await moverRato(s, { x, y });
+  await s.enviar('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
+  for (let i = 1; i <= 10; i++) {
+    await s.enviar('Input.dispatchMouseEvent', { type: 'mouseMoved', x: x + (dx * i) / 10, y: y + (dy * i) / 10, button: 'left', buttons: 1 });
+    await sleep(16);
+  }
+  await s.enviar('Input.dispatchMouseEvent', { type: 'mouseReleased', x: x + dx, y: y + dy, button: 'left', clickCount: 1 });
+}
+async function esperarEstado(s, alvo, ms = 3000) {
+  let e;
+  for (let t = 0; t < ms; t += 100) { e = await u(s, 'estado()'); if (e.estado === alvo) return e; await sleep(100); }
+  return e;
+}
+
+// ── O INSTRUMENTO (controlos positivos da simulação) ──────────────────────────────────
+
+test('instrumento: o modo rato é rato — hover:hover, pointer:fine e pointerType "mouse"', async () => {
+  const s = await abrir(RATO);
+  try {
+    const m = await u(s, 'media()');
+    assert.deepEqual(m, { hover: true, semHover: false, fino: true, grosso: false, foco: true });
+    await u(s, 'eventos()');
+    await clicarRato(s, await u(s, 'ceu()'));
+    assert.ok((await u(s, 'eventos()')).includes('pointerdown:mouse'), 'o clique do rato não chegou como pointerType "mouse"');
+  } finally { await s.fechar(); }
+});
+
+test('instrumento: o modo toque é toque — hover:none, pointer:coarse e pointerType "touch"', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    const m = await u(s, 'media()');
+    assert.deepEqual(m, { hover: false, semHover: true, fino: false, grosso: true, foco: true });
+    await u(s, 'eventos()');
+    await tocar(s, await u(s, 'ceu()'));
+    await sleep(100);
+    const ev = await u(s, 'eventos()');
+    assert.ok(ev.includes('pointerdown:touch'), 'o toque não chegou como pointerType "touch": ' + ev.join(', '));
+    assert.ok(ev.includes('click:touch'), 'o toque não deu clique: ' + ev.join(', '));
+  } finally { await s.fechar(); }
+});
+
+// ── D3: O TEXTO SEGUE O TIPO DE ENTRADA ────────────────────────────────────────────────
+
+test('texto: com rato num ecrã largo fala de cursor, Ctrl+roda e Escape (controlo positivo)', async () => {
+  const s = await abrir(RATO);
+  try {
+    const { texto, dica } = await u(s, 'textos()');
+    assert.ok(texto.includes('Passa o cursor por um domínio para o despertar'), texto);
+    assert.ok(dica.includes('Ctrl+roda aprofunda') && dica.includes('Escape centra'), dica);
+  } finally { await s.fechar(); }
+});
+
+test('texto: com rato numa janela estreita continua a ser rato', async () => {
+  const s = await abrir(RATO_ESTREITO);
+  try {
+    const { texto, dica } = await u(s, 'textos()');
+    assert.ok(texto.includes(TEXTO_RATO), 'texto do rato em falta: ' + texto.slice(-120));
+    assert.equal(dica, DICA_RATO);
+  } finally { await s.fechar(); }
+});
+
+for (const [nome, cenario] of [['num ecrã largo (iPad deitado)', TOQUE_LARGO], ['no telemóvel (390×844)', TOQUE_TELEMOVEL]]) {
+  test(`texto: com toque ${nome} fala de toques, não de cursor, Ctrl nem Escape`, async () => {
+    const s = await abrir(cenario);
+    try {
+      const { texto, dica } = await u(s, 'textos()');
+      assert.ok(texto.includes(TEXTO_TOQUE), 'texto do toque em falta: ' + texto.slice(-120));
+      assert.ok(!/cursor/i.test(texto), 'o texto ainda fala de cursor');
+      // A primeira parte da dica («Arrasta para olhar») espera pela decisão D6.
+      assert.ok(dica.includes('pinça aprofunda') && dica.includes('toque duplo centra'), dica);
+      assert.ok(!/Ctrl|Escape/.test(dica), 'a dica ainda fala de Ctrl ou Escape: ' + dica);
+    } finally { await s.fechar(); }
+  });
+}
+
+// ── O COMPUTADOR FICA COMO ESTÁ (controlos positivos) ──────────────────────────────────
+
+test('rato: passar por cima desperta, sair apaga, um clique abre (controlo positivo)', async () => {
+  const s = await abrir(RATO);
+  try {
+    await moverRato(s, await u(s, 'alvo("oficio")'));
+    let e = await esperarEstado(s, 'DOMAIN_HOVER', 1000);
+    assert.equal(e.estado, 'DOMAIN_HOVER'); assert.deepEqual(e.aceso, ['oficio']);
+    await moverRato(s, await u(s, 'ceu()'));
+    e = await esperarEstado(s, 'OVERVIEW', 1000);
+    assert.equal(e.estado, 'OVERVIEW'); assert.deepEqual(e.aceso, []);
+    await clicarRato(s, await u(s, 'alvo("oficio")'));
+    e = await esperarEstado(s, 'DOMAIN_FOCUS', 1500);
+    assert.equal(e.estado, 'DOMAIN_FOCUS'); assert.deepEqual(e.aberto, ['oficio']);
+  } finally { await s.fechar(); }
+});
+
+test('teclado: o foco desperta e o Enter abre (controlo positivo)', async () => {
+  const s = await abrir(RATO);
+  try {
+    await u(s, 'focar("saber")');
+    let e = await esperarEstado(s, 'DOMAIN_HOVER', 1000);
+    assert.equal(e.estado, 'DOMAIN_HOVER'); assert.deepEqual(e.aceso, ['saber']);
+    // Sem `text`, o keyDown do protocolo não gera o carácter, e é ele que ativa o botão.
+    await s.enviar('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13, text: '\r', unmodifiedText: '\r' });
+    await s.enviar('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Enter', code: 'Enter', windowsVirtualKeyCode: 13 });
+    e = await esperarEstado(s, 'DOMAIN_FOCUS', 1500);
+    assert.equal(e.estado, 'DOMAIN_FOCUS'); assert.deepEqual(e.aberto, ['saber']);
+  } finally { await s.fechar(); }
+});
+
+test('rato: Escape centra primeiro e só depois recua (controlo positivo)', async () => {
+  const s = await abrir(RATO);
+  try {
+    await arrastarRato(s, await u(s, 'ceu()'), 80, 30);
+    let e = await u(s, 'estado()');
+    assert.notEqual(e.x, '0.0px', 'o arrasto do rato não deslocou o céu');
+    await s.enviar('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+    await s.enviar('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+    await sleep(200);
+    e = await u(s, 'estado()');
+    assert.equal(e.x, '0.0px'); assert.equal(e.y, '0.0px');
+    assert.equal(e.estado, 'OVERVIEW');
+  } finally { await s.fechar(); }
+});
+
+// ── D1: O DESPERTAR POR TOQUE ──────────────────────────────────────────────────────────
+
+test('toque: o primeiro toque num domínio desperta-o e ele fica aceso, sem abrir', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    await tocar(s, await u(s, 'alvo("oficio")'));
+    await sleep(400);
+    const e = await u(s, 'estado()');
+    assert.equal(e.estado, 'DOMAIN_HOVER', 'devia ficar desperto, estado ' + e.estado);
+    assert.deepEqual(e.aceso, ['oficio']);
+    assert.deepEqual(e.aberto, [], 'abriu o domínio ao primeiro toque');
+  } finally { await s.fechar(); }
+});
+
+test('toque: o segundo toque no mesmo domínio mostra os nomes', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    await tocar(s, await u(s, 'alvo("oficio")'));
+    await sleep(400);
+    // Sem este passo o teste passava com o código de hoje, em que o PRIMEIRO toque já abre:
+    // «aberto depois de dois toques» não distingue os dois comportamentos.
+    let e = await u(s, 'estado()');
+    assert.equal(e.estado, 'DOMAIN_HOVER', 'o primeiro toque devia só despertar, estado ' + e.estado);
+    await tocar(s, await u(s, 'alvo("oficio")'));
+    e = await esperarEstado(s, 'DOMAIN_FOCUS', 1500);
+    assert.equal(e.estado, 'DOMAIN_FOCUS', 'devia mostrar os nomes, estado ' + e.estado);
+    assert.deepEqual(e.aberto, ['oficio']);
+  } finally { await s.fechar(); }
+});
+
+test('toque: tocar noutro domínio desperta esse, sem abrir', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    await tocar(s, await u(s, 'alvo("oficio")'));
+    await sleep(400);
+    await tocar(s, await u(s, 'alvo("saber")'));
+    await sleep(400);
+    const e = await u(s, 'estado()');
+    assert.equal(e.estado, 'DOMAIN_HOVER', 'estado ' + e.estado);
+    assert.deepEqual(e.aceso, ['saber']);
+    assert.deepEqual(e.aberto, []);
+  } finally { await s.fechar(); }
+});
+
+test('toque: tocar no céu vazio apaga o domínio desperto', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    await tocar(s, await u(s, 'alvo("oficio")'));
+    await sleep(400);
+    const ceu = await u(s, 'ceu()');
+    assert.ok(ceu, 'não encontrei céu vazio para tocar');
+    await tocar(s, ceu);
+    await sleep(400);
+    const e = await u(s, 'estado()');
+    assert.equal(e.estado, 'OVERVIEW', 'estado ' + e.estado);
+    assert.deepEqual(e.aceso, []);
+  } finally { await s.fechar(); }
+});
+
+// ── D2: O TOQUE DUPLO NO CÉU VAZIO É O ESCAPE ──────────────────────────────────────────
+
+test('toque duplo no céu vazio centra a câmara deslocada', async () => {
+  // O desvio faz-se com o rato, como num iPad com trackpad: o arrasto por toque espera pela D6.
+  const s = await abrir(TOQUE_LARGO);
+  try {
+    await arrastarRato(s, await u(s, 'ceu()'), 80, 30);
+    let e = await u(s, 'estado()');
+    assert.notEqual(e.x, '0.0px', 'preparação: o arrasto não deslocou o céu');
+    await toqueDuplo(s, await u(s, 'ceu()'));
+    await sleep(300);
+    e = await u(s, 'estado()');
+    assert.equal(e.x, '0.0px', 'o toque duplo não centrou (x)');
+    assert.equal(e.y, '0.0px', 'o toque duplo não centrou (y)');
+  } finally { await s.fechar(); }
+});
+
+test('toque duplo no céu vazio, sem desvio, recua um passo', async () => {
+  // O domínio abre-se com um clique de rato, para este teste depender só da D2 e não da D1.
+  const s = await abrir(TOQUE_LARGO);
+  try {
+    await clicarRato(s, await u(s, 'alvo("oficio")'));
+    let e = await esperarEstado(s, 'DOMAIN_FOCUS', 1500);
+    assert.equal(e.estado, 'DOMAIN_FOCUS', 'preparação: o clique do rato não abriu o domínio, estado ' + e.estado);
+    const ceu = await u(s, 'ceu()');
+    assert.ok(ceu, 'não encontrei céu vazio para tocar');
+    await toqueDuplo(s, ceu);
+    e = await esperarEstado(s, 'OVERVIEW', 3000);
+    assert.equal(e.estado, 'OVERVIEW', 'o toque duplo não recuou, estado ' + e.estado);
+  } finally { await s.fechar(); }
+});
+
+test('nenhuma resposta veio de fora da página de teste (rede fechada)', () => {
+  assert.deepEqual(respostasDeFora, []);
+});

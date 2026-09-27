@@ -191,6 +191,32 @@ Estado da etapa 1 (2026-09-27), no ramo `orbita/1-backend-e-docs`:
   filtro), e o `typecheck` e o `build` do frontend sem erros. A linha de base do fumo não
   foi regravada: o LEIA-ME exige a aceitação do Daniel.
 
+Estado da etapa 2 (2026-09-27), no ramo `orbita/2-filtro-de-links`:
+
+- Os links do Oráculo e do Radar só saem como link se forem http(s) absolutos
+  (`src/lib/urlSegura.ts`, o mesmo contrato do filtro do servidor), nos quatro sítios que os
+  mostram: `RadarNews.jsx`, `RadarField.tsx`, `OracleReport.jsx` e `OracleReportLayered.tsx`.
+  Quando o endereço não é seguro, o título aparece como texto. Cobre os itens antigos, que
+  entraram na base antes do filtro do servidor.
+- O Radar deixa de pedir ícones ao Google: o favicon de cada item passa a um disco de 30 px
+  na cor da área, na caixa do ícone antigo. É a única mudança de aspeto da etapa, autorizada
+  pelo Daniel, e só se vê no HUD anterior (`?hud=1`): o Radar da Órbita (`RadarField`) não
+  tinha ícones.
+- O céu (`src/stage/constellation.js`) escapa os dois valores do `app_state` que entravam em
+  `innerHTML` (`src/lib/escaparHtml.ts`), nos três sítios onde aparecem: o fallback em DOM e
+  os dois cartões do WebGL. Os testes do WebGL mostraram que não era teórico: com o estado
+  adulterado, o `onerror` corria no cartão da Estrela de Escolha, e uma data de nascimento
+  guardada como lista passava o limite de dez caracteres que o código lê. Continua a ser
+  defesa em profundidade: só a conta do Daniel escreve o `app_state` (RLS).
+- Testes escritos a falhar antes das correções (`9295357`, `530bb05`) e verdes depois
+  (`19eb3a1`, `d814777`): `node --test "testes/seguranca/*.test.mjs"`, 84 de 84, cada caso
+  hostil com controlo positivo e rede fechada; os componentes e o céu montados num Chrome
+  real sem cabeça, com perfil temporário. `typecheck` e `build` sem erros. O backend não
+  mudou nesta etapa.
+- Falta, para a fechar: o avanço do `mission-26/renaissance-visual` na `Sistema-orbita` e o
+  push (do Daniel), a confirmação do lado do destino e a aprovação do aspeto no localhost.
+  Só depois volta o saldo do Oráculo.
+
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)
 

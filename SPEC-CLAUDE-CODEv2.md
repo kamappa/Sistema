@@ -301,7 +301,7 @@ própria logo abaixo.
 
 Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de hashes que
 normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
-código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — quatro instâncias
+código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — cinco instâncias
 do mesmo padrão nesta migração, todas em instrumentos de verificação:
 
 1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
@@ -317,6 +317,15 @@ do mesmo padrão nesta migração, todas em instrumentos de verificação:
    `core.autocrlf` deste Windows, e o `git hash-object` normaliza o fim de linha antes de
    calcular. Apanhou-a uma contagem de CR que tinha o seu próprio controlo (um ficheiro com
    CR tem de dar 1), antes de chegar a afirmação falsa nenhuma.
+5. **O teste que passava antes da correção existir** (etapa 3, fase 1, `30cc377`; quinta
+   instância, registada a pedido do Daniel): «o segundo toque no mesmo domínio mostra os
+   nomes» ficava verde com o código de hoje, em que o PRIMEIRO toque já abre — «aberto
+   depois de dois toques» não distingue os dois comportamentos. Passou a exigir o passo
+   intermédio e ficou vermelho. No mesmo arnês, dois defeitos do instrumento davam o
+   resultado oposto: sem emulação de foco o `focus()` não dispara eventos num separador sem
+   cabeça, e sem `text` o Enter do protocolo não ativa o botão — o controlo do teclado
+   falhava sem a app ter defeito nenhum. **Um teste que passa antes da correção existir não
+   está a testar o que diz.**
 
 A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
 apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
@@ -395,17 +404,22 @@ Decisões do Daniel (2026-09-27), com a razão:
 - **D3 — os textos seguem o tipo de entrada, não a largura.** Rato: «Passa o cursor por um
   domínio para o despertar; clica para leres os nomes.» · «Arrasta para olhar · Ctrl+roda
   aprofunda · Escape centra». Toque: «Toca num domínio para o despertar; toca outra vez para
-  leres os nomes.» · «Arrasta para olhar · pinça aprofunda · toque duplo centra» — a primeira
-  parte desta dica depende da D6.
+  leres os nomes.» · «Dois dedos para olhar · pinça aprofunda · toque duplo centra» (a
+  primeira parte veio da D6).
 - **D4 — Vercel.** O Daniel liga o `kamappa/Sistema` no painel, com as pré-visualizações
   protegidas por login e sem o `main` como produção. Não interfere com o GitHub Pages nem com
   o workflow de publicação: a Vercel publica em `*.vercel.app`, e o workflow só corre com um
   push para o `main`. A app da Vercel no GitHub deve ter acesso só a este repositório.
 - **D5 — o iPhone testa com a conta real**, sem o localhost aberto ao mesmo tempo (os dois
   gravam o `app_state` inteiro, e o último a gravar ganha).
-- **D6 — por decidir: o arrasto do céu por toque.** Medido na fase 1: um dedo move o céu
-  ~24 px e o browser corta o gesto (`pointercancel`), porque fica com ele para rolar ou
-  ampliar a página. Hoje, «Arrasta para olhar» é meia verdade no toque.
+- **D6 — dois dedos para olhar, um dedo rola a página** (decidido a 2026-09-27). Medido na
+  fase 1: um dedo move o céu ~24 px e o browser corta o gesto (`pointercancel`), porque fica
+  com ele para rolar ou ampliar a página — «Arrasta para olhar» era meia verdade no toque. A
+  razão que mais pesou, nas palavras do Daniel: no iPhone o céu ocupa dois terços do ecrã, e
+  com um dedo a arrastar o céu deixava de poder rolar a página por cima dele — ficava
+  encurralado na secção. Sem arrasto perdia-se o olhar em volta, «metade do que faz o
+  Universo valer a pena». A dica do toque passa a «Dois dedos para olhar · pinça aprofunda ·
+  toque duplo centra» (aprovada).
 
 **Fase 1 — os testes a falhar** (`30cc377`, `testes/toque/universo.test.mjs`): o componente
 real, com o CSS real, num Chrome sem cabeça com rato e toque simulados, em 4 cenários (rato

@@ -63,6 +63,13 @@
 
 /* O cursor diz que se pode agarrar. */
 .us { cursor: grab; }
+/* ── NO TOQUE, UM DEDO É DA PÁGINA (D6, Daniel, 2026-09-27) ──
+ * Sem isto, o browser ficava com qualquer gesto de um dedo para rolar ou ampliar a página
+ * e cortava o arrasto aos ~24 px (pointercancel, medido). Com `pan-y`, um dedo na vertical
+ * rola a página — no iPhone o céu ocupa dois terços do ecrã, e não pode encurralar
+ * ninguém —, e o resto chega à cena: dois dedos olham e aprofundam (`useFreeCam`). Tira
+ * também ao browser o zoom do toque duplo, que é o Escape do toque. */
+.us { touch-action: pan-y; }
 .us:active { cursor: grabbing; }
 /* Menos os alvos, que continuam a ser alvos. */
 .us-terr-hit { cursor: pointer; }
@@ -75,6 +82,14 @@
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
+  /* ── O PLANO DA CENA NÃO É SUPERFÍCIE DE TOQUE (etapa 3, 2026-09-27) ──
+   * Um domínio apagado recua em 3D (`translateZ(-26px)`) e fica ATRÁS deste plano: o
+   * toque apanhava a cena e nunca o domínio (medido: o centro do botão dava `us-scene`
+   * enquanto apagado). Com o rato não se notava — ao sair de um domínio ele apaga-se antes
+   * de o outro ser apagado —, mas no toque o domínio desperto fica aceso (D1), e os outros
+   * ficavam inalcançáveis. Os únicos alvos cá dentro são os territórios, que têm os seus
+   * eventos (`.us-terr`); o céu vazio é da raiz, onde vivem o arrasto e o toque duplo. */
+  pointer-events: none;
   /* ── A CÂMARA É A SOMA DE DUAS COISAS ──
    * A posição do ESTADO (`--cam-*`), que a máquina de estados decide, mais o
    * DESVIO MANUAL (`--free-*`), que o Operador produz com o rato ou os dedos.

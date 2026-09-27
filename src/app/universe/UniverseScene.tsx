@@ -37,6 +37,8 @@
  */
 
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react';
+import { useTipoEntrada } from '../useTipoEntrada';
 import { readScene, type SceneRead } from './universe-read';
 import Nucleus, { type CoreState } from './Nucleus';
 import DomainSignature from './DomainSignature';
@@ -217,6 +219,8 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
     [S, m.state, m.domain],
   );
   const wide = useWide();
+  /* O texto de ajuda segue a mão, não a largura (D3): ver `useTipoEntrada`. */
+  const tipo = useTipoEntrada();
   const rootRef = useRef<HTMLDivElement>(null);
 
   const CX = wide ? CX_WIDE : 0;
@@ -512,6 +516,47 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
   // torto a todo o lado.
   useEffect(() => { freeApi.current?.reset(); }, [m.state, m.domain]);
 
+  /* ── O TOQUE (etapa 3 da publicação, decisões D1 e D2 do Daniel) ──
+   * Com o rato, passar por cima desperta e clicar abre. No toque não há «passar por
+   * cima»: o dedo pousa, levanta e o clique chega logo — um só toque abria o domínio, e
+   * não havia forma de o espreitar sem o abrir. Agora o 1.º toque desperta-o e ele fica
+   * aceso, o 2.º no mesmo abre, tocar noutro desperta esse, e tocar no céu vazio apaga.
+   * O Escape, que no toque não existe, é um toque duplo no céu vazio: centra e, sem
+   * desvio, recua — as mesmas duas coisas, pela mesma ordem.
+   *
+   * O estado lê-se ANTES do toque, no `pointerdown`: no Android o botão ganha o foco ao
+   * ser tocado, e o foco desperta o domínio antes de o clique chegar. Lido no clique, o
+   * próprio toque que despertou abria logo a seguir. Um clique com `detail === 0` veio do
+   * teclado, e segue o caminho do teclado. */
+  const ultimoPonteiro = useRef('');
+  const antesDoToque = useRef<{ state: UniverseState; domain: string | null }>({ state: 'OVERVIEW', domain: null });
+  // O instante do toque é o do `pointerdown` (`timeStamp`, o do dedo), não o do clique:
+  // com a página ocupada — uma viagem da câmara —, os cliques de um toque duplo chegavam
+  // processados a 400 ms um do outro e deixavam de contar como duplo (medido).
+  const instanteDoToque = useRef(0);
+  const toqueNoCeu = useRef({ t: -1e9, x: 0, y: 0 });
+  const aoPousar = (e: ReactPointerEvent) => {
+    ultimoPonteiro.current = e.pointerType;
+    if (e.pointerType === 'touch') {
+      antesDoToque.current = { state: stateRef.current, domain: domainRef.current };
+      instanteDoToque.current = e.timeStamp;
+    }
+  };
+  const aoTocarNoCeu = (e: ReactMouseEvent) => {
+    if (ultimoPonteiro.current !== 'touch' || e.detail === 0) return;
+    if ((e.target as HTMLElement).closest('.us-terr, .us-hud, button, a, input, select, textarea')) return;
+    if (stateRef.current === 'DOMAIN_HOVER') dispatch({ t: 'hover', domain: null });
+    const ant = toqueNoCeu.current;
+    const agora = instanteDoToque.current;
+    if (agora - ant.t < 350 && Math.hypot(e.clientX - ant.x, e.clientY - ant.y) < 40) {
+      toqueNoCeu.current = { t: -1e9, x: 0, y: 0 };
+      if (freeApi.current?.deslocado()) freeApi.current.reset();
+      else dispatch({ t: 'back' });
+      return;
+    }
+    toqueNoCeu.current = { t: agora, x: e.clientX, y: e.clientY };
+  };
+
   useEffect(() => {
     /* ── O ESCAPE SÓ É NOSSO QUANDO A ZONA ESTÁ ATIVA ──
      * Defeito meu, apanhado na auditoria à conta real. Este listener estava em
@@ -600,6 +645,8 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
       data-scale={scale}
       data-live={live ? 'true' : 'false'}
       data-revelacao={revelacao}
+      onPointerDownCapture={aoPousar}
+      onClick={aoTocarNoCeu}
     >
       {/* O CLARÃO DA SUPERNOVA. Fora da `.us-scene` de propósito: a cena
           inteira escala durante o evento, e um clarão que escalasse com ela
@@ -750,8 +797,8 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
                   ['--dom' as string]: t.color,
                   ['--rot' as string]: (Math.atan2(p.y - CY_, p.x - CX) * 180) / Math.PI + 180 + 'deg',
                 }}
-                onPointerEnter={() => dispatch({ t: 'hover', domain: t.id })}
-                onPointerLeave={() => dispatch({ t: 'hover', domain: null })}
+                onPointerEnter={(e) => { if (e.pointerType !== 'touch') dispatch({ t: 'hover', domain: t.id }); }}
+                onPointerLeave={(e) => { if (e.pointerType !== 'touch') dispatch({ t: 'hover', domain: null }); }}
               >
                 <span className="us-field" style={{ ['--field' as string]: 90 + Math.min(120, t.level * 6) + 'px' }} />
 
@@ -908,7 +955,16 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
                   className="us-terr-hit"
                   onFocus={() => dispatch({ t: 'hover', domain: t.id })}
                   onBlur={() => dispatch({ t: 'hover', domain: null })}
-                  onClick={() => (isSel && scale === 'domain' ? dispatch({ t: 'core' }) : dispatch({ t: 'focus', domain: t.id }))}
+                  onClick={(e) => {
+                    // D1: no toque, o primeiro toque só desperta; o segundo, no mesmo, abre.
+                    if (ultimoPonteiro.current === 'touch' && e.detail !== 0) {
+                      const antes = antesDoToque.current;
+                      const naVistaGeral = antes.state === 'OVERVIEW' || antes.state === 'DOMAIN_HOVER';
+                      const jaDesperto = antes.state === 'DOMAIN_HOVER' && antes.domain === t.id;
+                      if (naVistaGeral && !jaDesperto) { dispatch({ t: 'hover', domain: t.id }); return; }
+                    }
+                    if (isSel && scale === 'domain') dispatch({ t: 'core' }); else dispatch({ t: 'focus', domain: t.id });
+                  }}
                   aria-label={`${t.name}, nível ${t.level}, ${t.proven} ${t.proven === 1 ? 'estrela provada' : 'estrelas provadas'}, ${t.xp} de ${t.xpNeed} XP para a próxima, ${PROTO_LABEL[proto?.stage ?? 'dust']}`}
                 >
                   <span className="us-terr-n">{t.name}</span>
@@ -978,8 +1034,10 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
             <p className="us-hud-s">
               Cada estrela é um nível provado num domínio. A que está a formar-se é o XP
               do nível em curso — a única coisa aqui que pode recuar. As maiores, ligadas
-              entre si, são os marcos: têm nome e uma prova por trás. Passa o cursor por
-              um domínio para o despertar; toca para leres os nomes.
+              entre si, são os marcos: têm nome e uma prova por trás.{' '}
+              {tipo === 'rato'
+                ? 'Passa o cursor por um domínio para o despertar; clica para leres os nomes.'
+                : 'Toca num domínio para o despertar; toca outra vez para leres os nomes.'}
             </p>
             {/* ── ISTO EXISTE PARA A FRASE DE CIMA CONTINUAR VERDADEIRA ──
                 A camada 2 pôs um campo distante no fundo. Sem esta linha, o
@@ -1005,7 +1063,9 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
             {/* Um gesto que não se anuncia não existe: ninguém descobre por
                 acaso que se pode arrastar um céu. */}
             <p className="us-hint">
-              Arrasta para olhar{wide ? ' · Ctrl+roda aprofunda' : ' · pinça aprofunda'} · Escape centra
+              {tipo === 'rato'
+                ? 'Arrasta para olhar · Ctrl+roda aprofunda · Escape centra'
+                : 'Dois dedos para olhar · pinça aprofunda · toque duplo centra'}
             </p>
           </>
         )}

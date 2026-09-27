@@ -108,6 +108,12 @@ export function useFreeCam(
 
     const down = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      /* ── UM DEDO É DA PÁGINA (D6, Daniel, 2026-09-27) ──
+       * No iPhone o céu ocupa dois terços do ecrã: se um dedo o arrastasse, deixava de se
+       * poder rolar a página por cima dele. A mesma regra da roda: sem modificador, a
+       * página; com modificador — aqui, o segundo dedo —, a cena. O arrasto de um ponteiro
+       * fica para o rato e a caneta; no toque olha-se com dois dedos (em baixo). */
+      if (e.pointerType === 'touch') return;
       dragging = true; moved = false;
       sx = e.clientX; sy = e.clientY;
       ox = off.current.x; oy = off.current.y;
@@ -171,13 +177,25 @@ export function useFreeCam(
      * por isso compromete pelos mesmos limiares. Um só caminho para "quero
      * aproximar-me", em vez de dois com comportamentos diferentes. */
     let pinch0 = 0;
+    /* Dois dedos também OLHAM (D6): o ponto médio entre eles arrasta o céu, como o rato.
+     * Pinça e arrasto são o mesmo gesto, como num mapa — a distância aprofunda, o ponto
+     * médio desloca. */
+    let mid0 = { x: 0, y: 0 }; let pan0 = { x: 0, y: 0 };
     const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-    const tstart = (e: TouchEvent) => { if (e.touches.length === 2) pinch0 = dist(e.touches); };
+    const mid = (t: TouchList) => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 });
+    const tstart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      pinch0 = dist(e.touches);
+      mid0 = mid(e.touches); pan0 = { x: off.current.x, y: off.current.y };
+    };
     const tmove = (e: TouchEvent) => {
       if (e.touches.length !== 2 || !pinch0) return;
       e.preventDefault();
       if (wheelLock) return;
       const d = dist(e.touches);
+      const c = mid(e.touches);
+      off.current.x = clamp(pan0.x + c.x - mid0.x, lim.x);
+      off.current.y = clamp(pan0.y + c.y - mid0.y, lim.y);
       off.current.z = Math.max(-MAX_Z, Math.min(MAX_Z, (d / pinch0 - 1) * 420));
       write();
       // A MESMA TRAVA DA RODA, e faltava aqui. Sem ela, um afastamento contínuo
@@ -186,13 +204,17 @@ export function useFreeCam(
       // partilhado de propósito: roda e pinça são o mesmo pedido feito com
       // membros diferentes, e não podem ter regras diferentes.
       if (off.current.z >= COMMIT) {
-        wheelLock = true; pinch0 = d; off.current.z = 0; write(); cb.current.onDeeper();
+        wheelLock = true; pinch0 = d; mid0 = c; pan0 = { x: off.current.x, y: off.current.y };
+        off.current.z = 0; write(); cb.current.onDeeper();
         window.setTimeout(() => { wheelLock = false; }, 700);
       } else if (off.current.z <= -COMMIT) {
-        wheelLock = true; pinch0 = d; off.current.z = 0; write(); cb.current.onBack();
+        wheelLock = true; pinch0 = d; mid0 = c; pan0 = { x: off.current.x, y: off.current.y };
+        off.current.z = 0; write(); cb.current.onBack();
         window.setTimeout(() => { wheelLock = false; }, 700);
       }
     };
+    // Ao levantar, a profundidade volta (a pinça só compromete além do limiar) e o
+    // desvio lateral fica, como fica o do rato — o Escape, ou o toque duplo, centra.
     const tend = () => { pinch0 = 0; off.current.z = 0; write(); };
 
     el.addEventListener('pointerdown', down);

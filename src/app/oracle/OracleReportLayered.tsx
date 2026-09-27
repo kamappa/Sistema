@@ -30,6 +30,7 @@
 import { useState } from 'react';
 import { useStore } from '../../store/useStore.js';
 import { readReport } from './reportRead';
+import { urlSegura } from '../../lib/urlSegura';
 import OracleSigil from './OracleSigil';
 import './report.css';
 
@@ -163,7 +164,11 @@ export default function OracleReportLayered({ S }: { S: Record<string, any> }) {
           <ul className="or-res">
             {r.resources.map((x, i) => (
               <li key={i}>
-                <a href={x.url} target="_blank" rel="noopener noreferrer">{x.titulo || x.url}</a>
+                {urlSegura(x.url) ? (
+                  <a href={urlSegura(x.url) as string} target="_blank" rel="noopener noreferrer">{x.titulo || x.url}</a>
+                ) : (
+                  <span>{x.titulo || x.url}</span>
+                )}
                 {x.porque && <span className="or-res-w">{x.porque}</span>}
                 {x.fonte && <span className="or-res-s">{x.fonte}</span>}
               </li>

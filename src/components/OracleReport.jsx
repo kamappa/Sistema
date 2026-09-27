@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore.js';
+import { urlSegura } from '../lib/urlSegura';
 
 // Oráculo · relatório semanal — Missão 25 · Fase 14 (+ scanline/typewriter na
 // Fase 18). Porta renderOracleRep (radar.js:45-73). Lê window.report do store.
@@ -46,7 +47,7 @@ export default function OracleReport() {
         ))}
         {(r.recursos || []).filter((x) => x && x.url).length > 0 && <div className="up-lbl">Para complementar o estudo</div>}
         {(r.recursos || []).filter((x) => x && x.url).map((x, i) => (
-          <div className="rd-item" key={'r' + i}><span style={{ flex: 'none' }}>📖</span><div className="rd-b"><a className="rd-t" href={x.url} target="_blank" rel="noopener">{x.titulo || x.url}</a><div className="rd-s">{x.porque || ''}</div><div className="rd-src">{x.fonte || ''}</div></div></div>
+          <div className="rd-item" key={'r' + i}><span style={{ flex: 'none' }}>📖</span><div className="rd-b">{urlSegura(x.url) ? <a className="rd-t" href={urlSegura(x.url)} target="_blank" rel="noopener">{x.titulo || x.url}</a> : <span className="rd-t">{x.titulo || x.url}</span>}<div className="rd-s">{x.porque || ''}</div><div className="rd-src">{x.fonte || ''}</div></div></div>
         ))}
         {r.efemeride && r.efemeride !== 'null' && <div className="orc-sec"><b>🕯 Efeméride:</b> {r.efemeride}</div>}
         {r.profecia && r.profecia !== 'null' && <div className="orc-sec orc-prof"><b>🔮 Profecia:</b> {r.profecia}</div>}

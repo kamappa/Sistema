@@ -2,11 +2,16 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore.js';
 import { RAREA } from '../state/config.js';
 import { today, yday } from '../state/dates.js';
+import { urlSegura } from '../lib/urlSegura';
 
 // Radar Diário — Missão 25 · Fase 14. Porta renderNews (radar.js:19-44). Lê
 // window.radar do store (radar_items do Supabase). Sem sessão → convite a
 // entrar. Aceitar missão do Radar via triage. Scanline (panelScan) = fx.
-const favicon = (u) => { try { return 'https://www.google.com/s2/favicons?sz=64&domain=' + new URL(u).hostname; } catch (e) { return ''; } };
+//
+// O ícone de cada item era um favicon pedido a google.com/s2/favicons — o que dava ao
+// Google os domínios que o Radar mostra ao Daniel (incluindo as vagas da Vigia), sem
+// necessidade nenhuma. Saiu (etapa 2 da publicação, 2026-09-27): a área passa a um ponto
+// na cor local (RAREA), que mantém a informação sem pedir nada a terceiros.
 
 export default function RadarNews({ S }) {
   const { user, radar, acceptRadarMission } = useStore();
@@ -32,16 +37,16 @@ export default function RadarNews({ S }) {
         <div key={d}>
           <div className="up-lbl">{lbl}</div>
           {byD[d].map((i) => {
-            const a = RAREA[i.area] || RAREA.ai; const ic = favicon(i.url);
+            const a = RAREA[i.area] || RAREA.ai;
             const ct = i.created_at ? new Date(i.created_at) : null;
             const tm = ct ? String(ct.getHours()).padStart(2, '0') + ':' + String(ct.getMinutes()).padStart(2, '0') : '';
             const isNew = ct && (Date.now() - ct.getTime()) < 12 * 3600000;
             return (
               <div className={`rd-item ${i.impact === 'alto' ? 'rd-hot' : ''} ${i.area === 'vaga' ? 'rd-vaga' : ''}`} key={i.id}>
-                {ic && <img className="rd-ico" src={ic} alt="" loading="lazy" onError={(e) => { e.target.style.display = 'none'; }} />}
+                <span className="rd-ico" style={{ background: a.c, borderRadius: '50%', border: 'none' }} title={a.l} aria-hidden="true" />
                 <div className="rd-b">
                   {i.impact === 'alto' && <div className="rd-hotlbl">⚡ ALTO IMPACTO</div>}
-                  {i.url ? <a className="rd-t" href={i.url} target="_blank" rel="noopener">{i.title}</a> : <span className="rd-t">{i.title}</span>}{isNew && <span className="rd-new">NOVA</span>}
+                  {urlSegura(i.url) ? <a className="rd-t" href={urlSegura(i.url)} target="_blank" rel="noopener">{i.title}</a> : <span className="rd-t">{i.title}</span>}{isNew && <span className="rd-new">NOVA</span>}
                   {i.summary && <div className="rd-s">{i.summary}</div>}
                   {i.relevance && <div className="rd-r">→ {i.relevance}</div>}
                   <div className="rd-src">{i.source || ''} <span className="wchip" style={{ borderColor: a.c, color: a.c, padding: '1px 7px', fontSize: 9, marginLeft: 6 }}>{a.l}</span>{tm ? <span className="rd-time"> · {tm}</span> : null}</div>

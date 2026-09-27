@@ -22,6 +22,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../../store/useStore.js';
 import { readRadar } from './radarRead';
+import { urlSegura } from '../../lib/urlSegura';
 import './radar.css';
 
 export default function RadarField({ S }: { S: Record<string, any> }) {
@@ -129,8 +130,8 @@ export default function RadarField({ S }: { S: Record<string, any> }) {
                 <li key={s.id} className="rdf-sig" data-high={s.high ? 'true' : 'false'}
                   style={{ ['--area' as string]: s.areaColor }}>
                   <div className="rdf-sig-h">
-                    {s.url ? (
-                      <a className="rdf-sig-t" href={s.url} target="_blank" rel="noopener noreferrer">{s.title}</a>
+                    {urlSegura(s.url) ? (
+                      <a className="rdf-sig-t" href={urlSegura(s.url) as string} target="_blank" rel="noopener noreferrer">{s.title}</a>
                     ) : (
                       <span className="rdf-sig-t">{s.title}</span>
                     )}

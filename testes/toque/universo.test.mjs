@@ -9,6 +9,13 @@
 // A parte do arrasto por toque fica de fora até à decisão D6: medido, um dedo no céu move-o
 // ~24 px e o browser corta o gesto (pointercancel).
 //
+// O iPhone do Daniel (2026-09-27), depois de a fase 2 dar verde: o Universo abria «partido» —
+// rótulos cortados nas margens, «Nv 1» gigante e desfocado, o cartão do Núcleo cortado. Era a
+// escala do Núcleo, e chegava-se lá sem querer: um polegar pousado em qualquer sítio do ecrã
+// contava como segundo dedo, e o dedo que rolava a página fazia uma pinça. Os testes do fim
+// deste ficheiro reproduzem as duas coisas: o caminho (o polegar) e o que se via (a escala do
+// Núcleo no telemóvel), com o computador como controlo positivo.
+//
 // O componente REAL (UniverseScene), com o CSS real, num Chrome sem cabeça (perfil temporário,
 // nunca o do Daniel; rede fechada), com rato e com toque simulados pelo protocolo do Chrome.
 // O instrumento tem o seu próprio controlo positivo (lição 9 do A.8.13): no modo toque o
@@ -52,7 +59,22 @@ for (const t of ['pointerdown', 'click']) {
   document.addEventListener(t, (e) => window.__eventos.push(t + ':' + (e.pointerType || '-')), true);
 }
 
+// O histórico dos estados — um salto ao Núcleo entre duas leituras não passa despercebido —
+// e o número máximo de dedos que a página viu ao mesmo tempo.
+window.__estados = [];
+window.__toquesMax = 0;
+document.addEventListener('touchmove', (e) => { window.__toquesMax = Math.max(window.__toquesMax, e.touches.length); }, { capture: true, passive: true });
+const vigiar = () => {
+  const us = document.querySelector('.us');
+  if (!us) return setTimeout(vigiar, 50);
+  new MutationObserver(() => window.__estados.push(us.dataset.state)).observe(us, { attributes: true, attributeFilter: ['data-state'] });
+};
+vigiar();
+
 const raiz = document.createElement('div');
+// A caixa real do céu no telemóvel: na app, a zona tem 24 px de margem de cada lado e o céu
+// mede 342 a 390 de largura (medido na app: 24..366). Com ?margem, a página repõe isso.
+if (new URLSearchParams(location.search).has('margem')) raiz.style.padding = '0 24px';
 document.body.appendChild(raiz);
 createRoot(raiz).render(createElement(UniverseScene, { S }));
 // Conteúdo por baixo, como na zona real: a página tem de poder rolar por cima do céu.
@@ -114,6 +136,46 @@ window.__u = {
     return null;
   },
   focar: (id) => { document.querySelector('.us-terr[data-sig="' + id + '"] .us-terr-hit').focus(); },
+  historico: () => window.__estados.splice(0),
+  toquesMax: () => { const n = window.__toquesMax; window.__toquesMax = 0; return n; },
+  // Os nomes e os níveis dos domínios («Saber», «Nv 1»): a altura no ecrã e se se veem — com
+  // opacidade efetiva e dentro da caixa do céu.
+  rotulos: () => {
+    const us = document.querySelector('.us');
+    const c = us.getBoundingClientRect();
+    const out = [];
+    for (const t of document.querySelectorAll('.us-terr')) {
+      for (const n of t.querySelectorAll('.us-terr-n, .us-terr-l')) {
+        const r = n.getBoundingClientRect();
+        let o = 1;
+        for (let e = n; e && e !== us; e = e.parentElement) {
+          const cs = getComputedStyle(e);
+          if (cs.display === 'none' || cs.visibility === 'hidden') o = 0;
+          o *= parseFloat(cs.opacity);
+        }
+        const noCeu = r.right > c.left && r.left < c.right && r.bottom > c.top && r.top < c.bottom;
+        out.push({ id: t.dataset.sig + ' «' + n.textContent + '»', h: r.height, visivel: o > 0.05 && noCeu });
+      }
+    }
+    return out;
+  },
+  // Os seis nomes do interior do Núcleo: dentro da parte opaca da máscara (a máscara apaga 5%
+  // de cada lado), dentro da caixa, e fora do cartão de texto.
+  interior: () => {
+    const c = document.querySelector('.us').getBoundingClientRect();
+    const h = document.querySelector('.us-hud').getBoundingClientRect();
+    const a = c.left + 0.05 * c.width; const b = c.right - 0.05 * c.width;
+    const nomes = [...document.querySelectorAll('.ci-lab')];
+    const problemas = [];
+    for (const e of nomes) {
+      const r = e.getBoundingClientRect();
+      if (r.left < a || r.right > b || r.top < c.top || r.bottom > c.bottom) {
+        problemas.push(e.textContent + ' cortado (' + Math.round(r.left) + '..' + Math.round(r.right) + ' num céu visível de ' + Math.round(a) + '..' + Math.round(b) + ')');
+      }
+      if (r.right > h.left && r.left < h.right && r.bottom > h.top && r.top < h.bottom) problemas.push(e.textContent + ' por baixo do cartão');
+    }
+    return { n: nomes.length, problemas };
+  },
 };
 `;
 
@@ -145,7 +207,7 @@ after(async () => {
 });
 
 // Um separador novo por cenário, com a emulação posta ANTES de a página carregar.
-async function abrir({ toque, largura, altura }) {
+async function abrir({ toque, largura, altura, margem = false }) {
   const s = await abrirSeparador(chrome);
   const local = new URL(site.url).origin + '/';
   s.ouvir('Fetch.requestPaused', (p) => {
@@ -163,7 +225,7 @@ async function abrir({ toque, largura, altura }) {
   // não dispara o evento (medido: 0 eventos focusin). Com isto, a página comporta-se como a
   // janela que o Daniel tem à frente.
   await s.enviar('Emulation.setFocusEmulationEnabled', { enabled: true });
-  await s.enviar('Page.navigate', { url: site.url });
+  await s.enviar('Page.navigate', { url: site.url + (margem ? '?margem' : '') });
   for (let i = 0; i < 100 && !(await s.avaliar('!!window.__u && window.__u.pronto()')); i++) await sleep(100);
   assert.ok(await s.avaliar('!!window.__u && window.__u.pronto()'), 'o Universo não arrancou');
   await sleep(300);
@@ -234,6 +296,20 @@ async function arrastarRato(s, { x, y }, dx, dy) {
     await sleep(16);
   }
   await s.enviar('Input.dispatchMouseEvent', { type: 'mouseReleased', x: x + dx, y: y + dy, button: 'left', clickCount: 1 });
+}
+// Um polegar pousado e parado em `polegar` há `ms`, e um dedo a rolar a página por cima do céu,
+// a subir `dy` px a partir de `dedo`. É o gesto de quem segura o telemóvel com uma mão.
+async function rolarComPolegar(s, polegar, dedo, dy, ms) {
+  const P = { x: polegar.x, y: polegar.y, id: 0 };
+  const D = (t) => ({ x: dedo.x, y: dedo.y + dy * t, id: 1 });
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [P] });
+  await sleep(ms);
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [P, D(0)] });
+  for (let i = 1; i <= 10; i++) {
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [P, D(i / 10)] });
+    await sleep(16);
+  }
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [P, D(1)] });
 }
 async function esperarEstado(s, alvo, ms = 3000) {
   let e;
@@ -495,6 +571,124 @@ test('toque: dois dedos arrastam o céu pelo ponto médio', async () => {
     assert.ok(Math.abs(px(e.x) - 50) <= 8, 'o céu não seguiu o ponto médio em x: ' + e.x);
     assert.ok(Math.abs(px(e.y) - 20) <= 8, 'o céu não seguiu o ponto médio em y: ' + e.y);
     assert.equal(e.estado, 'OVERVIEW', 'dois dedos à mesma distância não podiam mudar de escala');
+  } finally { await s.fechar(); }
+});
+
+// ── O POLEGAR POUSADO NÃO É UM SEGUNDO DEDO (o iPhone do Daniel, 2026-09-27) ────────────
+// «Se um polegar encostado à borda basta para pôr o Universo na escala do Núcleo sem eu
+// perceber, [...] é a diferença entre "só se chega lá por um gesto" e "chega-se lá por
+// acidente ao pegar no telemóvel". Trata como bug.» O dedo que rola é o mesmo do teste «um
+// dedo no céu rola a página», que é o controlo de que este caminho, sozinho, rola.
+
+test('toque: um polegar pousado fora do céu não faz de segundo dedo — o dedo que rola, rola a página', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    const dedo = await u(s, 'ceuEmBaixo()');
+    assert.ok(dedo, 'não encontrei céu vazio em baixo');
+    // Por baixo do céu, no conteúdo da página: fora da cena.
+    const polegar = { x: 20, y: 700 };
+    assert.ok(!(await s.avaliar(`!!document.elementFromPoint(${polegar.x}, ${polegar.y}).closest('.us')`)), 'preparação: o polegar caiu dentro do céu');
+    await u(s, 'toquesMax()'); await u(s, 'historico()');
+    await rolarComPolegar(s, polegar, dedo, -220, 1000);
+    await sleep(500);
+    // O controlo do instrumento: sem os dois dedos em simultâneo, o teste não provava nada.
+    assert.equal(await u(s, 'toquesMax()'), 2, 'controlo: a página não viu os dois dedos ao mesmo tempo');
+    const h = await u(s, 'historico()');
+    const e = await u(s, 'estado()');
+    assert.deepEqual(h, [], 'o polegar fez de segundo dedo e a cena mudou de escala: ' + h.join(' > '));
+    assert.equal(e.x, '0.0px', 'o polegar fez de segundo dedo e o céu mexeu (x)');
+    assert.equal(e.y, '0.0px', 'o polegar fez de segundo dedo e o céu mexeu (y)');
+    assert.ok(e.rolagem > 40, 'a página não rolou (' + e.rolagem + ' px)');
+  } finally { await s.fechar(); }
+});
+
+test('toque: um polegar pousado no céu há um segundo não faz de segundo dedo', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    const dedo = await u(s, 'ceuEmBaixo()');
+    assert.ok(dedo, 'não encontrei céu vazio em baixo');
+    // No canto de baixo do céu, onde encosta o polegar de quem segura o telemóvel.
+    const polegar = { x: 8, y: 650 };
+    assert.ok(await s.avaliar(`(() => { const e = document.elementFromPoint(${polegar.x}, ${polegar.y}); return !!e.closest('.us') && !e.closest('.us-terr, .us-hud, button, a'); })()`),
+      'preparação: o polegar não caiu em céu vazio');
+    await u(s, 'toquesMax()'); await u(s, 'historico()');
+    await rolarComPolegar(s, polegar, dedo, -220, 1000);
+    await sleep(500);
+    assert.equal(await u(s, 'toquesMax()'), 2, 'controlo: a página não viu os dois dedos ao mesmo tempo');
+    const h = await u(s, 'historico()');
+    const e = await u(s, 'estado()');
+    assert.deepEqual(h, [], 'o polegar fez de segundo dedo e a cena mudou de escala: ' + h.join(' > '));
+    assert.equal(e.x, '0.0px', 'o polegar fez de segundo dedo e o céu mexeu (x)');
+    assert.equal(e.y, '0.0px', 'o polegar fez de segundo dedo e o céu mexeu (y)');
+    assert.ok(e.rolagem > 40, 'a página não rolou (' + e.rolagem + ' px)');
+  } finally { await s.fechar(); }
+});
+
+// ── A ESCALA DO NÚCLEO NO TELEMÓVEL (o iPhone do Daniel, 2026-09-27) ───────────────────
+// O que ele viu: «Nv 1» gigante e desfocado por cima de tudo; «CIPLINA», «ULOS», «SABER» e
+// «CORPO» cortados nas margens; o cartão do Núcleo por cima do céu. Medido no componente: no
+// estreito a perspetiva é 800 e a câmara do Núcleo avança os mesmos 780 do computador, que
+// tem 1100 — o plano dos domínios fica a 20 px do olho e cresce 40×; no computador, 3,4×.
+// O critério é o computador, que é o aspeto aprovado na Missão 26.
+
+async function irAoNucleo(s, toque) {
+  const c = await u(s, 'centroDaCena()');
+  if (toque) await doisDedos(s, c, { raio: 30, raioFim: 90 });
+  else {
+    await moverRato(s, c);
+    await s.enviar('Input.dispatchMouseEvent', { type: 'mouseWheel', x: c.x, y: c.y, deltaX: 0, deltaY: -400, modifiers: 2 });
+  }
+  const e = await esperarEstado(s, 'CORE_INSIDE', 4000);
+  assert.equal(e.estado, 'CORE_INSIDE', 'preparação: não cheguei ao Núcleo, estado ' + e.estado);
+  await sleep(2200); // a câmara pára e os nomes do interior acabam de aparecer
+}
+const ampliacoes = (antes, depois) => depois.map((d) => ({ ...d, x: d.h / antes.find((a) => a.id === d.id).h }));
+
+test('computador: no Núcleo os domínios crescem 3,4× e nenhum fica gigante no céu (controlo positivo)', async () => {
+  const s = await abrir(RATO);
+  try {
+    const antes = await u(s, 'rotulos()');
+    // O controlo da medida: na vista geral vê os doze (seis nomes, seis níveis).
+    assert.equal(antes.filter((r) => r.visivel).length, 12, 'a medida não vê os doze rótulos na vista geral');
+    await irAoNucleo(s, false);
+    const amp = ampliacoes(antes, await u(s, 'rotulos()'));
+    // Acima de 2 prova que a câmara se aproximou e que a medida o vê.
+    const min = Math.min(...amp.map((a) => a.x));
+    assert.ok(min > 2, 'a medida não viu a câmara aproximar-se (' + min.toFixed(1) + '×)');
+    const gigantes = amp.filter((a) => a.visivel && a.x > 4).map((a) => a.id + ' ' + a.x.toFixed(0) + '×');
+    assert.deepEqual(gigantes, []);
+  } finally { await s.fechar(); }
+});
+
+test('telemóvel: no Núcleo nenhum domínio fica gigante no céu — não cresce mais do que no computador', async () => {
+  const s = await abrir({ ...TOQUE_TELEMOVEL, margem: true });
+  try {
+    const antes = await u(s, 'rotulos()');
+    assert.equal(antes.filter((r) => r.visivel).length, 12, 'a medida não vê os doze rótulos na vista geral');
+    await irAoNucleo(s, true);
+    const amp = ampliacoes(antes, await u(s, 'rotulos()'));
+    const gigantes = amp.filter((a) => a.visivel && a.x > 4).map((a) => a.id + ' ' + a.x.toFixed(0) + '×');
+    assert.deepEqual(gigantes, [], 'texto gigante no céu: ' + gigantes.join(', '));
+  } finally { await s.fechar(); }
+});
+
+test('computador: os seis nomes do interior do Núcleo cabem no céu, fora do cartão (controlo positivo)', async () => {
+  const s = await abrir(RATO);
+  try {
+    await irAoNucleo(s, false);
+    const r = await u(s, 'interior()');
+    assert.equal(r.n, 6, 'a medida não encontrou os seis nomes do interior');
+    assert.deepEqual(r.problemas, []);
+  } finally { await s.fechar(); }
+});
+
+test('telemóvel: os seis nomes do interior do Núcleo cabem no céu, fora do cartão (a caixa real, 342 px)', async () => {
+  const s = await abrir({ ...TOQUE_TELEMOVEL, margem: true });
+  try {
+    await irAoNucleo(s, true);
+    const r = await u(s, 'interior()');
+    assert.equal(r.n, 6, 'a medida não encontrou os seis nomes do interior');
+    assert.deepEqual(r.problemas, [], r.problemas.join('; '));
   } finally { await s.fechar(); }
 });
 

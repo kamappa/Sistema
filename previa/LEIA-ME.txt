@@ -1,0 +1,10 @@
+Ramo temporário orbita/3-toque-previa (2026-09-28)
+
+Existe só para a pré-visualização da Vercel do teste no iPhone (D7 e D8, variante B).
+Não entra no orbita/3-toque nem no main, e apaga-se com o ramo depois do teste.
+
+- medir-ecra.html: a página do passo 0 do protocolo; o vercel.json deste ramo copia-a
+  para o resultado do build (fica fora de public/).
+- Este ficheiro não entra no build. Foi acrescentado para haver um commit novo e uma
+  publicação nova de pré-visualização, depois de a Vercel Toolbar ser desligada nas
+  pré-visualizações (a definição só vale para publicações novas).

@@ -594,9 +594,12 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
   };
 
   /* A câmara. Uma posição por escala, e o hover NÃO a move: despertar não é
-     viajar, e um campo que se desloca ao passar o rato é enjoativo. */
-  const cam = (() => {
-    if (scale === 'core') return { x: -CX, y: -CY_, z: 780 };
+     viajar, e um campo que se desloca ao passar o rato é enjoativo.
+     A profundidade do Núcleo vem do CSS (`--cam-z-nucleo`), ao lado da perspetiva de que
+     depende — D8, 2026-09-28: com a mesma câmara nas duas perspetivas, o ecrã estreito
+     (800 px) punha o plano dos domínios a 20 px do olho, 40× maior. */
+  const cam: { x: number; y: number; z: number | string } = (() => {
+    if (scale === 'core') return { x: -CX, y: -CY_, z: 'var(--cam-z-nucleo)' };
     if (scale === 'domain' && selT) {
       const p = posOf(selT.angle);
       return { x: -p.x, y: -p.y, z: 380 };
@@ -691,7 +694,7 @@ export default function UniverseScene({ S }: { S: Record<string, any> }) {
         style={{
           ['--cam-x' as string]: cam.x + 'px',
           ['--cam-y' as string]: cam.y + 'px',
-          ['--cam-z' as string]: cam.z + 'px',
+          ['--cam-z' as string]: typeof cam.z === 'number' ? cam.z + 'px' : cam.z,
         }}
       >
         {/* Três populações de poeira, cada uma no seu elemento.

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Medir o ecrã</title>
+<!-- Passo 0 do protocolo do iPhone (D8, 2026-09-28): mostra a altura visível real, com a barra
+     do Safari aberta e encolhida, na vertical e na horizontal. Página temporária, sem
+     recursos de fora, sem guardar nada; sai antes da etapa 5. -->
+<style>
+  html, body { margin: 0; background: #0b0a14; color: #ece8ff; font: 18px/1.4 -apple-system, system-ui, sans-serif; }
+  body { min-height: 400vh; }
+  #m { position: fixed; top: 12px; left: 12px; right: 12px; padding: 14px; border-radius: 12px; background: #1c1830; }
+  #m b { font-size: 34px; display: block; letter-spacing: .02em; }
+  #m span { color: #b8b0e0; font-size: 15px; }
+  p { padding: 0 16px; }
+</style>
+</head>
+<body>
+<div id="m"><b id="v">—</b><span id="d">—</span></div>
+<p style="margin-top: 60vh">1. Tira uma captura assim, com a barra do Safari aberta.</p>
+<p>2. Rola para baixo até a barra encolher e tira outra captura.</p>
+<p>3. Roda o telemóvel para a horizontal e repete os dois passos.</p>
+<script>
+  const v = document.getElementById('v'), d = document.getElementById('d');
+  const mostrar = () => {
+    const vv = window.visualViewport;
+    v.textContent = 'visível: ' + (vv ? Math.round(vv.width) + ' × ' + Math.round(vv.height) : innerWidth + ' × ' + innerHeight);
+    d.textContent = 'janela ' + innerWidth + ' × ' + innerHeight + ' · ecrã ' + screen.width + ' × ' + screen.height
+      + ' · DPR ' + devicePixelRatio + ' · ' + (innerWidth > innerHeight ? 'horizontal' : 'vertical');
+  };
+  addEventListener('resize', mostrar); addEventListener('scroll', mostrar, { passive: true });
+  if (window.visualViewport) { visualViewport.addEventListener('resize', mostrar); visualViewport.addEventListener('scroll', mostrar); }
+  mostrar(); setInterval(mostrar, 500);
+</script>
+</body>
+</html>

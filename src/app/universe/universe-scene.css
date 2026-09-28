@@ -1286,7 +1286,7 @@ html[data-sys-quality='off'] .us-glare { display: none; }
                        calc(var(--cy, 0) + var(--core-shift-y, 0px)))
              translate3d(calc(var(--px) * -9px), calc(var(--py) * -6px), -520px) scale(1.9);
 }
-.us { --core-shift: 0px; --core-shift-y: 0px; }
+.us { --core-shift: 0px; --core-shift-y: 0px; --cam-z-nucleo: 780px; }
 @media (min-width: 1101px) { .us { --core-shift: 110px; } }
 
 /* ── O DESVIO VERTICAL NO ESTREITO ──
@@ -2076,7 +2076,21 @@ html[data-sys-quality='off'] .nuc-limb { animation: none; }
 }
 
 @media (max-width: 900px) {
-  .us { perspective: 800px; }
+  /* ── A CÂMARA DO NÚCLEO ACOMPANHA A PERSPETIVA (D8, Daniel, 2026-09-28) ──
+   * A perspetiva do estreito (800, de dce18ee) fica. O que estava errado era a câmara:
+   * avançava os mesmos 780 do computador, que tem 1100, e o plano dos domínios ficava a 20 px
+   * do olho — 40× maior, o «Nv 1» gigante do iPhone. Na mesma proporção do computador
+   * (780/1100 da perspetiva) são 567: os domínios crescem 800/(800−567) = 3,4×, como lá. */
+  .us { perspective: 800px; --cam-z-nucleo: 567px; --core-shift: 10px; --core-shift-y: -16px; }
+  /* O interior desloca-se 10 (≈ 20 px no ecrã) para a direita, porque os nomes da esquerda
+     (Disciplina, Vínculos) são mais compridos que os da direita; e sobe para ficar entre o
+     topo do céu e o cartão. Valores medidos a 375, 390 e 430 — ver os testes. */
+  /* VARIANTE B DA D8 (por aprovar): na escala do Núcleo os domínios de fora apagam-se. No
+     computador os 3,4× levam-nos para fora do enquadramento; no estreito a origem da
+     perspetiva fica ao pé do Mente, e o nome e o nível dele ficavam por cima do interior e do
+     título do cartão. O apagar acompanha a viagem, não a antecede. */
+  .us-terr-layer { transition: opacity 700ms var(--sys-ease-out); }
+  .us[data-scale='core'] .us-terr-layer { opacity: 0; }
   .us-hud-t { font-size: var(--sys-step-2); }
   .us-hud-s { font-size: var(--sys-step--1); max-width: none; }
   /* 78 e não 92: a folga horizontal entre domínios vizinhos no estreito é de
@@ -2204,6 +2218,16 @@ html[data-sys-quality='off'] .nuc-limb { animation: none; }
   .ci { transform: scale(0.175); }
   .ci-num { font-size: 50px; }
   .ci-lab { font-size: 32px; }
+}
+/* ── ATÉ 900 px O INTERIOR MEDE-SE PELOS NOMES (D8, Daniel, 2026-09-28) ──
+ * Com a câmara do Núcleo a 567 (ver o bloco da perspetiva), a camada projeta a
+ * 800/(800−47) = 1,06 e o efetivo passa a escala × 2,02. O tamanho antigo contava o desenho
+ * e não os nomes, que saem dele: Disciplina começava 39 px fora do ecrã. A conta pelos nomes,
+ * para o ecrã mais estreito (375, caixa de 327 e 5% de máscara de cada lado): a metade mais
+ * larga do interior, já equilibrada, são ~424 unidades, e 424 × 0,165 × 2,02 = 141 px cabem
+ * nos 147 disponíveis. O deslocamento e a subida estão no bloco da perspetiva. */
+@media (max-width: 900px) {
+  .ci { transform: scale(0.155); }
 }
 
 /* ── A ESCALA 3 — o registo que alimenta o nível em curso ──────────────

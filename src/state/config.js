@@ -149,7 +149,7 @@ export const KW_AREA = [
   ['corpo', ['trein', 'ginásio', 'ginasio', 'correr', 'muscul', 'dormir', 'sono', 'dieta', 'proteína', 'proteina', 'alonga', 'caminh', 'skincare']],
   ['saber', ['estud', 'exame', 'teste', 'curso', 'ler ', 'livro', 'apontament', 'revis', 'aula', 'frequência', 'frequencia', 'trabalho de']],
   ['oficio', ['iso', 'rgpd', 'nis2', 'audit', 'cv', 'linkedin', 'entrevista', 'estágio', 'estagio', 'certifica', 'cyber', 'seguranç', 'seguranc', 'compliance', 'governance', 'ai act', 'portefólio', 'portfolio', 'dpo']],
-  ['vinculos', ['namorada', 'amig', 'família', 'familia', 'network', 'café com', 'cafe com', 'mensagem a', 'contacto', 'mentor', 'patrícia', 'patricia']],
+  ['vinculos', ['namorada', 'amig', 'família', 'familia', 'network', 'café com', 'cafe com', 'mensagem a', 'contacto', 'mentor']],
   ['mente', ['medit', 'planear', 'plano da', 'refle', 'diário', 'diario', 'journal', 'organizar a semana']],
   ['disciplina', ['rotina', 'acordar cedo', 'hábito', 'habito', 'consistên', 'consisten']],
 ];

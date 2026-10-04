@@ -331,7 +331,7 @@ Deploy via CLI do Supabase (`~/bin/supabase.exe`, login interativo do Daniel).
 - Fase 1: `?mode=chat` na Edge Function — JWT da sessão (radar/report mantêm
   ORACLE_TOKEN; deploy com `--no-verify-jwt` porque a validação é interna),
   CORS para kamappa.github.io, constituição do conselheiro (5 lentes do
-  Conselho, socrático, Reality Check, mundo real/Patrícia, proteção contra
+  Conselho, socrático, Reality Check, mundo real/mentora, proteção contra
   sobrecarga, ~450 palavras), contexto real do `app_state` (`resumoEstado`:
   atributos, streaks, obrigatórios, missões+prazos, sono, debuffs, recall
   agregado por tema via prefixo do id) + últimos 2 relatórios; guarda de

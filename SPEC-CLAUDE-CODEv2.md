@@ -338,6 +338,19 @@ do mesmo padrão nesta migração, todas em instrumentos de verificação:
    do Núcleo os domínios ficam no sítio) e não serve de prova de iOS para 3D; e o Chrome
    emulado não rola a página com dois dedos no ecrã, mesmo numa página sem código nenhum
    (controlo: 15 px com `touch-action: auto`, 0 com `pan-y`, contra ~300 com um dedo).
+7. **A procura que não encontrava o que lá estava** (2026-10-04; sétima instância, registada
+   a pedido do Daniel). Ao confirmar o que ia entrar no `main`, um `git grep -i` com uma
+   classe de caracteres acentuada — o nome com e sem acento — deu 0 no `index.ts` do Oráculo,
+   onde o nome da mentora está desde 11/07; o 0 chegou a ser dito ao Daniel («hoje não está
+   lá») e caiu na mesma resposta, quando uma procura por «mentor» o encontrou. No `git grep`,
+   classes com caracteres de vários bytes falham em silêncio. Refeito com um instrumento
+   próprio (Node, NFC e NFD, todas as versões), com o controlo de encontrar o nome nas 19
+   versões do `index.ts`. Caso RGPD em secção própria, abaixo. No mesmo dia, três tropeços
+   do mesmo padrão, apanhados pelos controlos antes de virarem afirmação: o fumo que diz
+   comparar com a linha de base e não compara (MELHORIAS.md, item 10); duas tarefas em
+   segundo plano que saíram com «exit 0» depois de a verificação lá dentro ter sido
+   interrompida; e um controlo de build que não controlava — o Rollup retirou a linha
+   plantada, e o `dist` não mudou.
 
 A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
 apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
@@ -792,6 +805,70 @@ a chave anon continua com 0 linhas no corpo. O critério estava mal escrito; o R
 **Limite:** só existe uma conta, por isso isto prova que a chave anon não lê e que a sessão lê,
 mas não que uma conta não lê os dados de outra.
 
+### RGPD — o primeiro nome da mentora no repositório público (detetado a 2026-10-04)
+
+Caso de proteção de dados, à parte da lista técnica (decisão do Daniel). O nome não se repete
+neste registo.
+
+**O quê.** O primeiro nome da mentora do Daniel — uma terceira pessoa, identificável — estava no
+código público: no texto da constituição do Oráculo (regra 5, «a mentora» seguida do nome, desde
+`ace3129`, 11/07); como palavra-chave da triagem de missões no domínio vínculos (desde o primeiro
+upload, `98d326b`, 04/07; hoje em `src/state/config.js` e `legacy/js/data.js`, e no `js/data.js`
+do `main`); e nos dois SPECs, a resumir a regra 5.
+
+**Onde estava exposto** (medido a 2026-10-04): nos 5 ramos públicos (`main`,
+`mission-26/renaissance-visual`, `orbita/3-toque`, `orbita/3-toque-previa`, `react-migration`) e
+na etiqueta `vanilla-final`; no site público de hoje (o `js/data.js` do Vanilla, servido pelo
+Pages); nas pré-visualizações da Vercel (protegidas); e no build da Órbita, que o levaria para o
+Pages. O texto da constituição só entra no modo chat do Oráculo, e vai para a Anthropic em cada
+pedido desse modo. Os ramos só locais da M32 também o têm (não públicos). O repositório tem 0
+forks.
+
+**Como se detetou.** Ao confirmar, a pedido do Daniel, o que entrava no `main`. A memória do
+Claude Code tinha-o sinalizado a 01/08, sem decisão. Um `git grep` acentuado deu 0 onde o nome
+estava — sétima instância da lição dos instrumentos, acima —, e o nome apareceu numa procura por
+«mentor»; confirmado com um instrumento próprio e com controlo.
+
+**Leitura** (não é parecer jurídico). É um dado pessoal de uma pessoa identificável (art. 4.º,
+n.º 1): o mesmo texto do Oráculo diz quem é o Daniel (IPCA, Worten, objetivos), e é essa
+combinação que a torna identificável. Publicar na internet para um número indeterminado de
+pessoas não cabe na exceção doméstica (TJUE, Lindqvist, C-101/01). É uma questão de minimização
+(art. 5.º, n.º 1, al. c)) e de licitude, mais do que de violação de segurança — foi o próprio
+responsável que publicou —, e com o risco baixo (um primeiro nome e a relação de mentoria, sem
+categorias especiais) os arts. 33.º e 34.º não obrigariam a notificar, mesmo tratando-o como
+violação.
+
+**Correção — parte 1, aprovada pelo Daniel a 2026-10-04** (o commit deste registo): o nome sai dos
+5 ficheiros; na regra 5 fica «a mentora dele» (o texto fala ao Oráculo sobre o Daniel), com o
+mesmo comportamento. Efeito medido na triagem: um título só com o nome deixa de ir para vínculos;
+«café com a mentora» e «mensagem a …» continuam. Verificado: 0 ocorrências nos 335 ficheiros
+seguidos (controlo: o mesmo instrumento encontra os 5 na `Sistema-orbita`) e no build limpo
+(controlo: o build de antes tinha 2). **Do pedido à Anthropic, o nome só sai com a v23 publicada.**
+O site deixa de o servir quando a Órbita for publicada. O que já foi enviado em pedidos anteriores
+fica com a Anthropic, segundo a política de retenção da API (não verificada aqui).
+
+**Em aberto (RGPD) — a história pública, à espera da conversa do Daniel com ela.** Decide a
+preferência dela, não o Daniel sozinho.
+- **A — só daqui para a frente** (o estado depois da correção): o nome sai do código, do site, do
+  build e dos pedidos, e fica na história pública desde 04/07. Custo: nenhum a mais.
+- **C — a história passa a privada:** o repositório atual muda de nome e fica privado, com a
+  história e os hashes intactos (o trilho de evidência A.8.32 não parte); um repositório público
+  novo, «Sistema», recebe a árvore limpa num só commit e serve o Pages no mesmo endereço. Custo
+  médio: perde-se a história pública e os links antigos; mudam os remotos das cópias locais e o
+  projeto da Vercel; a entrada no `main` passa a ser no repositório novo. Documentação do GitHub
+  lida a 2026-10-04: o URL do Pages não é redirecionado ao mudar o nome, e reutilizar o nome
+  antigo quebra os redirecionamentos do renomeado.
+- **B — reescrever a história: recusada pelo Daniel.** Muda o hash de quase todos os commits e
+  parte o trilho de evidência, para um ganho que a C dá sem esse custo. **D** (tornar este
+  repositório privado) não serve: no plano Free o Pages só funciona em repositórios públicos.
+- Nenhuma opção recupera cópias já feitas (clones, arquivos).
+
+**Ação corretiva, por decidir** (10.2: a correção não basta, falta impedir a repetição): uma regra
+— nomes de terceiros não entram no código nem nos textos fixos do Oráculo, e o contexto sobre
+pessoas vem dos dados privados do Daniel — e uma verificação automática que não publique os
+nomes que procura (por exemplo, comparar resumos criptográficos das palavras do repositório com
+os de uma lista privada).
+
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)
 
@@ -955,7 +1032,7 @@ Deploy via CLI do Supabase (`~/bin/supabase.exe`, login interativo do Daniel).
 - Fase 1: `?mode=chat` na Edge Function — JWT da sessão (radar/report mantêm
   ORACLE_TOKEN; deploy com `--no-verify-jwt` porque a validação é interna),
   CORS para kamappa.github.io, constituição do conselheiro (5 lentes do
-  Conselho, socrático, Reality Check, mundo real/Patrícia, proteção contra
+  Conselho, socrático, Reality Check, mundo real/mentora, proteção contra
   sobrecarga, ~450 palavras), contexto real do `app_state` (`resumoEstado`:
   atributos, streaks, obrigatórios, missões+prazos, sono, debuffs, recall
   agregado por tema via prefixo do id) + últimos 2 relatórios; guarda de

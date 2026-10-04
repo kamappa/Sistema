@@ -16,6 +16,14 @@ function fresh(){
     training:{prog:{push:0,pull:0,legs:0,core:0,kegel:0},sessions:[]}, sleep:{bedT:'23:30',wakeT:'07:30',logs:[]}, objectives:[], shadows:[], oracle:{reports:[]}, radarAccepted:{}, recall:{}, recallToday:null, customQ:[], studyStreak:{count:0,lastDay:null}, oracleChat:{d:null,count:0}, v:3};
 }
 
+/* ===== TEXTO DE FORA NO HTML (Lote 2, 2026-09-23) =====
+   O Radar e o relatório são escritos pelo modelo a partir da web: o que ele devolve
+   é texto, nunca HTML. Tudo o que vem de fora (modelo, rede, títulos que daí nascem)
+   entra no innerHTML por escHTML, e só http(s) sai como link. Prova:
+   node testes/seguranca/xss-oraculo.mjs */
+function escHTML(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function urlSegura(u){try{const x=new URL(String(u||''));return(x.protocol==='https:'||x.protocol==='http:')?x.href:''}catch(e){return ''}}
+
 /* ===== DATAS ===== */
 const fmt=d=>d.toISOString().slice(0,10);
 const today=()=>fmt(new Date());
@@ -166,7 +174,7 @@ function render(){
   renderGreet();renderMemoria();renderAchievements();renderDebuffs();renderWorld();renderNews();renderOracleRep();renderConselho();renderMapa();renderTitles();renderTraining();renderSleep();renderRecall();renderObjectives();renderShadows();renderCalendar();renderDeadlineBanner();checkNotif();
 
   const log=document.getElementById('log');
-  log.innerHTML=S.log.length?S.log.map(l=>`<div class="li"><span>${l.text}</span><span class="${l.gain<0?'b':'g'}">${l.gain<0?'':'+'}${l.gain} XP</span></div>`).join(''):'<div class="log-empty">Sem atividade ainda. Marca um obrigatório para começares.</div>';
+  log.innerHTML=S.log.length?S.log.map(l=>`<div class="li"><span>${escHTML(l.text)}</span><span class="${l.gain<0?'b':'g'}">${l.gain<0?'':'+'}${l.gain} XP</span></div>`).join(''):'<div class="log-empty">Sem atividade ainda. Marca um obrigatório para começares.</div>';
 }
 function hexA(hex,a){const n=parseInt(hex.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`}
 

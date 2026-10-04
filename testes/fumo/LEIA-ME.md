@@ -37,8 +37,12 @@ Daniel, 2026-09-27).
 
 - A parte do Vanilla (`frontend.mjs`) ficou no `main`, com a secção `frontend` da
   linha de base.
-- O fumo da Órbita — build de produção, desktop e 390×844 — chega na etapa 4 da
-  publicação. Até lá, `--so-frontend` recusa correr e diz porquê.
+- O fumo da Órbita — build de produção, computador e 390×844 — é o `orbita.mjs`
+  (2026-10-04): `npm run build` e depois `node testes/fumo/orbita.mjs`, ou
+  `node testes/fumo/orbita.mjs https://kamappa.github.io/Sistema/` no destino. Calibra-se
+  primeiro (um erro na consola, uma exceção, um 404 e um elemento de 2000 px plantados têm
+  de ser apanhados) e falha se o `sw.js` publicado for o interruptor da reversão.
+  `--so-frontend` aqui continua a recusar correr e aponta para ele.
 
 ## O que verifica
 

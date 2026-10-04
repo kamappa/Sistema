@@ -10,7 +10,7 @@
 // build: o teste abriria outra aplicação e diria que verificou o frontend. Um teste que
 // diz verificar o frontend e verifica outro é pior do que não ter teste (decisão do
 // Daniel, 2026-09-27). A parte do Vanilla ficou no `main` (testes/fumo/frontend.mjs); o
-// fumo da Órbita, com o build de produção e 390×844, chega na etapa 4 da publicação.
+// fumo da Órbita, com o build de produção e 390×844, é o testes/fumo/orbita.mjs (2026-10-04).
 //
 // Código de saída 0 = tudo verde; 1 = alguma verificação falhou.
 import fs from 'node:fs';
@@ -25,7 +25,7 @@ const args = new Set(process.argv.slice(2));
 const gravar = args.has('--gravar-linha-de-base');
 
 if (args.has('--so-frontend')) {
-  console.log('✗ o fumo do frontend da Órbita ainda não existe: chega na etapa 4 da publicação.');
+  console.log('✗ o fumo do frontend da Órbita é outro ficheiro: node testes/fumo/orbita.mjs (depois do build).');
   console.log('  O de testes/fumo/frontend.mjs verificava o Vanilla e ficou no main.');
   process.exit(1);
 }

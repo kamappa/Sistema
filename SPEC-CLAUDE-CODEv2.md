@@ -843,9 +843,41 @@ violação.
 mesmo comportamento. Efeito medido na triagem: um título só com o nome deixa de ir para vínculos;
 «café com a mentora» e «mensagem a …» continuam. Verificado: 0 ocorrências nos 335 ficheiros
 seguidos (controlo: o mesmo instrumento encontra os 5 na `Sistema-orbita`) e no build limpo
-(controlo: o build de antes tinha 2). **Do pedido à Anthropic, o nome só sai com a v23 publicada.**
-O site deixa de o servir quando a Órbita for publicada. O que já foi enviado em pedidos anteriores
-fica com a Anthropic, segundo a política de retenção da API (não verificada aqui).
+(controlo: o build de antes tinha 2). O site deixa de o servir quando a Órbita for publicada.
+
+**A v23, que tira o nome dos pedidos à Anthropic, foi publicada a 2026-10-04 às 15:58 UTC** (por
+mim, a pedido do Daniel, a partir da exportação LF de `3e859c8`; a produção de antes, descarregada,
+era o `50691ae` byte a byte, e havia uma cópia para reverter, que não foi precisa). Verificada: a
+descarga crua é igual ao `3e859c8` (6/6) e não tem o nome — a v22 tinha-o uma vez —; versão 23
+ACTIVE com `verify_jwt` desligado; OPTIONS 204 com a origem do Pages (controlos: uma origem inventada
+não é ecoada, o `localhost` é); chat sem sessão 401; radar com token errado 403 (controlo: uma
+função inexistente dá 404).
+
+**Os envios passados à Anthropic** (pedido do Daniel; lido a 2026-10-04 no centro de privacidade
+da Anthropic para clientes comerciais). O nome entrou no texto do Oráculo a 11/07 (`ace3129`, o
+dia em que nasceu o modo chat) — a 04/07 entrou só como palavra-chave da triagem, que não sai do
+browser — e seguiu em cada pedido do modo chat ao `claude-sonnet-4-6`, pela API. Quantos pedidos
+houve não se sabe daqui: os registos do Supabase no plano Free guardam um dia.
+- **Retenção:** a Anthropic apaga as entradas e as saídas da API até 30 dias depois de as
+  receber ou gerar, salvo acordo de retenção zero, necessidade de aplicar a Política de
+  Utilização (pedidos sinalizados pelos sistemas automáticos: entradas e saídas até 2 anos,
+  pontuações de classificação até 7 anos) ou obrigação legal. Página «How long do you store my
+  organization's data?», atualizada a 2026-07-01.
+- **Eliminação a pedido:** «For paid API customers, we do not support ad hoc deletion.» Página
+  «Can you delete data that I sent via API?», atualizada a 2026-03-16.
+- **Treino:** por omissão, as entradas e as saídas da API não são usadas para treinar modelos; só
+  com feedback explícito ou se o cliente o permitir. Página «Is my data used for model
+  training?», atualizada a 2026-08-18.
+- **Modelo:** o Sonnet 4.6 não é um «Covered Model» (só os da classe Mythos e o Fable 5/5.1 —
+  página «Data retention practices for Covered Models»), por isso vale a regra geral.
+
+**O que isto quer dizer:** os pedidos com mais de 30 dias já foram apagados, a menos que tenham
+sido sinalizados — nada indica que tenham sido, e não é verificável daqui. Os mais recentes
+apagam-se 30 dias depois de cada pedido. Com a v23 publicada (2026-10-04, 15:58 UTC) deixou de
+haver pedidos novos com o nome, e a janela fecha, no máximo, a 2026-11-03. **Da parte do Daniel:**
+não há eliminação a pedir, porque não existe para a API; falta confirmar na consola da Anthropic
+que a organização não aderiu a nenhuma partilha de dados para treino (a única exceção ao «não
+treina»).
 
 **Em aberto (RGPD) — a história pública, à espera da conversa do Daniel com ela.** Decide a
 preferência dela, não o Daniel sozinho.

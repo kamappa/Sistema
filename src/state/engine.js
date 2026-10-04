@@ -1,0 +1,157 @@
+// @ts-check
+import { need, AM, rankOf, overallLevel } from './config.js';
+import { today } from './dates.js';
+
+// Motor de XP — o núcleo auditado ("o sistema nunca mente"), portado linha a
+// linha de legacy/js/engine.js:27-44. A única mudança de forma: S é passado
+// explícito (era global) e a camada de FX (toast/celebrate/barBurst na subida
+// de nível) fica DEFERIDA para quando o fx.js migrar — a matemática do XP, dos
+// níveis, do totalXP e do histórico é idêntica. O Bus continua a emitir
+// 'xp:gain' para o palco reagir ao XP real (dívida da Fase 2 paga).
+
+/**
+ * O motor de XP. Todo o ganho e toda a perda passam por aqui.
+ * @param {any} S estado do Operador
+ * @param {string} attr domínio
+ * @param {number} amt XP; negativo é perda
+ * @param {boolean} [silent] não anuncia — usado quando o anúncio é de outro
+ * @returns {string[]} os domínios que subiram de nível. Nenhum sítio do produto
+ *   usa este valor hoje; devolve-se porque quem chama pode querer encadear o
+ *   anúncio, e apagá-lo seria decidir isso por eles.
+ */
+export function addXp(S, attr, amt, silent) {
+  if (window.Bus) window.Bus.emit('xp:gain', { attr, amt }); // o mundo reage (M12·2B)
+  // M26·F6C — o rank ANTES da mutação. O rank global nunca teve anúncio: a
+  // fila declarava `kind: 'rank'` e ninguém o emitia, por isso o Sistema sabia
+  // que o Daniel tinha mudado de rank e não lho dizia. O facto já era derivável
+  // do estado; o que faltava era alguém compará-lo.
+  const rankAntes = rankOf(overallLevel(S)).l;
+  const a = S.attrs[attr]; a.xp += amt; const ups = [];
+  if (amt >= 0) { while (a.xp >= need(a.level)) { a.xp -= need(a.level); a.level++; ups.push(attr); } }
+  else { while (a.xp < 0) { if (a.level <= 1) { a.xp = 0; break; } a.level--; a.xp += need(a.level); } }
+  S.totalXP = Math.max(0, S.totalXP + amt);
+  // história (agrega por dia)
+  const t = today(); const last = S.history[S.history.length - 1];
+  if (last && last.d === t) last.v += amt; else S.history.push({ d: t, v: amt });
+  // FX (Fase 17) — restaura legacy/js/engine.js:36-37: subida de nível toasta e
+  // celebra; XP positivo dá mini-burst na ponta da barra. Seam único: cobre
+  // TODOS os level-ups (hábitos, missões, treino, sono, recall, sussurro…),
+  // exatamente como o Vanilla. Guardado por window.* (o palco/fx podem não
+  // existir com reduced-motion ou fora do browser).
+  // M26·F6A — a subida de nível passa para a FILA DE EVENTOS, não para o toast.
+  //
+  // Medido: concluir uma missão que faz subir um domínio produzia DOIS anúncios
+  // ao mesmo tempo, em dois sistemas diferentes, sobrepostos no mesmo canto do
+  // ecrã — o SYSTEM EVENT da missão por baixo e o toast do nível por cima, os
+  // dois ilegíveis. Um só canal de anúncio, uma só fila.
+  //
+  // A chave de deduplicação é o facto: atributo + nível atingido. Se o mesmo
+  // nível voltar a ser atingido depois de uma reversão, o XP total já mudou e a
+  // chave também — ver a nota em systemEvents.ts.
+  /* A referência captura-se ANTES do ciclo. O `if` acima estreita
+     `window.sysEvent` mas a garantia não atravessa a fronteira do callback —
+     e não é só o verificador a ser rigoroso: `sysEvent` é um global que outro
+     módulo instala e pode desinstalar, e entre a verificação e a última
+     iteração corre código nosso. Capturar é o que torna o ciclo indiferente a
+     isso. */
+  const emitir = window.sysEvent;
+  if (!silent && ups.length && emitir) {
+    ups.forEach((u) =>
+      emitir({
+        dedupe: 'level:' + u + ':' + S.attrs[u].level + ':' + Math.round(S.totalXP),
+        kind: 'levelup',
+        title: 'Nível aumentado',
+        subject: AM[u].name + ' subiu para nível ' + S.attrs[u].level,
+        color: AM[u].color,
+        // O DOMÍNIO, que faltava — M26 · Renaissance Visual.
+        //
+        // O campo existe no `SystemEvent` desde a Fase 6A e este emissor nunca
+        // o preencheu, apesar de ter o atributo (`u`) na mão. A consequência
+        // não era teórica: o Universo filtra os eventos por domínio e o
+        // comentário dele dizia "um level-up sem domínio não acende território
+        // nenhum, e inventar um seria mentir" — correto quanto ao inventar, e
+        // a conclusão errada. O domínio não estava a ser inventado: estava a
+        // ser DEITADO FORA aqui.
+        //
+        // Um nível provado é o nascimento de uma estrela. Era o único facto do
+        // céu que não chegava ao céu.
+        domain: u,
+        readings: [{ label: AM[u].name, value: 'Nv ' + S.attrs[u].level }],
+      })
+    );
+    if (window.celebrate) window.celebrate(AM[ups[0]].color);
+  }
+
+  // ── MUDANÇA DE RANK ──
+  // Depois dos level-ups, e é por isso que fica aqui em baixo: a fila ordena
+  // causa antes de consequência (`ORDER` em systemEvents), mas a ordem de
+  // EMISSÃO também tem de fazer sentido para quem lê o código.
+  //
+  // A descida também se anuncia, e como AVISO. Um Sistema que celebra a subida
+  // e cala a descida está a escolher o que conta — e a primeira lei é que ele
+  // nunca mente.
+  if (!silent && window.sysEvent) {
+    const rankDepois = rankOf(overallLevel(S));
+    if (rankDepois.l !== rankAntes) {
+      const subiu = overallLevel(S) > 0 && amt > 0;
+      window.sysEvent({
+        dedupe: 'rank:' + rankAntes + '>' + rankDepois.l + ':' + Math.round(S.totalXP),
+        kind: subiu ? 'rank' : 'warning',
+        // O ANÚNCIO e a CONSEQUÊNCIA NO MUNDO são coisas diferentes, e é aqui
+        // que divergem: uma perda de rank tem de se ler como aviso — daí o
+        // `kind` — mas para o Universo é o acontecimento mais violento que
+        // existe, e ele precisa de o saber sem adivinhar pelo texto.
+        world: subiu ? 'rank-up' : 'rank-down',
+        title: subiu ? 'Rank alterado' : 'Rank perdido',
+        subject: rankAntes + ' → ' + rankDepois.l,
+        color: rankDepois.color,
+        readings: [
+          { label: 'Rank', value: rankDepois.l },
+          { label: 'Nível global', value: String(overallLevel(S)) },
+        ],
+        holdMs: 9000,
+      });
+    }
+  }
+
+  if (amt > 0 && !silent && window.barBurst) window.barBurst(attr);
+  return ups;
+}
+
+/* M26·F6C — o registo passa a saber A QUE DOMÍNIO pertence.
+ *
+ * PORQUÊ, e o custo está declarado. O Universo consegue dizer "Saber tem 19
+ * estrelas" e não conseguia dizer "isto é o que está a alimentar Saber agora",
+ * porque o registo guardava texto, ganho e data e mais nada. Sem domínio, a
+ * evidência existia e não era atribuível.
+ *
+ * O QUE ISTO NÃO RESOLVE, e é importante não fingir que resolve: o registo
+ * guarda 14 entradas. Não dá — nem passará a dar — para saber que evidência fez
+ * a sétima estrela de Saber, porque os níveis vêm de XP acumulado ao longo de
+ * meses e o registo é uma janela curta. O que passa a dar é o que está a
+ * alimentar o NÍVEL EM CURSO, que é a única parte ainda em formação e a única
+ * sobre a qual há decisão a tomar.
+ *
+ * O campo é OPCIONAL e aditivo: as entradas antigas ficam sem `attr` para
+ * sempre, e a leitura diz isso por extenso em vez de as esconder ou de lhes
+ * inventar um dono. */
+/**
+ * @param {any} S
+ * @param {string} text
+ * @param {number} gain
+ * @param {string} [attr] domínio a que o ganho pertence, quando se sabe
+ * @returns {void}
+ */
+export function plog(S, text, gain, attr) {
+  /* O campo entra na construção em vez de ser colado a seguir. A versão
+     anterior fazia `if (attr) e.attr = attr` sobre um literal já fechado, e o
+     objeto passava a ter uma forma que a sua própria declaração não previa —
+     invisível em JS, e a primeira coisa que o `@ts-check` apontou.
+     `...(attr ? { attr } : {})` mantém o comportamento exacto: sem `attr`, a
+     chave não existe, e não fica um `undefined` a fingir-se de dono. */
+  /** @type {{ text: string, gain: number, d: string, attr?: string }} */
+  const e = { text, gain, d: today(), ...(attr ? { attr } : {}) };
+  S.log.unshift(e); S.log = S.log.slice(0, 14);
+}
+/** @param {any} S @param {string} text @param {string} [d] @returns {void} */
+export function unlog(S, text, d) { const i = S.log.findIndex((/** @type {any} */ e) => e.text === text && (!d || e.d === d)); if (i > -1) S.log.splice(i, 1); }

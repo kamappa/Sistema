@@ -1,0 +1,104 @@
+/* Material e luz — o coração do sistema visual da Sala de Operações.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  A HIERARQUIA FAZ-SE COM LUZ, NÃO COM BORDAS.                        ║
+ * ║                                                                      ║
+ * ║  O elemento em foco é iluminado por dentro. Os restantes permanecem  ║
+ * ║  mate. Só existe UM portador principal de luz por estado.            ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * Isto não é uma preferência estética — é a resposta ao que a baseline mediu:
+ * 19 painéis com 2 cores de borda, 1 material de fundo e 1 border-radius entre
+ * todos. A hierarquia não existia porque nada era diferente de nada.
+ *
+ * Regra de uso, verificável: num dado estado da shell, `--sys-light-focus` só
+ * pode ser portado por um elemento. Se dois elementos o portam, é bug. A
+ * Tarefa 8 mede isto contando os portadores no DOM.
+ *
+ * As bordas não desaparecem — mudam de função. Deixam de exprimir hierarquia
+ * e passam a marcar apenas fronteiras entre SISTEMAS diferentes (o filete
+ * entre a consola e o palco). Um painel dentro de uma zona não leva borda.
+ */
+
+:root {
+  /* ── Materiais ─────────────────────────────────────────────────────────
+   * Quatro estados de matéria, do mais recuado ao mais presente.
+   */
+
+  /* Repouso: mate. Sem luz própria, sem borda. O estado por defeito de tudo. */
+  --sys-mat-rest: color-mix(in oklab, var(--sys-deep) 88%, var(--sys-void));
+
+  /* Elevado: erguido do fundo, ainda sem luz própria. Distingue-se pela
+   * posição no espaço, não pelo brilho. */
+  --sys-mat-raised: color-mix(in oklab, var(--sys-deep) 100%, transparent);
+
+  /* Ativo: o portador da luz. Iluminado POR DENTRO — o gradiente nasce no
+   * interior do elemento e não o contorna. */
+  --sys-mat-active: radial-gradient(
+    120% 100% at 50% 0%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-14)) 0%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-04)) 42%,
+    transparent 78%
+  ), var(--sys-deep);
+
+  /* Oráculo: material próprio. O Oráculo não é um painel e não usa o material
+   * dos painéis — é o que o torna presença em vez de cartão. Mais frio, mais
+   * fundo, com uma única aresta de luz em cima. */
+  --sys-mat-oracle: linear-gradient(
+    180deg,
+    rgb(var(--sys-bone-rgb) / var(--sys-o-08)) 0px,
+    transparent 1px
+  ), color-mix(in oklab, var(--sys-azure) 26%, var(--sys-void));
+
+  /* ── Luz ───────────────────────────────────────────────────────────────
+   * `focus` é o único brilho forte do sistema e tem um só portador.
+   * `ambient` é o respirar de fundo — presente em tudo, quase impercetível.
+   */
+  --sys-light-focus: rgb(var(--sys-violet-rgb) / var(--sys-o-40));
+  --sys-light-ambient: rgb(var(--sys-violet-rgb) / var(--sys-o-04));
+  --sys-light-alert: rgb(var(--sys-alert-rgb) / var(--sys-o-40));
+  --sys-light-danger: rgb(var(--sys-danger-rgb) / var(--sys-o-40));
+
+  /* Halo interno do portador de foco. Não é box-shadow exterior (isso seria
+   * glow decorativo); é luz que nasce dentro do elemento. */
+  --sys-glow-inner: inset 0 0 0 1px rgb(var(--sys-violet-rgb) / var(--sys-o-24)),
+                    inset 0 24px 48px -24px rgb(var(--sys-violet-rgb) / var(--sys-o-24));
+
+  /* ── Texto ─────────────────────────────────────────────────────────────
+   * Três níveis, todos acima de 4.5:1 sobre --sys-mat-rest. A baseline
+   * apanhou legendas a #4a5568 abaixo do limiar; esta escala corrige isso.
+   */
+  --sys-ink:      rgb(var(--sys-bone-rgb) / var(--sys-o-88));
+  --sys-ink-mut:  rgb(var(--sys-bone-rgb) / var(--sys-o-62));
+  --sys-ink-far:  rgb(var(--sys-bone-rgb) / var(--sys-o-40));
+
+  /* ── Fronteiras ────────────────────────────────────────────────────────
+   * `seam` só se usa entre SISTEMAS (consola|palco, palco|oráculo).
+   * Não existe token de borda para painéis, de propósito.
+   */
+  --sys-seam: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+
+  /* ── Profundidade ──────────────────────────────────────────────────────
+   * Quatro planos. A B2 desloca elementos por estes planos em vez de os
+   * separar com linhas.
+   */
+  --sys-depth-1: 1;      /* à frente, em foco */
+  --sys-depth-2: 0.62;   /* presente, secundário */
+  --sys-depth-3: 0.32;   /* recuado */
+  --sys-depth-4: 0.14;   /* horizonte */
+
+  --sys-scale-1: 1;
+  --sys-scale-2: 0.97;
+  --sys-scale-3: 0.94;
+  --sys-scale-4: 0.9;
+
+  /* Dessaturação como distância — mais barata que blur e não gera long tasks. */
+  --sys-far-1: none;
+  --sys-far-2: saturate(0.7);
+  --sys-far-3: saturate(0.45) contrast(0.92);
+  --sys-far-4: saturate(0.25) contrast(0.85);
+
+  /* Blur: existe, mas é o último recurso e está sujeito a quality.css.
+   * Nunca animar filter:blur() em áreas grandes — ver system.css. */
+  --sys-blur-recede: 2px;
+}

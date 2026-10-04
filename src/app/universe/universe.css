@@ -1,0 +1,229 @@
+/* CAMPO CELESTE.
+ * Missão 26 · Fase 6C.
+ *
+ * ORIGEM: R26 (visor + trilho) para a divisão campo/leitura, e a gramática 8
+ * — uma relação desenha-se com um arco. O campo é o visor; a leitura à direita
+ * é o trilho.
+ *
+ * REJEITADO: a grelha de cartões, o gráfico de dashboard, e a ideia de que
+ * "cosmologia" significa mais partículas. O que faz isto parecer um sistema é
+ * a ÓRBITA — a estrutura contra a qual os corpos se leem —, não o número de
+ * pontos de luz.
+ */
+
+/* O campo é a EXPERIÊNCIA PRINCIPAL, e a medida tem de o dizer. A primeira
+   versão usava `auto` na primeira coluna: o SVG ficava no seu tamanho
+   intrínseco, a leitura ocupava o resto, e sobravam ~500px vazios à direita —
+   exatamente o defeito que o Command Core corrigiu no Núcleo. */
+.cf {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--sys-space-7);
+  align-items: center;
+  max-width: 1180px;
+}
+
+.cf-svg {
+  width: 100%;
+  max-width: 34rem;
+  height: auto;
+  display: block;
+  /* os rótulos vivem fora do raio; cortá-los era o defeito do radar */
+  overflow: visible;
+  justify-self: center;
+}
+
+/* ── Órbitas ───────────────────────────────────────────────────────────
+ * Um filete quase invisível. É estrutura, não desenho: existe para os corpos
+ * terem contra o quê ser lidos.
+ */
+.cf-ring {
+  fill: none;
+  stroke: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+  stroke-width: 1;
+}
+.cf-ring-far { stroke-dasharray: 2 7; }
+
+/* ── O Núcleo ──────────────────────────────────────────────────────────
+ * Corpo com halo, não contorno — a mesma correção que a Fase C fez ao Núcleo
+ * da shell. A cor vem do rank real.
+ */
+.cf-nucleus-halo {
+  fill: var(--rank);
+  opacity: 0.1;
+}
+.cf-nucleus-body {
+  fill: color-mix(in oklab, var(--rank) 22%, transparent);
+  stroke: var(--rank);
+  stroke-width: 1.4;
+}
+.cf-rank {
+  text-anchor: middle;
+  font-family: var(--sys-type-display);
+  font-size: 26px;
+  font-weight: 700;
+  fill: var(--rank);
+}
+.cf-lvl {
+  text-anchor: middle;
+  font-family: var(--sys-type-data);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  fill: var(--sys-ink-mut);
+}
+
+/* ── Corpos dos domínios ───────────────────────────────────────────────── */
+.cf-core { fill: color-mix(in oklab, var(--dom) 26%, transparent); }
+.cf-edge { fill: none; stroke: var(--dom); stroke-width: 1.6; }
+.cf-halo { fill: var(--dom); }
+
+.cf-hit { fill: transparent; cursor: pointer; outline: none; }
+.cf-hit:focus-visible { stroke: var(--sys-ink); stroke-width: 2; stroke-dasharray: 3 3; }
+
+.cf-body[data-sel='true'] .cf-edge { stroke-width: 2.6; }
+.cf-body[data-sel='true'] .cf-halo { opacity: 0.55 !important; }
+
+.cf-label {
+  text-anchor: middle;
+  font-family: var(--sys-type-data);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  fill: var(--sys-ink-mut);
+  pointer-events: none;
+}
+.cf-body[data-sel='true'] .cf-label { fill: var(--sys-ink); }
+
+/* O arco da relação (gramática 8). Só existe com seleção — desenhá-lo sempre
+   daria uma teia decorativa, e a teia não diz nada. */
+.cf-link {
+  stroke: rgb(var(--sys-bone-rgb) / var(--sys-o-24));
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+/* ── Satélites: títulos e conquistas ───────────────────────────────────
+ * Cheio = provado. Contorno = por provar, e continua visível: o Sistema
+ * mostra o caminho, não só o troféu.
+ */
+.cf-sat circle { fill: rgb(var(--sys-bone-rgb) / var(--sys-o-24)); }
+.cf-sat[data-on='true'] circle { fill: var(--gold); }
+.cf-sat-halo { fill: var(--gold); opacity: 0.14; }
+.cf-ach { color: rgb(var(--sys-bone-rgb) / var(--sys-o-40)); }
+
+/* ══════════════════════════════════════════════════════════════════════
+ * ASSINATURAS DE MOVIMENTO
+ *
+ * A MESMA GRAMÁTICA FÍSICA, comportamento diferente. Não são seis animações
+ * desconexas: todas duram um ciclo lento, todas animam só `transform` ou
+ * `opacity`, e todas param sob `reduced-motion` e em regime `calm` (marcadas
+ * `data-ambient`).
+ *
+ * SÓ O DOMÍNIO SELECIONADO ANIMA. É a regra "um ambiente dominante por zona"
+ * levada à letra — seis corpos a mexer ao mesmo tempo seria a parede de ruído
+ * que a direção proíbe, e nenhum deles comunicaria nada.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* OFÍCIO — estrutura. Pulsação precisa, com paragem: alinha e fixa. */
+@keyframes dom-oficio {
+  0%, 40% { transform: scale(1); }
+  46% { transform: scale(1.06); }
+  52%, 100% { transform: scale(1.02); }
+}
+
+/* SABER — ramificação. Cresce em degraus, como quem acrescenta um nó. */
+@keyframes dom-saber {
+  0% { transform: scale(0.98); }
+  30% { transform: scale(1.04); }
+  55% { transform: scale(1.01); }
+  80% { transform: scale(1.07); }
+  100% { transform: scale(0.98); }
+}
+
+/* CORPO — impulso. Expande depressa e recupera com elasticidade. */
+@keyframes dom-corpo {
+  0% { transform: scale(1); }
+  12% { transform: scale(1.11); }
+  40% { transform: scale(0.97); }
+  60% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+/* MENTE — onda. Oscilação simétrica e contínua, sem pico. */
+@keyframes dom-mente {
+  0%, 100% { transform: scale(0.98) translateY(1px); }
+  50% { transform: scale(1.04) translateY(-1px); }
+}
+
+/* VÍNCULOS — convergência. Aproxima-se e afasta-se do centro. */
+@keyframes dom-vinculos {
+  0%, 100% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.03) translate(-2px, -2px); }
+}
+
+/* DISCIPLINA — ritmo. Duas batidas e repouso longo: começa a oscilar e
+   BLOQUEIA, que é o que a disciplina faz. */
+@keyframes dom-disciplina {
+  0% { transform: scale(1); }
+  8% { transform: scale(1.05); }
+  16% { transform: scale(1); }
+  24% { transform: scale(1.05); }
+  32%, 100% { transform: scale(1); }
+}
+
+.cf-body[data-sel='true'][data-dom='oficio'] .cf-core,
+.cf-body[data-sel='true'][data-dom='oficio'] .cf-edge { animation: dom-oficio var(--sys-cycle-ambient) var(--sys-ease-out) infinite; }
+.cf-body[data-sel='true'][data-dom='saber'] .cf-core,
+.cf-body[data-sel='true'][data-dom='saber'] .cf-edge { animation: dom-saber var(--sys-cycle-ambient) var(--sys-ease-breath) infinite; }
+.cf-body[data-sel='true'][data-dom='corpo'] .cf-core,
+.cf-body[data-sel='true'][data-dom='corpo'] .cf-edge { animation: dom-corpo var(--sys-cycle-attend) var(--sys-ease-spring) infinite; }
+.cf-body[data-sel='true'][data-dom='mente'] .cf-core,
+.cf-body[data-sel='true'][data-dom='mente'] .cf-edge { animation: dom-mente var(--sys-cycle-ambient) var(--sys-ease-breath) infinite alternate; }
+.cf-body[data-sel='true'][data-dom='vinculos'] .cf-core,
+.cf-body[data-sel='true'][data-dom='vinculos'] .cf-edge { animation: dom-vinculos var(--sys-cycle-ambient) var(--sys-ease-inout) infinite; }
+.cf-body[data-sel='true'][data-dom='disciplina'] .cf-core,
+.cf-body[data-sel='true'][data-dom='disciplina'] .cf-edge { animation: dom-disciplina var(--sys-cycle-ambient) var(--sys-ease-out) infinite; }
+
+/* ── A leitura ─────────────────────────────────────────────────────────── */
+.cf-read { display: grid; gap: var(--sys-space-3); justify-items: start; align-content: center; }
+
+.cf-read-d {
+  margin: 0;
+  font-family: var(--sys-type-display);
+  font-size: var(--sys-step-3);
+  font-weight: var(--sys-weight-bold);
+  line-height: 1;
+  color: var(--sys-ink);
+}
+
+.cf-read-s {
+  margin: 0;
+  font-size: var(--sys-step-0);
+  line-height: var(--sys-leading-normal);
+  color: var(--sys-ink-mut);
+  max-width: 52ch;
+}
+
+.cf-hint {
+  margin: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: 0.04em;
+  color: var(--sys-ink-mut);
+}
+
+.cf .mini { min-height: 36px; }
+
+/* O `viewBox` do radar passou a ter folga (ver `Radar.jsx`). O SVG cresceu de
+   320 para 400 de largura, por isso não pode ter largura fixa herdada. */
+.radar-wrap svg#radar { width: 100%; height: auto; max-width: 400px; }
+
+/* ── Mobile ────────────────────────────────────────────────────────────
+ * Campo por cima, leitura por baixo. Lado a lado a 358px dá dois blocos de
+ * 170px, e o campo deixa de se ler.
+ */
+@media (max-width: 900px) {
+  .cf { grid-template-columns: minmax(0, 1fr); gap: var(--sys-space-5); }
+  .cf-svg { width: 100%; margin-inline: auto; }
+  .cf-label { font-size: 8px; }
+}

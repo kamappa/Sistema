@@ -1,0 +1,81 @@
+# Deploy da Órbita (React + Vite) para o GitHub Pages.
+#
+# ESTADO (2026-10-04): publica em cada push para `main`, desde que a fonte do Pages esteja em
+# «GitHub Actions». Nos ramos `orbita/**` só constrói — é a prova do build nos runners do GitHub,
+# sem publicar nada (a tarefa `deploy` só corre no `main`).
+#
+# ATIVAR (o Daniel, por esta ordem):
+#   1. Repo → Settings → Pages → «Build and deployment» → Source: «GitHub Actions», ANTES do push.
+#      Com a fonte ainda em «Deploy from a branch», o push da Órbita para o `main` serviria o
+#      index.html do Vite sem build, e o site ficaria partido.
+#   2. O push para o `main` (a entrada da Órbita). Este workflow constrói e publica.
+#   O login por password não redireciona, e o registo de contas está fechado: o Supabase não
+#   precisa de mudanças para o novo endereço.
+#
+# REVERTER: ver `reversao/LEIA-ME.md` (ensaiado a 2026-10-04). Reverter o `main` NÃO chega: o
+# Vanilla não tem workflow, e com a fonte em «GitHub Actions» o site continuaria a servir a Órbita.
+# Primeiro o Vanilla no `main`, com o interruptor do service worker (`reversao/sw.js`); só depois a
+# fonte volta a «Deploy from a branch». Pela ordem inversa, o site parte-se.
+#
+# NOTA (o sistema nunca mente): a app NÃO usa variáveis de ambiente. A URL e a anon key do Supabase
+# estão em src/lib/supabase.js (a anon key é pública por desenho — o RLS protege os dados). Por isso
+# o build corre sem segredos. O Three.js (src/vendor/) é empacotado pelo Vite no bundle.
+#
+# Node: as ações correm no motor Node 24 (as versões v5) e o build em Node 24. O GitHub tirou o
+# Node 20 dos runners a 2026-09-23 (MELHORIAS.md, item 12).
+
+name: Deploy React to Pages
+
+on:
+  push:
+    branches: [main, 'orbita/**']   # main publica; orbita/** só constrói
+  workflow_dispatch:                # e manualmente, no main
+
+permissions:
+  contents: read
+
+# uma corrida de cada vez por ramo; não cancela um deploy a meio
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build (Vite)
+        run: npm run build   # base '/Sistema/' vem do vite.config.js
+
+      - name: Hashes do dist (para comparar com o build local e com o destino)
+        run: cd dist && find . -type f -print0 | sort -z | xargs -0 sha256sum
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ./dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

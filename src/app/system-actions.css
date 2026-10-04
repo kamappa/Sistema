@@ -1,0 +1,78 @@
+/* AS TRÊS AÇÕES DO SISTEMA — folha.
+ *
+ * Vive na faixa de sistema, ao lado do estado de gravação. Material da faixa,
+ * não de painel: sem borda, sem sombra, sem cartão. É a mesma distinção que
+ * separa a presença do Oráculo dos dezanove painéis.
+ */
+
+/* O `.sys-sync-slot` tem `pointer-events: none` — de proposito, para o estado
+   de gravacao nao roubar cliques ao palco que esta por tras. Mas isto e um
+   CONTROLO e nao um rotulo: sem esta linha, o botao existia e nao respondia,
+   que e a pior forma de um elemento estar partido — parece la e nao esta. */
+.sys-actions { position: relative; display: flex; align-items: center; pointer-events: auto;
+}
+
+.sys-actions-btn {
+  appearance: none; background: none; border: 0; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; color: var(--mut);
+  padding: 4px 8px; letter-spacing: .04em;
+  /* 24px é o mínimo de alvo da WCAG 2.5.8; num rodapé fino é fácil descer
+     abaixo disso sem dar por ela. */
+  min-height: 26px;
+  transition: color .16s ease;
+}
+.sys-actions-btn:hover,
+.sys-actions-btn:focus-visible { color: var(--ink); }
+@media (pointer: coarse) { .sys-actions-btn { min-height: 32px; } }
+
+.sys-actions-menu {
+  position: absolute;
+  /* ABRE PARA BAIXO, porque a orbita vive no TOPO em desktop.
+     A primeira versao abria para cima — herdada de quando isto estava na
+     faixa inferior — e o menu nascia a y=-56, fora da janela. Medido, nao
+     visto: `dentroDoEcra: false`. Um menu que abre para fora do ecra e
+     indistinguivel de um menu que nao abre. */
+  top: 100%; right: 0; margin-top: 6px;
+  display: grid; gap: 4px; padding: 6px;
+  background: var(--bg2); border: 1px solid var(--line);
+  z-index: var(--sys-z-toast);
+  min-width: 172px;
+}
+.sys-actions-menu .mini { width: 100%; text-align: left; }
+
+/* O reinício é o único destrutivo, e diz isso pela cor E pela distância — a
+   margem separa-o dos outros para o dedo não lá cair por engano. */
+.sys-actions-perigo { margin-top: 4px; color: #f87171; }
+.sys-actions-perigo:hover,
+.sys-actions-perigo:focus-visible { border-color: #f87171; }
+
+/* ── NA ÓRBITA, E NÃO NA FAIXA DE BAIXO ────────────────────────────────
+ * Primeira tentativa: canto inferior direito, dentro do `.sys-sync-slot`. O
+ * clique REAL ia parar ao painel do Oráculo — que ocupa a faixa inteira num
+ * contexto de empilhamento mais alto. Duas correções de `z-index` falharam, e
+ * a segunda ensinou porquê: **um filho nunca sobe acima do contexto do pai**.
+ *
+ * A órbita é o sítio certo por razão e não por desenrasque: é onde o Sistema já
+ * fala de si próprio — o Núcleo, o rank, as zonas. A faixa de baixo pertence ao
+ * Oráculo, e disputar-lhe pixéis era o erro.
+ *
+ * E o defeito só apareceu com um rato a sério: um `.click()` por script ignora
+ * a árvore de hit-testing e teria passado.
+ */
+[data-nav='orbit'] .sys-actions {
+  position: absolute;
+  top: var(--sys-space-5);
+  right: var(--sys-space-5);
+}
+@media (max-width: 900px) {
+  /* Em ecrã estreito a órbita é a faixa de comando inferior e não tem canto
+     livre. Volta ao fluxo, alinhado à direita, por cima das marcas. */
+  [data-nav='orbit'] .sys-actions {
+    position: static;
+    justify-content: flex-end;
+    width: 100%;
+    padding-inline: var(--sys-space-4);
+  }
+  /* Em mobile a orbita e a faixa INFERIOR: aqui sim, abre para cima. */
+  .sys-actions-menu { top: auto; bottom: 100%; margin-top: 0; margin-bottom: 6px; }
+}

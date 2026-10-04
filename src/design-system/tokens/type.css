@@ -1,0 +1,51 @@
+/* Tipografia — mudam os PAPÉIS, não as famílias.
+ *
+ * As três famílias do Sistema ficam (já estão carregadas e são parte da
+ * identidade). O que a baseline apanhou foi o mau uso: Rajdhani em uppercase
+ * com 2,6px de tracking a titular os 19 painéis, o que produz uma parede de
+ * maiúsculas onde nada se destaca porque tudo grita.
+ *
+ * Novo contrato de papéis:
+ *
+ *   display (Rajdhani)  — RESERVADO. Identidade e grandezas: letra de rank,
+ *                         nível, nome de zona. Nunca títulos de painel.
+ *   body (Inter)        — leitura e títulos. Hierarquia por peso e tamanho.
+ *   data (JetBrains)    — leituras de instrumento: números, datas, códigos,
+ *                         micro-labels. É aqui que o uppercase espaçado é
+ *                         legítimo, e só aqui.
+ */
+
+:root {
+  --sys-type-display: 'Rajdhani', system-ui, sans-serif;
+  --sys-type-body: 'Inter', system-ui, sans-serif;
+  --sys-type-data: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Escala — razão 1.25, ancorada em 16px. */
+  --sys-step--1: 0.8rem;    /* micro-label */
+  --sys-step-0:  0.9375rem; /* corpo */
+  --sys-step-1:  1.0625rem;
+  --sys-step-2:  1.3125rem; /* título de painel */
+  --sys-step-3:  1.75rem;   /* título de zona */
+  --sys-step-4:  2.5rem;
+  --sys-step-5:  3.5rem;    /* grandeza */
+  --sys-step-6:  5rem;      /* a grandeza única do ecrã */
+
+  --sys-weight-regular: 400;
+  --sys-weight-medium: 500;
+  --sys-weight-semi: 600;
+  --sys-weight-bold: 700;
+
+  /* Tracking. O valor `label` é o único sítio onde o espaçamento largo
+   * sobrevive — e só sobre JetBrains Mono, em micro-labels. */
+  --sys-track-tight: -0.02em;
+  --sys-track-normal: 0;
+  --sys-track-label: 0.16em;
+
+  --sys-leading-tight: 1.1;
+  --sys-leading-normal: 1.5;
+  --sys-leading-loose: 1.7;
+
+  /* Medida de leitura — o relatório do Oráculo é texto longo e precisa disto. */
+  --sys-measure: 68ch;
+  --sys-measure-narrow: 46ch;
+}

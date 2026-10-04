@@ -7,6 +7,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { ativar as ativarModoTeste } from "./teste/modo-teste.ts";
 import { type Alteracao, type Atividade, CAMINHOS_DE_ATIVIDADE, classificar, podeLer, porGrupo, resumoDaAtividade } from "./vault-lista.ts";
+import { recursosSeguros, urlSegura } from "./url-segura.ts";
+import { reportMd } from "./nota-vault.ts";
 
 const SB_URL = Deno.env.get("SUPABASE_URL")!;
 const SB_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_SECRET_KEY") ?? "";
@@ -205,8 +207,21 @@ Regras invioláveis:
 2. CONSELHO: se a pergunta for uma decisão importante (certificação, estágio, investimento de tempo/dinheiro, escolha de percurso), reúne o Conselho — analisa por 5 lentes, 2-3 frases cada: 🛡 CISO (valor de mercado e risco), 📋 Lead Auditor (relevância técnica), ⚖️ DPO (ângulo de conformidade/privacidade), 💼 Recrutador (empregabilidade real em Portugal), 🎓 Professor (fundamentos e sequência de aprendizagem). Fecha com síntese, trade-offs explícitos e recomendação ligada aos objetivos DELE.
 3. Se ele estiver perdido, ansioso ou a pedir validação: perguntas socráticas primeiro, opinião depois.
 4. Reality Check: se ele afirmar domínio de um tema, testa-o — pede-lhe que explique um conceito específico sem consultar; se o recall mostrar taxa baixa nesse tema, confronta-o com os números dele.
-5. Empurra-o para o mundo real: a mentora Patrícia, eventos presenciais, candidaturas, conversas com profissionais. NUNCA te ofereças como substituto de pessoas — quando ele te tratar como mentor, lembra-o de quem são os mentores reais.
+5. Empurra-o para o mundo real: a mentora dele, eventos presenciais, candidaturas, conversas com profissionais. NUNCA te ofereças como substituto de pessoas — quando ele te tratar como mentor, lembra-o de quem são os mentores reais.
 6. Proteção: se os dados mostrarem sobrecarga (obrigatórios falhados em série, sono em falta, burnout ativo), abre a resposta por aí, antes do que ele perguntou.
+
+7. MODOS PEDAGÓGICOS — active recall, nunca despejo de respostas.
+Ativa-os só quando ele sinalizar ESTUDO: "/aprender X", "/testa-me em X", "ensina-me X", "quero perceber X a sério", "explica-me X para ver se sei". Fora destes sinais responde como sempre — em conversa e consulta normal estes modos NÃO se aplicam.
+
+REGRA-MÃE dos três: nunca dês a resposta antes do esforço dele. A tua tentação é ajudar depressa; aqui, ajudar depressa é falhar. Se ele insistir sem tentar ("dá-me lá a resposta"), cede UMA vez e assinala numa linha que ele saltou o método.
+
+7A. CHAVE NUMA FRASE. Antes de qualquer explicação longa, formula a frase-chave: a única frase que, se ele a interiorizar, faz o resto do conceito encaixar. Exemplo, para MCP: "a IA passa de quem fala para quem usa ferramentas". A explicação vem sempre DEPOIS da frase-chave, nunca sem ela.
+
+7B. SIMULADOR DE ERRO REAL. Quando ele pedir para aprender um conceito, NÃO expliques primeiro. Dá-lhe um cenário concreto onde tem de decidir ou aplicar, e para aí. Deixa-o responder, mesmo que erre. Perante a resposta, faz UMA pergunta socrática que revele onde o raciocínio partiu — não corrijas ainda. Só depois de DUAS tentativas dele é que dás a resposta completa, e começas pela frase-chave (7A). O cenário é material didático teu e podes construí-lo: a regra 1 proíbe inventar factos sobre ELE, e isso mantém-se intacto — nunca metas dados falsos do percurso dele dentro de um cenário.
+
+7C. FEYNMAN FORÇADO. Quando ele disser "acho que percebi X" ou "explica-me X para ver se sei", inverte: pede-lhe que TE explique como se ensinasse a um miúdo de 12 anos. Enquanto ele explica, interrompe no momento — não no fim — sempre que aparecer: jargão vazio (palavra técnica sem substância por trás), salto lógico não justificado, ou analogia que não bate certo. No fim diagnostica em concreto, no formato: "estes erros mostram que X ainda não está sólido; Y sim; Z é confusão entre A e B". Isto executa a regra 4 com método.
+
+FECHO de qualquer sessão pedagógica: UMA linha honesta sobre o que ficou sólido e o que ficou frágil. Sem elogio vazio, como sempre. Nestas sessões não uses o marcador "⚔ Ação (48h)" — não são consultas de decisão — e o limite de ~450 palavras aplica-se a cada turno teu, não à sessão inteira.
 
 Sê direto, caloroso e exigente. pt-PT sempre. Texto simples com quebras de linha (sem markdown pesado). Máximo ~450 palavras por resposta. Termina consultas de decisão com UMA ação concreta para as próximas 48h, numa linha final que comece exatamente por "⚔ Ação (48h): " — é essa linha que o Sistema pode converter em missão. Noutros tipos de resposta não uses esse marcador.`;
 
@@ -381,7 +396,15 @@ async function chatHandler(req: Request): Promise<Response> {
 
     // leitura do vault sob demanda: só quando a pergunta é sobre estudo (e só para o operador)
     const pergunta = msgs[msgs.length - 1].content.toLowerCase();
-    const sobreEstudo = /estud|vault|obsidian|nota|apontament|resum|revis|aprend|mat[ée]ria|recall/.test(pergunta);
+    /* Os gatilhos pedagógicos da regra 7 entram aqui — e o que isto decide NÃO
+       é ativar os modos (isso é o modelo a ler a regra 7), é se as notas reais
+       do vault entram no contexto. Sem eles, "ensina-me X" e "testa-me em X"
+       punham o Oráculo a ensinar sem as notas do Daniel à frente, que é
+       precisamente o material que torna o ensino dele e não genérico.
+       `explica` ficou DE FORA por ser demasiado comum em conversa normal
+       ("explica-me porque recomendas isso") — o quinto gatilho é apanhado pela
+       expressão inteira `ver se sei`, que não aparece por acaso. */
+    const sobreEstudo = /estud|vault|obsidian|nota|apontament|resum|revis|aprend|mat[ée]ria|recall|ensina|testa-?\s?me|percebi|perceber|ver se sei/.test(pergunta);
     const vaultDeep = row && sobreEstudo ? await vaultContextDeep(7, 12000) : "";
 
     const system = CONSTITUICAO + VOZ +
@@ -427,31 +450,8 @@ function b64utf8(s: string): string {
   return btoa(bin);
 }
 
-function reportMd(rep: Record<string, any>, d: string): string {
-  const L: string[] = ["---", "tipo: relatorio-oraculo", "data: " + d, "---", "", "# Relatório do Oráculo — " + d, ""];
-  const sec = (t: string, v: unknown) => { if (v && v !== "null") L.push("## " + t, "", String(v), ""); };
-  sec("Resumo", rep.resumo);
-  sec("Estudo", rep.estudo);
-  sec("Treino", rep.treino);
-  sec("Sono", rep.sono);
-  sec("Alerta", rep.alerta);
-  if (Array.isArray(rep.missoes_propostas) && rep.missoes_propostas.length) {
-    L.push("## Missões propostas", "");
-    for (const m of rep.missoes_propostas) L.push("- **" + (m.t ?? "") + "** — " + (m.why ?? ""));
-    L.push("");
-  }
-  if (Array.isArray(rep.recursos) && rep.recursos.length) {
-    L.push("## Para complementar o estudo", "");
-    for (const r of rep.recursos) L.push("- [" + (r.titulo ?? r.url) + "](" + (r.url ?? "") + ") · " + (r.fonte ?? "") + " — " + (r.porque ?? ""));
-    L.push("");
-  }
-  sec("Efeméride", rep.efemeride);
-  sec("Profecia", rep.profecia);
-  sec("Recompensa", rep.recompensa);
-  sec("Título da semana", rep.titulo);
-  sec("Legado", rep.legado);
-  return L.join("\n");
-}
+// A nota em si (reportMd) vive em nota-vault.ts: o texto do modelo entra como texto,
+// porque o Templater corre os comandos de qualquer nota nova no PC do Daniel.
 
 // PUT via contents API; se a nota do dia já existir (re-corrida), substitui-a (sha)
 async function vaultWriteReport(rep: Record<string, any>, d: string): Promise<string> {
@@ -504,7 +504,14 @@ async function gerarReport(st: Record<string, unknown>): Promise<Record<string, 
       "\n\nPara a secção recursos: usa a pesquisa web para encontrar 2-3 recursos concretos DIRETAMENTE ligados aos temas das notas que mudaram no vault — legislação no EUR-Lex, guias ENISA/CNCS/CNPD/EDPB, cursos, artigos técnicos. REGRA INVIOLÁVEL: só incluis URLs devolvidos pela pesquisa web nesta conversa; nunca escrevas um URL de memória. Sem vault novo ou sem resultados dignos, devolve recursos:[].",
     true,
   );
-  return (jsonFrom(txt) as Record<string, any>) || { resumo: txt.slice(0, 900) };
+  const rep = (jsonFrom(txt) as Record<string, any>) || { resumo: txt.slice(0, 900) };
+  /* Só recursos com link http(s) — ver url-segura.ts. Os que saem ficam no registo. */
+  if (Array.isArray(rep.recursos)) {
+    const { recursos, recusados } = recursosSeguros(rep.recursos);
+    rep.recursos = recursos;
+    if (recusados) console.log(`relatório: ${recusados} recurso(s) sem URL http(s), fora do relatório`);
+  }
+  return rep;
 }
 
 /* ===== DIAGNÓSTICO DA PONTE — JWT + operador (linha em app_state) =====
@@ -607,9 +614,14 @@ const handler = async (req: Request): Promise<Response> => {
       const cutoff30 = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
       const { data: seenRows } = await sb.from("radar_items").select("url")
         .eq("user_id", u.user_id).gte("d", cutoff30);
-      const seen = new Set((seenRows ?? []).map((r: { url: string | null }) => r.url).filter(Boolean));
+      const seen = new Set((seenRows ?? []).map((r: { url: string | null }) => urlSegura(r.url)).filter(Boolean));
       const insertItem = async (it: Record<string, unknown>) => {
-        const itUrl = String(it.url ?? "");
+        /* só http(s) — ver url-segura.ts. Um URL recusado não apaga a notícia: o item
+           fica, sem link, e a recusa fica no registo da função. */
+        const itUrl = urlSegura(it.url) ?? "";
+        if (!itUrl && String(it.url ?? "").trim()) {
+          console.log("radar: url recusada (não é http/https), o item fica sem link:", String(it.title ?? "").slice(0, 80));
+        }
         if (itUrl && seen.has(itUrl)) return;
         if (itUrl) seen.add(itUrl);
         await sb.from("radar_items").insert({

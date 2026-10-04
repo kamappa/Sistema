@@ -1,0 +1,202 @@
+[
+  {
+    "id": "nis2-001",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "O que é a NIS2 e o que substitui? Qual a referência oficial e por que razão surgiu?",
+    "a": "A NIS2 é a Diretiva (UE) 2022/2555, de 14 de dezembro de 2022, sobre medidas para um elevado nível comum de cibersegurança na União (em Portugal, 'Diretiva SRI 2'). Substitui a NIS1 (Diretiva 2016/1148). Surgiu porque a NIS1 teve implementação desigual entre Estados-Membros e um âmbito estreito demais face à evolução das ameaças: a NIS2 alarga os setores abrangidos, endurece as obrigações de segurança e de notificação, e reforça as sanções e a supervisão.",
+    "ref": "Diretiva (UE) 2022/2555; substitui a Diretiva (UE) 2016/1148"
+  },
+  {
+    "id": "nis2-002",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Uma diretiva europeia aplica-se diretamente como um regulamento? Explica a diferença e o que isso significou para a NIS2 em Portugal.",
+    "a": "Não. Um regulamento (como o RGPD ou o DORA) é diretamente aplicável em todos os Estados-Membros sem necessidade de lei nacional. Uma diretiva (como a NIS2) fixa objetivos e obriga cada Estado a transpô-la para o seu direito interno dentro de um prazo. Por isso a NIS2 só produz efeitos práticos através da lei nacional: em Portugal, foi transposta pelo Decreto-Lei 125/2025. O prazo de transposição da diretiva era 17 de outubro de 2024.",
+    "ref": "TFUE, art. 288.º (regulamento vs diretiva); DL 125/2025 (transposição PT)"
+  },
+  {
+    "id": "nis2-003",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "A NIS2 distingue 'entidades essenciais' de 'entidades importantes'. Qual a diferença conceptual e por que importa para a supervisão?",
+    "a": "As entidades essenciais são as maiores organizações nos setores de mais alta criticidade (tipicamente 250+ trabalhadores ou volume de negócios acima de 50 M€); as importantes são as médias em setores críticos que não atingem o patamar de essenciais (tipicamente 50+ trabalhadores ou 10 M€). Importa porque o regime de supervisão difere: as essenciais estão sujeitas a supervisão proativa (auditorias e inspeções regulares); as importantes a supervisão reativa/ad-hoc (quando há indícios de incumprimento). O nível de coima máxima também difere.",
+    "ref": "Diretiva (UE) 2022/2555, arts. 3.º e 32.º-33.º (supervisão)"
+  },
+  {
+    "id": "nis2-004",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Quantos setores abrange a NIS2 e como estão organizados nos anexos? E em Portugal?",
+    "a": "A NIS2 abrange 18 setores, divididos entre o Anexo I (setores de alta criticidade) e o Anexo II (outros setores críticos). A NIS1 abrangia apenas 7, por isso o alargamento é grande. Em Portugal, o DL 125/2025 organiza-os como 17 setores mais a Administração Pública. Exemplos de setores: energia, transportes, banca, infraestruturas do mercado financeiro, saúde, água, infraestrutura digital, administração pública, espaço; e no Anexo II serviços postais, gestão de resíduos, produção e distribuição de alimentos, fabrico, prestadores digitais.",
+    "ref": "Diretiva (UE) 2022/2555, Anexos I e II; DL 125/2025 (PT)"
+  },
+  {
+    "id": "nis2-005",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Qual é a 'regra de dimensão' (size-cap rule) que determina se uma entidade está no âmbito? Há exceções?",
+    "a": "A regra geral: a entidade tem de estar num setor dos Anexos I ou II E ser de dimensão média ou superior — ou seja, pelo menos 50 trabalhadores OU volume de negócios/balanço anual acima de 10 M€. Há exceções que ficam no âmbito independentemente da dimensão: por exemplo, prestadores de serviços de DNS, registos de nomes de topo (TLD), prestadores de serviços de confiança, e certas administrações públicas. Micro e pequenas empresas podem também ser incluídas se forem o único prestador de um serviço essencial num Estado-Membro.",
+    "ref": "Diretiva (UE) 2022/2555, art. 2.º (âmbito)"
+  },
+  {
+    "id": "nis2-006",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "O artigo 21.º é o coração da NIS2. O que exige, em termos gerais, e qual o princípio que atravessa todas as medidas?",
+    "a": "O artigo 21.º exige que as entidades essenciais e importantes implementem medidas técnicas, operacionais e organizativas adequadas e proporcionadas para gerir os riscos de cibersegurança dos seus sistemas de rede e informação, e para prevenir ou minimizar o impacto de incidentes. O princípio que atravessa tudo é a proporcionalidade e a abordagem baseada no risco (all-hazards approach): as medidas devem ser proporcionais ao nível de risco, à dimensão da entidade e ao impacto potencial dos incidentes.",
+    "ref": "Diretiva (UE) 2022/2555, art. 21.º, n.º 1"
+  },
+  {
+    "id": "nis2-007",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "O artigo 21.º, n.º 2 lista as medidas mínimas de gestão de risco. Enumera pelo menos seis delas.",
+    "a": "Entre as medidas do art. 21.º, n.º 2: políticas de análise de risco e de segurança dos sistemas de informação; tratamento de incidentes; continuidade de negócio (gestão de cópias de segurança, recuperação de desastre, gestão de crises); segurança da cadeia de fornecimento; segurança na aquisição, desenvolvimento e manutenção de sistemas (incluindo gestão de vulnerabilidades); políticas para avaliar a eficácia das medidas; práticas básicas de ciber-higiene e formação; políticas de criptografia e cifragem; segurança de recursos humanos e controlo de acessos; e uso de autenticação multifator (MFA) e comunicações seguras.",
+    "ref": "Diretiva (UE) 2022/2555, art. 21.º, n.º 2, alíneas a) a j)"
+  },
+  {
+    "id": "nis2-008",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "A NIS2 introduz prazos de notificação de incidentes em várias fases. Quais são, e a partir de que momento contam?",
+    "a": "A notificação de um incidente significativo (art. 23.º) é faseada e conta a partir do conhecimento do incidente: (1) alerta precoce (early warning) em 24 horas — indicando se há suspeita de ação ilícita/maliciosa ou impacto transfronteiriço; (2) notificação de incidente completa em 72 horas — com avaliação inicial de gravidade, impacto e indicadores de compromisso; (3) relatório final em 1 mês — com descrição detalhada, causa-raiz, medidas de mitigação e impacto. Pode haver relatório intercalar se a autoridade o pedir.",
+    "ref": "Diretiva (UE) 2022/2555, art. 23.º"
+  },
+  {
+    "id": "nis2-009",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "O que é um 'incidente significativo' para efeitos de notificação? Qual o critério geral?",
+    "a": "É um incidente com impacto significativo na prestação dos serviços da entidade. O critério geral (art. 23.º, n.º 3): considera-se significativo se causou ou é suscetível de causar perturbação operacional grave dos serviços ou perdas financeiras à entidade, ou se afetou ou é suscetível de afetar outras pessoas singulares ou coletivas causando danos materiais ou imateriais consideráveis. O ponto importante é que o dever de notificar existe mesmo que o incidente não tenha ainda causado dano efetivo, bastando ser suscetível de o causar.",
+    "ref": "Diretiva (UE) 2022/2555, art. 23.º, n.º 3"
+  },
+  {
+    "id": "nis2-010",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "A quem se notifica um incidente em Portugal? Qual é a autoridade nacional de cibersegurança?",
+    "a": "Em Portugal, a Autoridade Nacional de Cibersegurança é o CNCS — Centro Nacional de Cibersegurança. As notificações de incidentes significativos são feitas ao CNCS e/ou ao CSIRT designado. A NIS2 exige que cada Estado-Membro designe autoridades competentes, pontos de contacto únicos e uma ou mais equipas de resposta a incidentes (CSIRT). O CNCS acumula estes papéis a nível nacional, no quadro do Regime Jurídico da Segurança do Ciberespaço e agora do DL 125/2025.",
+    "ref": "Diretiva (UE) 2022/2555, arts. 8.º-11.º; CNCS (autoridade nacional PT)"
+  },
+  {
+    "id": "nis2-011",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "A NIS2 responsabiliza pessoalmente a gestão de topo. O que muda em relação à NIS1 e por que é tão relevante?",
+    "a": "O artigo 20.º torna os órgãos de gestão responsáveis por aprovar e supervisionar as medidas de gestão de risco de cibersegurança, e prevê que possam ser pessoalmente responsabilizados por incumprimentos graves. Além disso, os membros da gestão têm de receber formação em cibersegurança. É relevante porque desloca a cibersegurança de 'assunto do departamento de TI' para responsabilidade de administração — com consequências pessoais possíveis, incluindo, em certos casos, a suspensão temporária de funções de gestão. Isto muda radicalmente a prioridade que a direção dá ao tema.",
+    "ref": "Diretiva (UE) 2022/2555, art. 20.º"
+  },
+  {
+    "id": "nis2-012",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Quais são os montantes máximos de coima na NIS2 e como diferem entre entidades essenciais e importantes?",
+    "a": "Para entidades essenciais: coima máxima de 10 000 000 EUR ou 2% do volume de negócios anual mundial total, consoante o que for mais elevado. Para entidades importantes: 7 000 000 EUR ou 1,4% do volume de negócios anual mundial total, o que for mais elevado. Além das coimas, as autoridades podem aplicar outras medidas, como ordens de conformidade e, no caso das essenciais, a suspensão temporária de certificações ou de dirigentes.",
+    "ref": "Diretiva (UE) 2022/2555, art. 34.º"
+  },
+  {
+    "id": "nis2-013",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "A segurança da cadeia de fornecimento é uma das grandes novidades. O que exige a NIS2 em concreto e por que se tornou crítica?",
+    "a": "O art. 21.º, n.º 2, exige que as entidades tratem a segurança nas relações com fornecedores diretos e prestadores de serviços, tendo em conta as vulnerabilidades específicas de cada fornecedor e a qualidade global das suas práticas de cibersegurança. Tornou-se crítica porque muitos ataques de grande escala entram pela cadeia de fornecimento (um fornecedor comprometido dá acesso a muitos clientes — ex.: ataques do tipo SolarWinds). Na prática: avaliar criticidade dos fornecedores, incluir cláusulas contratuais de segurança, questionários e, para os mais críticos, auditorias.",
+    "ref": "Diretiva (UE) 2022/2555, art. 21.º, n.º 2, alínea d); art. 22.º (cadeias críticas)"
+  },
+  {
+    "id": "nis2-014",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Como se relaciona a NIS2 com a ISO/IEC 27001? Ter a certificação ISO 27001 basta para cumprir a NIS2?",
+    "a": "Há uma sobreposição grande — estimada em cerca de 80% — porque as medidas do art. 21.º correspondem em boa parte a controlos do Anexo A da ISO 27001 (gestão de risco, continuidade, criptografia, controlo de acesso, gestão de incidentes). Por isso a ISO 27001 é uma fundação forte. Mas não basta: a NIS2 acrescenta obrigações específicas que a ISO 27001 não cobre diretamente, nomeadamente os fluxos de notificação de incidentes com prazos legais (24h/72h/1 mês), a responsabilidade pessoal da gestão, e requisitos setoriais nacionais. Certificar ISO 27001 aproxima, mas é preciso mapear os gaps.",
+    "ref": "Diretiva (UE) 2022/2555, art. 21.º; ISO/IEC 27001:2022 (mapeamento)"
+  },
+  {
+    "id": "nis2-015",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Como se articulam a NIS2 e o DORA no setor financeiro? Qual prevalece?",
+    "a": "O DORA (Regulamento (UE) 2022/2554) é considerado legislação setorial específica (lex specialis) para as entidades financeiras. Quando uma entidade financeira está sujeita a obrigações do DORA que são pelo menos equivalentes em efeito às da NIS2 em matéria de gestão de risco e notificação, aplicam-se as do DORA e não as da NIS2, para evitar duplicação. Ou seja, para bancos e afins, o DORA prevalece nessas matérias. Mas subsidiárias não-financeiras de um grupo podem continuar sob NIS2.",
+    "ref": "Diretiva (UE) 2022/2555, art. 4.º; Regulamento (UE) 2022/2554 (DORA)"
+  },
+  {
+    "id": "nis2-016",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "O que são práticas de 'ciber-higiene' que a NIS2 exige, e por que a diretiva insiste na formação?",
+    "a": "A ciber-higiene (art. 21.º, n.º 2) refere-se a práticas de base regulares e disciplinadas que reduzem a superfície de ataque: atualização de software (patching), gestão de contas e privilégios, cópias de segurança, MFA, segmentação de rede, sensibilização dos utilizadores. A NIS2 insiste na formação porque a maioria dos incidentes tem componente humana; formar utilizadores e gestão é das medidas mais custo-eficazes, e a diretiva torna a formação da própria administração obrigatória (art. 20.º).",
+    "ref": "Diretiva (UE) 2022/2555, art. 21.º, n.º 2, alínea g); art. 20.º"
+  },
+  {
+    "id": "nis2-017",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "A NIS2 exige o uso de criptografia e MFA. Como se ligam estas exigências a controlos que já conheces da ISO 27001?",
+    "a": "O art. 21.º, n.º 2, refere políticas de criptografia e cifragem (alínea h) e autenticação multifator e comunicações seguras (alínea j). Ligam-se diretamente a controlos do Anexo A da ISO 27001:2022: A.8.24 (uso de criptografia, incluindo gestão de chaves) e A.8.5 (autenticação segura). É um bom exemplo de como a ISO 27001 serve de fundação técnica para a NIS2 — quem já implementou estes controlos para a ISO tem grande parte do caminho feito para a NIS2.",
+    "ref": "Diretiva (UE) 2022/2555, art. 21.º, n.º 2; ISO/IEC 27001:2022 A.8.24 e A.8.5"
+  },
+  {
+    "id": "nis2-018",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "O que é o registo de entidades exigido pela NIS2, e o que é que uma entidade abrangida tem de fazer perante a autoridade nacional?",
+    "a": "A NIS2 exige que os Estados-Membros mantenham registos das entidades abrangidas, e que certos tipos de entidades (como prestadores de serviços digitais e de DNS) forneçam elementos identificativos à autoridade nacional. Em Portugal, cabe às entidades identificar-se junto do CNCS. A prática essencial para a entidade é: determinar se está no âmbito (setor + dimensão), classificar-se como essencial ou importante, e registar-se/notificar-se à autoridade nacional dentro dos prazos definidos na lei de transposição.",
+    "ref": "Diretiva (UE) 2022/2555, art. 3.º, n.º 4 e art. 27.º; DL 125/2025 (PT)"
+  },
+  {
+    "id": "nis2-019",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Que poderes de supervisão têm as autoridades sobre entidades essenciais vs importantes? Explica a diferença prática.",
+    "a": "Sobre entidades essenciais, a supervisão é ex ante (proativa): as autoridades podem realizar auditorias regulares, inspeções no local, pedidos de informação e verificações de segurança, mesmo sem indício de incumprimento. Sobre entidades importantes, a supervisão é ex post (reativa): as autoridades atuam quando há evidência, indício ou queixa de incumprimento. Na prática, isto significa que uma entidade essencial deve estar sempre pronta para uma auditoria; uma importante é fiscalizada sobretudo quando algo corre mal.",
+    "ref": "Diretiva (UE) 2022/2555, arts. 32.º (essenciais) e 33.º (importantes)"
+  },
+  {
+    "id": "nis2-020",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Como se relaciona a NIS2 com o RGPD quando um incidente envolve dados pessoais? Há dupla notificação?",
+    "a": "Sim, pode haver duas obrigações de notificação em paralelo, com destinatários e prazos diferentes. Se um incidente de cibersegurança também constituir uma violação de dados pessoais, a entidade pode ter de notificar: à autoridade de cibersegurança (CNCS) ao abrigo da NIS2 (24h/72h/1 mês) E à autoridade de proteção de dados (CNPD) ao abrigo do RGPD (art. 33.º, 72h), além de possivelmente informar os titulares (art. 34.º). São regimes distintos com finalidades distintas — resiliência dos serviços vs proteção dos direitos das pessoas — e ambos podem aplicar-se ao mesmo evento.",
+    "ref": "Diretiva (UE) 2022/2555, art. 23.º; RGPD, arts. 33.º e 34.º"
+  },
+  {
+    "id": "nis2-021",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "O que significa a abordagem 'all-hazards' (todos os riscos) da NIS2? Dá exemplos de ameaças que ela obriga a considerar.",
+    "a": "A abordagem all-hazards significa que a gestão de risco não se limita a ataques cibernéticos maliciosos — tem de considerar todas as ameaças que possam comprometer os sistemas de rede e informação. Isto inclui: ciberataques (ransomware, phishing, DDoS), mas também falhas técnicas, erros humanos, falhas de energia, catástrofes naturais (inundação, incêndio num datacenter), e ameaças físicas ao equipamento. A segurança física dos ativos que suportam os serviços digitais faz, por isso, parte do âmbito.",
+    "ref": "Diretiva (UE) 2022/2555, art. 21.º (medidas 'all-hazards')"
+  },
+  {
+    "id": "nis2-022",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Uma entidade descobre que está no âmbito da NIS2 mas nunca fez gestão de risco formal. Quais os primeiros passos práticos de conformidade?",
+    "a": "Passos iniciais: (1) confirmar o âmbito e a classificação (essencial ou importante) e registar-se junto do CNCS; (2) obter o compromisso e a formação da gestão de topo (art. 20.º); (3) fazer uma análise de risco e uma gap analysis das medidas do art. 21.º face ao que já existe; (4) implementar as medidas em falta priorizadas por risco (políticas, MFA, backups, cadeia de fornecimento); (5) estabelecer o processo de notificação de incidentes com os prazos 24h/72h/1mês e testar; (6) documentar tudo para demonstrar conformidade. Quem tem ISO 27001 parte com vantagem no ponto 3.",
+    "ref": "Diretiva (UE) 2022/2555, arts. 20.º, 21.º e 23.º"
+  },
+  {
+    "id": "nis2-023",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "O que é o grupo de cooperação e a rede de CSIRT que a NIS2 institui a nível europeu? Para que servem?",
+    "a": "A NIS2 reforça a cooperação europeia através de dois mecanismos: o Grupo de Cooperação (Cooperation Group), que reúne representantes dos Estados-Membros, da Comissão e da ENISA para troca de informação, boas práticas e orientações estratégicas; e a Rede de CSIRT, que liga as equipas nacionais de resposta a incidentes para partilha operacional e coordenação em incidentes transfronteiriços. Servem para harmonizar a resposta e evitar a fragmentação que enfraqueceu a NIS1 — a cibersegurança não conhece fronteiras, e a resposta também não pode conhecer.",
+    "ref": "Diretiva (UE) 2022/2555, arts. 14.º (Grupo de Cooperação) e 15.º (rede CSIRT)"
+  },
+  {
+    "id": "nis2-024",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Qual o papel da ENISA no ecossistema NIS2?",
+    "a": "A ENISA (Agência da União Europeia para a Cibersegurança) tem um papel de apoio e coordenação: produz orientações técnicas e boas práticas para implementar as medidas do art. 21.º, mantém um registo europeu de vulnerabilidades, apoia o Grupo de Cooperação e a rede de CSIRT, e contribui para relatórios sobre o estado da cibersegurança na União. Não é uma autoridade de supervisão das entidades (isso cabe às autoridades nacionais como o CNCS), mas é a fonte de referência técnica que ajuda a interpretar e aplicar a diretiva de forma consistente na UE.",
+    "ref": "Diretiva (UE) 2022/2555 (papel da ENISA ao longo do texto)"
+  },
+  {
+    "id": "nis2-025",
+    "tema": "nis2",
+    "dif": "base",
+    "q": "Por que é a NIS2 uma oportunidade de carreira concreta em Portugal neste momento? Liga ao teu percurso GRC.",
+    "a": "Porque a transposição é recente (DL 125/2025) e milhares de entidades em Portugal — nos 17 setores mais a Administração Pública — passam a ter de cumprir obrigações que antes não tinham: gap analysis face ao art. 21.º, processos de notificação, segurança da cadeia de fornecimento, governação ao nível da administração. Isto cria procura direta por quem sabe conduzir avaliações de conformidade e auditorias — exatamente o perfil de Lead Auditor / GRC. Quem domina a intersecção NIS2 + ISO 27001 (80% de sobreposição) está posicionado para o trabalho que o mercado português vai precisar já nos próximos meses.",
+    "ref": "DL 125/2025 (PT); Diretiva (UE) 2022/2555; sobreposição com ISO/IEC 27001"
+  }
+]

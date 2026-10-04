@@ -1,0 +1,82 @@
+[
+  {
+    "id": "iso19-001",
+    "tema": "iso19011",
+    "dif": "base",
+    "q": "Para que serve a ISO 19011 e em que se distingue da ISO/IEC 17021? Um auditor interno segue qual?",
+    "a": "A ISO 19011:2018 dá diretrizes para auditar sistemas de gestão — princípios, gestão do programa de auditoria, condução da auditoria e competência dos auditores. Aplica-se a auditorias de 1.ª parte (internas) e de 2.ª parte (a fornecedores). A ISO/IEC 17021 estabelece requisitos para os organismos que fazem auditorias de certificação (3.ª parte). Um auditor interno segue a ISO 19011. A distinção prática: a 19011 orienta como auditar bem; a 17021 regula quem pode certificar.",
+    "ref": "ISO 19011:2018 vs ISO/IEC 17021"
+  },
+  {
+    "id": "iso19-002",
+    "tema": "iso19011",
+    "dif": "base",
+    "q": "Quais são os princípios da auditoria segundo a ISO 19011? Enumera-os e explica por que existem.",
+    "a": "A ISO 19011:2018 define sete princípios: integridade (a base do profissionalismo), apresentação justa (relatar com verdade e exatidão), devido cuidado profissional (diligência e juízo), confidencialidade (segurança da informação), independência (imparcialidade e objetividade das conclusões), abordagem baseada em evidência (conclusões assentes em evidência verificável), e abordagem baseada em risco. Existem porque garantem que auditorias diferentes, feitas por auditores diferentes, cheguem a conclusões fiáveis e comparáveis — dão credibilidade ao resultado.",
+    "ref": "ISO 19011:2018, cláusula 4 (princípios)"
+  },
+  {
+    "id": "iso19-003",
+    "tema": "iso19011",
+    "dif": "base",
+    "q": "Distingue os termos: critérios de auditoria, evidência de auditoria e constatações (findings). Como se encadeiam?",
+    "a": "Critérios de auditoria: o referencial contra o qual se audita (a norma, políticas, requisitos legais, procedimentos). Evidência de auditoria: registos, factos ou informação verificável, obtidos por observação, entrevista ou análise de documentos. Constatações (findings): o resultado de comparar a evidência com os critérios — podem ser conformidades ou não conformidades. Encadeiam-se assim: o auditor recolhe evidência, compara-a com os critérios, e dessa comparação nascem as constatações. Sem evidência não há constatação; sem critério não há como avaliar a evidência.",
+    "ref": "ISO 19011:2018, cláusula 3 (termos) e 6.4"
+  },
+  {
+    "id": "iso19-004",
+    "tema": "iso19011",
+    "dif": "base",
+    "q": "O que é um programa de auditoria e em que difere de um plano de auditoria individual?",
+    "a": "O programa de auditoria (cláusula 5) é o conjunto de todas as auditorias planeadas para um período e um propósito — por exemplo, o calendário anual de auditorias internas de uma organização, com objetivos, âmbito, recursos e responsáveis. O plano de auditoria (cláusula 6.3) é o detalhe de uma auditoria específica: datas, âmbito concreto, critérios, membros da equipa, agenda das reuniões e das áreas a visitar. Em resumo: o programa é a estratégia anual; o plano é a tática de cada auditoria.",
+    "ref": "ISO 19011:2018, cláusulas 5 e 6.3"
+  },
+  {
+    "id": "iso19-005",
+    "tema": "iso19011",
+    "dif": "base",
+    "q": "Quais são as fases típicas de condução de uma auditoria segundo a ISO 19011? Descreve a sequência.",
+    "a": "Segundo a cláusula 6: (1) início da auditoria (contacto com o auditado, viabilidade); (2) preparação das atividades (revisão de documentos, plano de auditoria, preparação dos documentos de trabalho como checklists); (3) condução das atividades no local — reunião de abertura, recolha e verificação de evidência, geração de constatações, preparação das conclusões, reunião de encerramento; (4) preparação e distribuição do relatório de auditoria; (5) conclusão da auditoria; (6) follow-up (acompanhamento das ações), se aplicável.",
+    "ref": "ISO 19011:2018, cláusula 6"
+  },
+  {
+    "id": "iso19-006",
+    "tema": "iso19011",
+    "dif": "base",
+    "q": "Qual o objetivo da reunião de abertura e da reunião de encerramento numa auditoria?",
+    "a": "A reunião de abertura confirma com o auditado o plano da auditoria: objetivos, âmbito, critérios, método, agenda e canais de comunicação — e serve para alinhar expectativas e esclarecer dúvidas antes de começar. A reunião de encerramento apresenta as constatações e conclusões da auditoria de forma a serem compreendidas e aceites pelo auditado, esclarece as não conformidades identificadas e os próximos passos (prazos para ações corretivas). Ambas garantem transparência: ninguém é surpreendido, nem no início nem no fim.",
+    "ref": "ISO 19011:2018, cláusula 6.4"
+  },
+  {
+    "id": "iso19-007",
+    "tema": "iso19011",
+    "dif": "base",
+    "q": "Que métodos tem um auditor para recolher evidência? Cita pelo menos três e um cuidado associado a cada.",
+    "a": "Métodos principais: entrevistas (cuidado: confirmar o que é dito com evidência documental, pois relatos podem ser incompletos ou enviesados); observação direta de atividades e condições (cuidado: a presença do auditor pode alterar o comportamento observado); e análise de documentos e registos (cuidado: verificar se são atuais, autênticos e representativos, não apenas os 'melhores' exemplos). A técnica de amostragem também é chave: como não se verifica tudo, escolhe-se uma amostra representativa e assume-se o risco de amostragem.",
+    "ref": "ISO 19011:2018, cláusula 6.4.7 e Anexo A"
+  },
+  {
+    "id": "iso19-008",
+    "tema": "iso19011",
+    "dif": "base",
+    "q": "O que é a abordagem baseada em risco aplicada à auditoria (introduzida com força na versão 2018)? Como muda a forma de auditar?",
+    "a": "A abordagem baseada em risco significa planear e conduzir a auditoria concentrando esforço onde os riscos e a importância são maiores, em vez de tratar todas as áreas por igual. Muda a forma de auditar porque o auditor prioriza: dá mais tempo e profundidade aos processos críticos e aos controlos que mitigam os riscos mais elevados, e menos às áreas de baixo risco. Foi reforçada na ISO 19011:2018 para alinhar a auditoria com o pensamento baseado em risco que já domina normas como a ISO 27001 e a ISO 9001.",
+    "ref": "ISO 19011:2018, princípio da abordagem baseada em risco (cláusula 4)"
+  },
+  {
+    "id": "iso19-009",
+    "tema": "iso19011",
+    "dif": "base",
+    "q": "O que determina a competência de um auditor segundo a ISO 19011? Só conhecimento técnico chega?",
+    "a": "Não chega. A competência (cláusula 7) combina conhecimento e aptidões com atributos pessoais. Conhecimento e aptidões: da norma auditada, dos princípios e técnicas de auditoria, do setor e dos aspetos legais aplicáveis. Atributos pessoais: ético, mente aberta, diplomático, observador, perspicaz, versátil, tenaz, decidido, autoconfiante, e capaz de agir com independência e integridade. A norma sublinha que um bom auditor técnico com maus atributos pessoais (ex.: pouco diplomático ou parcial) não é competente para auditar — a auditoria é tanto técnica como relacional.",
+    "ref": "ISO 19011:2018, cláusula 7 e Anexo"
+  },
+  {
+    "id": "iso19-010",
+    "tema": "iso19011",
+    "dif": "base",
+    "q": "Qual a diferença entre uma não conformidade maior e menor, e por que importa a formulação de uma não conformidade?",
+    "a": "Uma não conformidade maior representa uma falha sistémica ou a ausência total de um requisito (ex.: não existe apreciação de risco nenhuma), pondo em causa a capacidade do sistema de gestão atingir os seus objetivos — pode bloquear a certificação. Uma menor é um desvio pontual ou isolado que não compromete o sistema no seu todo (ex.: um registo em falta num caso). A formulação importa porque uma boa não conformidade indica claramente o requisito violado (critério), a evidência objetiva e o local/momento — para que o auditado a possa compreender, aceitar e corrigir na causa-raiz, sem ambiguidade nem juízo pessoal.",
+    "ref": "ISO 19011:2018, cláusula 6.4.8 (constatações)"
+  }
+]

@@ -1,0 +1,41 @@
+{
+  // TypeScript INCREMENTAL (Missão 26 · Fase 1). Regra da missão: nunca uma
+  // conversão total imediata. O projeto continua a ser JS/JSX e a compilar pelo
+  // Vite; o tsc só verifica tipos (noEmit) e serve o LSP no editor.
+  //
+  // Estratégia de adoção, por esta ordem:
+  //   1. tipos de domínio em src/types/ (feito nesta fase);
+  //   2. adaptadores e store novos escritos em .ts;
+  //   3. componentes novos em .tsx;
+  //   4. módulos críticos migrados um a um, com `checkJs` a ser ligado por
+  //      ficheiro via // @ts-check antes de qualquer migração global.
+  //
+  // `checkJs` fica FALSE de propósito: ligá-lo agora acenderia centenas de
+  // erros nos 59 ficheiros existentes e tornaria o sinal inútil.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "types": ["vite/client"]
+  },
+  "include": ["src"],
+  "exclude": ["src/vendor", "src/stage", "node_modules", "dist", "legacy"]
+}

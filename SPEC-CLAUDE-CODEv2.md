@@ -69,6 +69,871 @@ servidor de desenvolvimento local do Vite, em `http://localhost:5173/Sistema/`. 
   um grava inteira — o último a gravar substitui o outro), o Oráculo (Edge Function) e as
   cópias diárias da base.
 
+**Publicação da Órbita (decidida pelo Daniel a 2026-09-27).** A Órbita passa a ser a
+interface, para usar e para construir; o Vanilla deixa de ser trabalhado. Desde esse dia há
+duas cópias de trabalho: `Sistema-orbita`, onde o Daniel corre o servidor, e `Sistema`, onde
+o Claude Code trabalha. O objetivo desta fase é a Órbita publicada em
+`kamappa.github.io/Sistema`, usável no iPhone sem terminal aberto. Cinco etapas, por esta
+ordem; nenhuma começa sem a anterior fechada e confirmada pelo Daniel:
+
+1. backend e documentos do `main` para o ramo da Órbita, com o Oráculo reconciliado —
+   ficheiro a ficheiro, nunca por merge;
+2. filtro de links e testes;
+3. toque em toda a Órbita, começando pelo Universo, testado num iPhone real via Preview;
+4. preparar a publicação: workflow, CSP, interruptor do service worker, plano de reversão,
+   teste de fumo em 390×844;
+5. publicar: o Daniel muda a fonte do Pages para «GitHub Actions», a entrada no `main` é
+   preparada, e o push é dele — por esta ordem.
+
+Regras da fase: nada muda no aspeto da Órbita até estar publicada (só o filtro, o backend, o
+toque e o necessário para publicar); as melhorias encontradas não se fazem — vão para
+`MELHORIAS.md`, revisto depois de publicar; os problemas de segurança são a exceção e vão
+logo ao Daniel, com o risco. Todo o teste novo leva controlo positivo. Nada vai para
+produção sem prova do lado do destino: um código de saída 0 não é evidência.
+
+Decisões do Daniel, com a razão:
+
+- **Publicar sem o painel das sessões de estudo.** Nunca o usou, porque só existe no Vanilla,
+  e ter o Sistema no iPhone vale mais do que esperar por ele. A regra da migração pede
+  paridade antes de substituir a produção; esta é a exceção, decidida por ele. O painel vem
+  para a Órbita depois de publicar.
+- **O saldo do Oráculo só é reposto depois da etapa 2**, a do filtro de links. A regra era
+  «depois do filtro»; com a ordem nova o filtro passou para a etapa 2, e a regra acompanha-o.
+- **O filtro também no servidor:** o Oráculo passa a guardar só URLs http(s). Se a única
+  barreira fosse o frontend, cada interface nova voltava a herdar o problema, e o `legacy/`
+  continua no repositório.
+- **Na etapa 2, além do filtro:** escapar os dois valores do estado que o `constellation.js`
+  mete em `innerHTML` (o mesmo defeito: dados guardados tratados como código), e tirar os
+  ícones do Google do Radar (fuga de dados pessoais a um terceiro sem necessidade; perder os
+  ícones é aceitável).
+- **A CSP passa para a etapa 4:** só se testa a sério com o build de produção.
+- **O SPEC v2 edita-se só no ramo da Órbita** até à etapa 5.
+- **O limite de 12 mensagens de chat por dia** fica em aberto (`MELHORIAS.md`): decide quando
+  estiver a usar e souber se chega para as sessões de estudo da regra 7.
+
+Achados, registados como tal:
+
+- **A nota de reversão do `.github/workflows/deploy-react.yml` estava errada — duas vezes.**
+  A linha 16 diz «reverter o merge → o Pages volta ao Vanilla»: com a fonte em «GitHub
+  Actions», reverter deixa o `main` sem `package.json`, o build falha e a Órbita continua
+  publicada. Reverter a sério é desfazer a entrada no `main` **e** voltar a fonte a «Deploy
+  from a branch» — e só funciona com o interruptor do service worker, senão o iPhone fica
+  preso aos ficheiros velhos. As linhas 9–10 dizem que, sem mudar a fonte, o Pages
+  «continua a servir o Vanilla»: serviria o `index.html` do Vite sem build (`/src/main.jsx`),
+  e o site partia-se. O mesmo padrão dos outros achados: um procedimento escrito que não
+  funcionava e que ninguém teria descoberto até precisar dele. Corrige-se na etapa 4.
+- **O servidor guardava os URLs tal como o modelo os escrevia** (`radar_items.url` e os
+  recursos do relatório), sem ver o esquema. Corrigido na etapa 1 e publicado na v21
+  (2026-09-27).
+- **O Radar da Órbita mandava ao Google os domínios dos itens** (`RadarNews.jsx`, ícones por
+  `google.com/s2/favicons`), incluindo as vagas da Vigia. Sai na etapa 2.
+- **`constellation.js`, verificado:** nenhum texto do Oráculo nem do Radar chega aos
+  `innerHTML` — só constantes do código e dois campos do `app_state`
+  (`constellation.choices` e a data de nascimento das estrelas), que a função nunca escreve.
+  Não é explorável por esse caminho; os dois valores escapam-se na etapa 2. **Na etapa 2
+  provou-se que, com o `app_state` adulterado, os dois valores corriam mesmo como HTML** —
+  ver «Achado da etapa 2», abaixo.
+- **O relatório escrito no vault leva o texto do modelo em markdown, sem neutralizar
+  links.** O filtro do servidor limpa os URLs dos recursos, não o texto livre: um título ou
+  um resumo podem trazer `[texto](javascript:…)` para a nota. Verificado a 2026-09-27 numa
+  instância isolada do Obsidian 1.13.7 (pasta de configuração e vault temporários,
+  `--user-data-dir`, rede só para 127.0.0.1; a configuração real ficou byte a byte igual):
+  - **Modo de leitura** (é como o resumo aparece embebido na nota de aula): tudo
+    neutralizado. Os `[texto](javascript:…)` e `[texto](data:…)` ficam sem `href`, o
+    `<img onerror>`, o `<script>`, o `<iframe>` e o `<svg onload>` são removidos ou perdem
+    os atributos. Nenhum dos marcadores de teste disparou. É seguro.
+  - **Live Preview** (o editor por omissão, se ele abrir a nota diretamente): um clique num
+    link `javascript:` ou `data:` faz chegar o esquema cru ao `window.open`. No arného
+    intercetei o `window.open`, por isso vi o esquema a passar mas não o passo final; os
+    marcadores não dispararam no contexto da nota. O que ficou provado: a leitura é segura,
+    e no Live Preview o esquema cru ainda alcança o abridor — exige clique do Daniel numa
+    nota escrita pelo Oráculo.
+  - **Os plugins do vault, que a instância isolada não tinha** (verificado a 2026-09-27 no
+    código instalado e nas definições do vault, só em leitura): o Templater 2.25.0 e o
+    Dataview 0.5.68 estão ativos.
+    - **Templater:** com o gatilho de criação de ficheiros ligado, uma nota nova com
+      conteúdo que não corresponde a um modelo passa por `overwrite_file_commands`
+      (`on_file_creation` no `main.js` instalado): os comandos `<% … %>` que tiver correm,
+      com acesso ao Node, sem a nota ser aberta. As notas do Oráculo chegam como ficheiros
+      novos em `Oraculo/`, pelo Obsidian Git. O gatilho é uma definição deste computador,
+      guardada pelo Obsidian fora do vault, e não foi lido; o modelo de aula por regex
+      (`Sistema/Estudo/IPCA/*/Aulas/*.md`) só funciona com ele ligado.
+    - **Dataview:** sem `data.json`, valem as predefinições do 0.5.68 — `enableDataviewJs` e
+      `enableInlineDataviewJs` a `false`. Nenhuma nota usa `dataviewjs` nem JS inline. As
+      consultas DQL inline estão ligadas, e só leem.
+    - O relatório semanal usa a pesquisa na web (secção dos recursos): uma página hostil
+      lida pelo modelo pode tentar pôr esse texto no relatório.
+  - **Recomendação do Claude Code (2026-09-27):** neutralizar no servidor, e não só os
+    links. Todo o texto do modelo entra na nota como texto: os caracteres que abrem HTML,
+    links, imagens, embeds, blocos de código, comandos do Templater e campos do Dataview
+    passam a entidades, e os únicos links da nota são os recursos que o servidor validou.
+    Como segunda barreira, do lado do Obsidian e por decisão do Daniel: a pasta `Oraculo`
+    na lista de pastas que o Templater ignora ao criar ficheiros.
+  - **Decisão do Daniel (2026-09-27): A** — neutralizar no servidor todo o texto que o
+    modelo escreve, e não depender de uma só barreira. Ver «Achado da etapa 2b», abaixo.
+- **Publicar a partir de uma pasta com código diferente** (registado a pedido do Daniel,
+  2026-09-27). A primeira tentativa de publicar a v21 correu numa janela do PowerShell
+  aberta em `C:\WINDOWS\system32`, fora desta sessão. O CLI trabalhou na pasta do terminal
+  em vez da exportação — o mais provável é a linha, muito longa, ter-se partido ao colar e o
+  `--workdir` ter-se perdido —, não encontrou `supabase/functions/oraculo`, e falhou: nada
+  foi publicado. Se esse terminal estivesse na `Sistema-orbita`, o CLI teria encontrado lá o
+  Oráculo desse ramo, sem nada da v20, e tê-lo-ia publicado por cima da produção a
+  responder «Deployed Functions». A falha evitou-o por acaso. É a mesma classe dos outros
+  achados: o comando responde bem, e o que fica publicado não é o que se pensa. Regra que
+  fica: publicar só com `!` nesta sessão, a partir de `Documents\Sistema`, e provar a
+  seguir com o descarregamento da função e a comparação dos hashes.
+
+Estado da etapa 1 (2026-09-27), no ramo `orbita/1-backend-e-docs`:
+
+- `supabase/` do `main`, por caminho: os 4 ficheiros da função entraram byte a byte iguais
+  aos publicados (descarregados do Supabase e comparados por hash), mais a migração de
+  23/09, o rollback e o README das migrações.
+- O Oráculo reconciliado em dois passos: primeiro a v20, exatamente como está publicada;
+  depois a regra 7 da c94513f (2026-08-17, três modos pedagógicos), publicada na v21. A
+  junção dá o mesmo ficheiro por dois caminhos independentes (`git apply --3way` e
+  `git merge-file`).
+- O filtro de URLs no servidor (`url-segura.ts`), com testes que falharam antes da correção:
+  um item do Radar com URL que não é http(s) fica, sem link; um recurso sem link seguro sai
+  do relatório; cada recusa fica no registo da função. Só vale para itens novos.
+- **A v21 (regra 7 + filtro) foi publicada a 2026-09-27**, pelo Daniel, com `!` nesta
+  sessão, a partir da exportação LF do commit `9ab6ccc`. Verificada do lado do destino: a
+  função descarregada é byte a byte o `9ab6ccc` (5 de 5 ficheiros; três não existem assim na
+  v20 — dois mudaram e um é novo —, o que prova que a versão mudou), versão 21 `ACTIVE` com
+  `verify_jwt: false`, um
+  `OPTIONS` dá 204 e o radar com um token errado dá 403 `forbidden` — a função arranca e
+  recusa antes de fazer o que quer que seja. Continua sem saldo: nenhuma corrida completa
+  até ele ser reposto, depois da etapa 2.
+- Os testes do backend, por caminho: `bd/`, `oraculo/vault-lista.test.ts` e o fumo do
+  Oráculo. Os 6 que testam o Vanilla ficam no `main`. Na Órbita o fumo corre só o Oráculo
+  até a etapa 4 criar o fumo da Órbita. Os testes do Deno correm com `DENO_NO_PACKAGE_JSON=1`,
+  porque o `package.json` do Vite na raiz faz o Deno resolver pacotes pelo `node_modules`
+  do frontend.
+- Corrido sobre o último commit da etapa (`f0e5792`): `bd.mjs` 49/49,
+  `deno test testes/oraculo/` 13/13, fumo do Oráculo 47/47 (as 40 de antes e as 7 do
+  filtro), e o `typecheck` e o `build` do frontend sem erros. A linha de base do fumo não
+  foi regravada: o LEIA-ME exige a aceitação do Daniel.
+
+Estado da etapa 2 (2026-09-27), no ramo `orbita/2-filtro-de-links`:
+
+- Os links do Oráculo e do Radar só saem como link se forem http(s) absolutos
+  (`src/lib/urlSegura.ts`, o mesmo contrato do filtro do servidor), nos quatro sítios que os
+  mostram: `RadarNews.jsx`, `RadarField.tsx`, `OracleReport.jsx` e `OracleReportLayered.tsx`.
+  Quando o endereço não é seguro, o título aparece como texto. Cobre os itens antigos, que
+  entraram na base antes do filtro do servidor.
+- O Radar deixa de pedir ícones ao Google: o favicon de cada item passa a um ponto de 8 px
+  na cor da área, dentro da caixa escura do ícone antigo. É a única mudança de aspeto da
+  etapa, e foi escolhida pelo Daniel entre duas imagens do componente real com o CSS real: a
+  primeira versão, um disco cheio de 30 px, repetia o que o chip da área já mostra e
+  destoava da linguagem da Órbita. O componente final foi comparado pixel a pixel com a
+  imagem escolhida: zero diferenças na zona dos ícones. Só se vê no HUD anterior (`?hud=1`),
+  porque o Radar da Órbita (`RadarField`) não tinha ícones — e só quando houver itens: o
+  frontend carrega os últimos 7 dias, e a base não tem nenhum desde 14/08 (lido a
+  2026-09-27, em transação só de leitura).
+- O céu (`src/stage/constellation.js`) escapa os dois valores do `app_state` que entravam em
+  `innerHTML` (`src/lib/escaparHtml.ts`), nos três sítios onde aparecem: o fallback em DOM e
+  os dois cartões do WebGL. Ver «Achado da etapa 2», abaixo.
+- Testes escritos a falhar antes das correções (`9295357`, `530bb05`, `cca461f`) e verdes
+  depois (`19eb3a1`, `d814777`, `7c1efc4`): `node --test "testes/seguranca/*.test.mjs"`, 84
+  de 84, cada caso hostil com controlo positivo e rede fechada; os componentes e o céu
+  montados num Chrome real sem cabeça, com perfil temporário. `typecheck` e `build` sem
+  erros. O backend não mudou nesta etapa.
+- Com os dados reais nada muda à vista na Órbita: os 3 recursos do último relatório passam
+  no `urlSegura` e continuam links.
+- **Fechada a 2026-09-27.** O Daniel avançou o `mission-26/renaissance-visual` na
+  `Sistema-orbita` e publicou-o. Confirmado do lado do destino: a `Sistema-orbita` e o GitHub
+  em `616a6d1`, a pasta sem alterações por guardar. O Vite não estava a correr, por isso os
+  módulos servidos não foram vistos — a pasta está no commit certo, e é isso que ele serve.
+  O saldo do Oráculo ficou para depois da etapa 2b.
+
+### Achado da etapa 2 — o céu corria o estado guardado como HTML, e o primeiro teste só via um de três sítios
+
+Provado a 2026-09-27 num Chrome real sem cabeça, com perfil temporário, rede fechada e o
+`app_state` adulterado de propósito, contra o código sem a correção:
+
+- No **cartão da Estrela de Escolha** (WebGL), um caminho escolhido
+  `<img src=x onerror=…>` **correu**: o `onerror` disparou.
+- No **cartão de uma estrela nascida**, a data de nascimento parecia segura, porque o código
+  só lê dez caracteres — e com dez já nasce um `<b/>`. Guardada como **lista**, o `.slice`
+  devolve elementos inteiros e o limite desaparece: um `<img onerror>` inteiro passou e
+  **correu**.
+- No **fallback em DOM**, os mesmos valores criavam elementos.
+
+Quem o podia explorar: quem escreve o `app_state`, ou seja, só a conta do Daniel (RLS); o
+Oráculo não escreve lá. É defesa em profundidade, mas o defeito era real e não teórico:
+dados guardados tratados como código, o mesmo do filtro de links. Corrigido em `d814777`.
+
+**O teste escrito primeiro (`constelacao-escape.test.mjs`, em `9295357`) só cobria o
+fallback.** A correção mexia em três sítios, e os dois cartões do WebGL — precisamente os
+sítios onde o HTML chegava a correr — ficavam sem prova. A asserção do marcador desse teste
+também lia antes de o `onerror` poder disparar (`MELHORIAS.md`, n.º 6). A falha não foi
+apanhada pelo teste: foi apanhada ao rever a correção antes do commit, e fechada com
+`constelacao-cartoes.test.mjs` (`530bb05`), vermelho antes e verde depois.
+
+### Lição — um teste verde que não testa o que diz testar (terceira vez nesta migração)
+
+1. **Etapa 1 (`c51483a`):** a parte do frontend do teste de fumo verificava o Vanilla
+   servido da raiz. Na Órbita, a raiz é o `index.html` do Vite: o teste abriria outra
+   aplicação e diria que verificou o frontend. Ficou só o Oráculo; o fumo da Órbita é da
+   etapa 4.
+2. **Etapa 2 (`9295357`):** o teste dos links, desenhado no servidor, recebia o estado
+   inicial da store (zustand 5), e os componentes mostravam «Entra com a tua conta».
+   «Nenhum `javascript:`» passava porque não se tinha desenhado nada. Passou para um Chrome
+   real, com um controlo positivo por componente.
+3. **Etapa 2 (`530bb05`):** o céu, acima — um de três sítios.
+
+Nas três, o teste ficou verde por não chegar ao sítio que diz testar: outra aplicação, nada
+desenhado, um sítio em três. Regras que ficam:
+
+- **O controlo positivo passa pelo mesmo caminho que o caso hostil** — o mesmo componente, o
+  mesmo cartão, o mesmo modo de desenho — e falha se nada for desenhado.
+- **Cada sítio que uma correção toca tem um teste que falha sem ela.** Antes do commit,
+  listar os sítios do diff e ligar cada um a um teste. Uma correção em três sítios com teste
+  num só é uma correção por provar em dois.
+- **Ver falhar antes de ver passar, e pela razão certa:** correr contra o código sem a
+  correção (tirada com `git stash`, só ela) e ler a mensagem de cada falha.
+- **O que é assíncrono espera antes de se ler:** um `onerror` só dispara depois de o pedido
+  da imagem falhar.
+
+Um primo desta lição, nos instrumentos de verificação e não nos testes, tem secção
+própria logo abaixo.
+
+### Lição — os instrumentos de verificação precisam do seu próprio controlo positivo
+
+Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de hashes que
+normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
+código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — cinco instâncias
+do mesmo padrão nesta migração, todas em instrumentos de verificação:
+
+1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
+   guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
+2. **O teste que não desenhava** (etapa 2, `9295357`): o teste dos links, desenhado no
+   servidor, mostrava «Entra com a tua conta», e «nenhum `javascript:`» passava sem nada
+   desenhado.
+3. **«Permissões: nenhuma»** (cópias, 24–25/09): o teste das chaves de teste escreveu-o
+   quando os ficheiros das chaves nem existiam; na mesma noite, o `s3-leitura.ps1` escreveu
+   «nenhuma versão» sem o pedido ter chegado ao B2.
+4. **A comparação de hashes que normaliza** (etapa 2b, 2026-09-27): a comparação da
+   exportação da v22 com o commit deu «ok» a ficheiros com CRLF — o `git archive` segue o
+   `core.autocrlf` deste Windows, e o `git hash-object` normaliza o fim de linha antes de
+   calcular. Apanhou-a uma contagem de CR que tinha o seu próprio controlo (um ficheiro com
+   CR tem de dar 1), antes de chegar a afirmação falsa nenhuma.
+5. **O teste que passava antes da correção existir** (etapa 3, fase 1, `30cc377`; quinta
+   instância, registada a pedido do Daniel): «o segundo toque no mesmo domínio mostra os
+   nomes» ficava verde com o código de hoje, em que o PRIMEIRO toque já abre — «aberto
+   depois de dois toques» não distingue os dois comportamentos. Passou a exigir o passo
+   intermédio e ficou vermelho. No mesmo arnês, dois defeitos do instrumento davam o
+   resultado oposto: sem emulação de foco o `focus()` não dispara eventos num separador sem
+   cabeça, e sem `text` o Enter do protocolo não ativa o botão — o controlo do teclado
+   falhava sem a app ter defeito nenhum. **Um teste que passa antes da correção existir não
+   está a testar o que diz.**
+6. **O verde da fase 2 que o iPhone desmentiu** (etapa 3, `0187d4b`/`e0510af`; sexta
+   instância, nas palavras do Daniel «a sexta vez que um teste verde não corresponde ao que
+   acontece de facto, e desta vez num sítio que eu vi com os olhos»). Os 20 testes verdes
+   mediam estados, desvios e rolagem num componente isolado, sempre com os dois dedos a
+   pousar juntos; nenhum olhava para a escala do Núcleo num ecrã de telemóvel, e nenhum
+   simulava um polegar pousado. No iPhone as duas coisas juntaram-se: o polegar levava o
+   Universo ao Núcleo, e o Núcleo no ecrã estreito estava partido desde 30/07 (ver «Achado da
+   etapa 3 — o iPhone»). Dois limites do instrumento apareceram na investigação e ficam
+   escritos: o WebKit do Playwright no Windows não desenha a câmara 3D desta cena (na escala
+   do Núcleo os domínios ficam no sítio) e não serve de prova de iOS para 3D; e o Chrome
+   emulado não rola a página com dois dedos no ecrã, mesmo numa página sem código nenhum
+   (controlo: 15 px com `touch-action: auto`, 0 com `pan-y`, contra ~300 com um dedo).
+7. **A procura que não encontrava o que lá estava** (2026-10-04; sétima instância, registada
+   a pedido do Daniel). Ao confirmar o que ia entrar no `main`, um `git grep -i` com uma
+   classe de caracteres acentuada — o nome com e sem acento — deu 0 no `index.ts` do Oráculo,
+   onde o nome da mentora está desde 11/07; o 0 chegou a ser dito ao Daniel («hoje não está
+   lá») e caiu na mesma resposta, quando uma procura por «mentor» o encontrou. No `git grep`,
+   classes com caracteres de vários bytes falham em silêncio. Refeito com um instrumento
+   próprio (Node, NFC e NFD, todas as versões), com o controlo de encontrar o nome nas 19
+   versões do `index.ts`. Caso RGPD em secção própria, abaixo. No mesmo dia, três tropeços
+   do mesmo padrão, apanhados pelos controlos antes de virarem afirmação: o fumo que diz
+   comparar com a linha de base e não compara (MELHORIAS.md, item 10); duas tarefas em
+   segundo plano que saíram com «exit 0» depois de a verificação lá dentro ter sido
+   interrompida; e um controlo de build que não controlava — o Rollup retirou a linha
+   plantada, e o `dist` não mudou.
+
+A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
+apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
+`git -c core.autocrlf=false -c core.eol=lf archive` e compara-se com
+`git hash-object --no-filters` (controlo: CRLF e LF dão hashes diferentes). A v21 publicada
+foi recomparada assim: é o `9ab6ccc` byte a byte (5 de 5, 0 CR).
+
+### Achado da etapa 2b — o Templater corria o texto do modelo, sem abrir a nota e sem clique
+
+A mesma classe dos outros achados desta publicação — um caminho de dados tratado como código
+—, mas aqui com execução sem interação nenhuma. Verificado a 2026-09-27, só em leitura, no
+código dos plugins instalados e nas definições do vault:
+
+- **O caminho, de ponta a ponta:** o relatório semanal usa a pesquisa na web → o modelo
+  escreve o texto → o Oráculo grava-o como nota **nova** em `Oraculo/` no `vault-sistema` → o
+  Obsidian Git trá-la para o PC → o Templater 2.25.0, com o gatilho de criação de ficheiros
+  ligado, passa qualquer nota nova com conteúdo por `overwrite_file_commands`
+  (`on_file_creation` no `main.js` instalado) → os comandos `<% … %>` correm com acesso ao
+  Node, ou seja, ao PC, **sem a nota ser aberta e sem clique**.
+- O gatilho é uma definição deste computador, guardada pelo Obsidian fora do vault, e não foi
+  lido; o modelo de aula por regex (`Sistema/Estudo/IPCA/*/Aulas/*.md`) só funciona com ele
+  ligado.
+- O teste do Obsidian de antes (instância isolada, sem plugins) tinha dado o modo de leitura
+  seguro e, no Live Preview, o esquema `javascript:`/`data:` a chegar inteiro ao
+  `window.open`, sem se ver o passo seguinte. O Templater muda a natureza do problema: deixa
+  de ser «um clique num link» e passa a ser execução sem interação. O passo final do clique
+  não foi testado — não muda a decisão (Daniel).
+- O Dataview 0.5.68 está sem JavaScript (predefinições, sem `data.json`), e nenhuma nota usa
+  `dataviewjs` nem JavaScript inline.
+
+**Decisão do Daniel (2026-09-27): A, com duas barreiras.**
+
+1. **No servidor** (`nota-vault.ts`, etapa 2b): todo o texto do modelo entra na nota como
+   texto. `<`, `>`, `[`, `]`, o acento grave, `~`, `$`, `\`, `::` e `://` passam a entidades,
+   e os únicos links são os recursos que o servidor validou. O Templater só reconhece
+   comandos por `<%` — a abertura é fixa no código (`new St("<%","%>",…)`), sem definição
+   que a mude —, por isso sem `<` no texto nenhum comando se forma.
+2. **No Obsidian**, feito pelo Daniel: a pasta `Oraculo` nos «Excluded folders» do Templater
+   — verificado no `data.json` do plugin (`ignore_folders_on_creation`, gravado a 27/09
+   13:55).
+
+### Estado da etapa 2b (2026-09-27), no ramo `orbita/2b-texto-do-vault`
+
+- A partir de `616a6d1`. Testes a falhar primeiro (`71d9a02`): o teste unitário
+  `nota-vault.test.ts` pela falta do módulo (TS2307); o fumo com 49 verdes e 1 vermelha — a
+  nova, nas sete categorias —, os totais iguais aos da linha de base.
+- Correção (`50691ae`): `nota-vault.ts` (`textoMd`, `destinoMd` e o `reportMd` que vivia no
+  `index.ts`); o `index.ts` só passa a importá-lo. `deno test testes/oraculo/` 19 de 19,
+  `deno check` sem erros, fumo 49 de 49, totais iguais (7 chamadas ao modelo, 60 leituras,
+  2 escritas bloqueadas). A linha de base do fumo não foi regravada (duas verificações
+  novas; precisa da aceitação do Daniel).
+- Exportação LF do `50691ae` para publicar (scratchpad da sessão, `deploy-v22`): 6
+  ficheiros, bytes iguais ao commit, 0 CR. Face à v21: `index.ts` e `teste/fixtures.ts`
+  mudam, `nota-vault.ts` é novo, os outros 3 ficam iguais.
+- **A v22 foi publicada a 2026-09-27** pelo Daniel, a partir da exportação LF do `50691ae`.
+  Correu numa janela do PowerShell à parte, não com `!` nesta sessão — lapso dele, que o
+  registou; a regra mantém-se, porque a saída devia ficar na transcrição. Verificada do lado
+  do destino: a função descarregada é o `50691ae` em bytes crus (6 de 6, 0 CR; o
+  `nota-vault.ts`, novo, está lá), versão 22 `ACTIVE` com `verify_jwt: false` (13:21:34 UTC),
+  um `OPTIONS` dá 204 e o radar com um token errado dá 403 `forbidden`.
+- O saldo: o Daniel repõe-no amanhã ou depois (28 ou 29/09), não hoje.
+- **Fechada a 2026-09-27.** O Daniel trouxe a 2b para a `Sistema-orbita` e publicou-a;
+  confirmado do lado do destino: a `Sistema-orbita` e o GitHub em `8228f77`, a pasta limpa.
+
+### Etapa 3 — o toque, começando pelo Universo (ramo `orbita/3-toque`)
+
+Decisões do Daniel (2026-09-27), com a razão:
+
+- **D1 — despertar por toque.** O 1.º toque num domínio desperta-o e ele fica aceso; o 2.º
+  toque no mesmo mostra os nomes; tocar noutro desperta esse; tocar no céu vazio apaga. É o
+  mesmo par de gestos do computador (passar o rato, clicar), e um toque que fizesse as duas
+  coisas tirava a possibilidade de espreitar um domínio sem o abrir.
+- **D2 — o Escape no toque** é um toque duplo no céu vazio: centra e, sem desvio, recua. Não
+  muda o aspeto; um botão «Centrar» permanente seria a primeira coisa a quebrar a linguagem
+  visual que se decidiu não tocar.
+- **D3 — os textos seguem o tipo de entrada, não a largura.** Rato: «Passa o cursor por um
+  domínio para o despertar; clica para leres os nomes.» · «Arrasta para olhar · Ctrl+roda
+  aprofunda · Escape centra». Toque: «Toca num domínio para o despertar; toca outra vez para
+  leres os nomes.» · «Dois dedos para olhar · pinça aprofunda · toque duplo centra» (a
+  primeira parte veio da D6).
+- **D4 — Vercel.** O Daniel liga o `kamappa/Sistema` no painel, com as pré-visualizações
+  protegidas por login e sem o `main` como produção. Não interfere com o GitHub Pages nem com
+  o workflow de publicação: a Vercel publica em `*.vercel.app`, e o workflow só corre com um
+  push para o `main`. A app da Vercel no GitHub deve ter acesso só a este repositório.
+- **D5 — o iPhone testa com a conta real**, sem o localhost aberto ao mesmo tempo (os dois
+  gravam o `app_state` inteiro, e o último a gravar ganha).
+- **D6 — dois dedos para olhar, um dedo rola a página** (decidido a 2026-09-27). Medido na
+  fase 1: um dedo move o céu ~24 px e o browser corta o gesto (`pointercancel`), porque fica
+  com ele para rolar ou ampliar a página — «Arrasta para olhar» era meia verdade no toque. A
+  razão que mais pesou, nas palavras do Daniel: no iPhone o céu ocupa dois terços do ecrã, e
+  com um dedo a arrastar o céu deixava de poder rolar a página por cima dele — ficava
+  encurralado na secção. Sem arrasto perdia-se o olhar em volta, «metade do que faz o
+  Universo valer a pena». A dica do toque passa a «Dois dedos para olhar · pinça aprofunda ·
+  toque duplo centra» (aprovada).
+
+**Fase 1 — os testes a falhar** (`30cc377`, `testes/toque/universo.test.mjs`): o componente
+real, com o CSS real, num Chrome sem cabeça com rato e toque simulados, em 4 cenários (rato
+1440 e 900, toque 1366 e 390×844). 16 testes: 7 verdes — os 2 controlos do instrumento, 4 do
+comportamento que fica, a rede fechada — e 9 vermelhos pela ausência da correção. O
+instrumento foi posto à prova antes de se acreditar nele, e deu três defeitos seus, nenhum da
+app: sem emulação de foco, o `focus()` não dispara eventos num separador sem cabeça; sem
+`text`, o Enter do protocolo não ativa o botão; e o teste do segundo toque passava com o
+código de hoje, até passar a exigir o passo intermédio.
+
+**Fase 2 — o Universo por toque** (`73be621` testes da D6, `d37116d` correções ao teste,
+`0187d4b` implementação). `src/app/useTipoEntrada.ts` (rato ou toque pela media do aparelho e
+pelo último ponteiro) e os textos da D3; o despertar da D1 lido no `pointerdown`, antes do foco
+que o Android dá ao botão; o toque duplo da D2 medido pelo instante do `pointerdown`; e a D6 —
+um dedo de toque deixa de arrastar o céu e, com `touch-action: pan-y`, rola a página; dois
+dedos arrastam pelo ponto médio, e a distância continua a aprofundar. Toque 20 de 20,
+segurança 84 de 84, `typecheck` e `build` sem erros. Provado vermelho outra vez contra o
+código sem a implementação: 9 verdes e 11 vermelhos, cada um pela ausência da correção.
+
+Achados pelo caminho, investigados com sondas antes de se mexer em código:
+
+- **Um domínio apagado não se podia tocar.** Recua em 3D (`translateZ(-26px)`) e ficava atrás
+  do plano da `.us-scene`, que apanhava o toque (medido: o centro do botão dava `us-scene`
+  enquanto apagado; tirado o recuo, dava o botão). Com o rato nunca se notou — ao sair de um
+  domínio ele apaga-se antes de o outro ser apagado —, mas com o despertar que fica aceso os
+  outros domínios ficavam inalcançáveis. O plano da cena deixou de receber eventos; os
+  territórios têm os seus.
+- **O toque duplo contava o tempo errado:** medido no clique, e com a página ocupada numa
+  viagem da câmara os dois cliques chegavam a 400 ms. Passou a medir o `pointerdown`, o ritmo
+  do dedo. O Chrome respeita o instante dado a cada toque pelo protocolo (controlo novo).
+- **Um erro meu no teste:** «aberto» era o `data-sel`, que marca também o domínio desperto.
+  Passou a ser ter os nomes desenhados.
+
+**Nada muda no aspeto além dos textos aprovados:** imagens do Universo com rato, antes e
+depois, comparadas pixel a pixel. Na vista geral só a zona onde «toca» passou a «clica»
+(confirmado a olhar para o recorte); com o rato num domínio, iguais — 38 píxeis com
+diferença 1, os mesmos de duas corridas do mesmo código (o controlo da comparação).
+
+Falta, na etapa 3: o teste num iPhone real pela pré-visualização da Vercel (o Daniel), e a
+fase 4 — o resto da Órbita.
+
+### Achado da etapa 3 — o iPhone: a escala do Núcleo no ecrã estreito, e chegar lá sem querer
+
+O Daniel abriu a pré-visualização no iPhone 14 (2026-09-27) e viu o Universo partido: rótulos
+cortados nas margens («CIPLINA», «ULOS», «SABER» e «CORPO» cortados à direita), «MENTE» e
+«Nv 1» gigantes e desfocados por cima de tudo, e o cartão «O Núcleo» por cima do céu com a
+última linha cortada. Reproduzido no Chrome a imitar o iPhone (390×664, DPR 3), com a app real
+e o estado dele em modo offline (só leitura):
+
+- **O que se via é a escala do Núcleo.** O cartão «O Núcleo» só existe nela. Medido: no
+  estreito a perspetiva é 800 px (`dce18ee`, 30/07, sem razão escrita) e a câmara do Núcleo
+  avança os mesmos 780 do computador, que tem 1100 — o plano dos domínios fica a 20 px do olho
+  e cresce **40×** (no computador, 3,4×); o «Nv 1» do Mente cai dentro do céu. Os nomes do
+  interior do Núcleo foram dimensionados pelo desenho e não pelos nomes, que saem dele:
+  Disciplina começa 39 px fora do ecrã, Vínculos 18, Saber e Corpo passam a margem direita. O
+  cartão tem 368 px e o estreito reserva 270: sobe por cima do céu e o fundo fica debaixo das
+  barras fixas (164 de 664 px).
+- **Como se chegava lá sem querer:** o `useFreeCam` contava `e.touches` — todos os dedos do
+  ecrã, incluindo os de fora do céu. Um polegar pousado na margem fazia do dedo que rola a
+  página o segundo dedo de uma pinça, e uma pinça na vista geral vai direta ao Núcleo. Na app
+  real: com o polegar, a página não rola e o Universo vai a CORE_APPROACH > CORE_INSIDE; sem
+  ele, o mesmo dedo rola 285 px. O Daniel: «É a diferença entre "só se chega lá por um gesto"
+  e "chega-se lá por acidente ao pegar no telemóvel". Trata como bug.»
+- **«Logo ao abrir, sem tocar»:** abrir o Universo sem tocar não o parte (15 s, só OVERVIEW,
+  ampliação 1×; controlo: com uma pinça aos 5 s, CORE e 40×). Mas o `ZoneStage` monta todas as
+  zonas ao mesmo tempo, e o Universo guarda o estado quando se vai a outra zona: medido, foi ao
+  Núcleo, saiu para o Núcleo da barra e voltou — CORE_INSIDE 0,8 s depois de tocar na barra,
+  partido sem tocar no céu. Um gesto acidental em qualquer momento da sessão chega.
+- **O «desfocado» não foi reproduzido.** O Chrome mostra um bloco branco desfocado (um pedaço
+  de uma letra 40× maior), não o «MENTE» e o «Nv 1» legíveis e desfocados que o Daniel viu.
+  É um sintoma do compositor do WebKit do iOS; só o iPhone o pode confirmar.
+- Os testes (`facfec9`, vermelhos): o polegar fora do céu e pousado no céu, e na escala do
+  Núcleo no telemóvel o texto gigante e os nomes cortados ou debaixo do cartão, com o
+  computador como controlo positivo (3,4×, tudo cabe).
+
+### D7 — as duas regras do toque (aprovada com condições, 2026-09-28)
+
+Só é gesto de dois dedos o que cumpre as duas regras, e cada uma resolve o seu caso:
+
+- **R1 — só contam os dedos que pousam no céu.** Resolve o contacto fora do céu que pousa no
+  mesmo instante — a palma na margem ou nas barras ao pegar no telemóvel. A R2 não o apanha,
+  porque pousou junto.
+- **R2 — o segundo dedo pousa até 250 ms depois do primeiro.** Resolve o dedo que já estava
+  pousado no céu antes do gesto. A R1 não o apanha, porque está no céu. Os **250 ms são
+  provisórios até ao teste no iPhone**.
+- O polegar fora do céu e pousado há um segundo — o caso do Daniel — é travado por qualquer
+  uma das duas.
+
+Provado com as regras desligadas uma de cada vez (sem commit, o ficheiro reposto byte a byte):
+sem a R2, o polegar pousado no céu e o 2.º dedo aos 400 ms voltam a levar ao Núcleo; sem a
+R1, o contacto simultâneo fora do céu volta a levar ao Núcleo; o polegar fora do céu e pousado
+fica travado nas duas. Contam os dois dedos do céu mais recentes: com um polegar pousado, a
+pinça deliberada continua a funcionar — e isso era um segundo defeito, porque o código de 27/09
+só aceitava exatamente dois dedos no ecrã, e três desligavam a pinça (teste novo, vermelho
+antes). Teste do 2.º dedo aos 400 ms: não é pinça; controlo aos 100 ms: é.
+
+Por decidir pelo Daniel: os testes do polegar exigiam também que a página rolasse, e no Chrome
+emulado isso não acontece com dois dedos no ecrã, com ou sem código da app (controlo acima). O
+que a app controla e já está provado: não mudar de escala e não mexer o céu. Proposta, por
+aprovar: trocar a asserção da rolagem por «a app não cancela o gesto» (nenhum `touchmove`
+com `defaultPrevented`), com o controlo de que a mesma medida dá cancelado na pinça
+deliberada; a rolagem real com o polegar pousado fica para o teste no iPhone.
+
+### Achado da etapa 3 — a Órbita em produção na Vercel, e uma premissa desatualizada
+
+**A premissa.** Escrevi ao Daniel, a 27/09, que no plano gratuito não havia proteção para os
+domínios de produção. Estava desatualizado: desde 9/09/2026 a Vercel Authentication protege
+todas as publicações, incluindo produção, sem custo em todos os planos (changelog
+«Protect production deployments for free on every plan»; página Deployment Protection
+atualizada a 15/09: «All Deployments: Protects all URLs, including production domains»). **De
+onde veio:** do Context7 às 21:13 UTC de 27/09 — um índice em cache da documentação da Vercel
+que dizia «The All Deployments option … is available on Pro and Enterprise plans» — que não
+confirmei na página viva antes de a afirmação entrar numa recomendação. Regra do Daniel desde
+28/09: afirmações sobre serviços externos (planos, preços, funcionalidades) verificam-se na
+documentação atual antes de entrarem numa decisão.
+
+**Como a Órbita chegou a produção** (evidência: registo de atividade da Vercel, API pública do
+GitHub, `git log`): o projeto foi criado às 20:40 UTC e a importação publicou o `main`
+(`b8e7740`, o Vanilla) como produção. Às 20:50:27 o Daniel apagou essa publicação — a única de
+produção — e às 20:50:43 o push criou o ramo `orbita/3-toque` no GitHub; 18 s depois a
+integração Git da Vercel publicou `e0510af` já como **Production** (registo do GitHub:
+`original_environment: Production`, criado pelo `vercel[bot]`; não há registo de
+pré-visualização antes). A documentação atual explica: «The first deployment of a new project
+is always a production deployment … even when you deploy from a branch that is not your
+production branch»; «the preview rules apply only after that first production deployment
+exists». Não houve CLI, `--prebuilt` nem promoção: não há CLI nem credenciais da Vercel neste
+computador, e o meu registo da sessão só tem navegação e leitura no painel, a partir das 21:00
+— dez minutos depois. O código da Órbita nunca esteve no `main`.
+
+**A janela de exposição:** de 20:51:00 UTC de 27/09 (domínios atribuídos a `e0510af`) a
+00:00:01 UTC de 28/09 (All Deployments ligado) — 3 h 09 min. Exposto sem login:
+`sistema-two-indol.vercel.app`, o domínio de produção; os URLs gerados e de ramo já pediam login.
+O que estava lá: o bundle estático da Órbita — o mesmo código do repositório público; nenhum
+segredo além da chave anon, que é pública por desenho (ver o ponto dos segredos). **Registos de
+acesso:** não há pedidos individuais (IP, navegador): os registos no Hobby guardam 1 hora e os
+ficheiros estáticos só entram quando vêm da cache. Há contagens por 5 min (Observability, 12 h):
+na janela, 28 respostas 200 e 3 redirecionamentos entre 20:50 e 20:55, 9 respostas 200 entre
+23:55 e 00:00, e as minhas (21:01 e 21:42–21:43). Quem fez as 37 não dá para saber; a cache
+de Paris do índice de `sistema-two-indol` foi preenchida às 20:54:11, antes do meu primeiro
+pedido (21:01:34).
+
+**Verificado depois da proteção** (2026-09-28 01:37 UTC, sem credenciais): 36 pedidos (index e
+JS principal, com e sem anti-cache) aos 6 endereços conhecidos — `sistema-two-indol`,
+`sistema-sistema22`, os dois de ramo e os URLs próprios das duas publicações —, nenhum 200 (30
+pedem login, 6 dão 404 porque a publicação do `main` foi apagada). Controlo: o mesmo comando
+contra o Vanilla no GitHub Pages dá 200 (2 de 2).
+
+Das 37 respostas 200 da janela que não eram minhas, as 9 de 23:55–00:00 foram do Daniel (abriu
+o `sistema-two-indol` antes de ligar a proteção). As 28 de 20:50–20:55 ficam por atribuir.
+
+**O bundle publicado**, lido pela sessão da Vercel do Daniel e analisado dentro da página (só
+hashes e achados cortados saíram dela): 16 ficheiros, um achado — o JWT anon (role `anon`) —, e
+nenhum outro segredo. Controlos: a procura encontra a chave anon, e numa cópia com um
+`sb_secret_`, um JWT `service_role` e um `sk-` falsos plantados, apanha os três. Comparado com
+o build local do mesmo commit e o comando da Vercel: 7 ficheiros iguais byte a byte, 9 iguais
+sem os CR do checkout do Windows. O `dist` local tem exatamente esses 16 ficheiros e nenhum
+oculto (controlo: um oculto plantado numa cópia aparece); como a Vercel construiu o mesmo commit
+com o mesmo comando e os ficheiros batem, a lista da publicação é a mesma por equivalência.
+
+### Achado da etapa 3 — na Vercel, a única via para produção é uma ação manual no painel (2026-09-28)
+
+**Lido no painel** (sessão do Daniel, só leitura, 19:30–19:50 UTC): Production → Branch
+Tracking «Branch is» `main` («Every commit pushed to the main branch will create a Production
+Deployment»); Preview «All unassigned git branches»; 0 ambientes personalizados (o Hobby não
+os tem). E, em Build and Deployment, o Ignored Build Step da D4:
+`if [ "$VERCEL_GIT_COMMIT_REF" = "main" ]; then exit 0; else exit 1; fi` — o `main` nem constrói
+(sair com 0 é saltar), os outros ramos constroem. A publicação de produção é a `e0510af`, a do
+incidente, protegida; a retenção não a apaga enquanto tiver o domínio de produção («The
+deployment has a production alias assigned to it», página Deployment Retention, 16/09).
+
+**A conclusão:** nenhum push chega a produção — o `main` é saltado, e os outros ramos são
+pré-visualizações («all other branches are deployed as pre-production branches», página Git,
+18/09). Provado: o push de `52f54e4` (ramo `orbita/3-toque-previa`) deu `environment: Preview`
+na API do GitHub, e a produção ficou na `e0510af`. Restam só ações manuais no painel: Redeploy
+ou Promote para Production, e apagar a única publicação de produção, que volta a armar a regra
+da primeira publicação — o mecanismo do incidente. (A CLI com `--prod` também, mas não há CLI
+nem credenciais da Vercel neste computador.) O All Deployments é a rede: o que chegar a produção
+pede login.
+
+**A porta abriu-se num gesto de rotina** (relato do Daniel, 28/09 ~19:45 UTC): ao desligar a
+Vercel Toolbar nas pré-visualizações, o painel ofereceu um Redeploy com o ambiente em
+Production, sobre a `sistema-ak9hsn8mr` (ramo `orbita/3-toque`) e o domínio
+`sistema-two-indol`. Ele cancelou. Seria uma publicação de produção sem gate — o mesmo código,
+protegido, mas uma ação em produção. A definição da barra não chegou à publicação existente
+(medido: um `<script>` de `vercel.live` em cada HTML, servido da cache); a publicação nova veio
+de um commit no ramo temporário (`264a887`), que dá sempre Preview, sem janela de ambiente.
+
+**Para o 10.2 (não conformidade e ação corretiva):**
+- **Causa:** apagar a única publicação de produção rearmou a regra da primeira publicação, e o
+  push seguinte, de um ramo que não era o de produção, foi para produção sem proteção.
+- **Correção:** All Deployments, a 28/09 às 00:00:01 UTC.
+- **Ação corretiva:** na Vercel, produção só por ação manual no painel (Branch Tracking `main` e
+  o Ignored Build Step que o salta). Regra de trabalho: nunca Redeploy nem Promote a partir de
+  avisos do painel, nunca apagar a publicação de produção; uma pré-visualização atualiza-se com
+  um push de um ramo que não é o `main`.
+- **Eficácia:** o push de `52f54e4` deu Preview e a produção ficou igual (19:35 UTC). A porta
+  manual abriu-se uma vez e foi recusada — a regra funcionou, mas depende de uma pessoa; esse é
+  o risco residual, e a rede é o All Deployments.
+
+### Segurança — o registo de contas está aberto, e o Oráculo aceita qualquer conta (2026-09-28)
+
+Trazido ao Daniel na hora, como manda a regra. **Medido:** as definições públicas do Auth dizem
+`disable_signup: false` — qualquer pessoa com a chave anon (pública por desenho) cria uma conta
+por email. **Lido no código** (`supabase/functions/oraculo/index.ts`): os modos de browser
+validam a sessão com `auth.getUser` e rejeitam sem ela (provado: pedidos anónimos a `chat` e
+`sussurro` dão 401 «não autenticado», e a `vault-check` 403 «só o operador», antes de qualquer
+chamada à Anthropic). Mas aceitam **qualquer** conta, e «operador» é qualquer conta com uma
+linha em `app_state` — que o RLS deixa cada conta criar para si. **O caminho:** criar conta →
+criar a própria linha → `chat`, `sussurro` e `report-dry` gastam a chave da Anthropic do Daniel e
+leem notas do vault; `vault-check?write=1` escreve uma nota de teste no vault dele. **Não foi
+usado:** há 1 conta (a dele, de 2026-07-02) e nenhuma criada depois de 20:51 UTC de 27/09
+(controlo: o mesmo filtro com uma data antiga conta a dele). Recomendado: fechar o registo no
+painel do Supabase (uma opção, reversível) e, depois, a função aceitar só a conta dele.
+
+**Registo fechado** pelo Daniel no painel, a 2026-09-28 ~19:25 UTC. Verificado às 19:27 pelas
+duas fontes: no painel, «Allow new users to sign up» desligado (as outras três opções iguais); nas
+definições públicas, `disable_signup: true`. Lido outra vez a 2026-10-04: `true` (controlo: o
+mesmo pedido sem a chave anon dá 401). O login dele continua a funcionar com o registo fechado:
+o iPhone entrou às 22:20:07 UTC de 28/09 (dois logins recusados antes, às 22:19:40 e 22:19:43 —
+que tenham sido dele, de password mal escrita, ficou por confirmar) e não houve nenhum pedido de
+registo entre as 22:00 e as 02:00. **Falta a segunda barreira:** a
+função aceitar só a conta dele.
+
+### D7 — o critério da rolagem (aprovado pelo Daniel a 2026-09-28)
+
+Os três testes do polegar deixam de afirmar «a página rola» e passam a verificar o que a app
+controla: não muda de escala, não mexe o céu, e **não cancela o gesto** — nem em JS (nenhum
+`touchstart` ou `touchmove` com `defaultPrevented`, lido na janela depois dos ouvintes da app)
+nem em CSS (o `touch-action` sob os dois toques deixa rolar na vertical). Os nomes dos testes
+dizem isso. Controlos: na pinça deliberada a mesma medida vê o gesto cancelado; com
+`touch-action: none` plantado sob o polegar, a medida do CSS acusa. Vermelho antes: com o
+`useFreeCam` de antes da D7, os cinco testes de comportamento falham pela razão certa (mudança
+de escala, ou pinça que não aprofunda) e os controlos passam. Toque: 43 de 43 com a D7 e a D8.
+
+**Passo 2 do iPhone — o critério:** com o polegar pousado na margem esquerda e um dedo a rolar
+por cima do céu, (1) o Universo não muda de escala e o céu não se mexe, e (2) a página rola.
+Controlo: o mesmo gesto numa página comum (uma zona sem céu, como a Reflexão). **Decisão para o
+caso de a app não cancelar nada e o Safari mesmo assim não rolar:** se a página comum também não
+rolar, é o comportamento do Safari com dois dedos, como o do Chrome — aceita-se e regista-se, e
+não se força a rolagem por código (lutar contra o gesto do browser traria de volta o
+encurralamento). Se a página comum rolar e o céu não, é defeito nosso e investiga-se antes de
+publicar.
+
+### D8 — a escala do Núcleo no ecrã estreito (aprovada com condições, 2026-09-28)
+
+O Daniel quis ver primeiro o `dce18ee` (30/07): os 800 px entraram num bloco de ecrã estreito
+com ajustes de letra, sem razão escrita, e mudam só o que não está no plano dos domínios. A D8
+não lhes toca:
+
+- **A câmara do Núcleo acompanha a perspetiva:** `--cam-z-nucleo` no CSS, 780 no computador e
+  567 até 900 px (780/1100 da perspetiva) — os domínios crescem 3,4×, como no computador, e
+  não 40×.
+- **O interior mede-se pelos nomes:** até 900 px, `.ci` a 0,155, deslocado 10 para a direita
+  (os nomes da esquerda são mais compridos) e subido para ficar entre o topo do céu e o
+  cartão (medido: y 67..272 numa faixa útil de 46..276).
+- **Variante B (aprovada pelo Daniel a 2026-10-04):** até 900 px, na escala do Núcleo os
+  domínios de fora apagam-se.
+  Só com a câmara, o «MENTE» e o «Nv» do Mente ficavam a 3,4× por cima do interior e do título
+  do cartão — a origem da perspetiva do estreito fica ao pé do Mente. No computador os 3,4×
+  levam-nos para fora do enquadramento.
+
+Provado a 375, 390, 430 e na horizontal (844×390), com a margem da app: antes da D8, o
+crescimento falha nas quatro vistas e os nomes em três; com a variante A passam crescimento e
+nomes e falha «nenhum rótulo de fora à vista»; com a variante B passam os 16. Controlos do
+computador verdes nas três.
+
+**Comparação de imagens** (movimento reduzido; tolerância declarada: 0 píxeis, porque duas
+corridas do mesmo código deram 0 na vista geral e na de domínio; controlo: 1 píxel plantado,
++40 no vermelho, é detetado). Vista geral e de domínio a 390: 0 píxeis diferentes antes/depois.
+Computador (1440), vista geral e Núcleo: 0. A 1024 (perspetiva de computador, layout estreito):
+vista geral 0; **Núcleo 2 píxeis com diferença 1 — acima da tolerância declarada.** Medido
+depois: três corridas do mesmo código nessa vista diferem até 4 píxeis de diferença 1, na mesma
+zona (o centro do Núcleo). Fica escrito assim, sem reescrever a tolerância.
+
+**Decisão proposta para a horizontal**, onde o cartão não cabe: a D8 garante lá o mesmo que na
+vertical (sem texto gigante, os seis nomes dentro do céu e fora do cartão), e o cartão lê-se
+rolando. Um layout horizontal próprio seria aspeto novo, e fica para o MELHORIAS.md. A altura
+visível real, na vertical e na horizontal, com a barra do Safari aberta e encolhida, vem do
+passo 0 no iPhone; os testes do cartão esperam por ela.
+
+**O estado do Universo não é guardado** em `localStorage`, `sessionStorage` nem no endereço:
+vive só na memória da página (procurado no código). Um separador novo começa na vista geral; mudar
+de zona e voltar mantém-no.
+
+### Etapa 3 — o protocolo no iPhone (2026-09-28/29)
+
+**O navegador foi o Brave, não o Safari** — iPhone 14, iOS 18.7.8, com os Shields do Brave
+desligados para o site. O Daniel escolheu-o por usar o WebKit da Apple, o motor do Safari, que é
+o que o Chrome não reproduzia (não o verifiquei eu: na UE a Apple admite outros motores desde o
+iOS 17.4). A pré-visualização foi a `sistema-doxlpu0r5` (`264a887`, ramo temporário
+`orbita/3-toque-previa`, Preview, protegida, 17 ficheiros iguais ao build local, sem a Vercel
+Toolbar).
+
+**A leitura** (29/09 ~01:40 UTC; o Daniel decidiu sobre ela no mesmo dia, ver abaixo):
+
+- **O que chegou:** 0c e 0d (a medida do ecrã, na horizontal), o ecrã de entrada, a captura A, o
+  vídeo do passo 2 (55 s), a C e três capturas do Núcleo (#10, #11, #13). **Não chegaram:** 0a e
+  0b (a medida na vertical), a D e a F (o Núcleo na horizontal) e o número de pinças que entraram
+  no Núcleo («x de 5»).
+- **A — abrir a frio, 15 s sem tocar: passa.** Vista geral, os seis domínios inteiros, nada
+  gigante nem desfocado, sem o cartão. O partido de 27/09 veio de mexer, o que bate com a escala
+  viver só na memória da página. O critério «dicas de toque visíveis» falhou por defeito meu: com
+  esta altura de ecrã ficam abaixo da primeira vista. A primeira aparece no vídeo aos 9 s, com o
+  texto certo; a segunda não aparece em material nenhum.
+- **Passo 2 — o vídeo: passa.** De 0 a 31 s, no Universo, a página rola várias vezes e a escala
+  nunca muda; de 32 a 54 s a Reflexão rola. Limite: a gravação do iOS não mostra os dedos, por
+  isso o 2a e o 2b não se separam; vale a descrição do Daniel. Achado: um toque longo seleciona
+  texto e abre o menu do sistema, também na Reflexão — é do WebKit (MELHORIAS.md, item 8).
+- **Núcleo:** a #13 passa (os seis nomes inteiros dentro do céu, os domínios de fora apagados,
+  nada gigante); na #10 o «MENTE» de dentro fica na faixa do cartão (bate com um arrasto de dois
+  dedos, mas a captura não o prova); **a #11 falha — é o defeito conhecido abaixo.**
+- **Login com o registo fechado: confirmado** (ver a secção do registo de contas, acima).
+- **Os 250 ms da R2 continuam provisórios:** o número das pinças deliberadas não chegou.
+
+**Decisão do Daniel (2026-09-29):** «a estética do Núcleo deixa de ser bloqueador» — a A a frio
+está limpa e o defeito só aparece depois de gestos dentro do Núcleo; a D7 e a D8 «já estão
+provadas no essencial (A limpa, passo 2 passa, câmara a 3×)». A 2026-10-04 aprovou a variante B
+e mandou commitar a D7/D8 com o diário e a #11 como defeito conhecido.
+
+**Defeito conhecido na publicação — a #11, o Núcleo no WebKit** (detalhe e hipótese no
+MELHORIAS.md, item 7). Na escala do Núcleo, depois de gestos, os domínios de fora às vezes não se
+apagam: o «MENTE» e o «Nv1» a ~3×, translúcidos e com as bordas desfocadas, por cima do texto do
+cartão, com o interior já à vista. A câmara a 3× está certa — o tamanho é o da D8, não os 40× de
+27/09; o que falha é o apagar da variante B. Os testes no Chrome mediram o estado parado, com
+movimento reduzido, e nunca as transições; é por aí que se pega.
+
+**Fecho da D7/D8 (2026-10-04), antes do commit.** Na pasta, com a D7 e a D8: toque 43 de 43,
+segurança 84 de 84, Oráculo 19 de 19, bd 49 de 49, fumo 49 de 49 (a linha de base tem 47 —
+MELHORIAS.md, item 10), typecheck sem erros. Controlo: o mesmo teste do toque, numa cópia com o
+código de `facfec9`, falha 16 — os 5 de comportamento da D7, o crescimento nas 4 vistas, a
+variante B nas 4 e os nomes em 3 (na horizontal já cabiam) — e passam todos os controlos e o
+instrumento. É o vermelho que este SPEC previa a 28/09, contado outra vez.
+
+### Segurança — o RLS com a sessão do Daniel (2026-10-04)
+
+O último bloqueador de segurança antes de publicar. A 28/09 a chave anon deu 0 linhas nas 13
+tabelas; faltava o outro lado — a sessão do Daniel a ler as mesmas tabelas. A 29/09 a tentativa
+parou: o login dele tinha sido noutro perfil do Chrome, e o perfil da extensão só tinha uma sessão
+expirada, que não renovei. A 2026-10-04 ele entrou na Órbita local (`localhost:5173/Sistema/`,
+árvore `orbita/3-toque` com a D7/D8) no Brave, o perfil onde a extensão trabalha.
+
+Lido num separador ao lado, na mesma origem mas sem a app (`icon-192.png`: imagem, sem `#root`, 0
+scripts). Sessão emitida pelo projeto `zybrgnhepspledkjbllo`, papel `authenticated`, conta
+`9a72c5ee…`, válida; chave anon a que a app serve, do mesmo projeto. Só leituras
+(`select=*&limit=1` com contagem exata); da página saíram só o estado e o total.
+
+| tabela | a sessão do Daniel | a chave anon |
+|---|---|---|
+| `app_state` | 1 | 0 |
+| `courses` | 14 | 0 |
+| `oracle_reports` | 5 | 0 |
+| `radar_items` | 85 | 0 |
+
+Controlo: uma tabela inventada dá 404 com as duas credenciais, por isso um erro não passaria por
+«0». **Desvio ao critério escrito:** dizia «sessão 200», e três tabelas deram 206 — o êxito
+parcial de pedir 1 linha de várias. Com `limit=1000`, a sessão dá 200 e traz 14, 5 e 85 linhas, e
+a chave anon continua com 0 linhas no corpo. O critério estava mal escrito; o RLS não falhou.
+**Limite:** só existe uma conta, por isso isto prova que a chave anon não lê e que a sessão lê,
+mas não que uma conta não lê os dados de outra.
+
+### RGPD — o primeiro nome da mentora no repositório público (detetado a 2026-10-04)
+
+Caso de proteção de dados, à parte da lista técnica (decisão do Daniel). O nome não se repete
+neste registo.
+
+**O quê.** O primeiro nome da mentora do Daniel — uma terceira pessoa, identificável — estava no
+código público: no texto da constituição do Oráculo (regra 5, «a mentora» seguida do nome, desde
+`ace3129`, 11/07); como palavra-chave da triagem de missões no domínio vínculos (desde o primeiro
+upload, `98d326b`, 04/07; hoje em `src/state/config.js` e `legacy/js/data.js`, e no `js/data.js`
+do `main`); e nos dois SPECs, a resumir a regra 5.
+
+**Onde estava exposto** (medido a 2026-10-04): nos 5 ramos públicos (`main`,
+`mission-26/renaissance-visual`, `orbita/3-toque`, `orbita/3-toque-previa`, `react-migration`) e
+na etiqueta `vanilla-final`; no site público de hoje (o `js/data.js` do Vanilla, servido pelo
+Pages); nas pré-visualizações da Vercel (protegidas); e no build da Órbita, que o levaria para o
+Pages. O texto da constituição só entra no modo chat do Oráculo, e vai para a Anthropic em cada
+pedido desse modo. Os ramos só locais da M32 também o têm (não públicos). O repositório tem 0
+forks.
+
+**Como se detetou.** Ao confirmar, a pedido do Daniel, o que entrava no `main`. A memória do
+Claude Code tinha-o sinalizado a 01/08, sem decisão. Um `git grep` acentuado deu 0 onde o nome
+estava — sétima instância da lição dos instrumentos, acima —, e o nome apareceu numa procura por
+«mentor»; confirmado com um instrumento próprio e com controlo.
+
+**Leitura** (não é parecer jurídico). É um dado pessoal de uma pessoa identificável (art. 4.º,
+n.º 1): o mesmo texto do Oráculo diz quem é o Daniel (IPCA, Worten, objetivos), e é essa
+combinação que a torna identificável. Publicar na internet para um número indeterminado de
+pessoas não cabe na exceção doméstica (TJUE, Lindqvist, C-101/01). É uma questão de minimização
+(art. 5.º, n.º 1, al. c)) e de licitude, mais do que de violação de segurança — foi o próprio
+responsável que publicou —, e com o risco baixo (um primeiro nome e a relação de mentoria, sem
+categorias especiais) os arts. 33.º e 34.º não obrigariam a notificar, mesmo tratando-o como
+violação.
+
+**Correção — parte 1, aprovada pelo Daniel a 2026-10-04** (o commit deste registo): o nome sai dos
+5 ficheiros; na regra 5 fica «a mentora dele» (o texto fala ao Oráculo sobre o Daniel), com o
+mesmo comportamento. Efeito medido na triagem: um título só com o nome deixa de ir para vínculos;
+«café com a mentora» e «mensagem a …» continuam. Verificado: 0 ocorrências nos 335 ficheiros
+seguidos (controlo: o mesmo instrumento encontra os 5 na `Sistema-orbita`) e no build limpo
+(controlo: o build de antes tinha 2). O site deixa de o servir quando a Órbita for publicada.
+
+**A v23, que tira o nome dos pedidos à Anthropic, foi publicada a 2026-10-04 às 15:58 UTC** (por
+mim, a pedido do Daniel, a partir da exportação LF de `3e859c8`; a produção de antes, descarregada,
+era o `50691ae` byte a byte, e havia uma cópia para reverter, que não foi precisa). Verificada: a
+descarga crua é igual ao `3e859c8` (6/6) e não tem o nome — a v22 tinha-o uma vez —; versão 23
+ACTIVE com `verify_jwt` desligado; OPTIONS 204 com a origem do Pages (controlos: uma origem inventada
+não é ecoada, o `localhost` é); chat sem sessão 401; radar com token errado 403 (controlo: uma
+função inexistente dá 404).
+
+**Os envios passados à Anthropic** (pedido do Daniel; lido a 2026-10-04 no centro de privacidade
+da Anthropic para clientes comerciais). O nome entrou no texto do Oráculo a 11/07 (`ace3129`, o
+dia em que nasceu o modo chat) — a 04/07 entrou só como palavra-chave da triagem, que não sai do
+browser — e seguiu em cada pedido do modo chat ao `claude-sonnet-4-6`, pela API. Quantos pedidos
+houve não se sabe daqui: os registos do Supabase no plano Free guardam um dia.
+- **Retenção:** a Anthropic apaga as entradas e as saídas da API até 30 dias depois de as
+  receber ou gerar, salvo acordo de retenção zero, necessidade de aplicar a Política de
+  Utilização (pedidos sinalizados pelos sistemas automáticos: entradas e saídas até 2 anos,
+  pontuações de classificação até 7 anos) ou obrigação legal. Página «How long do you store my
+  organization's data?», atualizada a 2026-07-01.
+- **Eliminação a pedido:** «For paid API customers, we do not support ad hoc deletion.» Página
+  «Can you delete data that I sent via API?», atualizada a 2026-03-16.
+- **Treino:** por omissão, as entradas e as saídas da API não são usadas para treinar modelos; só
+  com feedback explícito ou se o cliente o permitir. Página «Is my data used for model
+  training?», atualizada a 2026-08-18.
+- **Modelo:** o Sonnet 4.6 não é um «Covered Model» (só os da classe Mythos e o Fable 5/5.1 —
+  página «Data retention practices for Covered Models»), por isso vale a regra geral.
+
+**O que isto quer dizer:** os pedidos com mais de 30 dias já foram apagados, a menos que tenham
+sido sinalizados — nada indica que tenham sido, e não é verificável daqui. Os mais recentes
+apagam-se 30 dias depois de cada pedido. Com a v23 publicada (2026-10-04, 15:58 UTC) deixou de
+haver pedidos novos com o nome, e a janela fecha, no máximo, a 2026-11-03. **Da parte do Daniel:**
+não há eliminação a pedir, porque não existe para a API; falta confirmar na consola da Anthropic
+que a organização não aderiu a nenhuma partilha de dados para treino (a única exceção ao «não
+treina»).
+
+**Em aberto (RGPD) — a história pública, à espera da conversa do Daniel com ela.** Decide a
+preferência dela, não o Daniel sozinho.
+- **A — só daqui para a frente** (o estado depois da correção): o nome sai do código, do site, do
+  build e dos pedidos, e fica na história pública desde 04/07. Custo: nenhum a mais.
+- **C — a história passa a privada:** o repositório atual muda de nome e fica privado, com a
+  história e os hashes intactos (o trilho de evidência A.8.32 não parte); um repositório público
+  novo, «Sistema», recebe a árvore limpa num só commit e serve o Pages no mesmo endereço. Custo
+  médio: perde-se a história pública e os links antigos; mudam os remotos das cópias locais e o
+  projeto da Vercel; a entrada no `main` passa a ser no repositório novo. Documentação do GitHub
+  lida a 2026-10-04: o URL do Pages não é redirecionado ao mudar o nome, e reutilizar o nome
+  antigo quebra os redirecionamentos do renomeado.
+- **B — reescrever a história: recusada pelo Daniel.** Muda o hash de quase todos os commits e
+  parte o trilho de evidência, para um ganho que a C dá sem esse custo. **D** (tornar este
+  repositório privado) não serve: no plano Free o Pages só funciona em repositórios públicos.
+- Nenhuma opção recupera cópias já feitas (clones, arquivos).
+
+**Ação corretiva, por decidir** (10.2: a correção não basta, falta impedir a repetição): uma regra
+— nomes de terceiros não entram no código nem nos textos fixos do Oráculo, e o contexto sobre
+pessoas vem dos dados privados do Daniel — e uma verificação automática que não publique os
+nomes que procura (por exemplo, comparar resumos criptográficos das palavras do repositório com
+os de uma lista privada).
+
+### RGPD — o IP de quem usa a app vai para o Google Fonts e para o Open-Meteo (registado a 2026-10-04)
+
+Visto no fumo da Órbita, que bloqueia tudo o que não é a origem do site e lista o que bloqueou.
+A cada abertura, o browser de quem usa a app pede as fontes a `fonts.googleapis.com` (no
+`index.html`) e a previsão do tempo a `api.open-meteo.com` (em `useStore.js`, para coordenadas
+fixas da zona de Braga): os dois recebem o IP. **Não é novo:** o Vanilla em produção faz o mesmo
+desde o início (`index.html` e `js/world.js`). O IP é um dado pessoal, e a incorporação dinâmica do
+Google Fonts sem consentimento já foi considerada ilegal por um tribunal alemão (LG München I,
+2022). **Plano, decidido pelo Daniel:** fica conhecido e não bloqueia a publicação; depois de
+publicar, as fontes passam a ser servidas pelo próprio site e o tempo passa a vir pelo Oráculo
+(o pedido sai do servidor, não do browser).
+
+### Etapa 4 — preparar a publicação (2026-10-04)
+
+- **A reversão estava errada desde 27/09 e foi provada antes de ser reescrita.** Com a fonte em
+  «GitHub Actions», reverter o `main` não muda o site; e o service worker da Órbita, que serve da
+  cache primeiro todo o `.js`/`.css`/`.png` do sítio, prenderia os ficheiros do Vanilla. Ensaio num
+  Chrome, com um servidor a trocar de conteúdo na mesma origem: sem interruptor, o registo ficou e um
+  `js/data.js` novo nunca chegou; com o interruptor (`reversao/sw.js`), o registo desapareceu, as
+  caches ficaram vazias e o ficheiro novo chegou. Os comandos foram ensaiados com objetos soltos (a
+  árvore é a `vanilla-final` mais o `sw.js`), e o fumo do próprio Vanilla deu verde sobre a
+  `vanilla-final`. Procedimento em `reversao/LEIA-ME.md` (`e6b66aa`). Não ensaiado: a troca de fonte
+  no GitHub, que a documentação não descreve.
+- **O Node 20 saiu dos runners do GitHub a 2026-09-23**, e as quatro ações do workflow declaravam
+  `node20`. Passaram às versões v5 (motor Node 24), com o build em Node 24 (`e6b66aa`). Provado nos
+  runners: a corrida 37217234044, no ramo `orbita/3-toque`, construiu em Node 24.21.0, saltou a
+  publicação, e os 16 hashes do `dist` que o registo imprime são iguais aos do build local limpo do
+  mesmo commit (controlo: um build antigo dá 3 diferenças). Nada foi publicado: o ambiente do Pages
+  continua na publicação de 27/09, e o site continua a servir o Vanilla.
+- **O fumo da Órbita não existia, e foi escrito** (`testes/fumo/orbita.mjs`, `d5d68bc`): build de
+  produção a 1440×900 e a 390×844, com calibração própria; 21 de 21. Falha se o `sw.js` publicado
+  for o interruptor (controlo: 19 de 21, com o interruptor plantado).
+
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)
 
@@ -232,7 +1097,7 @@ Deploy via CLI do Supabase (`~/bin/supabase.exe`, login interativo do Daniel).
 - Fase 1: `?mode=chat` na Edge Function — JWT da sessão (radar/report mantêm
   ORACLE_TOKEN; deploy com `--no-verify-jwt` porque a validação é interna),
   CORS para kamappa.github.io, constituição do conselheiro (5 lentes do
-  Conselho, socrático, Reality Check, mundo real/Patrícia, proteção contra
+  Conselho, socrático, Reality Check, mundo real/mentora, proteção contra
   sobrecarga, ~450 palavras), contexto real do `app_state` (`resumoEstado`:
   atributos, streaks, obrigatórios, missões+prazos, sono, debuffs, recall
   agregado por tema via prefixo do id) + últimos 2 relatórios; guarda de
@@ -2390,7 +3255,9 @@ as cinco correções estão feitas e testadas, junto com o achado prioritário d
 - Testes: `deno test --no-prompt testes/oraculo/vault-lista.test.ts` (lógica pura) e
   `node testes/fumo/fumo.mjs --so-oraculo` (a função inteira, em modo de teste).
 - Publicado a 2026-09-24: o Oráculo v20 (era a v19, de 2026-07-19) saiu de um export do
-  commit `bc0cbb0`, e os ficheiros publicados são byte a byte os do commit.
+  commit `bc0cbb0`, e os ficheiros publicados são byte a byte os do commit. *Nota de
+  2026-09-27:* em produção está agora a v21 (a regra 7 e o filtro de URLs no servidor),
+  verificada da mesma forma — ver «Publicação da Órbita», no início deste SPEC.
 - **O Oráculo não completa nenhuma corrida desde 2026-08-15** (último radar a
   2026-08-14, último relatório a 2026-08-09) — causa o saldo da Anthropic, confirmada a
   2026-09-24 nos logs da corrida das 06:30 UTC (v20; a invocação `POST` devolveu 500):

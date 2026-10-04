@@ -1,0 +1,145 @@
+/* Palco de zonas — Missão 26 · Fase 2.
+ *
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║  TODAS AS ZONAS FICAM MONTADAS. A troca de zona é de VISIBILIDADE,   ║
+ * ║  nunca de montagem.                                                  ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * Condição explícita do Daniel, e a decisão técnica mais importante desta
+ * tarefa. Desmontar ao mudar de zona custaria: remount, useEffect repetido,
+ * pedidos de rede duplicados, perda de estado local (os filtros do Objectives,
+ * os inputs do Training, o mês aberto no Calendar), perda de scroll interno e —
+ * o pior — reinicialização do contexto WebGL das Constelações, que se prende ao
+ * canvas e tem um guard de módulo justamente porque não sobrevive a isso.
+ *
+ * Porquê `visibility:hidden` e não `display:none`:
+ *   `display:none` colapsa a caixa de layout, o canvas das Constelações passa a
+ *   0×0 e ao voltar precisava de resize — exatamente o problema que se quer
+ *   evitar. Com `visibility:hidden` a caixa mantém-se, o canvas mantém as
+ *   dimensões e o contexto WebGL fica intacto.
+ *
+ * Acessibilidade: as zonas inativas levam `inert` (fora da ordem de tabulação e
+ * fora da árvore de acessibilidade). Isto é diferente do conteúdo VISUALMENTE
+ * recuado da B2, que permanece acessível — recuar não é esconder.
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { ZONES, type ZoneId } from './zones';
+
+interface Props {
+  active: ZoneId;
+  S: Record<string, unknown>;
+}
+
+export default function ZoneStage({ active, S }: Props) {
+  /* A DIREÇÃO da transição (Fase 6G). Um fade não diz de onde vieste; o
+     deslocamento diz. O sinal vem da posição relativa das duas zonas NA
+     ÓRBITA, que é a ordem que o Operador vê na navegação — não do índice do
+     array por acaso.
+     `entered` distingue "acabou de entrar" de "já cá estava": sem isso a
+     animação de entrada corria também no primeiro render da aplicação, por
+     cima da sequência de arranque. */
+  const prev = useRef<ZoneId>(active);
+  const [dir, setDir] = useState(1);
+  const [entered, setEntered] = useState(false);
+
+  useEffect(() => {
+    if (prev.current === active) return;
+    const from = ZONES.findIndex((z) => z.id === prev.current);
+    const to = ZONES.findIndex((z) => z.id === active);
+    setDir(to >= from ? 1 : -1);
+    setEntered(true);
+    prev.current = active;
+    // Limpa a marca depois da animação, para que a zona não reanime a cada
+    // re-render enquanto lá está.
+    const t = window.setTimeout(() => setEntered(false), 700);
+    return () => window.clearTimeout(t);
+  }, [active]);
+
+  return (
+    <div
+      className="sys-stage"
+      data-active={active}
+      style={{ ['--zone-dir' as string]: dir }}
+    >
+      {ZONES.map((z) => (
+        <ZonePane key={z.id} zoneId={z.id} zoneName={z.name} density={z.density} columns={z.columns}
+          isActive={z.id === active} entered={entered && z.id === active}>
+          {/* Os grupos vêm do registo. A composição é decidida por CSS a partir
+              de data-density e data-weight — nunca por verificações do nome da
+              zona espalhadas pelo JSX. */}
+          {z.groups.map((g) => (
+            <div key={g.id} className="sys-group" data-group={g.id} data-weight={g.weight}>
+              {g.name && <h2 className="sys-group-name">{g.name}</h2>}
+              {/* Cada painel num slot. Existe por uma razão só: tornar
+                  determinístico QUAL é o primeiro painel de um grupo. Sem ele,
+                  `.panel:first-of-type` falhava em zonas cujo primeiro filho
+                  não é um `.panel` (o Núcleo começa com a Saudação), e a lei
+                  "só uma coisa acesa" virava "nada aceso" — medido: core e
+                  radar tinham ZERO portadores de luz. */}
+              {g.panels.map((Panel, i) => (
+                <div className="sys-slot" key={i}>
+                  <Panel S={S} />
+                </div>
+              ))}
+            </div>
+          ))}
+        </ZonePane>
+      ))}
+    </div>
+  );
+}
+
+function ZonePane({
+  zoneId,
+  zoneName,
+  density,
+  columns,
+  isActive,
+  entered,
+  children,
+}: {
+  zoneId: ZoneId;
+  zoneName: string;
+  density: string;
+  columns?: string;
+  isActive: boolean;
+  entered: boolean;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  // `inert` ainda não está tipado de forma estável em todos os @types/react
+  // desta versão; aplicado por atributo para não depender disso.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (isActive) el.removeAttribute('inert');
+    else el.setAttribute('inert', '');
+  }, [isActive]);
+
+  return (
+    /* A zona e uma REGIAO com nome. Sem isto, quem usa leitor de ecra entra no
+       conteudo sem saber onde esta: ouve os paineis, nao ouve a zona. O nome vem
+       do registo, o mesmo que pinta o cabecalho - nunca duas verdades. */
+    <section
+      ref={ref}
+      className="sys-zone"
+      data-zone={zoneId}
+      data-density={density}
+      data-active={isActive ? 'true' : 'false'}
+      data-entered={entered ? 'true' : undefined}
+      aria-hidden={isActive ? undefined : true}
+      role="region"
+      aria-label={zoneName}
+      /* A razão de colunas vem do registo e entra como custom property. O CSS
+         lê `var(--sys-zone-cols, <padrão>)` — sem isto, inverter a composição
+         do Núcleo exigia uma regra por nome de zona. */
+      style={columns ? ({ '--sys-zone-cols': columns } as React.CSSProperties) : undefined}
+    >
+      <div className="sys-zone-scroll">
+        <div className="sys-zone-body">{children}</div>
+      </div>
+    </section>
+  );
+}

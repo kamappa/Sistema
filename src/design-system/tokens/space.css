@@ -1,0 +1,32 @@
+/* Espaçamento, raio e as medidas da moldura.
+ *
+ * Escala de 4px. O espaço é a segunda ferramenta de hierarquia depois da luz —
+ * e a primeira que substitui a borda: dois blocos separam-se por distância,
+ * não por linha.
+ */
+
+:root {
+  --sys-space-1: 0.25rem;  /*  4px */
+  --sys-space-2: 0.5rem;   /*  8px */
+  --sys-space-3: 0.75rem;  /* 12px */
+  --sys-space-4: 1rem;     /* 16px */
+  --sys-space-5: 1.5rem;   /* 24px */
+  --sys-space-6: 2rem;     /* 32px */
+  --sys-space-7: 3rem;     /* 48px */
+  --sys-space-8: 4.5rem;   /* 72px */
+
+  /* Raio: quase nada. Um instrumento tem cantos, não bolhas. `soft` existe
+   * só para o que é tocável. */
+  --sys-radius-none: 0;
+  --sys-radius-soft: 3px;
+  --sys-radius-round: 999px;
+
+  /* Moldura da Sala de Operações. */
+  --sys-rail-w: 76px;          /* consola B1, desktop */
+  --sys-oracle-w: 320px;       /* coluna do Oráculo em Ambient, desktop */
+  --sys-oracle-h-mobile: 56px; /* faixa do Oráculo em Ambient, mobile */
+  --sys-stage-pad: var(--sys-space-6);
+
+  /* Alvo mínimo de toque — condição explícita do Daniel para mobile. */
+  --sys-touch-min: 44px;
+}

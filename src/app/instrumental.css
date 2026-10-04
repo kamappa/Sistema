@@ -1,0 +1,1535 @@
+/* B2.1 · ÓRBITA INSTRUMENTAL — a shell oficial da Missão 26.
+ *
+ * Herda de b2.css tudo o que define identidade: órbita, Núcleo ao centro,
+ * atmosfera, transições, presença do Oráculo em faixa. O que acrescenta é a
+ * DENSIDADE: as zonas deixam de partilhar uma medida única.
+ *
+ * O que a Fase 2 mediu e isto corrige:
+ *   Operações em B2 → 5,94 ecrãs, painéis a 277px, 797px desperdiçados.
+ *   A B2 não tinha um problema de conceito. Tinha `max-width: 68ch` em tudo.
+ */
+
+/* Base: a instrumental É a B2. A regra de composição é a única diferença. */
+.sys-instrumental {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'orbit'
+    'stage'
+    'oracle';
+}
+
+.sys-instrumental .sys-orbit { grid-area: orbit; }
+.sys-instrumental .sys-stage-wrap { grid-area: stage; }
+.sys-instrumental .sys-oracle { grid-area: oracle; }
+
+.sys-instrumental .sys-stage-wrap {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0 var(--sys-space-6);
+}
+
+/* ── Densidade ─────────────────────────────────────────────────────────
+ * A decisão vive no registo de zonas (density: reading | instrument) e chega
+ * aqui por data-attribute. Zero condições por nome de zona.
+ */
+
+/* READING — leitura e contemplação. Medida editorial, uma coluna, respiração. */
+.sys-instrumental .sys-zone[data-density='reading'] .sys-zone-body {
+  max-width: var(--sys-measure);
+  margin-inline: auto;
+}
+
+.sys-instrumental .sys-zone[data-density='reading'] .sys-slot + .sys-slot {
+  margin-top: var(--sys-space-7);
+}
+
+/* INSTRUMENT — usa a largura disponível, com um teto para não esticar linhas
+ * de texto até ao absurdo em monitores largos. */
+.sys-instrumental .sys-zone[data-density='instrument'] .sys-zone-body {
+  max-width: 1680px;
+  margin-inline: auto;
+  display: grid;
+  /* O padrão serve as zonas em que a coluna principal é a lista longa. O
+     Núcleo inverte-o pelo registo (`zones.ts`, campo `columns`). */
+  grid-template-columns: var(--sys-zone-cols, minmax(0, 1.55fr) minmax(0, 1fr));
+  gap: var(--sys-space-6) var(--sys-space-7);
+  align-items: start;
+}
+
+/* Composição assimétrica de propósito: nenhuma grelha uniforme, nenhum cartão
+ * igual ao do lado. O peso vem do registo. */
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='main'] { grid-column: 1; }
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='side'] { grid-column: 2; }
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='full'] { grid-column: 1 / -1; }
+
+/* Um grupo `full` com vários painéis distribui-se, mas por medida mínima de
+ * legibilidade — não por número fixo de colunas. */
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='full'] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--sys-space-6);
+  align-items: start;
+}
+
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='full'] .sys-group-name {
+  grid-column: 1 / -1;
+}
+
+/* ── Divisão arquitetónica discreta ────────────────────────────────────
+ * A separação entre a coluna de prioridade e a de rotina é uma fronteira real
+ * entre sistemas — leva um filete, como na B1. Entre painéis do mesmo grupo,
+ * nada: só espaço.
+ */
+.sys-instrumental [data-density='instrument'] .sys-group[data-weight='side'] {
+  padding-left: var(--sys-space-6);
+  border-left: 1px solid var(--sys-seam);
+}
+
+/* Rede de segurança: alguns painéis trazem do HUD antigo a sua própria grelha
+ * `.cols` (1fr 1fr), pensada para emparelhar painéis à largura toda. Dentro de
+ * uma coluna estreita isso parte o conteúdo em duas colunas de ~220px e faz os
+ * rótulos quebrarem. Aqui colapsa — é composição externa, não redesenho do
+ * painel. Quando os painéis forem redesenhados (Fase 4), o `.cols` deixa de
+ * existir e esta regra sai. */
+.sys-instrumental .sys-group[data-weight='side'] .cols {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Num grupo `full` (que é grelha), o `.cols` é um item e apanhava só uma faixa
+ * — partindo-se depois em duas colunas de ~200px. Atravessa o grupo todo, que
+ * é a largura para que foi desenhado. */
+.sys-instrumental .sys-group[data-weight='full'] > .sys-slot > .cols {
+  grid-column: 1 / -1;
+}
+
+.sys-group-name {
+  margin: 0 0 var(--sys-space-4);
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  font-weight: var(--sys-weight-regular);
+  letter-spacing: var(--sys-track-label);
+  text-transform: uppercase;
+  /* FALHA DE CONTRASTE, apanhada na Fase 5 e ANTERIOR a ela: estava em
+     `--sys-ink-far` (bone a 40%), que sobre o vazio dá 3,23:1 a 13px, contra
+     um mínimo de 4,5. A auditoria da Fase J deu "396 elementos, zero falhas" —
+     e esta classe já lá estava, em Operações e no Universo. A conclusão é que
+     essa auditoria não mediu a composição de opacidades sobre o fundo, e por
+     isso passou por cima do único tom que a produz. Fica registado: o número
+     "zero falhas" era otimista, não falso — o método é que era.
+     `--sys-ink-far` deixa de servir texto: passa a ser tom de filete. */
+  color: var(--sys-ink-mut);
+}
+
+.sys-instrumental .sys-group .sys-slot + .sys-slot { margin-top: var(--sys-space-6); }
+.sys-instrumental .sys-group[data-weight='full'] .sys-slot + .sys-slot { margin-top: 0; }
+
+/* Painéis sem material de cartão. A identidade da B2 mantém-se. */
+.sys-instrumental .panel {
+  background: transparent;
+  border: 0;
+  padding-inline: 0;
+  margin-bottom: 0;
+}
+
+/* ── LUZ DE FOCO ───────────────────────────────────────────────────────
+ * Corrige o artefacto da B1: a luz pertencia ao contentor de largura total e
+ * pintava um retângulo iluminado e vazio ao lado do conteúdo.
+ *
+ * Agora a luz pertence ao PAINEL, e há exatamente um portador:
+ *   - com foco de teclado dentro de um painel, é esse painel;
+ *   - sem foco em painel nenhum, é o primeiro painel do grupo principal.
+ * O `:not(:has(...))` garante que os dois casos nunca coexistem.
+ */
+/* O primeiro slot de um grupo nem sempre tem painel — o Núcleo abre com a
+ * Saudação, que é texto. Por isso acende-se o primeiro grupo inteiro e
+ * apaga-se tudo o que venha DEPOIS do primeiro slot com painel. O resultado é
+ * "o primeiro painel da zona", que o CSS não sabe exprimir de uma vez. */
+.sys-instrumental .sys-zone-body:not(:has(.panel:focus-within))
+  > .sys-group:first-child .panel {
+  background: var(--sys-mat-active);
+  box-shadow: var(--sys-glow-inner);
+}
+
+/* A MESMA guarda `:not(:has(...))` é obrigatória aqui. Sem ela esta regra —
+ * que tem especificidade muito superior à do `:focus-within` — ganhava-lhe, e
+ * focar um painel que não fosse o primeiro deixava-o apagado. */
+.sys-instrumental .sys-zone-body:not(:has(.panel:focus-within))
+  > .sys-group:first-child .sys-slot:has(.panel) ~ .sys-slot .panel {
+  background: transparent;
+  box-shadow: none;
+}
+
+.sys-instrumental .panel:focus-within {
+  background: var(--sys-mat-active);
+  box-shadow: var(--sys-glow-inner);
+}
+
+/* Reduced motion: a luz continua a indicar foco, apenas sem transição. */
+.sys-instrumental .panel {
+  transition: background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+/* ── O `rise` herdado do HUD sai da shell ──────────────────────────────
+ * `.reveal` (hud.css) faz `opacity:0 → 1` com `translateY(14px)` em 600ms, e
+ * foi desenhado para uma página que se lê de uma vez, de cima a baixo. Dentro
+ * da shell instrumental deixou de servir e passou a atrapalhar, por duas
+ * razões concretas e medidas:
+ *
+ *   1. DUPLICA a entrada. A zona já tem coreografia própria — `zone-in` mais a
+ *      assinatura por zona (transitions.css). O `rise` corre POR CIMA dela, e
+ *      duas animações de entrada sobrepostas no mesmo gesto leem-se como
+ *      hesitação, não como intenção.
+ *   2. Fica DESSINCRONIZADO do resto. Só alguns painéis o trazem — no Radar é
+ *      exatamente um, o Inventário de IA. O resultado é meia zona a assentar e
+ *      a outra metade já parada: no Radar viam-se as notícias imóveis e o
+ *      Inventário a subir sozinho, o que dá a sensação de conteúdo a chegar
+ *      atrasado e a assentar fora do sítio.
+ *
+ * A entrada não se perde: continua a ser a da ZONA, que é a que tem direção e
+ * significado. Nada aqui toca no HUD sem `?shell=`, que é o que está em
+ * produção — lá o `rise` fica exatamente como estava.
+ *
+ * A sequência de arranque continua a mandar: `html.boot .reveal` tem
+ * especificidade superior e segura os painéis até o véu levantar. */
+.sys-instrumental .reveal {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Botões primários: luz é estado, não decoração ─────────────────────
+ * O `.btn` do HUD é um gradiente violeta cheio. Dentro da shell isso dava sete
+ * blocos no brilho máximo — seis em Operações, um no Oráculo — todos parados.
+ * Duas consequências: em Operações lia-se como a parede roxa que a direção
+ * proíbe, e em qualquer zona o elemento mais brilhante do ecrã passava a ser um
+ * botão que não está a fazer nada, competindo com o painel que É o portador da
+ * luz.
+ *
+ * Aqui o botão está calado em repouso — continua legível como botão pela borda,
+ * pelo peso e pelas maiúsculas — e acende quando o rato ou o teclado chegam a
+ * ele, que é quando deixa de ser decoração e passa a ser ação iminente.
+ * O texto sobe de contraste ao acender, porque o fundo cheio é claro. */
+.sys-instrumental .btn {
+  background: transparent;
+  color: var(--sys-ink);
+  border: 1px solid rgb(var(--sys-violet-rgb) / var(--sys-o-24));
+  transition:
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    border-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.sys-instrumental .btn:hover:not(:disabled),
+.sys-instrumental .btn:focus-visible:not(:disabled) {
+  background: linear-gradient(135deg, #8b5cf6, #c084fc);
+  border-color: transparent;
+  color: #12061f;
+}
+
+/* Desativado não é "calado": é indisponível, e tem de o dizer. */
+.sys-instrumental .btn:disabled {
+  border-color: rgb(var(--sys-bone-rgb) / var(--sys-o-14));
+  color: var(--sys-ink-far);
+  cursor: not-allowed;
+}
+
+/* ── O céu das Constelações ────────────────────────────────────────────
+ * O `const-wrap` é dimensionado em 58vh, o que fazia sentido no HUD, onde a
+ * página é a janela. Dentro da shell não é: a órbita, o cabeçalho de zona e a
+ * faixa do Oráculo comem 279px, e a zona fica com 621 de 900. O painel media
+ * 675 e cortava 66px do céu abaixo da dobra — precisamente na peça que é a
+ * assinatura do produto.
+ *
+ * Passa a ser dimensionado pelo espaço da ZONA. Os 430px descontados são o
+ * cromado medido: órbita ~180, cabeçalho ~60, título + ajuda + chips + padding
+ * do painel ~153, mais folga. */
+.sys-instrumental .const-wrap {
+  height: clamp(320px, calc(100vh - 452px), 600px);
+}
+
+/* A zona chama-se Universo — não pode ser uma página COM uma imagem do
+ * universo. O painel trazia do HUD a moldura de caixa (fundo próprio, padding,
+ * sombra) e, com o céu do palco finalmente visível por trás, passavam a ver-se
+ * DOIS céus com uma fronteira reta a separá-los.
+ *
+ * Aqui a moldura dissolve-se: o texto fica (é ele que explica a lei "nada nasce
+ * à mão"), a caixa sai, e o céu do painel encosta às margens da zona. Só nesta
+ * zona — nas outras a caixa é o que separa instrumentos.
+ *
+ * A lei da luz não é quebrada, é lida bem: o Universo TEM portador — é o céu.
+ * Uma caixa acesa por cima dele seria uma segunda fonte a competir com a
+ * primeira. Por isso este seletor iguala em peso o da luz de foco (que passa
+ * pelo `.sys-zone-body`) e vem depois dele no ficheiro.
+ *
+ * O `:has(.const-wrap)` é precisão, não correção: os restantes painéis da zona
+ * já eram transparentes pela lei da luz (um portador por zona), por isso
+ * apanhá-los não mudava nada no ecrã. Fica assim porque a regra deve dizer o
+ * que quer dizer — é o painel do CÉU que se dissolve, e é essa a razão. */
+.sys-instrumental .sys-zone[data-zone='universe'] .sys-zone-body .sys-group .sys-slot .panel:has(.const-wrap) {
+  background: transparent;
+  box-shadow: none;
+  padding-inline: 0;
+}
+
+/* Sem a caixa, ficaram três margens esquerdas à vista: o título da zona a 32, o
+ * texto do painel a 64 e o céu a outro sítio. Com moldura ninguém reparava —
+ * a borda justificava o degrau. Sem ela, lê-se como desalinhamento.
+ *
+ * A zona passa a ter UMA margem: o padding do scroll sai e tudo — título,
+ * ajuda, chips e céu — encosta ao mesmo eixo do nome da zona. */
+.sys-instrumental .sys-zone[data-zone='universe'] .sys-zone-scroll {
+  padding-inline: 0;
+}
+
+/* ── Mobile ────────────────────────────────────────────────────────────
+ * As SEIS zonas têm de estar imediatamente visíveis. A órbita da B2 mostrava
+ * 3 de 6 e exigia um gesto horizontal não anunciado — perda de contexto.
+ * Aqui a órbita passa a faixa de comando inferior, com marcas gravadas.
+ * A identidade orbital fica no Núcleo e na transição.
+ */
+@media (max-width: 900px) {
+  .sys-instrumental {
+    /* a linha `sync` mede zero quando não há nada a dizer — ver sync-state.css */
+    grid-template-rows: auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas:
+      'core'
+      'stage'
+      'sync'
+      'oracle'
+      'orbit';
+  }
+
+  .sys-instrumental .sys-stage-wrap { padding: 0 var(--sys-space-4); }
+
+  /* Uma coluna: em 390px não há largura para instrumento nenhum. */
+  .sys-instrumental .sys-zone[data-density='instrument'] .sys-zone-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sys-space-6);
+  }
+
+  .sys-instrumental [data-density='instrument'] .sys-group[data-weight='main'],
+  .sys-instrumental [data-density='instrument'] .sys-group[data-weight='side'],
+  .sys-instrumental [data-density='instrument'] .sys-group[data-weight='full'] {
+    grid-column: 1;
+  }
+
+  .sys-instrumental [data-density='instrument'] .sys-group[data-weight='full'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* o filete vertical não faz sentido numa coluna só */
+  .sys-instrumental [data-density='instrument'] .sys-group[data-weight='side'] {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid var(--sys-seam);
+    padding-top: var(--sys-space-5);
+  }
+
+  /* Faixa de comando: as 6 zonas em grelha fixa. Sem scroll, sem gesto. */
+  .sys-instrumental .sys-orbit {
+    padding: 0;
+    background: var(--sys-mat-rest);
+    border-top: 1px solid var(--sys-seam);
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    backdrop-filter: none;
+  }
+
+  /* O Núcleo sobe para o topo: continua presente, deixa de ocupar a faixa. */
+  .sys-instrumental .sys-orbit-core {
+    grid-area: core;
+    position: fixed;
+    top: var(--sys-space-3);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    z-index: var(--sys-z-nav);
+  }
+
+  .sys-instrumental .sys-orbit-core-mark { font-size: var(--sys-step-1); }
+
+  .sys-instrumental .sys-orbit-ring {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+    overflow: visible;
+    padding: 0;
+    width: 100%;
+  }
+
+  .sys-instrumental .sys-orbit-slot { display: block; }
+
+  /* Marca gravada, não botão de bottom navigation: sulco + sigla, sem caixa,
+     sem ícone genérico, sem pílula ativa. */
+  .sys-instrumental .sys-orbit-mark {
+    width: 100%;
+    min-height: var(--sys-touch-min);
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 5px;
+    padding: var(--sys-space-2) 2px;
+    font-size: 0.5rem;
+    letter-spacing: 0.06em;
+    /* todas as zonas legíveis: sem planos de profundidade no mobile */
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    color: var(--sys-ink-far);
+  }
+
+  .sys-instrumental .sys-orbit-mark::before {
+    content: '';
+    width: 16px;
+    height: 2px;
+    background: rgb(var(--sys-bone-rgb) / var(--sys-o-14));
+    transition: width calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+  }
+
+  .sys-instrumental .sys-orbit-mark[data-on='true'] { color: var(--sys-ink); }
+  .sys-instrumental .sys-orbit-mark[data-on='true']::before {
+    width: 26px;
+    background: var(--sys-violet);
+    box-shadow: 0 0 10px var(--sys-light-focus);
+  }
+
+  /* O cabeçalho de zona quebrava em duas linhas e roçava o Núcleo fixo no
+   * topo. Em ecrã estreito o propósito passa a linha própria, com espaço
+   * reservado para o Núcleo por cima. */
+  .sys-instrumental .sys-zone-head {
+    display: block;
+    /* o Núcleo fixo ocupa 12–46px; space-8 deixa ~26px de folga real */
+    padding-top: var(--sys-space-8);
+    margin-bottom: var(--sys-space-4);
+  }
+
+  .sys-instrumental .sys-zone-name { font-size: var(--sys-step-2); }
+
+  .sys-instrumental .sys-zone-purpose {
+    display: block;
+    margin-top: var(--sys-space-1);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* A medida editorial (68ch) é para dar conforto de leitura quando há largura
+   * a mais. Num telemóvel não há: a 358px de zona, o cap de 68ch fixava o
+   * conteúdo em 284px e deitava fora 74px — 21% da largura — em margens.
+   * Apanhado no teste em iPhone real; os meus 390px de emulação escondiam-no
+   * porque eu media a ALTURA e nunca a largura útil. */
+  .sys-instrumental .sys-zone[data-density='reading'] .sys-zone-body {
+    max-width: none;
+  }
+
+  /* E o padding do palco desce: 32px de cada lado é uma medida de desktop.
+   * Somado ao do .sys-stage-wrap dava 96px de um ecrã de 390 — 25% da largura
+   * gasta em margem, que era o que fazia o herói espremer-se. */
+  .sys-instrumental .sys-zone-scroll { padding-inline: var(--sys-space-3); }
+  .sys-instrumental .sys-stage-wrap { padding-inline: var(--sys-space-3); }
+
+  /* Títulos de painel: a 284px de largura, `Treino · Calistenia — novato →
+   * expert` quebrava em TRÊS linhas (105px). Medido: os títulos custavam 526px
+   * dos 4855px da zona — 12%, mais do que qualquer outra despesa de cabeçalho.
+   * Corpo menor e entrelinha apertada trazem-nos a duas linhas sem esconder
+   * uma palavra. */
+  .sys-instrumental .ptitle {
+    font-size: var(--sys-step-1);
+    line-height: 1.25;
+  }
+
+  /* ── Treino: colapso por linha ──────────────────────────────────────
+   * 1271px, 28% da zona Operações — o painel mais pesado, medido. São 5 linhas
+   * de exercício com os campos todos abertos ao mesmo tempo, a forma que pior
+   * sobrevive a 284px de largura.
+   *
+   * Aqui só fica visível o que orienta — nome, passo e exercício. O alvo e os
+   * campos abrem na linha que se está a registar. Nada se perde: uma linha com
+   * valor escrito fica sempre aberta, e o alvo é o que se lê ao registar, que
+   * é quando serve.
+   *
+   * Estas regras vivem numa media query e dentro de `.sys-instrumental`: em
+   * desktop, e no HUD sem ?shell=, o painel fica exatamente como estava.
+   */
+  .sys-instrumental .trl-h {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    min-height: var(--sys-touch-min);
+  }
+
+  .sys-instrumental .trl-h::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    margin-left: var(--sys-space-2);
+    border-right: 1.5px solid var(--sys-ink-far);
+    border-bottom: 1.5px solid var(--sys-ink-far);
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+  }
+
+  .sys-instrumental .trl[data-open='true'] .trl-h::after {
+    transform: rotate(-135deg) translateY(-2px);
+  }
+
+  .sys-instrumental .trl[data-open='false'] .trl-t,
+  .sys-instrumental .trl[data-open='false'] .trl-in {
+    display: none;
+  }
+
+  /* ── Missões: a linha em dois andares ───────────────────────────────
+   * Medido: 6 missões custavam 572px, 64% do painel. Cada linha ocupava 92px
+   * porque estado, título, área, tier, tags e prazo disputavam a mesma linha
+   * flex e quebravam em três.
+   *
+   * Passa a dois andares explícitos: estado + título em cima, metadados em
+   * baixo. Os chips perdem a borda e o preenchimento — a 284px a borda de cada
+   * chip custava mais altura do que o texto que continha. A cor de cada um
+   * fica, que é o que os distingue.
+   */
+  .sys-instrumental .obj-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    padding-block: var(--sys-space-2);
+  }
+
+  /* força a quebra: o título ocupa o resto do primeiro andar */
+  .sys-instrumental .obj-row > .obj-t {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .sys-instrumental .obj-row > .wchip,
+  .sys-instrumental .obj-row > .up-x {
+    border: 0 !important;
+    padding: 0 !important;
+    font-size: 10px;
+    background: none;
+  }
+
+  /* o primeiro chip abre o segundo andar */
+  .sys-instrumental .obj-row > .wchip:first-of-type {
+    flex-basis: 100%;
+    margin-top: 2px;
+  }
+
+  .sys-instrumental .obj-row > .up-del {
+    margin-left: auto;
+    align-self: center;
+  }
+
+  /* Filtros e formulário de missões: recolhidos até serem precisos.
+   * Medidos em 106px e 90px de 900px. Os filtros abrem sozinhos quando há um
+   * ativo — uma lista filtrada nunca aparece sem se ver porquê; e o formulário
+   * fica aberto enquanto houver texto escrito. */
+  .sys-instrumental .obj-filters[data-open='false'],
+  .sys-instrumental .addq[data-open='false'] {
+    display: none;
+  }
+
+  /* Collapse partilhado (src/design-system/Collapse.tsx). Fora deste contexto
+   * o base.css esconde o botão e o conteúdo fica sempre visível. */
+  .sys-instrumental .sys-collapse[data-open='false'] { display: none; }
+
+  /* Estes SÃO controlos e têm de o parecer. No teste em iPhone real liam-se
+   * como rótulos de secção — mono, maiúsculas, cinzento, sem nada que
+   * convidasse ao toque. Ganham chevron, filete e cor de texto legível; o
+   * tracking largo sai, porque era ele que os fazia parecer etiquetas. */
+  .sys-instrumental .obj-filters-toggle,
+  .sys-instrumental .obj-add-toggle,
+  .sys-instrumental .sys-collapse-toggle {
+    display: flex; /* o base.css esconde-os fora deste contexto */
+    align-items: center;
+    gap: var(--sys-space-2);
+    appearance: none;
+    background: none;
+    border: 0;
+    border-top: 1px solid var(--sys-seam);
+    width: 100%;
+    text-align: left;
+    min-height: var(--sys-touch-min);
+    padding: var(--sys-space-2) 0;
+    margin-top: var(--sys-space-3);
+    cursor: pointer;
+    font-family: var(--sys-type-data);
+    font-size: var(--sys-step--1);
+    letter-spacing: 0.04em;
+    text-transform: none;
+    color: var(--sys-ink-mut);
+  }
+
+  .sys-instrumental .obj-filters-toggle::after,
+  .sys-instrumental .obj-add-toggle::after,
+  .sys-instrumental .sys-collapse-toggle::after {
+    content: '';
+    margin-left: auto;
+    width: 7px;
+    height: 7px;
+    border-right: 1.5px solid var(--sys-ink-far);
+    border-bottom: 1.5px solid var(--sys-ink-far);
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+  }
+
+  .sys-instrumental .obj-filters-toggle[data-open='true']::after,
+  .sys-instrumental .obj-add-toggle[data-open='true']::after,
+  .sys-instrumental .sys-collapse-toggle[data-open='true']::after {
+    transform: rotate(-135deg) translateY(-2px);
+  }
+
+  .sys-instrumental .obj-filters-toggle[data-open='true'],
+  .sys-instrumental .obj-add-toggle[data-open='true'],
+  .sys-instrumental .sys-collapse-toggle[data-open='true'] {
+    color: var(--sys-ink-mut);
+  }
+
+  /* O conselho: uma linha até ser tocado. */
+  .sys-instrumental .tr-advice {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: var(--sys-touch-min);
+  }
+
+  .sys-instrumental .tr-advice[data-open='true'] {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+}
+
+/* ── O rank como manómetro ─────────────────────────────────────────────
+ * Missão 26 · Fase E. Origem: R25 — a letra ao centro diz QUAL, o anel diz
+ * QUANTO, e o anel é a única coisa ligada a um valor.
+ *
+ * Rejeitado da referência: o ciano flamejante e as unidades falsas ("rpm").
+ * A cor vem de `r.color`, que é o rank real; o anel vem de `rankFrac`, que é
+ * progresso real. Um manómetro sem valor verdadeiro seria um crachá com
+ * pretensões.
+ */
+.rankgauge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 5.75rem;
+  height: 5.75rem;
+}
+
+.rankgauge svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg); /* o zero fica em cima, como num instrumento */
+}
+
+.rankgauge .rg-track {
+  fill: none;
+  stroke: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+  stroke-width: 2;
+}
+
+.rankgauge .rg-fill {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  /* --sys-ease-gravity (R15): o progresso acumula, não salta */
+  transition: stroke-dashoffset calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+/* Dentro da shell o crachá perde a caixa: o instrumento é o anel, e uma borda
+   à volta da letra seria uma segunda moldura a dizer o mesmo. */
+.sys-instrumental .rankgauge .rankbadge {
+  width: 4.25rem;
+  height: 4.25rem;
+  border: 0;
+}
+
+/* O rótulo passa a carregar o destino ("Rank E → D"), que o anel não sabe
+   dizer. Deixa de ser a palavra "Rank" sozinha, que não informava nada. */
+.sys-instrumental .rankbox .rl {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+  color: var(--sys-ink-mut);
+  text-transform: none;
+  white-space: nowrap;
+}
+
+/* ── Missões: a linha como instrumento ─────────────────────────────────
+ * Missão 26 · Fase F. Origem: R26 (trilho + visor) e gramática 8 (uma relação
+ * desenha-se com um arco, não com uma linha de tabela).
+ *
+ * O que estava: um flex com borda e SEIS caixas em fila — estado, título,
+ * domínio, tier, arco, tags, prazo. Cada atributo era uma caixa igual às
+ * outras, e o título — a única coisa que se lê — não tinha mais peso do que a
+ * palavra "Épica". É a coleção de cartões que a missão proíbe, em miniatura.
+ *
+ * O que passa a ser: um trilho estreito à esquerda (estado + domínio, por
+ * posição e cor), o título como visor, as relações numa linha secundária, e o
+ * prazo como leitura alinhada à direita. Hierarquia por alinhamento, escala e
+ * luz — não por bordas.
+ */
+.sys-instrumental .obj-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  column-gap: var(--sys-space-4);
+  row-gap: 2px;
+  padding: var(--sys-space-3) 0 var(--sys-space-3) var(--sys-space-4);
+  border: 0;
+  border-left: 2px solid color-mix(in oklab, var(--obj-area, var(--sys-seam)) 45%, transparent);
+  margin-bottom: 0;
+  transition:
+    border-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+/* O filete é a relação ao domínio: a mesma informação que a caixa dava, com
+   uma fração do peso visual e sem competir com o título. */
+.sys-instrumental .obj-row:hover {
+  border-left-color: var(--obj-area, var(--sys-seam));
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+  transform: none; /* o translateX do HUD sacudia a lista inteira ao passar */
+}
+
+.sys-instrumental .obj-row > .obj-st { grid-column: 1; grid-row: 1 / span 2; }
+.sys-instrumental .obj-row > .obj-t  { grid-column: 2; grid-row: 1; }
+.sys-instrumental .obj-row > .up-x   { grid-column: 3; grid-row: 1; }
+.sys-instrumental .obj-row > .up-del { grid-column: 4; grid-row: 1; }
+.sys-instrumental .obj-row > .obj-rel { grid-column: 2 / -1; grid-row: 2; }
+
+/* O título é o visor. Ganha o peso que as caixas lhe roubavam. */
+.sys-instrumental .obj-row > .obj-t {
+  font-size: var(--sys-step-0);
+  color: var(--sys-ink);
+  line-height: var(--sys-leading-tight, 1.3);
+}
+
+/* As relações recuam para uma linha de leitura, sem caixa. O que era uma
+   parede de contornos passa a texto etiquetado — a cor continua a dizer o
+   domínio e o tier, que é a informação que as bordas carregavam. */
+.sys-instrumental .obj-rel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sys-space-3);
+}
+
+.sys-instrumental .obj-rel .wchip {
+  border: 0 !important;
+  background: none !important;
+  padding: 0 !important;
+  font-size: var(--sys-step--1);
+  opacity: 0.78;
+}
+
+/* Separador entre relações: um ponto, não uma borda. */
+.sys-instrumental .obj-rel .wchip + .wchip::before {
+  content: '·';
+  margin-right: var(--sys-space-3);
+  color: var(--sys-ink-far);
+}
+
+/* Uma missão concluída recua inteira — continua legível, deixa de competir. */
+.sys-instrumental .obj-row.done { opacity: 0.55; }
+.sys-instrumental .obj-row.done > .obj-t { text-decoration: line-through; }
+
+/* Em curso: o trilho acende. É o único estado que merece luz, porque é o único
+   que representa trabalho a acontecer agora. */
+.sys-instrumental .obj-row.doing {
+  border-left-color: var(--obj-area, var(--sys-violet));
+  border-left-width: 3px;
+}
+.sys-instrumental .obj-row.doing::before { display: none; } /* o gradiente do HUD */
+
+/* ── Hábitos: a mesma língua das missões ───────────────────────────────
+ * Missão 26 · Fase F, segunda peça.
+ *
+ * Depois de as missões perderem a caixa, o Diário ficou ao lado delas com o
+ * aspeto antigo — caixas com borda a toda a volta, fundo próprio e, nos
+ * obrigatórios, um filete vermelho por cima disso. Duas composições diferentes
+ * na mesma zona, à distância de um olhar.
+ *
+ * O curioso é que o HUD já tinha a ideia certa: `.hab.oblig` desenhava um filete
+ * à esquerda. Estava era enterrado debaixo de uma borda completa. Aqui a borda
+ * sai e o filete assume, que é o que ele sempre quis ser.
+ *
+ * Sem alterações ao Diario.jsx: a marcação já separava marca, nome, meta e
+ * streak. Só faltava composição.
+ */
+.sys-instrumental .hab {
+  border: 0;
+  border-left: 2px solid var(--sys-seam);
+  background: none;
+  padding: var(--sys-space-3) 0 var(--sys-space-3) var(--sys-space-4);
+  margin-bottom: 0;
+  transition:
+    border-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    opacity calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.sys-instrumental .hab:hover {
+  border-left-color: rgb(var(--sys-violet-rgb) / var(--sys-o-62));
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+}
+
+/* Obrigatório: o filete diz que falhar custa. É a mesma informação que a borda
+   vermelha dava, sem a caixa a gritar à volta. */
+.sys-instrumental .hab.oblig {
+  border-left-color: color-mix(in oklab, var(--red) 70%, transparent);
+}
+
+/* Feito recua — não celebra com fundo verde. O verde fica no filete, que é
+   onde se lê de relance ao percorrer a coluna. */
+.sys-instrumental .hab.done {
+  border-left-color: var(--em);
+  background: none;
+  opacity: 0.6;
+}
+.sys-instrumental .hab.done .hn { text-decoration: line-through; }
+
+/* O nome é o visor; a meta recua para leitura secundária, como nas missões. */
+.sys-instrumental .hab .hn {
+  font-size: var(--sys-step-0);
+  color: var(--sys-ink);
+}
+.sys-instrumental .hab .hm {
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  opacity: 0.82;
+}
+
+/* A streak é uma leitura de instrumento: alinhada à direita, mono, calada
+   quando é zero. Uma streak a zero não é uma conquista para exibir. */
+.sys-instrumental .hab .stk {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}
+.sys-instrumental .hab .stk.off { opacity: 0.35; }
+
+/* ── Métricas: leitura, não crachá ─────────────────────────────────────
+ * Missão 26 · Fase F, terceira peça. Fecha Treino e Sono de uma vez — os dois
+ * partilham `.tr-stats`, o que é sorte e também sinal de que já eram a mesma
+ * coisa por baixo.
+ *
+ * O que estava: "Sessões: 12", "Esta semana: 2/3", "Média 7d: 7h" — cada uma
+ * dentro de uma caixa com borda. São LEITURAS de instrumento, e uma leitura não
+ * precisa de moldura; precisa de estar alinhada com as outras e de se ler de
+ * relance.
+ *
+ * Origem: R26, o trilho de métricas emparelhadas com rótulo mono minúsculo.
+ * Rejeitado da mesma referência: os cantos em esquadria e a densidade de UI de
+ * filme que não informa nada.
+ */
+.sys-instrumental .tr-stats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sys-space-3) var(--sys-space-5);
+  margin-bottom: var(--sys-space-4);
+}
+
+.sys-instrumental .tr-stats .wchip {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  letter-spacing: var(--sys-track-label);
+}
+
+/* A cor de estado sobrevive — era o que as bordas coloridas carregavam. Um
+   `.green` diz "no alvo", e isso é informação, não enfeite. */
+.sys-instrumental .tr-stats .wchip.green { color: var(--em); }
+.sys-instrumental .tr-stats .wchip.gold  { color: #fde68a; }
+
+/* Separador entre leituras: um filete vertical fino, como num painel de
+   instrumentos. Não é uma borda a fechar caixa — é uma divisão entre medidas. */
+.sys-instrumental .tr-stats .wchip + .wchip {
+  padding-left: var(--sys-space-5);
+  border-left: 1px solid var(--sys-seam);
+}
+
+/* As linhas de treino já traziam o filete do exercício. Fica; o que sai é a
+   caixa à volta, pelo mesmo motivo dos hábitos. */
+.sys-instrumental .trl {
+  background: none;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  padding-left: var(--sys-space-4);
+}
+
+/* ── Calendário: a grelha é o instrumento ──────────────────────────────
+ * Missão 26 · Fase F, quarta peça.
+ *
+ * O que estava: 42 células, cada uma com a sua borda. Lidas juntas, não davam
+ * uma grelha — davam quarenta e duas caixas. E a lei diz que a hierarquia se faz
+ * com luz e material, não com bordas.
+ *
+ * O que passa a ser: as células perdem a borda e ganham um material ténue; o
+ * que as separa é o espaço. Só o HOJE recebe luz, porque só o hoje é o portador.
+ * O passado cumprido marca-se com um filete em baixo, não com uma moldura.
+ *
+ * A grelha 7×6 mantém-se intacta e nunca comprimida — decisão da Fase 4.
+ */
+.sys-instrumental .cal-cell {
+  border: 0;
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+  transition:
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    box-shadow calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+.sys-instrumental .cal-cell.empty { background: none; }
+
+.sys-instrumental .cal-cell:hover {
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+  transform: none; /* o translate do HUD fazia a grelha inteira estremecer */
+}
+
+/* Hoje é o portador da luz nesta grelha. Um só. */
+.sys-instrumental .cal-cell.today {
+  background: var(--sys-mat-active);
+  box-shadow: var(--sys-glow-inner);
+}
+
+/* Dia passado com obrigatórios cumpridos: um filete em baixo, como uma marca
+   num registo. Não é uma caixa verde — é uma anotação. */
+.sys-instrumental .cal-cell.past-ok {
+  box-shadow: inset 0 -2px 0 0 color-mix(in oklab, var(--em) 55%, transparent);
+}
+
+/* ── Revisão: o resumo já era uma tabela de leituras ───────────────────
+ * `.rc-sum-row` são pares rótulo/valor — exatamente o formato certo. Só o
+ * filete separador estava a usar a cor de borda de caixa; passa à costura.
+ */
+.sys-instrumental .rc-sum-row { border-top-color: var(--sys-seam); }
+
+/* A meta da pergunta (tema, dificuldade) segue a mesma regra das outras
+   leituras: sem caixa, com a cor a dizer o tema. */
+.sys-instrumental .rc-meta .wchip {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  letter-spacing: var(--sys-track-label);
+}
+.sys-instrumental .rc-meta .wchip + .wchip {
+  padding-left: var(--sys-space-4);
+  border-left: 1px solid var(--sys-seam);
+}
+
+/* ── Sigilo do Operador ────────────────────────────────────────────────
+ * Missão 26 · Fase E. Substitui o retrato herdado do Vanilla.
+ * A forma são os seis domínios; o anel é a maior streak; a cor é o rank.
+ */
+.op-sigil { position: relative; display: grid; place-items: center; }
+.op-sigil svg { width: 100%; height: 100%; }
+
+/* Teia de referência: onde a forma estaria se todos os domínios fossem iguais.
+   Serve para o desequilíbrio se ver — um polígono sozinho não tem contra o quê
+   ser lido. */
+.op-sigil .op-web {
+  fill: none;
+  stroke: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+  stroke-width: 1;
+}
+
+.op-sigil .op-shape {
+  fill-opacity: 0.16;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  /* a forma muda quando os níveis mudam: acumula, não salta (R15) */
+  transition: all calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+.op-sigil .op-node { opacity: 0.9; }
+
+.op-sigil .op-ring {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  opacity: 0.75;
+  transition: stroke-dashoffset calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+/* O sigilo não desenha anel próprio: o `.avatar-ring` que já o envolve mostra a
+   fração de XP, e a streak já é uma leitura no cartão ("MELHOR STREAK"). Dois
+   anéis concêntricos com dados diferentes a 6px de distância não se leem — e
+   duplicar um número que está ao lado é o erro que esta missão anda a corrigir. */
+
+/* ── Universo: títulos e conquistas ────────────────────────────────────
+ * Missão 26 · Fase G.
+ *
+ * Eram duas grelhas de cartões com borda — a última parede de caixas do
+ * produto. Passam à mesma língua das outras zonas: sem moldura, com o estado
+ * dito por luz e por um filete.
+ *
+ * A diferença entre bloqueado e desbloqueado é a informação toda destes dois
+ * painéis, e por isso é ela que fica com o contraste: o desbloqueado é o
+ * portador da luz, o bloqueado recua sem desaparecer. Ninguém precisa de uma
+ * borda à volta de um cadeado para perceber que está fechado.
+ */
+.sys-instrumental .ach,
+.sys-instrumental .tit {
+  border: 0;
+  border-left: 2px solid var(--sys-seam);
+  background: none;
+  padding: var(--sys-space-4) 0 var(--sys-space-4) var(--sys-space-4);
+  transition:
+    border-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    opacity calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out),
+    background-color calc(var(--sys-dur-quick) * var(--sys-motion-scale)) var(--sys-ease-out);
+}
+
+/* Bloqueado: recua, mas continua legível. Uma conquista que não se lê não
+   convida a nada — e o Sistema mostra o caminho, não só o troféu. */
+.sys-instrumental .ach { opacity: 0.42; }
+
+/* Desbloqueado: é o que aconteceu de facto, e por isso é o que tem luz. */
+.sys-instrumental .ach.on {
+  opacity: 1;
+  border-left-color: color-mix(in oklab, var(--gold) 65%, transparent);
+}
+
+.sys-instrumental .tit.un {
+  border-left-color: color-mix(in oklab, var(--gold) 65%, transparent);
+}
+
+.sys-instrumental .ach:hover,
+.sys-instrumental .tit:hover {
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+}
+
+/* O título aberto é o foco do momento: ganha o filete cheio. */
+.sys-instrumental .tit.open {
+  border-left-color: rgb(var(--sys-violet-rgb) / var(--sys-o-62));
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-04));
+}
+
+/* O crachá de rank do domínio, nos Atributos, segue as outras leituras:
+   a cor diz o rank, a caixa não acrescentava nada. */
+.sys-instrumental .ar {
+  border: 0;
+  padding: 0 0 0 var(--sys-space-3);
+}
+
+/* ── Atributos: seis medidores, não seis caixas ────────────────────────
+ * Missão 26 · Fase G. A barra tinha `border: 1px solid var(--line)` à volta do
+ * carril — seis molduras num painel onde a informação é comparar seis valores.
+ * A moldura não ajuda a comparar; a linha de base sim.
+ *
+ * O carril passa a um filete de fundo, o preenchimento é a luz, e a leitura de
+ * XP alinha à direita como nas outras métricas. O que se compara ao percorrer a
+ * coluna é onde cada barra ACABA — e é isso que fica sem nada por cima.
+ */
+.sys-instrumental .abar {
+  border: 0;
+  height: 3px;
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+  border-radius: 2px;
+  overflow: visible;
+}
+
+.sys-instrumental .afill {
+  border-radius: 2px;
+  /* o preenchimento leva o seu próprio brilho: é a única luz da linha, e é ela
+     que diz quanto falta */
+  box-shadow: 0 0 8px currentColor;
+  transition: width calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+/* A leitura de XP passa a instrumento: mono, à direita, calada.
+   FALHA DE CONTRASTE apanhada na Fase 6C: estava em `--sys-ink-far`, que a
+   13px sobre o vazio dá 3,23:1. É o mesmo tom que a Fase 5 já tinha tirado dos
+   rótulos do Núcleo — este escapou porque vive na zona Universo. Vale a regra
+   geral: `--sys-ink-far` não serve texto, serve filetes. */
+.sys-instrumental .axp {
+  font-family: var(--sys-type-data);
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+  text-align: right;
+  margin-top: var(--sys-space-2, 4px);
+}
+
+/* O nível ganha o peso que tinha na caixa do rank, agora sem caixa nenhuma. */
+.sys-instrumental .alv b { color: var(--sys-ink); }
+
+/* Respiração entre domínios: comparar seis valores exige que eles não se
+   toquem. Era 14px para tudo. */
+.sys-instrumental .attr + .attr { margin-top: var(--sys-space-5); }
+
+/* ── Os últimos componentes com moldura ────────────────────────────────
+ * Missão 26 · Fase H. Varredura final: o que ainda trazia `border: 1px solid
+ * var(--line)` do HUD e ainda não tinha sido tratado.
+ *
+ * REGRA QUE NÃO SE APLICA AQUI: campos de entrada mantêm o contorno. Uma borda
+ * num input não é decoração — é a afordância que diz onde se pode escrever, e
+ * tirá-la trocaria coerência por usabilidade. O que sai são as molduras dos
+ * CONTENTORES, não as dos controlos.
+ */
+
+/* Sinais vitais (Momentum, Burnout, Recuperação) — três medidores, e o mesmo
+   raciocínio dos Atributos: o que se compara é onde cada um acaba. */
+.sys-instrumental .vit {
+  border: 0;
+  background: none;
+  padding-left: 0;
+}
+
+/* Todas as barras de progresso restantes seguem o carril dos Atributos. */
+.sys-instrumental .tit-bar,
+.sys-instrumental .tb-bar,
+.sys-instrumental .oxp-bar {
+  border: 0;
+  height: 3px;
+  background: rgb(var(--sys-bone-rgb) / var(--sys-o-08));
+  border-radius: 2px;
+}
+.sys-instrumental .tit-fill,
+.sys-instrumental .tb-fill { border-radius: 2px; }
+
+/* Pergunta da Revisão: é conteúdo para ler, não um cartão. O foco de leitura
+   faz-se com espaço e com a luz do painel, que já existe. */
+.sys-instrumental .q {
+  border: 0;
+  border-left: 2px solid rgb(var(--sys-violet-rgb) / var(--sys-o-24));
+  background: none;
+  padding-left: var(--sys-space-4);
+}
+
+/* Faixa de prazos: já tem cor própria a dizer urgência; a moldura só repetia. */
+.sys-instrumental .dbf,
+.sys-instrumental .deadline-banner {
+  border: 0;
+  border-left: 2px solid color-mix(in oklab, var(--red) 60%, transparent);
+}
+
+/* Contentores de formulário: sai a caixa do GRUPO, ficam as dos campos. */
+.sys-instrumental .addq,
+.sys-instrumental .addq-recall,
+.sys-instrumental .cal-add,
+.sys-instrumental .cal-nav,
+.sys-instrumental .rst {
+  border: 0;
+  background: none;
+  padding-inline: 0;
+}
+
+/* ── Estados vazios: convite, não desculpa ─────────────────────────────
+ * Missão 26 · Fase I.
+ *
+ * A ESCRITA já estava certa. Cada vazio do Sistema diz o que fazer a seguir:
+ * "Adiciona a primeira — Elite vale 150 XP", "Responde ao lote diário e o mapa
+ * desenha-se sozinho", "O exército aguarda". Isso é exatamente o que um ecrã
+ * vazio deve ser.
+ *
+ * O TRATAMENTO é que dizia o contrário: itálico, cinzento fraco, 12px. É a
+ * tipografia da nota de rodapé — a mesma que se usa para um aviso legal que
+ * ninguém deve ler. Uma frase que convida a agir escrita como quem se desculpa
+ * lê-se como "não há nada aqui" em vez de "começa por aqui".
+ *
+ * Aqui o vazio ganha espaço, contraste e uma marca. Continua discreto — não é
+ * um alerta — mas deixa de parecer um erro de sistema.
+ */
+.sys-instrumental .up-empty,
+.sys-instrumental .log-empty,
+.sys-instrumental .xpline-empty {
+  font-style: normal;
+  font-size: var(--sys-step-0);
+  color: var(--sys-ink-mut);
+  line-height: var(--sys-leading-normal);
+  padding: var(--sys-space-5) 0 var(--sys-space-5) var(--sys-space-5);
+  position: relative;
+  text-align: left;
+  max-width: 52ch; /* é uma frase para ler, não uma legenda a atravessar o ecrã */
+}
+
+/* A marca: um filete curto, do mesmo vocabulário das linhas de missão e hábito.
+   Diz "aqui vive alguma coisa que ainda não começou" — que é diferente de
+   "aqui não há nada". */
+.sys-instrumental .up-empty::before,
+.sys-instrumental .log-empty::before,
+.sys-instrumental .xpline-empty::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: var(--sys-space-5);
+  width: 2px;
+  height: 1.2em;
+  background: rgb(var(--sys-violet-rgb) / var(--sys-o-40));
+}
+
+/* ── Notificações ──────────────────────────────────────────────────────
+ * Missão 26 · Fase I.
+ *
+ * COLISÃO MEDIDA: o toast do HUD desliza para o topo ao centro (top:22px,
+ * left:50%). Na shell, é exatamente onde o Núcleo passou a viver. Medido —
+ * Núcleo em [694,32→746,84], toast em [576,22→864,123]: tapa-o por completo.
+ *
+ * Não é um detalhe de estética. Um evento importante — A R I S E, subida de
+ * nível — anuncia-se tapando o próprio Núcleo que acabou de crescer, que é a
+ * prova que o evento produziu. O anúncio escondia a consequência.
+ *
+ * Passa para o canto inferior direito, junto ao estado de gravação: é lá que
+ * vive a faixa de sistema, e é o único sítio do ecrã sem conteúdo a ler.
+ */
+.sys-instrumental ~ .toast,
+.sys-shell ~ .toast,
+body:has(.sys-instrumental) .toast {
+  top: auto;
+  left: auto;
+  right: var(--sys-space-5);
+  bottom: calc(var(--sys-space-7) + 1.5rem);
+  /* No topo, o translate de -150% do HUD tirava o toast do ecra. Vindo do
+     canto INFERIOR, 140% da altura propria nao chega para o esconder - ficava
+     meio visivel com "SISTEMA" a espreitar no canto. Opacidade a zero fecha
+     isso sem depender de aritmetica de alturas. */
+  transform: translate(0, 24px);
+  opacity: 0;
+  pointer-events: none;
+  text-align: left;
+  min-width: 0;
+  max-width: min(32rem, calc(100vw - 4rem));
+  /* material em vez de borda cheia: o clip-path chanfrado do HUD fica, porque é
+     identidade do produto; o que sai é a moldura violeta a toda a volta, que
+     era o último contorno completo do Sistema */
+  border: 0;
+  border-left: 2px solid var(--sys-violet);
+  background: linear-gradient(135deg, rgb(13 20 35 / .97), rgb(22 16 42 / .97));
+  box-shadow: 0 0 34px rgb(var(--sys-violet-rgb) / .22);
+  transition: transform .5s cubic-bezier(.22,1.4,.4,1), opacity .3s ease;
+}
+
+body:has(.sys-instrumental) .toast.show {
+  transform: translate(0, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Penalização mantém a cor de alarme; muda o filete, não a caixa. */
+body:has(.sys-instrumental) .toast.pen {
+  border-left-color: var(--red);
+  box-shadow: 0 0 34px rgb(239 68 68 / .3);
+}
+
+/* ── Mobile: correções medidas a 390×844 ──────────────────────────────
+ * Missão 26 · Fase J. Três defeitos reais, nenhum visível no PC.
+ */
+@media (max-width: 900px) {
+  /* 1. TRANSBORDO de 127px no Universo. Não era a grelha — essa já colapsa a
+     uma coluna. Eram os SETE chips de domínio numa fila que não cabe em 356px.
+     Passam a envolver: um filtro escondido fora do ecrã é um filtro que não
+     existe, e scroll horizontal escondido é pior do que duas linhas. */
+  .sys-instrumental .const-chips {
+    flex-wrap: wrap;
+    gap: var(--sys-space-3);
+  }
+
+  /* 2. ALVOS DE TOQUE. Nove controlos abaixo dos 32px, quase todos `.mini` a
+     26px de altura. A recomendação são 44px; aqui fico nos 36 porque estes
+     botões vivem em linhas densas e 44 obrigaria a recompor os painéis todos —
+     36 resolve o erro de toque sem partir a composição, e fica dito que não é
+     o ideal, é o defensável. */
+  .sys-instrumental .mini,
+  .sys-instrumental .up-del,
+  .sys-instrumental .obj-st,
+  .sys-instrumental .notif-btn,
+  .sys-instrumental .cal-nav button,
+  .sys-instrumental .cal-nav {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 3. As leituras de instrumento perdem os separadores verticais: em coluna
+     estreita partem a meio e ficam filetes soltos entre linhas. */
+  .sys-instrumental .tr-stats .wchip + .wchip,
+  .sys-instrumental .rc-meta .wchip + .wchip {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  /* O toast ocupa a largura toda menos as margens: a 390px, 32rem sairia fora. */
+  body:has(.sys-instrumental) .toast {
+    left: var(--sys-space-4);
+    right: var(--sys-space-4);
+    max-width: none;
+  }
+}
+
+
+/* ── A única falha de contraste da auditoria ───────────────────────────
+ * Missão 26 · Fase J. Auditoria WCAG AA sobre a zona ativa, a órbita e a faixa
+ * do Oráculo: 1 falha em toda a superfície.
+ *
+ * `.vit-note` estava a 9,5px em `--mut2`, com rácio de 2,29 contra um mínimo de
+ * 4,5. É a nota que diz "estas estimativas não são diagnósticos" — precisamente
+ * o texto que o Sistema NÃO pode esconder, porque é a ressalva que impede uma
+ * barra de burnout de se fazer passar por avaliação clínica.
+ *
+ * Uma ressalva ilegível é uma ressalva que não existe.
+ */
+.sys-instrumental .vit-note {
+  font-size: var(--sys-step--1);
+  color: var(--sys-ink-mut);
+}
+
+/* ── As restantes falhas de contraste ──────────────────────────────────
+ * Missão 26 · Fase J. Auditoria completa às SEIS zonas: 11 falhas, e todas com
+ * a mesma causa — `--mut2` (rgb 78,71,104) a 10px, rácio 2,29 contra 4,5.
+ *
+ * Duas classes: `.cal-wd`, os cabeçalhos dos dias da semana, e `.dbf-tag`, o
+ * estado dos pilares. Nenhuma é decorativa: "Seg/Ter/Qua" é o que torna uma
+ * grelha de 42 números legível como calendário, e "inativo" é o estado de um
+ * pilar. Texto que não se lê não é discreto — está ausente.
+ *
+ * Sobem para `--sys-ink-mut` e para o degrau tipográfico do sistema. Continuam
+ * a ser a informação mais recuada do painel; passam a ser legíveis.
+ */
+.sys-instrumental .cal-wd,
+.sys-instrumental .dbf-tag {
+  color: var(--sys-ink-mut);
+  font-size: var(--sys-step--1);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * CORREÇÃO DE DIREÇÃO — 2026-07-29
+ *
+ * O Daniel: "não gosto como a UI parece ser uma caixa, não gosto como é
+ * pequeno, preferia um dashboard full screen". Tem razão nas três, e as três
+ * saem de duas regras minhas a colidir.
+ *
+ * 1. PARECE UMA CAIXA porque o portador da luz É uma caixa: `--sys-mat-active`
+ *    termina numa base OPACA (--sys-deep) e o `--sys-glow-inner` traz um
+ *    `inset 0 0 0 1px`, que é uma borda com outro nome. Passei a missão a tirar
+ *    bordas aos painéis e deixei uma no único elemento que a lei manda acender.
+ *
+ * 2. É PEQUENO porque as zonas de leitura tinham `max-width: 68ch` — desenhado
+ *    para prosa longa. Numa zona com uma lista de quatro linhas, isso é uma
+ *    coluna estreita ao meio de um ecrã de 2000px.
+ *
+ * A correção não é "tirar a medida": linhas de texto a 2000px não se leem. É
+ * separar as duas coisas que eu tinha juntado — a ZONA usa o ecrã, e só o TEXTO
+ * CORRIDO mantém medida.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+/* A zona de leitura deixa de ser uma coluna e passa a usar o ecrã. */
+.sys-instrumental .sys-zone[data-density='reading'] .sys-zone-body {
+  max-width: min(1600px, 100%);
+}
+
+/* Só o texto corrido mantém medida — é nele que o comprimento da linha importa.
+   Uma lista de estados com rótulo à esquerda e valor à direita quer a largura
+   toda; um parágrafo de três linhas, não. */
+.sys-instrumental [data-density='reading'] .dhint,
+.sys-instrumental [data-density='reading'] .ptitle + p,
+.sys-instrumental [data-density='reading'] .up-empty {
+  max-width: var(--sys-measure);
+}
+
+/* O portador da luz deixa de ter aresta. O gradiente fica — é ele que dá o
+   "iluminado por dentro" — mas sem base opaca a terminar e sem anel de 1px a
+   desenhar o contorno. Luz que se dissolve, não caixa acesa. */
+.sys-instrumental .panel:where([data-lit], :focus-within),
+.sys-instrumental .sys-zone-body:not(:has(.panel:focus-within))
+  > .sys-group:first-child .panel {
+  /* A luz tem de desvanecer em TODOS os lados. A primeira tentativa usava um
+     gradiente linear, que desvanece para baixo e deixa aresta dura em cima e
+     nos lados — continuava a desenhar um retângulo, só com o fundo mais suave.
+     Elipse ao centro com queda longa: não há bordo nenhum onde a luz acabe. */
+  background: radial-gradient(
+    ellipse 85% 130% at 50% 30%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-14)) 0%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-08)) 38%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-04)) 62%,
+    transparent 88%
+  );
+  /* mascara de desvanecimento: garante que nem o gradiente nem o clip-path
+     deixam uma linha visivel onde o elemento termina */
+  -webkit-mask-image: radial-gradient(ellipse 92% 118% at 50% 40%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 92% 118% at 50% 40%, #000 55%, transparent 100%);
+  box-shadow: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * FULL-BLEED — o palco deixa de ser uma página com um cartão
+ * 2026-07-29. Direção corrigida pelo Daniel: "está a parecer um card dentro
+ * de uma página e não uma dashboard que ocupa o ecrã todo".
+ *
+ * Três causas, todas estruturais — nenhuma se resolvia com espaçamento:
+ *
+ * 1. CONTAINERS COM MAX-WIDTH. As zonas tinham 1600px (leitura) e 1680px
+ *    (instrumento), centrados. Um container centrado com margens iguais é a
+ *    definição de "página"; um sistema não tem margens, tem gutters.
+ *
+ * 2. O PORTADOR DA LUZ ERA O PAINEL. Dar material a um objeto fá-lo ler como
+ *    objeto — foi por isso que dissolver a borda não chegou. A luz sobe ao
+ *    PALCO: passa a ser ambiente da zona, e o painel deixa de existir como
+ *    coisa. O conteúdo assenta na cena em vez de flutuar numa placa.
+ *
+ * 3. A ZONA NÃO OCUPAVA ALTURA. Com um painel só, o conteúdo era uma banda no
+ *    topo e o resto do ecrã ficava morto. Uma zona é uma superfície, não um
+ *    bloco alinhado ao topo.
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+/* 1 · Full-bleed. Sem teto, sem centragem. Os gutters crescem com o ecrã, para
+   um monitor grande não colar o conteúdo ao vidro. */
+.sys-instrumental .sys-zone[data-density='reading'] .sys-zone-body,
+.sys-instrumental .sys-zone[data-density='instrument'] .sys-zone-body {
+  max-width: none;
+  margin-inline: 0;
+}
+
+.sys-instrumental .sys-stage-wrap {
+  padding-inline: clamp(1.5rem, 3.2vw, 4.5rem);
+}
+
+/* 2 · A luz é do PALCO, não do painel. O painel deixa de ter fundo, sombra e
+   máscara — deixa de ser uma superfície. O que acende é a zona. */
+.sys-instrumental .panel,
+.sys-instrumental .sys-zone-body:not(:has(.panel:focus-within))
+  > .sys-group:first-child .panel,
+.sys-instrumental .panel:focus-within {
+  background: none;
+  box-shadow: none;
+  -webkit-mask-image: none;
+  mask-image: none;
+  /* O CULPADO FINAL da caixa. O  do HUD tem backdrop-filter:blur(6px),
+     e um backdrop-filter desenha uma REGIAO VISIVEL mesmo sem fundo nenhum:
+     desfoca o que esta atras dentro dos limites do elemento, e o limite ve-se.
+     Tirei fundo, sombra, borda e mascara e a caixa continuava la - era isto.
+     Tambem e o que a regra do projeto ja proibia: nada de blur em area grande. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  clip-path: none;
+}
+
+/* A cena ganha uma luz alta e larga — não tem bordo porque não tem forma:
+   nasce fora do ecrã e cai. É ela que diz "estás nesta zona". */
+.sys-instrumental .sys-zone[data-active='true']::before {
+  content: '';
+  position: absolute;
+  /* A luz tem de MORRER DENTRO da caixa. A primeira versão usava uma elipse
+     tão larga como o elemento e ainda tinha opacidade ao chegar aos limites
+     dele — cortava em aresta nos quatro lados e desenhava outra caixa, que
+     é exactamente o defeito que isto vinha corrigir.
+     Agora a elipse e mais pequena que a caixa e chega a transparente aos 70%:
+     nao ha bordo porque a luz ja acabou antes de a caixa acabar. */
+  inset: 0 0 auto 0;
+  height: 78vh;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 62% 58% at 50% 4%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-14)) 0%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-08)) 26%,
+    rgb(var(--sys-violet-rgb) / var(--sys-o-04)) 46%,
+    transparent 70%
+  );
+}
+
+.sys-instrumental .sys-zone { position: absolute; }
+.sys-instrumental .sys-zone-body { position: relative; z-index: 1; }
+
+/* 3 · A zona ocupa a altura. Com pouco conteúdo, o espaço vai para o fim e não
+   fica um vazio a meio; com muito, comporta-se como antes. */
+/* BUG MEU, corrigido:  criava 41px de
+   transbordo PERMANENTE, porque 100% ja e a altura do conteudo do scroll e o
+   padding somava-se por cima. Resultado: uma barra de scroll que nunca devia
+   existir e conteudo cortado em baixo - foi o que o Daniel viu com o Momentum
+   e o burnout meio tapados.
+   O objectivo (a zona ocupar a altura) faz-se com flex, que preenche sem
+   ACRESCENTAR altura. */
+.sys-instrumental .sys-zone-scroll {
+  display: flex;
+  flex-direction: column;
+  /* respiro no fim: sem isto a ultima linha encosta a faixa do Oraculo e nao se
+     percebe se acabou ou se esta cortada */
+  padding-bottom: var(--sys-space-7);
+}
+.sys-instrumental .sys-zone-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.sys-instrumental .sys-zone[data-density='instrument'] .sys-zone-body {
+  display: grid;
+  align-content: start;
+}
+
+/* ── CALENDÁRIO · os estados da célula ─────────────────────────────────
+ * Missão 26 · Fase 6F.
+ *
+ * O que faltava: um dia escolhido era indistinguível de qualquer outro, e
+ * "hoje" era o único estado com marca. Agora são seis, e cada um usa uma
+ * LINGUAGEM DIFERENTE — nenhum depende só de cor, e por isso podem coexistir
+ * na mesma célula sem se confundirem.
+ *
+ *   hoje         luz interna
+ *   selecionado  contorno
+ *   evento       marca inferior (os pontos que já existiam)
+ *   prazo        filete lateral
+ *   prazo urgente  o mesmo filete, mais grosso e na cor de alarme
+ *   passado ok   filete em baixo
+ */
+.sys-instrumental .cal-cell {
+  /* era um `div` com onClick: sem foco, sem semântica, sem teclado */
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  min-height: 44px;
+}
+
+.sys-instrumental .cal-cell.empty { cursor: default; }
+
+/* SELECIONADO — contorno. É a única marca que desenha o perímetro, e por isso
+   nunca se confunde com o "hoje", que é luz por dentro. */
+.sys-instrumental .cal-cell.sel {
+  box-shadow: inset 0 0 0 2px var(--sys-violet);
+}
+
+/* HOJE + SELECIONADO ao mesmo tempo: a luz fica, o contorno também. É o caso
+   que prova que as duas linguagens tinham de ser diferentes. */
+.sys-instrumental .cal-cell.today.sel {
+  box-shadow: inset 0 0 0 2px var(--sys-violet), var(--sys-glow-inner);
+}
+
+/* PRAZO — filete lateral. Não é um ponto, porque os pontos já são eventos. */
+.sys-instrumental .cal-cell.has-dl::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: color-mix(in oklab, var(--sys-alert) 70%, transparent);
+}
+
+/* URGENTE — mesma marca, mais peso e cor de alarme. A diferença lê-se sem
+   comparar com outra célula. */
+.sys-instrumental .cal-cell.dl-urgent::before {
+  width: 3px;
+  background: var(--sys-danger);
+}
+
+.sys-instrumental .cal-cell:focus-visible {
+  outline: 2px solid var(--sys-ink);
+  outline-offset: -2px;
+}

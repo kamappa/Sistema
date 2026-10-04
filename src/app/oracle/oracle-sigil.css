@@ -1,0 +1,208 @@
+/* Sigilo de presença do Oráculo — Missão 26 · Fase D.
+ * Derivado da R01. Ver OracleSigil.tsx para o porquê da forma.
+ *
+ * Regra do projeto respeitada: só se anima transform e opacity. Nada de
+ * filter:blur() em área grande, nada de animar geometria SVG (que força
+ * recalculo de path a cada frame).
+ */
+
+.sys-oracle-sigil {
+  display: inline-block;
+  width: 4rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  /* o glow vem do próprio traço, não de um box-shadow por baixo: uma forma sem
+     contorno não pode ter uma caixa a denunciá-la */
+}
+
+.sys-oracle-sigil svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.sys-oracle-sigil .fil {
+  fill: none;
+  stroke: rgb(var(--sys-violet-rgb) / var(--sys-o-62));
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+  /* Em repouso a onda é PLANA. A amplitude é o sinal; sem sinal não há onda.
+     O 0.14 de base é o mínimo para a linha não parecer um traço morto. */
+  transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 2.6));
+  transition: transform calc(var(--sys-dur-slow) * var(--sys-motion-scale)) var(--sys-ease-gravity);
+}
+
+/* Os três filamentos diferem em opacidade e fase — é a sobreposição que dá
+   matéria. O f2 é o portador; os outros dois são o halo estrutural. */
+.sys-oracle-sigil .f1 { opacity: 0.4; }
+.sys-oracle-sigil .f2 { opacity: 1; }
+.sys-oracle-sigil .f3 { opacity: 0.28; }
+
+/* ── A respiração ──────────────────────────────────────────────────────
+ * Duas ondas em contrafase dentro do mesmo elemento: a curvatura vem de
+ * escalar em Y com origem deslocada, não de recalcular o `d` do path.
+ */
+@keyframes sys-sigil-breath {
+  0%, 100% { transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 2.6)) translateY(0); }
+  50%      { transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 4.4)) translateY(calc(var(--sys-rise) * 0.6px)); }
+}
+
+.sys-oracle-sigil .fil {
+  animation: sys-sigil-breath var(--sys-cycle-ambient) var(--sys-ease-breath) infinite;
+}
+
+/* Fases: sem desfasamento, os três filamentos seriam um só traço mais grosso. */
+.sys-oracle-sigil .f1 { animation-delay: calc(var(--sys-cycle-ambient) * -0.33); }
+.sys-oracle-sigil .f3 { animation-delay: calc(var(--sys-cycle-ambient) * -0.66); }
+
+/* Com sinais o ciclo aperta. Não é urgência decorativa: é a diferença entre
+   "estou aqui" e "tenho algo para ti". */
+.sys-oracle-sigil[data-attending='true'] .fil {
+  animation-duration: var(--sys-cycle-attend);
+  stroke: rgb(var(--sys-violet-rgb) / var(--sys-o-88));
+}
+.sys-oracle-sigil[data-attending='true'] .f1 { animation-delay: calc(var(--sys-cycle-attend) * -0.33); }
+.sys-oracle-sigil[data-attending='true'] .f3 { animation-delay: calc(var(--sys-cycle-attend) * -0.66); }
+
+/* Alerta muda a COR, não o ritmo. Acelerar mais seria pânico, e a Constituição
+   pede um moderador, não um alarme. */
+.sys-oracle-sigil[data-alert='true'] .fil {
+  stroke: rgb(var(--sys-magenta-rgb, 244 114 182) / var(--sys-o-88));
+}
+
+/* ── A PROCESSAR ───────────────────────────────────────────────────────
+ * Missão 26 · Fase 6B. ORIGEM: R17 — anéis concêntricos a CONTRAIR, e a
+ * passagem de difuso a discreto como sinal de conclusão.
+ *
+ * O que se extraiu: a contração como gramática de "em curso". Um ciclo
+ * simétrico (a respiração de repouso) diz presença; um movimento que acelera
+ * numa direção e recomeça diz processo — e é a diferença que faz isto
+ * comunicar sem um spinner.
+ *
+ * O que se rejeitou da R17: o azul-ciano, que é paleta de HUD de ficção
+ * científica, e os anéis holográficos. Fica a gramática, não a aparência.
+ *
+ * O que o torna verdadeiro: só acontece com `ocBusy` real, e para quando a
+ * resposta chega. Não há duração fingida.
+ */
+@keyframes sys-sigil-contract {
+  0%   { transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 4.4)) scaleX(1); opacity: 0.9; }
+  70%  { transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 0.9)) scaleX(0.82); opacity: 1; }
+  100% { transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 4.4)) scaleX(1); opacity: 0.5; }
+}
+
+.sys-oracle-sigil[data-busy='true'] .fil {
+  /* `--sys-ease-contract` (R17): acelera até ao fim, sem repouso no meio.
+     Comunica que algo está a ser puxado para dentro e ainda não terminou. */
+  animation: sys-sigil-contract 1400ms var(--sys-ease-contract) infinite;
+  stroke: rgb(var(--sys-violet-rgb) / var(--sys-o-88));
+}
+
+/* Os três filamentos contraem desfasados: é isso que dá a leitura de camadas
+   a convergir, em vez de uma linha a encolher. */
+.sys-oracle-sigil[data-busy='true'] .f1 { animation-delay: -180ms; }
+.sys-oracle-sigil[data-busy='true'] .f3 { animation-delay: -360ms; }
+
+/* A processar ganha a alerta: enquanto pensa, o Oráculo está a fazer UMA
+   coisa, e mostrar duas ao mesmo tempo não diria nenhuma. */
+.sys-oracle-sigil[data-busy='true'][data-alert='true'] .fil {
+  stroke: rgb(var(--sys-violet-rgb) / var(--sys-o-88));
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────────
+ * O ciclo pára. A AMPLITUDE FICA — é informação, não enfeite. Quem não pode
+ * ver movimento continua a distinguir um Oráculo com três sinais de um calado.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sys-oracle-sigil .fil {
+    animation: none;
+    /* congela no meio do ciclo, não no mínimo: é onde a forma se lê melhor */
+    transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 3.5));
+  }
+
+  /* Sem movimento, "a processar" tem de continuar a distinguir-se — senão
+     quem pediu menos animação deixa de saber que o Oráculo está a pensar. A
+     onda fica CONTRAÍDA, que é a posição a meio do processo. É a mesma
+     decisão que o estado `saving` do sync já tinha tomado. */
+  .sys-oracle-sigil[data-busy='true'] .fil {
+    transform: scaleY(calc(0.14 + var(--sig-amp, 0) * 0.9)) scaleX(0.82);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+ * GRAMÁTICA 15 — A FORMA ANTES DA COR E DO RITMO. Missão 26 · Fase 7Z.
+ * Origem: S05. Ver o cabeçalho de OracleSigil.tsx para o raciocínio.
+ *
+ * Cada estado tem uma silhueta própria, e a prova é esta: apaga o ritmo
+ * (reduced motion) e a cor (escala de cinzentos) e os quatro continuam a
+ * distinguir-se.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* ── ATENTO · o nó ─────────────────────────────────────────────────────
+ * Um traço vertical onde os três filamentos se cruzam. Diz "há aqui alguma
+ * coisa" com um elemento, e é a marca mais barata que se lê a 64×20.
+ */
+.sys-oracle-sigil .sig-no {
+  fill: none;
+  stroke: rgb(var(--sys-violet-rgb) / var(--sys-o-88));
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  transform-origin: 50% 50%;
+  transform-box: fill-box;
+  /* Cresce com o número de sinais: um sinal é um risco curto, quatro é um nó
+     inteiro. A amplitude continua a informar — deixou é de estar sozinha. */
+  transform: scaleY(calc(0.45 + var(--sig-amp, 0) * 0.55));
+  animation: sys-sigil-no var(--sys-cycle-attend) var(--sys-ease-breath) infinite;
+}
+@keyframes sys-sigil-no {
+  0%, 100% { transform: scaleY(calc(0.45 + var(--sig-amp, 0) * 0.55)); }
+  50%      { transform: scaleY(calc(0.58 + var(--sig-amp, 0) * 0.62)); }
+}
+
+/* ── ALERTA · a quebra ─────────────────────────────────────────────────
+ * A linha portadora parte-se ao meio e ficam duas barras curtas a marcar o
+ * intervalo. Uma linha partida lê-se como interrupção em qualquer paleta,
+ * parada, e em escala de cinzentos. A cor magenta fica — deixou é de ser a
+ * única diferença entre isto e "tenho algo para ti".
+ */
+/* Partem-se os TRÊS, não só o portador. Medido numa folha em escala de
+   cinzentos: com só o `f2` partido, os outros dois continuavam contínuos por
+   cima e o intervalo não se via — a quebra existia no DOM e não na imagem.
+   Uma descontinuidade que não se vê não é uma descontinuidade.
+   Os desfasamentos diferentes fazem o intervalo abrir em três sítios próximos
+   em vez de um corte limpo, o que lê melhor a esta escala: parece a linha a
+   falhar, não a linha cortada com tesoura. */
+.sys-oracle-sigil[data-forma='alerta'] .fil {
+  stroke-dasharray: 26 12;
+}
+.sys-oracle-sigil[data-forma='alerta'] .f1 { stroke-dashoffset: -4; }
+.sys-oracle-sigil[data-forma='alerta'] .f2 { stroke-dashoffset: 0; }
+.sys-oracle-sigil[data-forma='alerta'] .f3 { stroke-dashoffset: 4; }
+.sys-oracle-sigil .sig-quebra {
+  fill: none;
+  stroke: rgb(var(--sys-magenta-rgb, 244 114 182) / var(--sys-o-88));
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* ── A PROCESSAR · a retração ──────────────────────────────────────────
+ * Os filamentos recolhem-se para o centro e as pontas esvaziam. É a mesma
+ * gramática da contração que já cá estava (R17), mas agora deixa marca na
+ * FORMA e não só no movimento: parado, o sigilo do "a processar" é mais curto
+ * do que os outros três, e isso vê-se.
+ */
+.sys-oracle-sigil[data-forma='processar'] .fil {
+  stroke-dasharray: 30 64;
+  stroke-dashoffset: -17;
+}
+
+/* ── A PROVA ───────────────────────────────────────────────────────────
+ * Em reduced motion tudo isto fica PARADO e os quatro estados continuam
+ * distintos: contínuo / com nó / partido / curto. É o argumento inteiro da
+ * gramática 15 — se aqui falhasse, a regra não valia nada.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .sys-oracle-sigil .sig-no { animation: none; }
+}

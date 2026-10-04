@@ -1,0 +1,62 @@
+/* Camadas e qualidade gráfica.
+ *
+ * O z-index deixa de ser um número mágico espalhado pelo CSS e passa a ser uma
+ * lista curta e ordenada. Se algo precisar de um valor fora desta lista, a
+ * composição está errada.
+ */
+
+:root {
+  --sys-z-atmosphere: 0;  /* céu WebGL e fallback CSS */
+  --sys-z-stage: 10;      /* conteúdo da zona ativa */
+  --sys-z-nav: 20;        /* consola B1 / órbita B2 */
+  --sys-z-oracle: 30;     /* presença do Oráculo */
+  --sys-z-overlay: 40;    /* Active e War Room */
+  --sys-z-toast: 50;      /* já existia no HUD; fica acima de tudo */
+
+  /* ── Qualidade gráfica ─────────────────────────────────────────────────
+   * `--sys-quality` é lido pelo JS (Atmosphere) e pelo CSS. Três degraus:
+   *   full  — desktop com GPU capaz
+   *   lite  — mobile, GPU fraca, bateria
+   *   off   — sem WebGL ou reduced-motion
+   *
+   * O blur é o primeiro a cair. Condição explícita do Daniel: limitar ou
+   * remover blur em mobile, qualidade baixa, reduced-motion, e quando compete
+   * com o palco WebGL.
+   */
+  --sys-quality: 'full';
+  --sys-blur-enabled: 1;
+}
+
+/* Mobile e ecrãs estreitos: a profundidade passa a ser só opacity + escala +
+ * dessaturação. Zero blur — é onde ele custa mais e rende menos. */
+@media (max-width: 900px) {
+  :root {
+    --sys-quality: 'lite';
+    --sys-blur-enabled: 0;
+    --sys-blur-recede: 0px;
+  }
+}
+
+/* Sinal do sistema operativo de que há pouca capacidade ou o utilizador pediu
+ * menos movimento. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --sys-quality: 'off';
+    --sys-blur-enabled: 0;
+    --sys-blur-recede: 0px;
+  }
+}
+
+/* Quando o JS deteta ausência de WebGL ou tier baixo, marca a raiz e o CSS
+ * segue — sem o CSS ter de saber porquê. */
+:root[data-sys-quality='lite'] {
+  --sys-quality: 'lite';
+  --sys-blur-enabled: 0;
+  --sys-blur-recede: 0px;
+}
+
+:root[data-sys-quality='off'] {
+  --sys-quality: 'off';
+  --sys-blur-enabled: 0;
+  --sys-blur-recede: 0px;
+}

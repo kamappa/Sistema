@@ -1,0 +1,202 @@
+[
+  {
+    "id": "rgpd-001",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "A Worten quer enviar campanhas de marketing por email a quem comprou numa loja física. Um cliente pergunta com que fundamento o podem fazer. Quais são as seis bases legais possíveis para tratar dados pessoais, e onde estão previstas?",
+    "a": "As seis bases legais do artigo 6.º, n.º 1 do RGPD: (a) consentimento do titular; (b) execução de um contrato; (c) cumprimento de uma obrigação legal; (d) proteção de interesses vitais; (e) exercício de funções de interesse público ou autoridade pública; (f) interesses legítimos do responsável ou de terceiros. Para marketing por email, na prática usa-se normalmente o consentimento (a) ou, em certos casos de clientes existentes, o interesse legítimo (f) — sempre sujeito ao direito de oposição.",
+    "ref": "RGPD, art. 6.º, n.º 1"
+  },
+  {
+    "id": "rgpd-002",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Um colega diz-te que 'dados pessoais são só o nome e o número de identificação'. Porque é que está errado? Define dado pessoal segundo o RGPD e dá dois exemplos menos óbvios.",
+    "a": "Dado pessoal é qualquer informação relativa a uma pessoa singular identificada ou identificável (art. 4.º, n.º 1). O conceito é muito mais amplo do que nome/ID: inclui, por exemplo, um endereço IP, dados de localização, um identificador online (cookie), matrícula de veículo, ou até a combinação de dados que isoladamente não identificam mas em conjunto tornam a pessoa identificável. O critério é a identificabilidade, direta ou indireta.",
+    "ref": "RGPD, art. 4.º, n.º 1"
+  },
+  {
+    "id": "rgpd-003",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Enumera os princípios relativos ao tratamento de dados pessoais. Um sistema que guarda dados 'para o caso de virem a ser úteis um dia' viola qual princípio em concreto?",
+    "a": "Princípios do art. 5.º, n.º 1: licitude, lealdade e transparência; limitação das finalidades; minimização dos dados; exatidão; limitação da conservação; integridade e confidencialidade. O n.º 2 acrescenta a responsabilidade (accountability). Guardar dados 'para o caso de serem úteis' viola a limitação das finalidades (recolher para finalidades determinadas, explícitas e legítimas) e a minimização (só os dados necessários), além da limitação da conservação.",
+    "ref": "RGPD, art. 5.º"
+  },
+  {
+    "id": "rgpd-004",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que é o princípio da responsabilidade (accountability) e porque é que muda a postura de uma organização face à conformidade? Dá um exemplo de evidência que o demonstra.",
+    "a": "A accountability (art. 5.º, n.º 2) significa que o responsável pelo tratamento não só tem de cumprir os princípios, como tem de conseguir demonstrar que os cumpre. Muda a postura porque cumprir deixa de ser suficiente — é preciso documentar e provar. Exemplos de evidência: o registo das atividades de tratamento (art. 30.º), avaliações de impacto (DPIA), políticas de proteção de dados, registos de consentimento, contratos com subcontratantes (art. 28.º).",
+    "ref": "RGPD, art. 5.º, n.º 2"
+  },
+  {
+    "id": "rgpd-005",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Distingue responsável pelo tratamento de subcontratante. Se a Worten usa um serviço de cloud externo para guardar dados de clientes, quem é quem?",
+    "a": "O responsável pelo tratamento determina as finalidades e os meios do tratamento; o subcontratante trata os dados por conta do responsável, seguindo as suas instruções (art. 4.º, n.os 7 e 8). No exemplo, a Worten é o responsável (decide porquê e como se tratam os dados dos clientes) e o fornecedor de cloud é o subcontratante (trata os dados em nome da Worten). Esta relação exige um contrato de subcontratação nos termos do art. 28.º.",
+    "ref": "RGPD, art. 4.º, n.os 7 e 8; art. 28.º"
+  },
+  {
+    "id": "rgpd-006",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Quais são as condições para que um consentimento seja válido segundo o RGPD? Uma caixa já pré-marcada num formulário cumpre?",
+    "a": "O consentimento tem de ser livre, específico, informado e inequívoco, manifestado por uma declaração ou ato positivo claro (art. 4.º, n.º 11, e art. 7.º). Uma caixa pré-marcada NÃO cumpre, porque não há ato positivo do titular — o silêncio ou a inação não valem como consentimento. Além disso, tem de ser tão fácil retirar o consentimento como foi dá-lo, e o responsável tem de conseguir demonstrar que o obteve.",
+    "ref": "RGPD, art. 4.º, n.º 11; art. 7.º"
+  },
+  {
+    "id": "rgpd-007",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que são categorias especiais de dados e porque têm proteção reforçada? Dá três exemplos e explica a regra geral do art. 9.º.",
+    "a": "São dados sensíveis cujo tratamento é, por regra, proibido (art. 9.º, n.º 1), salvo exceções do n.º 2 (ex.: consentimento explícito, obrigação em matéria laboral, interesse público na saúde). Exemplos: origem racial ou étnica, opiniões políticas, convicções religiosas, dados genéticos, biométricos para identificação, dados de saúde, vida ou orientação sexual. A proteção é reforçada porque o seu uso indevido cria riscos elevados de discriminação e dano à pessoa.",
+    "ref": "RGPD, art. 9.º"
+  },
+  {
+    "id": "rgpd-008",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Um cliente pede à Worten uma cópia de todos os dados que têm sobre ele. Que direito está a exercer, qual o prazo de resposta e pode a empresa cobrar?",
+    "a": "É o direito de acesso (art. 15.º). O responsável deve responder sem demora injustificada e no prazo máximo de um mês, prorrogável por mais dois meses em casos complexos (art. 12.º, n.º 3). A primeira cópia é gratuita; cópias adicionais podem ter um custo razoável baseado nos custos administrativos. Se os pedidos forem manifestamente infundados ou excessivos, o responsável pode cobrar taxa ou recusar (art. 12.º, n.º 5).",
+    "ref": "RGPD, art. 15.º; art. 12.º, n.os 3 e 5"
+  },
+  {
+    "id": "rgpd-009",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O 'direito ao esquecimento' é absoluto? Um cliente exige que apaguem tudo, mas há uma fatura de há dois anos. Como resolves?",
+    "a": "Não é absoluto. O direito ao apagamento (art. 17.º) tem exceções no n.º 3, entre elas o cumprimento de uma obrigação legal. Uma fatura está sujeita a obrigações de conservação fiscal/contabilística (vários anos), pelo que não pode ser apagada enquanto durar essa obrigação legal. Resolve-se apagando o que já não tem base legal para ser conservado e mantendo apenas o que a lei obriga, informando o titular do motivo.",
+    "ref": "RGPD, art. 17.º, n.º 3"
+  },
+  {
+    "id": "rgpd-010",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que é o direito à portabilidade e em que se distingue do direito de acesso? Em que condições se aplica?",
+    "a": "A portabilidade (art. 20.º) dá ao titular o direito de receber os seus dados num formato estruturado, de uso corrente e leitura automática, e de os transmitir a outro responsável. Distingue-se do acesso porque o objetivo é a reutilização/transferência, não só a consulta. Só se aplica quando o tratamento se baseia no consentimento ou num contrato E é feito por meios automatizados. Não abrange dados tratados com base em interesse legítimo ou obrigação legal.",
+    "ref": "RGPD, art. 20.º"
+  },
+  {
+    "id": "rgpd-011",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Ocorre uma violação de dados pessoais (data breach) na Worten. Em que prazo e a quem tem de ser notificada? E quando é preciso avisar também os titulares?",
+    "a": "A violação deve ser notificada à autoridade de controlo (em Portugal, a CNPD) sem demora injustificada e, se possível, no prazo de 72 horas após ter tido conhecimento (art. 33.º), salvo se for improvável que resulte em risco para os direitos e liberdades das pessoas. Os titulares têm de ser informados (art. 34.º) quando a violação for suscetível de implicar um risco elevado para os seus direitos e liberdades.",
+    "ref": "RGPD, art. 33.º e art. 34.º"
+  },
+  {
+    "id": "rgpd-012",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que é uma Avaliação de Impacto sobre a Proteção de Dados (DPIA/AIPD) e quando é obrigatória? Dá um exemplo de tratamento que a exige.",
+    "a": "A DPIA (art. 35.º) é uma avaliação prévia dos riscos que um tratamento representa para os direitos e liberdades das pessoas, com as medidas para os mitigar. É obrigatória quando o tratamento for suscetível de implicar um risco elevado — em especial em casos de definição de perfis em larga escala, tratamento em larga escala de categorias especiais, ou vigilância sistemática de zonas públicas. Exemplo: um sistema de videovigilância com reconhecimento facial num centro comercial.",
+    "ref": "RGPD, art. 35.º"
+  },
+  {
+    "id": "rgpd-013",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que significa 'proteção de dados desde a conceção e por defeito' (privacy by design and by default)? Dá um exemplo prático de cada.",
+    "a": "Art. 25.º. 'Desde a conceção' (by design) significa integrar a proteção de dados no desenho do sistema desde o início — ex.: cifrar os dados e pseudonimizar já na arquitetura da aplicação. 'Por defeito' (by default) significa que, sem qualquer ação do utilizador, só se tratam os dados necessários para cada finalidade — ex.: um perfil de rede social vir por defeito com a visibilidade mais restritiva, e não pública.",
+    "ref": "RGPD, art. 25.º"
+  },
+  {
+    "id": "rgpd-014",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Quando é obrigatório designar um Encarregado de Proteção de Dados (DPO)? Enumera os três casos do art. 37.º.",
+    "a": "É obrigatório designar DPO quando: (a) o tratamento é efetuado por uma autoridade ou organismo público; (b) as atividades principais do responsável/subcontratante exigem um controlo regular e sistemático dos titulares em larga escala; (c) as atividades principais consistem no tratamento em larga escala de categorias especiais de dados (art. 9.º) ou de dados relativos a condenações penais (art. 10.º).",
+    "ref": "RGPD, art. 37.º, n.º 1"
+  },
+  {
+    "id": "rgpd-015",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Quais são as funções mínimas do DPO e a quem deve reportar? Pode acumular outras funções na empresa?",
+    "a": "Funções (art. 39.º): informar e aconselhar o responsável e os trabalhadores; controlar a conformidade; aconselhar sobre DPIAs; cooperar com a autoridade de controlo e ser o ponto de contacto. Deve reportar ao mais alto nível da gestão (art. 38.º, n.º 3) e não pode receber instruções sobre o exercício das suas funções. Pode acumular outras funções desde que não gerem conflito de interesses (art. 38.º, n.º 6) — ex.: não pode ser simultaneamente quem decide as finalidades do tratamento.",
+    "ref": "RGPD, art. 38.º e art. 39.º"
+  },
+  {
+    "id": "rgpd-016",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que é o registo das atividades de tratamento (RAT) e quem é obrigado a mantê-lo? Que informação deve conter, no mínimo?",
+    "a": "É o documento onde se registam os tratamentos efetuados (art. 30.º), peça central da accountability. Obriga responsáveis e subcontratantes; há uma isenção parcial para organizações com menos de 250 trabalhadores, salvo se o tratamento for de risco, não ocasional, ou envolver categorias especiais. Deve conter, no mínimo: identificação e contactos do responsável, finalidades, categorias de titulares e de dados, categorias de destinatários, transferências para países terceiros, prazos de conservação e descrição das medidas de segurança.",
+    "ref": "RGPD, art. 30.º"
+  },
+  {
+    "id": "rgpd-017",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Quais são as duas escalas de coimas do RGPD e a que tipo de infrações se aplicam? Dá um exemplo para cada escalão.",
+    "a": "Art. 83.º. Escalão inferior: até 10 milhões de euros ou 2% do volume de negócios anual mundial, o que for mais elevado — para infrações como falhas no registo (art. 30.º), na segurança (art. 32.º) ou na designação do DPO. Escalão superior: até 20 milhões ou 4% — para violações dos princípios (art. 5.º), das bases de licitude (art. 6.º), das condições de consentimento (art. 7.º) e dos direitos dos titulares (arts. 12.º a 22.º).",
+    "ref": "RGPD, art. 83.º, n.os 4 e 5"
+  },
+  {
+    "id": "rgpd-018",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que exige o art. 32.º em matéria de segurança do tratamento? Cita duas medidas técnicas que menciona expressamente.",
+    "a": "O art. 32.º exige medidas técnicas e organizativas adequadas ao risco, tendo em conta o estado da técnica e os custos. Menciona expressamente, entre outras: a pseudonimização e a cifragem dos dados pessoais; a capacidade de assegurar confidencialidade, integridade, disponibilidade e resiliência dos sistemas; a capacidade de repor a disponibilidade e o acesso em caso de incidente; e um processo de teste e avaliação regular da eficácia das medidas.",
+    "ref": "RGPD, art. 32.º"
+  },
+  {
+    "id": "rgpd-019",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que é o direito de oposição e em que se distingue da retirada de consentimento? Dá um caso de marketing direto.",
+    "a": "O direito de oposição (art. 21.º) permite ao titular opor-se a um tratamento baseado em interesse legítimo ou interesse público, obrigando o responsável a cessar salvo se demonstrar razões imperiosas. A retirada de consentimento (art. 7.º, n.º 3) só existe quando a base é o consentimento. No marketing direto, a oposição é absoluta: se o titular se opõe, o tratamento para imediatamente, sem ponderação de interesses (art. 21.º, n.os 2 e 3).",
+    "ref": "RGPD, art. 21.º"
+  },
+  {
+    "id": "rgpd-020",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que diz o art. 22.º sobre decisões automatizadas e definição de perfis? Um banco que recusa um crédito só com base num algoritmo levanta que questão?",
+    "a": "O art. 22.º dá ao titular o direito de não ficar sujeito a decisões tomadas exclusivamente com base em tratamento automatizado, incluindo profiling, que produzam efeitos jurídicos ou o afetem significativamente. Há exceções (necessário a um contrato, autorizado por lei, ou com consentimento explícito), mas mesmo aí têm de existir salvaguardas — direito a intervenção humana, a exprimir a sua opinião e a contestar. Um crédito recusado só por algoritmo exige, no mínimo, revisão humana e explicação.",
+    "ref": "RGPD, art. 22.º"
+  },
+  {
+    "id": "rgpd-021",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que caracteriza uma transferência de dados para um país terceiro e que mecanismos a podem legitimar? Cita dois.",
+    "a": "É a transmissão de dados pessoais para fora do Espaço Económico Europeu (Capítulo V, arts. 44.º e seguintes). Mecanismos: uma decisão de adequação da Comissão (art. 45.º) que reconhece que o país oferece proteção equivalente; ou, na ausência dela, garantias adequadas (art. 46.º) como as Cláusulas Contratuais-Tipo (SCC) ou as Regras Vinculativas Aplicáveis às Empresas (BCR). Em falta destas, só derrogações específicas do art. 49.º.",
+    "ref": "RGPD, Capítulo V (arts. 44.º a 49.º)"
+  },
+  {
+    "id": "rgpd-022",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Qual a diferença entre anonimização e pseudonimização? Só uma delas retira os dados do âmbito do RGPD — qual e porquê?",
+    "a": "A pseudonimização (art. 4.º, n.º 5) substitui identificadores por um pseudónimo, mas com uma chave que permite reidentificar — os dados continuam a ser pessoais e sujeitos ao RGPD. A anonimização torna a reidentificação irreversível e razoavelmente impossível; dados verdadeiramente anónimos deixam de ser dados pessoais e saem do âmbito do RGPD (considerando 26). A distinção prática é a reversibilidade: se se consegue voltar à pessoa, é pseudonimização.",
+    "ref": "RGPD, art. 4.º, n.º 5; considerando 26"
+  },
+  {
+    "id": "rgpd-023",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Que informação tem de ser dada ao titular no momento da recolha dos dados? Enumera pelo menos cinco elementos do art. 13.º.",
+    "a": "Entre outros (art. 13.º): identidade e contactos do responsável (e do DPO, se existir); as finalidades e a base jurídica do tratamento; os interesses legítimos, quando aplicável; os destinatários ou categorias de destinatários; a intenção de transferir para países terceiros; o prazo de conservação; os direitos do titular (acesso, retificação, apagamento, oposição, portabilidade); o direito de reclamar à autoridade de controlo; e se existe decisão automatizada.",
+    "ref": "RGPD, art. 13.º"
+  },
+  {
+    "id": "rgpd-024",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "O que deve conter, no essencial, um contrato de subcontratação nos termos do art. 28.º? Cita três obrigações que o subcontratante assume.",
+    "a": "O tratamento pelo subcontratante rege-se por contrato que o vincula ao responsável (art. 28.º, n.º 3). O subcontratante obriga-se, entre outros, a: tratar os dados apenas segundo instruções documentadas do responsável; garantir que as pessoas autorizadas se comprometem à confidencialidade; aplicar as medidas de segurança do art. 32.º; não subcontratar sem autorização; ajudar o responsável a responder aos direitos dos titulares; e apagar ou devolver os dados no fim da prestação.",
+    "ref": "RGPD, art. 28.º"
+  },
+  {
+    "id": "rgpd-025",
+    "tema": "rgpd",
+    "dif": "base",
+    "q": "Qual é a autoridade de controlo em Portugal e que tipo de poderes tem? Um titular que se sente lesado pode recorrer diretamente a ela?",
+    "a": "É a CNPD — Comissão Nacional de Proteção de Dados. Tem poderes de investigação (auditorias, acesso a informação), poderes de correção (advertências, ordens, limitação ou proibição do tratamento, coimas) e poderes consultivos/de autorização (arts. 57.º e 58.º). Sim, qualquer titular tem o direito de apresentar reclamação diretamente à autoridade de controlo (art. 77.º), sem prejuízo de recurso judicial.",
+    "ref": "RGPD, arts. 57.º, 58.º e 77.º"
+  }
+]

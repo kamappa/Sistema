@@ -1,0 +1,127 @@
+/* INVENTÁRIO DE IA — folha.
+ * Missão 29 · Fase 3.
+ *
+ * Sem cor nova: o painel usa os tokens que já existem. Um domínio novo que
+ * chega com paleta própria transforma o produto numa colagem, e a direção
+ * proíbe-o por nome.
+ *
+ * O risco NÃO é comunicado só por cor — é a gramática 15 do projeto, e aqui é
+ * literal: quem não distingue vermelho de laranja continua a ler a palavra. A
+ * cor reforça; o texto informa.
+ */
+
+.ai-inv .ai-resumo { margin: 0 0 12px; }
+.ai-inv .ai-r1 { margin: 0 0 4px; font-size: 13px; color: var(--ink); }
+/* As linhas de dívida herdam o peso da primeira mas não competem com ela. */
+.ai-inv .ai-rn { margin: 0 0 2px; font-size: 12px; color: var(--mut); line-height: 1.45; }
+
+.ai-inv .ai-lista { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+
+.ai-inv .ai-item {
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  padding: 9px 11px;
+}
+/* O filete lateral diz o risco. É a mesma gramática do prazo no calendário —
+   filete lateral = urgência —, e reusá-la é o que evita inventar um vocabulário
+   novo para dizer a mesma coisa. */
+.ai-inv .ai-item[data-risco='por-avaliar'] { border-left-color: var(--mut2); }
+.ai-inv .ai-item[data-risco='baixo']       { border-left-color: #34d399; }
+.ai-inv .ai-item[data-risco='medio']       { border-left-color: #fb923c; }
+.ai-inv .ai-item[data-risco='alto']        { border-left-color: #ef4444; }
+
+.ai-inv .ai-cab { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.ai-inv .ai-nome { font-size: 13px; }
+.ai-inv .ai-quem { font-family: var(--mono); font-size: 11px; color: var(--mut); }
+.ai-inv .ai-risco {
+  margin-left: auto; font-family: var(--mono); font-size: 10px;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--mut);
+}
+.ai-inv .ai-fim { margin: 3px 0 0; font-size: 12px; color: var(--mut); }
+
+/* O alerta é texto, não um ícone. Um triângulo amarelo diz "algo"; esta linha
+   diz o quê. */
+.ai-inv .ai-alerta {
+  margin: 6px 0 0; font-size: 11.5px; line-height: 1.4;
+  color: #fb923c;
+}
+
+.ai-inv .ai-accoes { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.ai-inv .ai-lbl { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--mut); }
+.ai-inv .ai-lbl select {
+  background: var(--bg2); border: 1px solid var(--line); color: var(--ink);
+  font-family: var(--body); font-size: 11.5px; padding: 3px 6px; outline: none;
+  /* 24px é o mínimo de alvo da WCAG 2.5.8, e um `select` de 18px passava
+     despercebido até alguém tentar tocar-lhe num telemóvel. */
+  min-height: 26px;
+}
+.ai-inv .ai-lbl select:focus-visible { border-color: #a78bfa; }
+@media (pointer: coarse) { .ai-inv .ai-lbl select { min-height: 32px; } }
+
+.ai-inv .ai-retirar { margin-left: auto; }
+
+.ai-inv .ai-meta {
+  margin: 7px 0 0; font-family: var(--mono); font-size: 10.5px; color: var(--mut);
+}
+
+/* O histórico usa `aria-disabled`, e por isso a WCAG isenta-o de contraste — mas
+   a isenção só vale porque o atributo lá está. Ver a correção das conquistas. */
+.ai-inv .ai-lista-off { margin-top: 8px; opacity: .55; }
+
+.ai-inv .ai-hist { margin-bottom: 12px; }
+
+.ai-inv .ai-form { display: grid; gap: 8px; margin-top: 10px; }
+.ai-inv .ai-campo { display: grid; gap: 3px; font-size: 11px; color: var(--mut); }
+.ai-inv .ai-campo input {
+  background: var(--bg2); border: 1px solid var(--line); color: var(--ink);
+  font-family: var(--body); font-size: 13px; padding: 8px 10px; outline: none;
+  /* `min-width: 0` porque o campo vive numa grelha e sem isto o conteúdo
+     impede-o de encolher — é exactamente o defeito que colapsou o campo do
+     Oráculo a 24px. */
+  min-width: 0;
+}
+.ai-inv .ai-campo input:focus { border-color: #a78bfa; }
+
+.ai-inv .ai-radio {
+  border: 1px solid var(--line); padding: 7px 10px; margin: 0;
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+}
+.ai-inv .ai-radio legend { font-size: 11px; color: var(--mut); padding: 0 4px; }
+.ai-inv .ai-radio label { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+
+.ai-inv .ai-form-accoes { display: flex; gap: 8px; align-items: center; }
+.ai-inv .ai-nota { margin: 2px 0 0; font-size: 11px; color: var(--mut); line-height: 1.45; }
+.ai-inv .ai-novo { margin-top: 4px; }
+
+@media (max-width: 720px) {
+  /* Em coluna estreita as ações empilham em vez de espremer os `select`. */
+  .ai-inv .ai-retirar { margin-left: 0; }
+}
+
+/* ── O QUE O SISTEMA SABE DE SI ────────────────────────────────────────
+ * Material distinto do inventário: isto ainda NÃO é um registo. Sem filete de
+ * risco, sem selects, sem data — porque nada disto existe até alguém registar.
+ * Se parecesse um item do inventário, dava a entender que já lá estava.
+ */
+.ai-inv .ai-sug { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 11px; }
+.ai-inv .ai-sug-t { margin: 0 0 9px; font-size: 11.5px; color: var(--mut); line-height: 1.5; }
+.ai-inv .ai-sug-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.ai-inv .ai-sug-lista li { padding-left: 9px; border-left: 1px dashed var(--line); }
+/* Tracejado e não sólido: a borda diz "proposta", o filete sólido diz
+   "registado". A diferença tem de se ver sem se ler. */
+.ai-inv .ai-sug-cab { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.ai-inv .ai-sug-cab b { font-size: 12.5px; }
+.ai-inv .ai-sug-cab .mini { margin-left: auto; }
+.ai-inv .ai-sug-dp {
+  font-family: var(--mono); font-size: 10px; color: #fb923c;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.ai-inv .ai-sug-fim { margin: 2px 0 0; font-size: 11.5px; color: var(--mut); }
+/* A ORIGEM da prova. Estava a `--mut2` e dava 2.36:1 — medido na auditoria
+   das seis zonas, logo a seguir a eu a escrever. E o MESMO #4e4768 que ja
+   tinha falhado no ✕ de apagar, e voltei a usa-lo por habito no mesmo dia.
+
+   Aqui doi mais do que num icone: esta linha e a PROVA de onde o uso de IA
+   veio. Um inventario cuja prova nao se le e um inventario sem prova — e o
+   ficheiro inteiro existe para o contrario disso. */
+.ai-inv .ai-sug-org { margin: 2px 0 0; font-family: var(--mono); font-size: 10px; color: var(--mut); opacity: .85; }

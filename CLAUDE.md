@@ -1,23 +1,49 @@
 # CLAUDE.md — Sistema (Daniel)
 
 > Este ficheiro é o bootloader permanente do projeto. É carregado no início
-> de cada sessão. O estado de execução e a história das missões vivem em
-> `SPEC-CLAUDE-CODE.md`; a visão-mãe vive em
+> de cada sessão. O estado de execução vive em `SPEC-CLAUDE-CODEv2.md`; a
+> história da M25 e da M26 em `SPEC-CLAUDE-CODE.md`; a visão-mãe em
 > `SYSTEM-EVOLUTION-ROADMAP.md`.
 
 ## Fontes de verdade e precedência
 
-Ler, por esta ordem:
+### Ordem documental oficial (aprovada 2026-07-25)
+
+Quando duas fontes se contradizem, prevalece a que estiver mais acima:
+
+1. segurança, legalidade e verdade;
+2. Daniel;
+3. `SYSTEM-ORACLE-CONSTITUTION.md`;
+4. `CLAUDE.md`;
+5. `SPEC-CLAUDE-CODEv2.md` e `SPEC-CLAUDE-CODE.md` — sobre o estado, manda o v2;
+6. `SYSTEM-EVOLUTION-ROADMAP.md`;
+7. `docs/oracle-governance/`;
+8. `ORACULO-ROADMAP.md`, como documento histórico;
+9. documentação de missão;
+10. implementação e outputs de ferramentas.
+
+Esta é a única lista de precedência do projeto. Nenhum outro documento a
+redefine; os que precisem dela apontam para aqui.
+
+### Ordem de leitura ao arrancar
 
 1. `CLAUDE.md` — regras permanentes, identidade, segurança e método.
-2. `SPEC-CLAUDE-CODE.md` — estado real das missões, decisões fechadas,
-   backlog e próxima fase elegível.
+2. `SPEC-CLAUDE-CODEv2.md` — estado real das missões, decisões fechadas e a
+   fase em curso; `SPEC-CLAUDE-CODE.md` para a história da M25 e da M26.
 3. `SYSTEM-EVOLUTION-ROADMAP.md` — visão de longo prazo e leis do mundo;
    não é autorização para executar tudo de uma vez.
 4. Código, `git status`, histórico e branch atual — prova final do que existe.
 
-Se houver conflito, nunca adivinhar. O código e o histórico confirmam o estado;
-o SPEC decide o plano corrente; o ROADMAP orienta a direção futura.
+Precedência e leitura são coisas diferentes. A lista acima resolve conflitos;
+esta ordena o arranque. O código e o histórico confirmam o estado que existe,
+mas não decidem o que deve ser — para isso vale a precedência. Nunca adivinhar.
+
+Estes nomes são os canónicos. Ficheiros com sufixo `v2` foram fontes de uma
+reconciliação e não devem ser recriados nem tratados como autoridade paralela —
+ver `SPEC-CLAUDE-CODE.md`, secção da reconciliação de 2026-07-25. **A exceção é
+o `SPEC-CLAUDE-CODEv2.md`:** o Daniel passou a escrever lá o estado e, a
+2026-09-23, fez dele o registo; a 2026-09-27 trouxe-o para o ramo da Órbita, e é
+só aí que se edita até a Órbita entrar no `main`.
 
 ## Frase de recuperação
 
@@ -36,8 +62,10 @@ Quando o Daniel disser **"vamos começar o verdadeiro sistema"**:
    - skills/plugins instalados.
 6. Observar `localhost` no browser real quando possível e recolher uma
    baseline visual, consola e estado de rede.
-7. Identificar a missão ativa e a próxima fase elegível. A Missão 24 não pode
-   ser ignorada sem ser concluída ou formalmente colocada em pausa.
+7. Identificar a missão ativa e a próxima fase elegível. A Missão 24 está
+   formalmente PAUSADA desde 2026-07-25 e não deve ser retomada sem decisão
+   explícita; a missão corrente é a Missão 26, e desde 2026-09-27 o trabalho em
+   curso é publicá-la, em cinco etapas — ver o SPEC v2.
 8. Apresentar diagnóstico, ficheiros afetados, riscos, plano por fases e diff
    proposto.
 9. Esperar concordância antes de alterar código.
@@ -106,18 +134,36 @@ hábitos, projetos, evidências e decisões numa trajetória coerente.
 
 ## Regra de arquitetura
 
-A baseline documentada continua a ser uma aplicação estática em GitHub Pages:
-scripts clássicos globais, Supabase e uma ilha WebGL de ES modules em
-`js/stage/`, com Three.js r170 vendorizado e sem build step obrigatório.
+A stack da frontend mudou por missão própria, com plano, verificação e
+rollback — não por impulso nem por influência de skills ou referências. O
+estado real, a 2026-07-25:
 
-Não migrar implicitamente para React, React Three Fiber, Vite, Next.js,
-Tailwind, shadcn ou outra stack só porque aparecem em referências ou skills.
-Essas tecnologias podem ser estudadas e usadas como inspiração. Uma migração
-real exige missão própria, comparação de custos, plano de rollback, prova de
-compatibilidade com Supabase/GitHub Pages e aprovação explícita.
+- **Produção** (GitHub Pages a servir `main`) continua a ser a aplicação
+  estática Vanilla: scripts clássicos globais, `css/hud.css`, ilha WebGL de ES
+  modules em `js/stage/` com Three.js r170 vendorizado, sem build step.
+- **`react-migration`** contém a frontend React + Vite completa e verificada
+  (Missão 25, 18 fases). O Vanilla vive nessa branch em `legacy/` como
+  referência standalone.
+- **`mission-26/renaissance-visual`** deriva de `react-migration` e é a branch
+  de trabalho corrente (Missão 26 — Renaissance Visual).
+- **Decisão de 2026-09-27:** a Órbita (o React deste ramo) passa a ser a
+  interface, para usar e para construir; o Vanilla deixa de ser trabalhado. Até
+  ser publicada, o Daniel usa-a pelo servidor local do Vite, e o Pages continua a
+  servir o Vanilla do `main`.
 
-Se a branch atual já contiver uma migração experimental React/Vite, parar e
-reconciliar essa branch com o SPEC antes de continuar ou fazer deploy.
+Consequências para o método:
+
+- A migração React/Vite **já foi executada**. Não a repetir, não a
+  recomeçar e não a tratar como experiência futura ou hipótese.
+- Não migrar implicitamente para Next.js, Tailwind, shadcn ou outra stack só
+  porque aparecem em referências ou skills. Cada adição de tecnologia exige
+  justificação, custo, alternativa, plano de rollback e aprovação — a mesma
+  disciplina que produziu a Missão 25.
+- O gate de produção mantém-se intacto: a troca do Pages do Vanilla para o
+  React exige decisão explícita do Daniel. Enquanto não existir, `main` é a
+  verdade em produção e não se altera.
+- A frontend Vanilla não se apaga enquanto o React não estiver em produção e
+  validado com a conta real.
 
 ## Pesquisa e ferramentas
 
@@ -168,54 +214,71 @@ Pergunta obrigatória antes de concluir uma alteração visual:
 > Isto parece um produto único chamado Sistema, ou parece uma interface
 > gerada por AI?
 
-## Arquitetura documentada (julho de 2026)
+## Arquitetura real (2026-07-25)
 
-- Frontend estático em GitHub Pages, com `index.html`, `css/hud.css`, scripts
-  clássicos e ordem de carregamento documentada. `js/estacao.js` foi inserido
-  entre memória e navegação na Missão 24.
-- Palco WebGL em `js/stage/`, Three.js vendorizado em `js/vendor/`, façade
-  global e comunicação por `js/bus.js`.
-- Supabase: auth de utilizador único, `app_state`, `radar_items`,
-  `oracle_reports`, RLS e Edge Function `oraculo`.
-- Oráculo: Radar, relatório, Conselho, Sussurro, contexto do Vault e voz de
-  Guardião do Núcleo.
-- Vault privado: Obsidian Git → `kamappa/vault-sistema` → Oráculo, com
-  whitelist de privacidade e relatórios escritos de volta.
-- Sistemas: missões, hábitos, sono, treino, revisão ativa, títulos reais,
-  constelações de evidência, Celestial Core, World/Solar Engine, Living
-  Memory, Radar, Oráculo e Modo Estação.
+O inventário de stack e de ficheiros é derivável do repositório (`package.json`,
+`ls`, `.github/workflows/`) e não se repete aqui. O que o código NÃO consegue
+explicar sozinho, e por isso vive neste ficheiro:
+
+- **Produção é `main`, Vanilla, sem build step.** A branch React existe mas não
+  está em produção. Confundir as duas é o erro que este parágrafo previne.
+- **O palco WebGL não foi reescrito na migração** — foi copiado para
+  `src/stage/` e alimentado por uma ponte de globais (`window.S`,
+  `window.__store`), porque ele corre num rAF fora do ciclo React. Quem mexer
+  nele tem de preservar essa ponte.
+- **O Vanilla de 2026-07-20 está em `legacy/` com histórico** (`git mv`), e não
+  se apaga enquanto o React não estiver validado em produção. Não é o Vanilla
+  inteiro: os lotes 0 a 3 de setembro (o painel das sessões, a correção de XSS)
+  só existem no `main`.
+- **Os testes do Oráculo em Deno correm com `DENO_NO_PACKAGE_JSON=1`.** A raiz
+  tem o `package.json` do Vite, e sem isso o Deno resolve os pacotes npm pelo
+  `node_modules` do frontend. O `testes/fumo/fumo.mjs` já a define.
+- **A anon key do Supabase em `src/lib/supabase.js` é pública por desenho** —
+  quem a vir no código não encontrou uma fuga; o RLS é que protege.
+- **O workflow de deploy está preparado e inativo** de propósito. Só dispara em
+  `push` para `main`.
+- **O Modo Estação só existe no Vanilla** — não foi migrado.
 
 ## Estado de execução
 
-O estado e o próximo passo não são inferidos deste resumo. Ler sempre
-`SPEC-CLAUDE-CODE.md`. À data desta revisão, a Missão 24 está em curso e as
-novas missões recuperadas do chat perdido começam apenas depois de a missão
-ativa ser concluída ou formalmente pausada.
+**Ler sempre `SPEC-CLAUDE-CODEv2.md`**, o registo do estado, e o
+`SPEC-CLAUDE-CODE.md` para a história da M25 e da M26. Um resumo do estado aqui
+divergiria do SPEC à primeira fase concluída, e este ficheiro não tem como saber
+que ficou desatualizado.
+
+Duas decisões de numeração que o SPEC regista e que NÃO se voltam a discutir: a
+Missão 30 da documentação está SUPERADA pela Missão 25 e o número fica
+reservado; a Missão 24 está PAUSADA e não se retoma desenvolvimento Vanilla.
+
+Em aberto, e só o Daniel o fecha: as Missões 31 a 34 do SPEC v2 (Agenda Viva,
+Memória do Oráculo, Ritual de Entrada, Sessões de Estudo) colidem com a M31
+(Compliance) deste ramo e a M32 (Analista de Documentos) do ramo
+`mission-32/…`. Até ele renumerar, as do v2 são as do registo e as outras são
+trabalho fora dele (decisão de 2026-09-23).
 
 ## Autoridade da migração frontend
 
-Antes de qualquer trabalho que envolva React, TypeScript, Vite, Vercel,
-React Three Fiber, substituição da shell, redesign estrutural ou migração da
-frontend, ler obrigatoriamente:
+Antes de qualquer trabalho que envolva TypeScript, R3F, Drei,
+pós-processamento, Vercel, substituição da shell ou redesign estrutural, ler:
 
 `docs/frontend-migration/00_READ_ME_FIRST.md`
 
 Depois, ler todos os ficheiros dessa pasta pela ordem documentada.
 
-Essa pasta é a fonte de autoridade para a frontend de próxima geração e define:
+Essa pasta continua a ser a fonte de autoridade da frontend de próxima
+geração. Nota de estado, para não a ler como se nada tivesse acontecido: a
+parte executável dela — React, Vite, migração incremental em branch paralela,
+preservação do Supabase, paridade de dados — **foi cumprida na Missão 25**. O
+que dela permanece por decidir ou por fazer:
 
-- arquitetura-alvo: TypeScript + React + Vite;
-- Motion para UI e interação 2D;
-- Three.js e React Three Fiber de forma seletiva;
-- Supabase preservado como backend e fonte de verdade;
-- Vercel inicialmente como ambiente de Preview;
-- migração incremental em branch paralela;
-- modo read-only no início;
-- testes de paridade antes de ativar escrita;
-- gates visuais, funcionais, de dados e performance;
-- preservação da versão estável até aprovação explícita.
+- TypeScript (avaliação incremental, `allowJs`, sem conversão total);
+- Motion / Framer Motion para UI;
+- React Three Fiber e Drei, apenas onde reduzirem complexidade real;
+- `@react-three/postprocessing` seletivo, sem custo de legibilidade;
+- Vercel como Preview Deployment;
+- os gates visuais de `09_ACCEPTANCE_GATES.md`.
 
-Esta autoridade não substitui as regras permanentes:
+As regras permanentes continuam acima desta autoridade:
 
 - propor antes de alterar;
 - uma fase de cada vez;
@@ -223,26 +286,25 @@ Esta autoridade não substitui as regras permanentes:
 - não alterar produção sem gate;
 - o Sistema nunca mente.
 
-A frontend atual não deve ser apagada nem convertida através de uma reescrita
-única. A nova frontend nasce numa branch própria e só substitui produção
-quando existir paridade, rollback, testes reais e aprovação do Daniel.
+A frontend Vanilla não deve ser apagada. Só sai de cena quando o React estiver
+em produção, validado com a conta real e com rollback documentado.
 
-## Ferramentas obrigatórias para a migração
+## Ferramentas obrigatórias
 
-A preparação da nova frontend exige confirmação e prova prática de:
+A preparação da nova frontend exige confirmação e **prova prática** de cada
+ferramenta — nunca presumir que está a funcionar:
 
-- Claude in Chrome;
-- Context7;
-- Tavily MCP;
-- Playwright MCP;
-- Chrome DevTools MCP;
-- `frontend-design`;
-- `claude-code-setup`;
-- `skill-creator`;
-- Superpowers;
-- ui-ux-pro-max;
-- 21st.dev Magic;
-- TypeScript LSP.
+Superpowers · Context7 · 21st.dev Magic · ui-ux-pro-max · frontend-design ·
+Playwright MCP · Chrome DevTools MCP · Claude in Chrome · TypeScript LSP.
+
+O estado verificado de cada uma vive no `SPEC-CLAUDE-CODE.md`, na fase que a
+verificou — não aqui. Uma tabela de estado num ficheiro sempre carregado
+envelhece em silêncio e passa a mentir; o SPEC é datado por fase e não tem esse
+problema.
+
+O Google Chrome é o browser oficial para Claude in Chrome, Playwright, Chrome
+DevTools, baseline visual, consola, network e performance. Brave/CDP fica como
+fallback.
 
 Superpowers, ui-ux-pro-max e 21st.dev Magic são requisitos formais, não extras.
 Nenhuma destas ferramentas pode impor uma identidade genérica ou fazer commit
@@ -251,3 +313,48 @@ pela pergunta:
 
 > Isto parece um produto único chamado Sistema, ou parece um dashboard gerado
 > por AI?
+
+## Oracle Governance Authority
+
+Obrigatório para todo o trabalho relacionado com o Oráculo.
+
+**Antes de alterar voz, personalidade, memória, autonomia, agentes,
+notificações, Money Printing Machine, moderação ou execução externa, ler:**
+`SYSTEM-ORACLE-CONSTITUTION.md`, depois `docs/oracle-governance/` pela ordem do
+`00_READ_ME_FIRST.md`. O programa técnico vive na secção "Programa Oracle
+Intelligence & Governance" do `SPEC-CLAUDE-CODE.md`; a sequência de evolução na
+Camada V do `SYSTEM-EVOLUTION-ROADMAP.md`.
+
+O Oráculo é Chief Intelligence Officer, Chief of Staff, assistente pessoal,
+moderador, supervisor de agentes, guardião da verdade e auditor. **Não é uma
+caixa de chat.**
+
+### Regras invioláveis
+
+Estas ficam aqui, sempre carregadas, porque são proibições de segurança e não
+podem depender de alguém ter aberto o documento certo. O Claude Code não pode:
+
+- aumentar autonomia sem política;
+- criar memória silenciosa;
+- conceder permissões a agentes sem registry;
+- permitir autoelevação de privilégios;
+- executar ações externas críticas sem consentimento;
+- esconder custo, erro ou incerteza;
+- declarar sucesso sem evidência;
+- confundir tarefa delegada com tarefa concluída;
+- criar um chatbot genérico;
+- imitar diretamente uma personagem protegida;
+- usar animação para fingir inteligência;
+- criar loops de agentes sem limites;
+- colocar segredos no frontend;
+- alterar produção sem gate.
+
+### Gate final
+
+Nenhuma funcionalidade é aceite apenas porque funciona. Tem de provar utilidade,
+verdade, segurança, auditabilidade, reversibilidade, controlo humano,
+consistência, qualidade visual e benefício superior ao risco.
+
+O detalhe operacional — processo, autonomia por níveis, voz, memória, agentes,
+Money Machine, estados de UI — está em `docs/oracle-governance/` e carrega-se
+quando for preciso, não em todas as sessões.

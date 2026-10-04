@@ -49,6 +49,9 @@ const LIMITS = {
 const COMMIT = 190;
 /** Teto do desvio livre em z, para o desvio nunca chegar ao plano da câmara. */
 const MAX_Z = 240;
+/** Dois dedos só são um gesto se pousarem juntos: o segundo até isto depois do primeiro (ms).
+ *  PROVISÓRIO (D7, Daniel, 2026-09-28) até ao teste no iPhone. */
+const JUNTOS = 250;
 
 export interface FreeCamAPI {
   /** Zera o desvio. Chamado pela cena a cada mudança de estado. */
@@ -181,19 +184,54 @@ export function useFreeCam(
      * Pinça e arrasto são o mesmo gesto, como num mapa — a distância aprofunda, o ponto
      * médio desloca. */
     let mid0 = { x: 0, y: 0 }; let pan0 = { x: 0, y: 0 };
-    const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
-    const mid = (t: TouchList) => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 });
+
+    /* ── QUE DEDOS FAZEM UM GESTO (D7, Daniel, 2026-09-28) ──
+     * O iPhone mostrou o defeito: `e.touches` são TODOS os dedos do ecrã, e um polegar pousado
+     * na borda — ao pegar no telemóvel — fazia do dedo que rola a página o segundo dedo de uma
+     * pinça; e uma pinça na vista geral vai direta ao Núcleo. Duas regras, cada uma com o seu
+     * caso:
+     *   R1 — só contam os dedos que pousaram NO CÉU: o contacto na margem ou nas barras não
+     *        conta, mesmo que pouse no mesmo instante;
+     *   R2 — os dois pousam JUNTOS: o segundo até JUNTOS ms depois do primeiro; o dedo que já
+     *        estava pousado no céu antes do gesto não conta.
+     * Dos dedos do céu contam os dois mais recentes: com um polegar pousado, dois dedos novos
+     * continuam a fazer o gesto (antes, três dedos no ecrã desligavam a pinça). Sem gesto não
+     * há preventDefault, e o dedo que se mexe rola a página, como a D6 quer. */
+    const inicio = new Map<number, number>();
+    const registar = (e: TouchEvent) => { for (const t of Array.from(e.changedTouches)) inicio.set(t.identifier, e.timeStamp); };
+    const esquecer = (e: TouchEvent) => { for (const t of Array.from(e.changedTouches)) inicio.delete(t.identifier); };
+    const noCeu = (t: Touch) => t.target instanceof Node && el.contains(t.target);
+    let par: [number, number] | null = null;
+    const escolherPar = (lista: TouchList): [number, number] | null => {
+      const ceu = Array.from(lista).filter((t) => noCeu(t) && inicio.has(t.identifier))
+        .sort((a, b) => inicio.get(b.identifier)! - inicio.get(a.identifier)!);
+      if (ceu.length < 2) return null;
+      const [a, b] = ceu;
+      if (Math.abs(inicio.get(a.identifier)! - inicio.get(b.identifier)!) > JUNTOS) return null;
+      return [a.identifier, b.identifier];
+    };
+    const doPar = (lista: TouchList): [Touch, Touch] | null => {
+      if (!par) return null;
+      const a = Array.from(lista).find((t) => t.identifier === par![0]);
+      const b = Array.from(lista).find((t) => t.identifier === par![1]);
+      return a && b ? [a, b] : null;
+    };
+    const dist = ([a, b]: [Touch, Touch]) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    const mid = ([a, b]: [Touch, Touch]) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
     const tstart = (e: TouchEvent) => {
-      if (e.touches.length !== 2) return;
-      pinch0 = dist(e.touches);
-      mid0 = mid(e.touches); pan0 = { x: off.current.x, y: off.current.y };
+      par = escolherPar(e.touches);
+      const dedos = doPar(e.touches);
+      if (!dedos) { pinch0 = 0; return; }
+      pinch0 = dist(dedos);
+      mid0 = mid(dedos); pan0 = { x: off.current.x, y: off.current.y };
     };
     const tmove = (e: TouchEvent) => {
-      if (e.touches.length !== 2 || !pinch0) return;
+      const dedos = doPar(e.touches);
+      if (!dedos || !pinch0) return;
       e.preventDefault();
       if (wheelLock) return;
-      const d = dist(e.touches);
-      const c = mid(e.touches);
+      const d = dist(dedos);
+      const c = mid(dedos);
       off.current.x = clamp(pan0.x + c.x - mid0.x, lim.x);
       off.current.y = clamp(pan0.y + c.y - mid0.y, lim.y);
       off.current.z = Math.max(-MAX_Z, Math.min(MAX_Z, (d / pinch0 - 1) * 420));
@@ -213,17 +251,27 @@ export function useFreeCam(
         window.setTimeout(() => { wheelLock = false; }, 700);
       }
     };
-    // Ao levantar, a profundidade volta (a pinça só compromete além do limiar) e o
-    // desvio lateral fica, como fica o do rato — o Escape, ou o toque duplo, centra.
-    const tend = () => { pinch0 = 0; off.current.z = 0; write(); };
+    // Ao levantar um dos dedos do gesto, a profundidade volta (a pinça só compromete além do
+    // limiar) e o desvio lateral fica, como fica o do rato — o Escape, ou o toque duplo, centra.
+    // Um dedo de fora do gesto a levantar não o interrompe.
+    const tend = (e: TouchEvent) => {
+      if (par && doPar(e.touches)) return;
+      par = null; pinch0 = 0; off.current.z = 0; write();
+    };
 
     el.addEventListener('pointerdown', down);
     el.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
     el.addEventListener('wheel', wheel, { passive: false });
+    // O instante de cada dedo regista-se na janela, na captura: chega antes do `touchstart` da
+    // cena e vê também os dedos de fora dela (é a R1, e não a falta deles, que os exclui).
+    window.addEventListener('touchstart', registar, { capture: true, passive: true });
+    window.addEventListener('touchend', esquecer, { capture: true, passive: true });
+    window.addEventListener('touchcancel', esquecer, { capture: true, passive: true });
     el.addEventListener('touchstart', tstart, { passive: true });
     el.addEventListener('touchmove', tmove, { passive: false });
     el.addEventListener('touchend', tend);
+    el.addEventListener('touchcancel', tend);
     write();
 
     return () => {
@@ -231,9 +279,13 @@ export function useFreeCam(
       el.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
       el.removeEventListener('wheel', wheel);
+      window.removeEventListener('touchstart', registar, { capture: true });
+      window.removeEventListener('touchend', esquecer, { capture: true });
+      window.removeEventListener('touchcancel', esquecer, { capture: true });
       el.removeEventListener('touchstart', tstart);
       el.removeEventListener('touchmove', tmove);
       el.removeEventListener('touchend', tend);
+      el.removeEventListener('touchcancel', tend);
       api.current = null;
     };
   }, [ref, api, enabled, wide]);

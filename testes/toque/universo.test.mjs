@@ -64,6 +64,12 @@ for (const t of ['pointerdown', 'click']) {
 window.__estados = [];
 window.__toquesMax = 0;
 document.addEventListener('touchmove', (e) => { window.__toquesMax = Math.max(window.__toquesMax, e.touches.length); }, { capture: true, passive: true });
+// A app cancela o gesto? Lido na janela, na fase de borbulha — depois de todos os ouvintes da
+// app terem corrido. Um touchstart ou touchmove cancelado é o que impede o browser de rolar.
+window.__gesto = { vistos: 0, cancelados: 0 };
+for (const t of ['touchstart', 'touchmove']) {
+  window.addEventListener(t, (e) => { window.__gesto.vistos++; if (e.defaultPrevented) window.__gesto.cancelados++; }, { passive: true });
+}
 const vigiar = () => {
   const us = document.querySelector('.us');
   if (!us) return setTimeout(vigiar, 50);
@@ -137,6 +143,19 @@ window.__u = {
   },
   focar: (id) => { document.querySelector('.us-terr[data-sig="' + id + '"] .us-terr-hit').focus(); },
   historico: () => window.__estados.splice(0),
+  gesto: () => { const g = window.__gesto; window.__gesto = { vistos: 0, cancelados: 0 }; return g; },
+  // O touch-action do CSS deixa o browser rolar na vertical sob este ponto? É a interseção dos
+  // valores do elemento tocado e de todos os antepassados até à raiz: basta um que não deixe.
+  rolaNaVertical: (x, y) => {
+    const deixa = (v) => v === 'auto' || v === 'manipulation' || /\\bpan-(y|up|down)\\b/.test(v);
+    const cadeia = [];
+    for (let e = document.elementFromPoint(x, y); e; e = e.parentElement) {
+      const v = getComputedStyle(e).touchAction;
+      if (!deixa(v)) return { deixa: false, onde: (e.className && String(e.className).slice(0, 30)) || e.tagName, valor: v };
+      cadeia.push(v);
+    }
+    return { deixa: true, valores: [...new Set(cadeia)] };
+  },
   toquesMax: () => { const n = window.__toquesMax; window.__toquesMax = 0; return n; },
   // Os nomes e os níveis dos domínios («Saber», «Nv 1»): a altura no ecrã e se se veem — com
   // opacidade efetiva e dentro da caixa do céu.
@@ -299,17 +318,40 @@ async function arrastarRato(s, { x, y }, dx, dy) {
 }
 // Um polegar pousado e parado em `polegar` há `ms`, e um dedo a rolar a página por cima do céu,
 // a subir `dy` px a partir de `dedo`. É o gesto de quem segura o telemóvel com uma mão.
+// Com ms = 0 os dois pousam no mesmo instante (um só touchStart com os dois pontos).
 async function rolarComPolegar(s, polegar, dedo, dy, ms) {
   const P = { x: polegar.x, y: polegar.y, id: 0 };
   const D = (t) => ({ x: dedo.x, y: dedo.y + dy * t, id: 1 });
-  await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [P] });
-  await sleep(ms);
+  if (ms > 0) {
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [P] });
+    await sleep(ms);
+  }
   await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [P, D(0)] });
   for (let i = 1; i <= 10; i++) {
     await s.enviar('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [P, D(i / 10)] });
     await sleep(16);
   }
   await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [P, D(1)] });
+}
+// Uma pinça a abrir com dois dedos que pousam com `atraso` segundos de diferença, nos instantes
+// que o protocolo dá aos eventos (o ritmo do dedo, não a espera do arnês). `extra` são pontos
+// que ficam pousados e parados durante o gesto (um polegar), já pousados antes dele.
+async function pincaComAtraso(s, { x, y }, atraso, extra = []) {
+  const t0 = Date.now() / 1000;
+  const A = (r) => ({ x: x - r, y, id: 1 });
+  const B = (r) => ({ x: x + r, y, id: 2 });
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [...extra, A(30)], timestamp: t0 });
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [...extra, A(30), B(30)], timestamp: t0 + atraso });
+  for (let i = 1; i <= 12; i++) {
+    const r = 30 + (60 * i) / 12;
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [...extra, A(r), B(r)], timestamp: t0 + atraso + i * 0.016 });
+  }
+  await s.enviar('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [...extra, A(90), B(90)], timestamp: t0 + atraso + 0.25 });
+}
+async function chegouAoNucleo(s, ms = 2500) {
+  let e;
+  for (let t = 0; t < ms; t += 100) { e = await u(s, 'estado()'); if (e.estado === 'CORE_APPROACH' || e.estado === 'CORE_INSIDE') return true; await sleep(100); }
+  return false;
 }
 async function esperarEstado(s, alvo, ms = 3000) {
   let e;
@@ -579,8 +621,36 @@ test('toque: dois dedos arrastam o céu pelo ponto médio', async () => {
 // perceber, [...] é a diferença entre "só se chega lá por um gesto" e "chega-se lá por
 // acidente ao pegar no telemóvel". Trata como bug.» O dedo que rola é o mesmo do teste «um
 // dedo no céu rola a página», que é o controlo de que este caminho, sozinho, rola.
+//
+// Com dois dedos no ecrã NÃO se afirma que a página rola: o Chrome emulado não rola com dois
+// dedos nem numa página sem código nenhum (medido a 28/09: 15 px com touch-action auto, 0 com
+// pan-y, ~300 com um dedo). O critério aprovado pelo Daniel (28/09) é o que a app controla:
+// não muda de escala, não mexe o céu, e não cancela o gesto — nem em JS (nenhum touchstart ou
+// touchmove com defaultPrevented) nem em CSS (o touch-action sob os dois toques deixa rolar
+// na vertical). Se o browser rola, verifica-se no iPhone (passo 2 do protocolo).
 
-test('toque: um polegar pousado fora do céu não faz de segundo dedo — o dedo que rola, rola a página', async () => {
+// O gesto do polegar e tudo o que se verifica nele. `ms` = há quanto tempo o polegar está
+// pousado (0: pousa no mesmo instante que o dedo).
+async function polegarNaoEhSegundoDedo(s, polegar, dedo, ms) {
+  const antes = { polegar: await u(s, `rolaNaVertical(${polegar.x}, ${polegar.y})`), dedo: await u(s, `rolaNaVertical(${dedo.x}, ${dedo.y})`) };
+  assert.ok(antes.polegar.deixa, 'o touch-action sob o polegar não deixa rolar: ' + JSON.stringify(antes.polegar));
+  assert.ok(antes.dedo.deixa, 'o touch-action sob o dedo não deixa rolar: ' + JSON.stringify(antes.dedo));
+  await u(s, 'toquesMax()'); await u(s, 'historico()'); await u(s, 'gesto()');
+  await rolarComPolegar(s, polegar, dedo, -220, ms);
+  await sleep(500);
+  // Os controlos do instrumento: os dois dedos em simultâneo, e o gesto inteiro visto.
+  assert.equal(await u(s, 'toquesMax()'), 2, 'controlo: a página não viu os dois dedos ao mesmo tempo');
+  const g = await u(s, 'gesto()');
+  assert.ok(g.vistos >= 10, 'controlo: a janela só viu ' + g.vistos + ' eventos do gesto');
+  const h = await u(s, 'historico()');
+  const e = await u(s, 'estado()');
+  assert.deepEqual(h, [], 'fez de segundo dedo e a cena mudou de escala: ' + h.join(' > '));
+  assert.equal(e.x, '0.0px', 'fez de segundo dedo e o céu mexeu (x)');
+  assert.equal(e.y, '0.0px', 'fez de segundo dedo e o céu mexeu (y)');
+  assert.equal(g.cancelados, 0, 'a app cancelou ' + g.cancelados + ' de ' + g.vistos + ' eventos do gesto');
+}
+
+test('toque: polegar pousado fora do céu há 1 s e um dedo a rolar — a cena não muda de escala nem mexe o céu, e a app não cancela o gesto (JS e touch-action)', async () => {
   const s = await abrir(TOQUE_TELEMOVEL);
   try {
     const dedo = await u(s, 'ceuEmBaixo()');
@@ -588,21 +658,11 @@ test('toque: um polegar pousado fora do céu não faz de segundo dedo — o dedo
     // Por baixo do céu, no conteúdo da página: fora da cena.
     const polegar = { x: 20, y: 700 };
     assert.ok(!(await s.avaliar(`!!document.elementFromPoint(${polegar.x}, ${polegar.y}).closest('.us')`)), 'preparação: o polegar caiu dentro do céu');
-    await u(s, 'toquesMax()'); await u(s, 'historico()');
-    await rolarComPolegar(s, polegar, dedo, -220, 1000);
-    await sleep(500);
-    // O controlo do instrumento: sem os dois dedos em simultâneo, o teste não provava nada.
-    assert.equal(await u(s, 'toquesMax()'), 2, 'controlo: a página não viu os dois dedos ao mesmo tempo');
-    const h = await u(s, 'historico()');
-    const e = await u(s, 'estado()');
-    assert.deepEqual(h, [], 'o polegar fez de segundo dedo e a cena mudou de escala: ' + h.join(' > '));
-    assert.equal(e.x, '0.0px', 'o polegar fez de segundo dedo e o céu mexeu (x)');
-    assert.equal(e.y, '0.0px', 'o polegar fez de segundo dedo e o céu mexeu (y)');
-    assert.ok(e.rolagem > 40, 'a página não rolou (' + e.rolagem + ' px)');
+    await polegarNaoEhSegundoDedo(s, polegar, dedo, 1000);
   } finally { await s.fechar(); }
 });
 
-test('toque: um polegar pousado no céu há um segundo não faz de segundo dedo', async () => {
+test('toque (R2): polegar pousado no céu há 1 s e um dedo a rolar — a cena não muda de escala nem mexe o céu, e a app não cancela o gesto (JS e touch-action)', async () => {
   const s = await abrir(TOQUE_TELEMOVEL);
   try {
     const dedo = await u(s, 'ceuEmBaixo()');
@@ -611,16 +671,85 @@ test('toque: um polegar pousado no céu há um segundo não faz de segundo dedo'
     const polegar = { x: 8, y: 650 };
     assert.ok(await s.avaliar(`(() => { const e = document.elementFromPoint(${polegar.x}, ${polegar.y}); return !!e.closest('.us') && !e.closest('.us-terr, .us-hud, button, a'); })()`),
       'preparação: o polegar não caiu em céu vazio');
-    await u(s, 'toquesMax()'); await u(s, 'historico()');
-    await rolarComPolegar(s, polegar, dedo, -220, 1000);
-    await sleep(500);
-    assert.equal(await u(s, 'toquesMax()'), 2, 'controlo: a página não viu os dois dedos ao mesmo tempo');
+    await polegarNaoEhSegundoDedo(s, polegar, dedo, 1000);
+  } finally { await s.fechar(); }
+});
+
+test('controlo: na pinça deliberada a mesma medida vê o gesto cancelado pela app', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    await u(s, 'gesto()');
+    await doisDedos(s, await u(s, 'centroDaCena()'), { dx: 30, dy: 10, raio: 50 });
+    await sleep(300);
+    const g = await u(s, 'gesto()');
+    assert.ok(g.cancelados > 0, 'a medida não viu cancelamento num gesto que a app cancela (' + JSON.stringify(g) + ')');
+  } finally { await s.fechar(); }
+});
+
+test('controlo: com touch-action none plantado sob o polegar, a medida do touch-action acusa', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    const polegar = { x: 20, y: 700 };
+    assert.ok((await u(s, `rolaNaVertical(${polegar.x}, ${polegar.y})`)).deixa, 'preparação: sem nada plantado já não deixava');
+    await s.avaliar(`document.elementFromPoint(${polegar.x}, ${polegar.y}).style.touchAction = 'none'`);
+    const r = await u(s, `rolaNaVertical(${polegar.x}, ${polegar.y})`);
+    assert.equal(r.deixa, false, 'a medida não acusou o touch-action none plantado: ' + JSON.stringify(r));
+  } finally { await s.fechar(); }
+});
+
+// ── D7: AS DUAS REGRAS, CADA UMA COM O SEU CASO (Daniel, 2026-09-28) ──────────────────
+// R1 — só contam os dedos que pousam NO CÉU. Resolve o contacto fora dele, mesmo que pouse no
+//      mesmo instante (a palma na margem ou nas barras, ao pegar no telemóvel).
+// R2 — o segundo dedo tem de pousar até 250 ms depois do primeiro (provisório até ao iPhone).
+//      Resolve o dedo que já estava pousado no céu antes do gesto.
+// O polegar fora do céu e pousado há um segundo (o primeiro teste da secção anterior) cai nas
+// duas. Estes isolam cada uma.
+
+test('toque: o 2.º dedo aos 100 ms é uma pinça — o gesto deste teste aprofunda (controlo positivo)', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    await u(s, 'historico()');
+    await pincaComAtraso(s, await u(s, 'centroDaCena()'), 0.1);
+    assert.ok(await chegouAoNucleo(s), 'a pinça com o 2.º dedo aos 100 ms não aprofundou: ' + (await u(s, 'historico()')).join(' > '));
+  } finally { await s.fechar(); }
+});
+
+test('toque (R2): o 2.º dedo aos 400 ms não faz pinça — a mesma pinça, só mais tarde, não aprofunda', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    await u(s, 'historico()');
+    await pincaComAtraso(s, await u(s, 'centroDaCena()'), 0.4);
+    await sleep(700);
     const h = await u(s, 'historico()');
     const e = await u(s, 'estado()');
-    assert.deepEqual(h, [], 'o polegar fez de segundo dedo e a cena mudou de escala: ' + h.join(' > '));
-    assert.equal(e.x, '0.0px', 'o polegar fez de segundo dedo e o céu mexeu (x)');
-    assert.equal(e.y, '0.0px', 'o polegar fez de segundo dedo e o céu mexeu (y)');
-    assert.ok(e.rolagem > 40, 'a página não rolou (' + e.rolagem + ' px)');
+    assert.deepEqual(h, [], 'o 2.º dedo aos 400 ms fez pinça e a cena mudou de escala: ' + h.join(' > '));
+    assert.equal(e.x, '0.0px', 'o céu mexeu (x)');
+    assert.equal(e.y, '0.0px', 'o céu mexeu (y)');
+  } finally { await s.fechar(); }
+});
+
+test('toque (R1): contacto fora do céu a pousar no mesmo instante que o dedo — a cena não muda de escala nem mexe o céu, e a app não cancela o gesto (JS e touch-action)', async () => {
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    const dedo = await u(s, 'ceuEmBaixo()');
+    assert.ok(dedo, 'não encontrei céu vazio em baixo');
+    const palma = { x: 20, y: 700 };
+    assert.ok(!(await s.avaliar(`!!document.elementFromPoint(${palma.x}, ${palma.y}).closest('.us')`)), 'preparação: o contacto caiu dentro do céu');
+    await polegarNaoEhSegundoDedo(s, palma, dedo, 0);
+  } finally { await s.fechar(); }
+});
+
+test('toque: com um polegar pousado fora do céu, uma pinça deliberada continua a aprofundar', async () => {
+  // O polegar de quem segura o telemóvel não pode impedir o gesto certo: com o código de
+  // 27/09, três dedos no ecrã desligavam a pinça (só contava com exatamente dois).
+  const s = await abrir(TOQUE_TELEMOVEL);
+  try {
+    const polegar = { x: 20, y: 700, id: 0 };
+    await s.enviar('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [polegar] });
+    await sleep(1000);
+    await u(s, 'historico()');
+    await pincaComAtraso(s, await u(s, 'centroDaCena()'), 0.02, [polegar]);
+    assert.ok(await chegouAoNucleo(s), 'com o polegar pousado, a pinça deliberada não aprofundou: ' + (await u(s, 'historico()')).join(' > '));
   } finally { await s.fechar(); }
 });
 
@@ -660,15 +789,51 @@ test('computador: no Núcleo os domínios crescem 3,4× e nenhum fica gigante no
   } finally { await s.fechar(); }
 });
 
-test('telemóvel: no Núcleo nenhum domínio fica gigante no céu — não cresce mais do que no computador', async () => {
-  const s = await abrir({ ...TOQUE_TELEMOVEL, margem: true });
+// A D8 (Daniel, 2026-09-28) verifica-se a 375, 390 e 430 de largura e na horizontal, sempre
+// com a margem da app (24 px de cada lado). A altura do cartão com a barra do Safari aberta e
+// encolhida espera pelas medidas do passo 0 do protocolo do iPhone.
+const TELEMOVEIS = [
+  ['375', { toque: true, largura: 375, altura: 812, margem: true }],
+  ['390', { toque: true, largura: 390, altura: 844, margem: true }],
+  ['430', { toque: true, largura: 430, altura: 932, margem: true }],
+  ['horizontal 844×390', { toque: true, largura: 844, altura: 390, margem: true }],
+];
+
+for (const [nome, cenario] of TELEMOVEIS) {
+  test(`telemóvel ${nome}: no Núcleo nenhum domínio fica gigante no céu — não cresce mais do que no computador`, async () => {
+    const s = await abrir(cenario);
+    try {
+      const antes = await u(s, 'rotulos()');
+      assert.equal(antes.filter((r) => r.visivel).length, 12, 'a medida não vê os doze rótulos na vista geral');
+      await irAoNucleo(s, true);
+      const amp = ampliacoes(antes, await u(s, 'rotulos()'));
+      const gigantes = amp.filter((a) => a.visivel && a.x > 4).map((a) => a.id + ' ' + a.x.toFixed(0) + '×');
+      assert.deepEqual(gigantes, [], 'texto gigante no céu: ' + gigantes.join(', '));
+    } finally { await s.fechar(); }
+  });
+
+  // Variante B da D8 (por aprovar): como no computador, nenhum rótulo de fora fica à vista no
+  // Núcleo. Sem ela, o «MENTE» e o «Nv» do Mente ficam a 3,4× por cima do interior e do cartão.
+  test(`telemóvel ${nome} (variante B): no Núcleo nenhum rótulo de domínio fica à vista no céu, como no computador`, async () => {
+    const s = await abrir(cenario);
+    try {
+      const antes = await u(s, 'rotulos()');
+      assert.equal(antes.filter((r) => r.visivel).length, 12, 'a medida não vê os doze rótulos na vista geral');
+      await irAoNucleo(s, true);
+      const vistos = (await u(s, 'rotulos()')).filter((r) => r.visivel).map((r) => r.id);
+      assert.deepEqual(vistos, [], 'rótulos de fora à vista no Núcleo: ' + vistos.join(', '));
+    } finally { await s.fechar(); }
+  });
+}
+
+test('computador: no Núcleo nenhum rótulo de domínio fica à vista no céu (controlo da variante B)', async () => {
+  const s = await abrir(RATO);
   try {
     const antes = await u(s, 'rotulos()');
     assert.equal(antes.filter((r) => r.visivel).length, 12, 'a medida não vê os doze rótulos na vista geral');
-    await irAoNucleo(s, true);
-    const amp = ampliacoes(antes, await u(s, 'rotulos()'));
-    const gigantes = amp.filter((a) => a.visivel && a.x > 4).map((a) => a.id + ' ' + a.x.toFixed(0) + '×');
-    assert.deepEqual(gigantes, [], 'texto gigante no céu: ' + gigantes.join(', '));
+    await irAoNucleo(s, false);
+    const vistos = (await u(s, 'rotulos()')).filter((r) => r.visivel).map((r) => r.id);
+    assert.deepEqual(vistos, []);
   } finally { await s.fechar(); }
 });
 
@@ -682,15 +847,17 @@ test('computador: os seis nomes do interior do Núcleo cabem no céu, fora do ca
   } finally { await s.fechar(); }
 });
 
-test('telemóvel: os seis nomes do interior do Núcleo cabem no céu, fora do cartão (a caixa real, 342 px)', async () => {
-  const s = await abrir({ ...TOQUE_TELEMOVEL, margem: true });
-  try {
-    await irAoNucleo(s, true);
-    const r = await u(s, 'interior()');
-    assert.equal(r.n, 6, 'a medida não encontrou os seis nomes do interior');
-    assert.deepEqual(r.problemas, [], r.problemas.join('; '));
-  } finally { await s.fechar(); }
-});
+for (const [nome, cenario] of TELEMOVEIS) {
+  test(`telemóvel ${nome}: os seis nomes do interior do Núcleo cabem no céu, fora do cartão (a caixa real, com a margem da app)`, async () => {
+    const s = await abrir(cenario);
+    try {
+      await irAoNucleo(s, true);
+      const r = await u(s, 'interior()');
+      assert.equal(r.n, 6, 'a medida não encontrou os seis nomes do interior');
+      assert.deepEqual(r.problemas, [], r.problemas.join('; '));
+    } finally { await s.fechar(); }
+  });
+}
 
 test('nenhuma resposta veio de fora da página de teste (rede fechada)', () => {
   assert.deepEqual(respostasDeFora, []);

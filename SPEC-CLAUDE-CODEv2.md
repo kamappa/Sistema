@@ -326,6 +326,18 @@ do mesmo padrão nesta migração, todas em instrumentos de verificação:
    cabeça, e sem `text` o Enter do protocolo não ativa o botão — o controlo do teclado
    falhava sem a app ter defeito nenhum. **Um teste que passa antes da correção existir não
    está a testar o que diz.**
+6. **O verde da fase 2 que o iPhone desmentiu** (etapa 3, `0187d4b`/`e0510af`; sexta
+   instância, nas palavras do Daniel «a sexta vez que um teste verde não corresponde ao que
+   acontece de facto, e desta vez num sítio que eu vi com os olhos»). Os 20 testes verdes
+   mediam estados, desvios e rolagem num componente isolado, sempre com os dois dedos a
+   pousar juntos; nenhum olhava para a escala do Núcleo num ecrã de telemóvel, e nenhum
+   simulava um polegar pousado. No iPhone as duas coisas juntaram-se: o polegar levava o
+   Universo ao Núcleo, e o Núcleo no ecrã estreito estava partido desde 30/07 (ver «Achado da
+   etapa 3 — o iPhone»). Dois limites do instrumento apareceram na investigação e ficam
+   escritos: o WebKit do Playwright no Windows não desenha a câmara 3D desta cena (na escala
+   do Núcleo os domínios ficam no sítio) e não serve de prova de iOS para 3D; e o Chrome
+   emulado não rola a página com dois dedos no ecrã, mesmo numa página sem código nenhum
+   (controlo: 15 px com `touch-action: auto`, 0 com `pan-y`, contra ~300 com um dedo).
 
 A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
 apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
@@ -460,6 +472,325 @@ diferença 1, os mesmos de duas corridas do mesmo código (o controlo da compara
 
 Falta, na etapa 3: o teste num iPhone real pela pré-visualização da Vercel (o Daniel), e a
 fase 4 — o resto da Órbita.
+
+### Achado da etapa 3 — o iPhone: a escala do Núcleo no ecrã estreito, e chegar lá sem querer
+
+O Daniel abriu a pré-visualização no iPhone 14 (2026-09-27) e viu o Universo partido: rótulos
+cortados nas margens («CIPLINA», «ULOS», «SABER» e «CORPO» cortados à direita), «MENTE» e
+«Nv 1» gigantes e desfocados por cima de tudo, e o cartão «O Núcleo» por cima do céu com a
+última linha cortada. Reproduzido no Chrome a imitar o iPhone (390×664, DPR 3), com a app real
+e o estado dele em modo offline (só leitura):
+
+- **O que se via é a escala do Núcleo.** O cartão «O Núcleo» só existe nela. Medido: no
+  estreito a perspetiva é 800 px (`dce18ee`, 30/07, sem razão escrita) e a câmara do Núcleo
+  avança os mesmos 780 do computador, que tem 1100 — o plano dos domínios fica a 20 px do olho
+  e cresce **40×** (no computador, 3,4×); o «Nv 1» do Mente cai dentro do céu. Os nomes do
+  interior do Núcleo foram dimensionados pelo desenho e não pelos nomes, que saem dele:
+  Disciplina começa 39 px fora do ecrã, Vínculos 18, Saber e Corpo passam a margem direita. O
+  cartão tem 368 px e o estreito reserva 270: sobe por cima do céu e o fundo fica debaixo das
+  barras fixas (164 de 664 px).
+- **Como se chegava lá sem querer:** o `useFreeCam` contava `e.touches` — todos os dedos do
+  ecrã, incluindo os de fora do céu. Um polegar pousado na margem fazia do dedo que rola a
+  página o segundo dedo de uma pinça, e uma pinça na vista geral vai direta ao Núcleo. Na app
+  real: com o polegar, a página não rola e o Universo vai a CORE_APPROACH > CORE_INSIDE; sem
+  ele, o mesmo dedo rola 285 px. O Daniel: «É a diferença entre "só se chega lá por um gesto"
+  e "chega-se lá por acidente ao pegar no telemóvel". Trata como bug.»
+- **«Logo ao abrir, sem tocar»:** abrir o Universo sem tocar não o parte (15 s, só OVERVIEW,
+  ampliação 1×; controlo: com uma pinça aos 5 s, CORE e 40×). Mas o `ZoneStage` monta todas as
+  zonas ao mesmo tempo, e o Universo guarda o estado quando se vai a outra zona: medido, foi ao
+  Núcleo, saiu para o Núcleo da barra e voltou — CORE_INSIDE 0,8 s depois de tocar na barra,
+  partido sem tocar no céu. Um gesto acidental em qualquer momento da sessão chega.
+- **O «desfocado» não foi reproduzido.** O Chrome mostra um bloco branco desfocado (um pedaço
+  de uma letra 40× maior), não o «MENTE» e o «Nv 1» legíveis e desfocados que o Daniel viu.
+  É um sintoma do compositor do WebKit do iOS; só o iPhone o pode confirmar.
+- Os testes (`facfec9`, vermelhos): o polegar fora do céu e pousado no céu, e na escala do
+  Núcleo no telemóvel o texto gigante e os nomes cortados ou debaixo do cartão, com o
+  computador como controlo positivo (3,4×, tudo cabe).
+
+### D7 — as duas regras do toque (aprovada com condições, 2026-09-28)
+
+Só é gesto de dois dedos o que cumpre as duas regras, e cada uma resolve o seu caso:
+
+- **R1 — só contam os dedos que pousam no céu.** Resolve o contacto fora do céu que pousa no
+  mesmo instante — a palma na margem ou nas barras ao pegar no telemóvel. A R2 não o apanha,
+  porque pousou junto.
+- **R2 — o segundo dedo pousa até 250 ms depois do primeiro.** Resolve o dedo que já estava
+  pousado no céu antes do gesto. A R1 não o apanha, porque está no céu. Os **250 ms são
+  provisórios até ao teste no iPhone**.
+- O polegar fora do céu e pousado há um segundo — o caso do Daniel — é travado por qualquer
+  uma das duas.
+
+Provado com as regras desligadas uma de cada vez (sem commit, o ficheiro reposto byte a byte):
+sem a R2, o polegar pousado no céu e o 2.º dedo aos 400 ms voltam a levar ao Núcleo; sem a
+R1, o contacto simultâneo fora do céu volta a levar ao Núcleo; o polegar fora do céu e pousado
+fica travado nas duas. Contam os dois dedos do céu mais recentes: com um polegar pousado, a
+pinça deliberada continua a funcionar — e isso era um segundo defeito, porque o código de 27/09
+só aceitava exatamente dois dedos no ecrã, e três desligavam a pinça (teste novo, vermelho
+antes). Teste do 2.º dedo aos 400 ms: não é pinça; controlo aos 100 ms: é.
+
+Por decidir pelo Daniel: os testes do polegar exigiam também que a página rolasse, e no Chrome
+emulado isso não acontece com dois dedos no ecrã, com ou sem código da app (controlo acima). O
+que a app controla e já está provado: não mudar de escala e não mexer o céu. Proposta, por
+aprovar: trocar a asserção da rolagem por «a app não cancela o gesto» (nenhum `touchmove`
+com `defaultPrevented`), com o controlo de que a mesma medida dá cancelado na pinça
+deliberada; a rolagem real com o polegar pousado fica para o teste no iPhone.
+
+### Achado da etapa 3 — a Órbita em produção na Vercel, e uma premissa desatualizada
+
+**A premissa.** Escrevi ao Daniel, a 27/09, que no plano gratuito não havia proteção para os
+domínios de produção. Estava desatualizado: desde 9/09/2026 a Vercel Authentication protege
+todas as publicações, incluindo produção, sem custo em todos os planos (changelog
+«Protect production deployments for free on every plan»; página Deployment Protection
+atualizada a 15/09: «All Deployments: Protects all URLs, including production domains»). **De
+onde veio:** do Context7 às 21:13 UTC de 27/09 — um índice em cache da documentação da Vercel
+que dizia «The All Deployments option … is available on Pro and Enterprise plans» — que não
+confirmei na página viva antes de a afirmação entrar numa recomendação. Regra do Daniel desde
+28/09: afirmações sobre serviços externos (planos, preços, funcionalidades) verificam-se na
+documentação atual antes de entrarem numa decisão.
+
+**Como a Órbita chegou a produção** (evidência: registo de atividade da Vercel, API pública do
+GitHub, `git log`): o projeto foi criado às 20:40 UTC e a importação publicou o `main`
+(`b8e7740`, o Vanilla) como produção. Às 20:50:27 o Daniel apagou essa publicação — a única de
+produção — e às 20:50:43 o push criou o ramo `orbita/3-toque` no GitHub; 18 s depois a
+integração Git da Vercel publicou `e0510af` já como **Production** (registo do GitHub:
+`original_environment: Production`, criado pelo `vercel[bot]`; não há registo de
+pré-visualização antes). A documentação atual explica: «The first deployment of a new project
+is always a production deployment … even when you deploy from a branch that is not your
+production branch»; «the preview rules apply only after that first production deployment
+exists». Não houve CLI, `--prebuilt` nem promoção: não há CLI nem credenciais da Vercel neste
+computador, e o meu registo da sessão só tem navegação e leitura no painel, a partir das 21:00
+— dez minutos depois. O código da Órbita nunca esteve no `main`.
+
+**A janela de exposição:** de 20:51:00 UTC de 27/09 (domínios atribuídos a `e0510af`) a
+00:00:01 UTC de 28/09 (All Deployments ligado) — 3 h 09 min. Exposto sem login:
+`sistema-two-indol.vercel.app`, o domínio de produção; os URLs gerados e de ramo já pediam login.
+O que estava lá: o bundle estático da Órbita — o mesmo código do repositório público; nenhum
+segredo além da chave anon, que é pública por desenho (ver o ponto dos segredos). **Registos de
+acesso:** não há pedidos individuais (IP, navegador): os registos no Hobby guardam 1 hora e os
+ficheiros estáticos só entram quando vêm da cache. Há contagens por 5 min (Observability, 12 h):
+na janela, 28 respostas 200 e 3 redirecionamentos entre 20:50 e 20:55, 9 respostas 200 entre
+23:55 e 00:00, e as minhas (21:01 e 21:42–21:43). Quem fez as 37 não dá para saber; a cache
+de Paris do índice de `sistema-two-indol` foi preenchida às 20:54:11, antes do meu primeiro
+pedido (21:01:34).
+
+**Verificado depois da proteção** (2026-09-28 01:37 UTC, sem credenciais): 36 pedidos (index e
+JS principal, com e sem anti-cache) aos 6 endereços conhecidos — `sistema-two-indol`,
+`sistema-sistema22`, os dois de ramo e os URLs próprios das duas publicações —, nenhum 200 (30
+pedem login, 6 dão 404 porque a publicação do `main` foi apagada). Controlo: o mesmo comando
+contra o Vanilla no GitHub Pages dá 200 (2 de 2).
+
+Das 37 respostas 200 da janela que não eram minhas, as 9 de 23:55–00:00 foram do Daniel (abriu
+o `sistema-two-indol` antes de ligar a proteção). As 28 de 20:50–20:55 ficam por atribuir.
+
+**O bundle publicado**, lido pela sessão da Vercel do Daniel e analisado dentro da página (só
+hashes e achados cortados saíram dela): 16 ficheiros, um achado — o JWT anon (role `anon`) —, e
+nenhum outro segredo. Controlos: a procura encontra a chave anon, e numa cópia com um
+`sb_secret_`, um JWT `service_role` e um `sk-` falsos plantados, apanha os três. Comparado com
+o build local do mesmo commit e o comando da Vercel: 7 ficheiros iguais byte a byte, 9 iguais
+sem os CR do checkout do Windows. O `dist` local tem exatamente esses 16 ficheiros e nenhum
+oculto (controlo: um oculto plantado numa cópia aparece); como a Vercel construiu o mesmo commit
+com o mesmo comando e os ficheiros batem, a lista da publicação é a mesma por equivalência.
+
+### Achado da etapa 3 — na Vercel, a única via para produção é uma ação manual no painel (2026-09-28)
+
+**Lido no painel** (sessão do Daniel, só leitura, 19:30–19:50 UTC): Production → Branch
+Tracking «Branch is» `main` («Every commit pushed to the main branch will create a Production
+Deployment»); Preview «All unassigned git branches»; 0 ambientes personalizados (o Hobby não
+os tem). E, em Build and Deployment, o Ignored Build Step da D4:
+`if [ "$VERCEL_GIT_COMMIT_REF" = "main" ]; then exit 0; else exit 1; fi` — o `main` nem constrói
+(sair com 0 é saltar), os outros ramos constroem. A publicação de produção é a `e0510af`, a do
+incidente, protegida; a retenção não a apaga enquanto tiver o domínio de produção («The
+deployment has a production alias assigned to it», página Deployment Retention, 16/09).
+
+**A conclusão:** nenhum push chega a produção — o `main` é saltado, e os outros ramos são
+pré-visualizações («all other branches are deployed as pre-production branches», página Git,
+18/09). Provado: o push de `52f54e4` (ramo `orbita/3-toque-previa`) deu `environment: Preview`
+na API do GitHub, e a produção ficou na `e0510af`. Restam só ações manuais no painel: Redeploy
+ou Promote para Production, e apagar a única publicação de produção, que volta a armar a regra
+da primeira publicação — o mecanismo do incidente. (A CLI com `--prod` também, mas não há CLI
+nem credenciais da Vercel neste computador.) O All Deployments é a rede: o que chegar a produção
+pede login.
+
+**A porta abriu-se num gesto de rotina** (relato do Daniel, 28/09 ~19:45 UTC): ao desligar a
+Vercel Toolbar nas pré-visualizações, o painel ofereceu um Redeploy com o ambiente em
+Production, sobre a `sistema-ak9hsn8mr` (ramo `orbita/3-toque`) e o domínio
+`sistema-two-indol`. Ele cancelou. Seria uma publicação de produção sem gate — o mesmo código,
+protegido, mas uma ação em produção. A definição da barra não chegou à publicação existente
+(medido: um `<script>` de `vercel.live` em cada HTML, servido da cache); a publicação nova veio
+de um commit no ramo temporário (`264a887`), que dá sempre Preview, sem janela de ambiente.
+
+**Para o 10.2 (não conformidade e ação corretiva):**
+- **Causa:** apagar a única publicação de produção rearmou a regra da primeira publicação, e o
+  push seguinte, de um ramo que não era o de produção, foi para produção sem proteção.
+- **Correção:** All Deployments, a 28/09 às 00:00:01 UTC.
+- **Ação corretiva:** na Vercel, produção só por ação manual no painel (Branch Tracking `main` e
+  o Ignored Build Step que o salta). Regra de trabalho: nunca Redeploy nem Promote a partir de
+  avisos do painel, nunca apagar a publicação de produção; uma pré-visualização atualiza-se com
+  um push de um ramo que não é o `main`.
+- **Eficácia:** o push de `52f54e4` deu Preview e a produção ficou igual (19:35 UTC). A porta
+  manual abriu-se uma vez e foi recusada — a regra funcionou, mas depende de uma pessoa; esse é
+  o risco residual, e a rede é o All Deployments.
+
+### Segurança — o registo de contas está aberto, e o Oráculo aceita qualquer conta (2026-09-28)
+
+Trazido ao Daniel na hora, como manda a regra. **Medido:** as definições públicas do Auth dizem
+`disable_signup: false` — qualquer pessoa com a chave anon (pública por desenho) cria uma conta
+por email. **Lido no código** (`supabase/functions/oraculo/index.ts`): os modos de browser
+validam a sessão com `auth.getUser` e rejeitam sem ela (provado: pedidos anónimos a `chat` e
+`sussurro` dão 401 «não autenticado», e a `vault-check` 403 «só o operador», antes de qualquer
+chamada à Anthropic). Mas aceitam **qualquer** conta, e «operador» é qualquer conta com uma
+linha em `app_state` — que o RLS deixa cada conta criar para si. **O caminho:** criar conta →
+criar a própria linha → `chat`, `sussurro` e `report-dry` gastam a chave da Anthropic do Daniel e
+leem notas do vault; `vault-check?write=1` escreve uma nota de teste no vault dele. **Não foi
+usado:** há 1 conta (a dele, de 2026-07-02) e nenhuma criada depois de 20:51 UTC de 27/09
+(controlo: o mesmo filtro com uma data antiga conta a dele). Recomendado: fechar o registo no
+painel do Supabase (uma opção, reversível) e, depois, a função aceitar só a conta dele.
+
+**Registo fechado** pelo Daniel no painel, a 2026-09-28 ~19:25 UTC. Verificado às 19:27 pelas
+duas fontes: no painel, «Allow new users to sign up» desligado (as outras três opções iguais); nas
+definições públicas, `disable_signup: true`. Lido outra vez a 2026-10-04: `true` (controlo: o
+mesmo pedido sem a chave anon dá 401). O login dele continua a funcionar com o registo fechado:
+o iPhone entrou às 22:20:07 UTC de 28/09 (dois logins recusados antes, às 22:19:40 e 22:19:43 —
+que tenham sido dele, de password mal escrita, ficou por confirmar) e não houve nenhum pedido de
+registo entre as 22:00 e as 02:00. **Falta a segunda barreira:** a
+função aceitar só a conta dele.
+
+### D7 — o critério da rolagem (aprovado pelo Daniel a 2026-09-28)
+
+Os três testes do polegar deixam de afirmar «a página rola» e passam a verificar o que a app
+controla: não muda de escala, não mexe o céu, e **não cancela o gesto** — nem em JS (nenhum
+`touchstart` ou `touchmove` com `defaultPrevented`, lido na janela depois dos ouvintes da app)
+nem em CSS (o `touch-action` sob os dois toques deixa rolar na vertical). Os nomes dos testes
+dizem isso. Controlos: na pinça deliberada a mesma medida vê o gesto cancelado; com
+`touch-action: none` plantado sob o polegar, a medida do CSS acusa. Vermelho antes: com o
+`useFreeCam` de antes da D7, os cinco testes de comportamento falham pela razão certa (mudança
+de escala, ou pinça que não aprofunda) e os controlos passam. Toque: 43 de 43 com a D7 e a D8.
+
+**Passo 2 do iPhone — o critério:** com o polegar pousado na margem esquerda e um dedo a rolar
+por cima do céu, (1) o Universo não muda de escala e o céu não se mexe, e (2) a página rola.
+Controlo: o mesmo gesto numa página comum (uma zona sem céu, como a Reflexão). **Decisão para o
+caso de a app não cancelar nada e o Safari mesmo assim não rolar:** se a página comum também não
+rolar, é o comportamento do Safari com dois dedos, como o do Chrome — aceita-se e regista-se, e
+não se força a rolagem por código (lutar contra o gesto do browser traria de volta o
+encurralamento). Se a página comum rolar e o céu não, é defeito nosso e investiga-se antes de
+publicar.
+
+### D8 — a escala do Núcleo no ecrã estreito (aprovada com condições, 2026-09-28)
+
+O Daniel quis ver primeiro o `dce18ee` (30/07): os 800 px entraram num bloco de ecrã estreito
+com ajustes de letra, sem razão escrita, e mudam só o que não está no plano dos domínios. A D8
+não lhes toca:
+
+- **A câmara do Núcleo acompanha a perspetiva:** `--cam-z-nucleo` no CSS, 780 no computador e
+  567 até 900 px (780/1100 da perspetiva) — os domínios crescem 3,4×, como no computador, e
+  não 40×.
+- **O interior mede-se pelos nomes:** até 900 px, `.ci` a 0,155, deslocado 10 para a direita
+  (os nomes da esquerda são mais compridos) e subido para ficar entre o topo do céu e o
+  cartão (medido: y 67..272 numa faixa útil de 46..276).
+- **Variante B (aprovada pelo Daniel a 2026-10-04):** até 900 px, na escala do Núcleo os
+  domínios de fora apagam-se.
+  Só com a câmara, o «MENTE» e o «Nv» do Mente ficavam a 3,4× por cima do interior e do título
+  do cartão — a origem da perspetiva do estreito fica ao pé do Mente. No computador os 3,4×
+  levam-nos para fora do enquadramento.
+
+Provado a 375, 390, 430 e na horizontal (844×390), com a margem da app: antes da D8, o
+crescimento falha nas quatro vistas e os nomes em três; com a variante A passam crescimento e
+nomes e falha «nenhum rótulo de fora à vista»; com a variante B passam os 16. Controlos do
+computador verdes nas três.
+
+**Comparação de imagens** (movimento reduzido; tolerância declarada: 0 píxeis, porque duas
+corridas do mesmo código deram 0 na vista geral e na de domínio; controlo: 1 píxel plantado,
++40 no vermelho, é detetado). Vista geral e de domínio a 390: 0 píxeis diferentes antes/depois.
+Computador (1440), vista geral e Núcleo: 0. A 1024 (perspetiva de computador, layout estreito):
+vista geral 0; **Núcleo 2 píxeis com diferença 1 — acima da tolerância declarada.** Medido
+depois: três corridas do mesmo código nessa vista diferem até 4 píxeis de diferença 1, na mesma
+zona (o centro do Núcleo). Fica escrito assim, sem reescrever a tolerância.
+
+**Decisão proposta para a horizontal**, onde o cartão não cabe: a D8 garante lá o mesmo que na
+vertical (sem texto gigante, os seis nomes dentro do céu e fora do cartão), e o cartão lê-se
+rolando. Um layout horizontal próprio seria aspeto novo, e fica para o MELHORIAS.md. A altura
+visível real, na vertical e na horizontal, com a barra do Safari aberta e encolhida, vem do
+passo 0 no iPhone; os testes do cartão esperam por ela.
+
+**O estado do Universo não é guardado** em `localStorage`, `sessionStorage` nem no endereço:
+vive só na memória da página (procurado no código). Um separador novo começa na vista geral; mudar
+de zona e voltar mantém-no.
+
+### Etapa 3 — o protocolo no iPhone (2026-09-28/29)
+
+**O navegador foi o Brave, não o Safari** — iPhone 14, iOS 18.7.8, com os Shields do Brave
+desligados para o site. O Daniel escolheu-o por usar o WebKit da Apple, o motor do Safari, que é
+o que o Chrome não reproduzia (não o verifiquei eu: na UE a Apple admite outros motores desde o
+iOS 17.4). A pré-visualização foi a `sistema-doxlpu0r5` (`264a887`, ramo temporário
+`orbita/3-toque-previa`, Preview, protegida, 17 ficheiros iguais ao build local, sem a Vercel
+Toolbar).
+
+**A leitura** (29/09 ~01:40 UTC; o Daniel decidiu sobre ela no mesmo dia, ver abaixo):
+
+- **O que chegou:** 0c e 0d (a medida do ecrã, na horizontal), o ecrã de entrada, a captura A, o
+  vídeo do passo 2 (55 s), a C e três capturas do Núcleo (#10, #11, #13). **Não chegaram:** 0a e
+  0b (a medida na vertical), a D e a F (o Núcleo na horizontal) e o número de pinças que entraram
+  no Núcleo («x de 5»).
+- **A — abrir a frio, 15 s sem tocar: passa.** Vista geral, os seis domínios inteiros, nada
+  gigante nem desfocado, sem o cartão. O partido de 27/09 veio de mexer, o que bate com a escala
+  viver só na memória da página. O critério «dicas de toque visíveis» falhou por defeito meu: com
+  esta altura de ecrã ficam abaixo da primeira vista. A primeira aparece no vídeo aos 9 s, com o
+  texto certo; a segunda não aparece em material nenhum.
+- **Passo 2 — o vídeo: passa.** De 0 a 31 s, no Universo, a página rola várias vezes e a escala
+  nunca muda; de 32 a 54 s a Reflexão rola. Limite: a gravação do iOS não mostra os dedos, por
+  isso o 2a e o 2b não se separam; vale a descrição do Daniel. Achado: um toque longo seleciona
+  texto e abre o menu do sistema, também na Reflexão — é do WebKit (MELHORIAS.md, item 8).
+- **Núcleo:** a #13 passa (os seis nomes inteiros dentro do céu, os domínios de fora apagados,
+  nada gigante); na #10 o «MENTE» de dentro fica na faixa do cartão (bate com um arrasto de dois
+  dedos, mas a captura não o prova); **a #11 falha — é o defeito conhecido abaixo.**
+- **Login com o registo fechado: confirmado** (ver a secção do registo de contas, acima).
+- **Os 250 ms da R2 continuam provisórios:** o número das pinças deliberadas não chegou.
+
+**Decisão do Daniel (2026-09-29):** «a estética do Núcleo deixa de ser bloqueador» — a A a frio
+está limpa e o defeito só aparece depois de gestos dentro do Núcleo; a D7 e a D8 «já estão
+provadas no essencial (A limpa, passo 2 passa, câmara a 3×)». A 2026-10-04 aprovou a variante B
+e mandou commitar a D7/D8 com o diário e a #11 como defeito conhecido.
+
+**Defeito conhecido na publicação — a #11, o Núcleo no WebKit** (detalhe e hipótese no
+MELHORIAS.md, item 7). Na escala do Núcleo, depois de gestos, os domínios de fora às vezes não se
+apagam: o «MENTE» e o «Nv1» a ~3×, translúcidos e com as bordas desfocadas, por cima do texto do
+cartão, com o interior já à vista. A câmara a 3× está certa — o tamanho é o da D8, não os 40× de
+27/09; o que falha é o apagar da variante B. Os testes no Chrome mediram o estado parado, com
+movimento reduzido, e nunca as transições; é por aí que se pega.
+
+**Fecho da D7/D8 (2026-10-04), antes do commit.** Na pasta, com a D7 e a D8: toque 43 de 43,
+segurança 84 de 84, Oráculo 19 de 19, bd 49 de 49, fumo 49 de 49 (a linha de base tem 47 —
+MELHORIAS.md, item 10), typecheck sem erros. Controlo: o mesmo teste do toque, numa cópia com o
+código de `facfec9`, falha 16 — os 5 de comportamento da D7, o crescimento nas 4 vistas, a
+variante B nas 4 e os nomes em 3 (na horizontal já cabiam) — e passam todos os controlos e o
+instrumento. É o vermelho que este SPEC previa a 28/09, contado outra vez.
+
+### Segurança — o RLS com a sessão do Daniel (2026-10-04)
+
+O último bloqueador de segurança antes de publicar. A 28/09 a chave anon deu 0 linhas nas 13
+tabelas; faltava o outro lado — a sessão do Daniel a ler as mesmas tabelas. A 29/09 a tentativa
+parou: o login dele tinha sido noutro perfil do Chrome, e o perfil da extensão só tinha uma sessão
+expirada, que não renovei. A 2026-10-04 ele entrou na Órbita local (`localhost:5173/Sistema/`,
+árvore `orbita/3-toque` com a D7/D8) no Brave, o perfil onde a extensão trabalha.
+
+Lido num separador ao lado, na mesma origem mas sem a app (`icon-192.png`: imagem, sem `#root`, 0
+scripts). Sessão emitida pelo projeto `zybrgnhepspledkjbllo`, papel `authenticated`, conta
+`9a72c5ee…`, válida; chave anon a que a app serve, do mesmo projeto. Só leituras
+(`select=*&limit=1` com contagem exata); da página saíram só o estado e o total.
+
+| tabela | a sessão do Daniel | a chave anon |
+|---|---|---|
+| `app_state` | 1 | 0 |
+| `courses` | 14 | 0 |
+| `oracle_reports` | 5 | 0 |
+| `radar_items` | 85 | 0 |
+
+Controlo: uma tabela inventada dá 404 com as duas credenciais, por isso um erro não passaria por
+«0». **Desvio ao critério escrito:** dizia «sessão 200», e três tabelas deram 206 — o êxito
+parcial de pedir 1 linha de várias. Com `limit=1000`, a sessão dá 200 e traz 14, 5 e 85 linhas, e
+a chave anon continua com 0 linhas no corpo. O critério estava mal escrito; o RLS não falhou.
+**Limite:** só existe uma conta, por isso isto prova que a chave anon não lê e que a sessão lê,
+mas não que uma conta não lê os dados de outra.
 
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)

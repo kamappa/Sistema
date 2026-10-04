@@ -901,6 +901,39 @@ pessoas vem dos dados privados do Daniel — e uma verificação automática que
 nomes que procura (por exemplo, comparar resumos criptográficos das palavras do repositório com
 os de uma lista privada).
 
+### RGPD — o IP de quem usa a app vai para o Google Fonts e para o Open-Meteo (registado a 2026-10-04)
+
+Visto no fumo da Órbita, que bloqueia tudo o que não é a origem do site e lista o que bloqueou.
+A cada abertura, o browser de quem usa a app pede as fontes a `fonts.googleapis.com` (no
+`index.html`) e a previsão do tempo a `api.open-meteo.com` (em `useStore.js`, para coordenadas
+fixas da zona de Braga): os dois recebem o IP. **Não é novo:** o Vanilla em produção faz o mesmo
+desde o início (`index.html` e `js/world.js`). O IP é um dado pessoal, e a incorporação dinâmica do
+Google Fonts sem consentimento já foi considerada ilegal por um tribunal alemão (LG München I,
+2022). **Plano, decidido pelo Daniel:** fica conhecido e não bloqueia a publicação; depois de
+publicar, as fontes passam a ser servidas pelo próprio site e o tempo passa a vir pelo Oráculo
+(o pedido sai do servidor, não do browser).
+
+### Etapa 4 — preparar a publicação (2026-10-04)
+
+- **A reversão estava errada desde 27/09 e foi provada antes de ser reescrita.** Com a fonte em
+  «GitHub Actions», reverter o `main` não muda o site; e o service worker da Órbita, que serve da
+  cache primeiro todo o `.js`/`.css`/`.png` do sítio, prenderia os ficheiros do Vanilla. Ensaio num
+  Chrome, com um servidor a trocar de conteúdo na mesma origem: sem interruptor, o registo ficou e um
+  `js/data.js` novo nunca chegou; com o interruptor (`reversao/sw.js`), o registo desapareceu, as
+  caches ficaram vazias e o ficheiro novo chegou. Os comandos foram ensaiados com objetos soltos (a
+  árvore é a `vanilla-final` mais o `sw.js`), e o fumo do próprio Vanilla deu verde sobre a
+  `vanilla-final`. Procedimento em `reversao/LEIA-ME.md` (`e6b66aa`). Não ensaiado: a troca de fonte
+  no GitHub, que a documentação não descreve.
+- **O Node 20 saiu dos runners do GitHub a 2026-09-23**, e as quatro ações do workflow declaravam
+  `node20`. Passaram às versões v5 (motor Node 24), com o build em Node 24 (`e6b66aa`). Provado nos
+  runners: a corrida 37217234044, no ramo `orbita/3-toque`, construiu em Node 24.21.0, saltou a
+  publicação, e os 16 hashes do `dist` que o registo imprime são iguais aos do build local limpo do
+  mesmo commit (controlo: um build antigo dá 3 diferenças). Nada foi publicado: o ambiente do Pages
+  continua na publicação de 27/09, e o site continua a servir o Vanilla.
+- **O fumo da Órbita não existia, e foi escrito** (`testes/fumo/orbita.mjs`, `d5d68bc`): build de
+  produção a 1440×900 e a 390×844, com calibração própria; 21 de 21. Falha se o `sw.js` publicado
+  for o interruptor (controlo: 19 de 21, com o interruptor plantado).
+
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)
 

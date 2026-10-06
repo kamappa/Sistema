@@ -47,12 +47,29 @@ function caminhoChrome() {
   return c;
 }
 
+// O apontador do Chrome dos testes escolhe-se aqui (fase 0.1, 2026-10-06). O Chrome sem cabeça diz de hover e
+// pointer o que o computador onde corre tem: no PC, com rato, «hover» e «pointer: fine»; no runner Linux do
+// GitHub, sem dispositivo apontador, «hover: none» e «pointer: none» — e os testes do modo rato falhavam lá e
+// passavam aqui (corrida 37520282820). As definições do Blink fixam o apontador; a emulação de toque do CDP
+// continua a mandar no modo toque (provado com uma sonda). SISTEMA_TESTE_APONTADOR=nenhum reproduz de propósito
+// uma máquina sem rato.
+const APONTADOR = {
+  rato: '--blink-settings=primaryPointerType=4,availablePointerTypes=4,primaryHoverType=2,availableHoverTypes=2',
+  nenhum: '--blink-settings=primaryPointerType=1,availablePointerTypes=1,primaryHoverType=1,availableHoverTypes=1',
+};
+function argumentosApontador() {
+  const qual = process.env.SISTEMA_TESTE_APONTADOR || 'rato';
+  if (!APONTADOR[qual]) throw new Error(`SISTEMA_TESTE_APONTADOR desconhecido: ${qual} (rato ou nenhum)`);
+  return [APONTADOR[qual]];
+}
+
 /** Chrome sem cabeça com perfil temporário; devolve o endpoint CDP e como o fechar. */
 export async function lancarChrome() {
   const perfil = fs.mkdtempSync(path.join(os.tmpdir(), 'sistema-fumo-perfil-'));
   const proc = spawn(caminhoChrome(), [
     '--headless=new', '--remote-debugging-port=0', `--user-data-dir=${perfil}`,
     '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--window-size=1440,900',
+    ...argumentosApontador(),
     'about:blank',
   ], { stdio: 'ignore' });
   // Com a porta 0, o Chrome escolhe uma porta livre e escreve-a em DevToolsActivePort.

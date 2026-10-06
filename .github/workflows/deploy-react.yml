@@ -23,6 +23,18 @@
 #
 # Node: as ações correm no motor Node 24 (as versões v5) e o build em Node 24. O GitHub tirou o
 # Node 20 dos runners a 2026-09-23 (MELHORIAS.md, item 12).
+#
+# PORTÕES (fase 0.1, 2026-10-06 — SPEC v2, «Roadmap depois da publicação»): até aqui o workflow
+# construía e publicava sem correr um único teste. Agora:
+#   testes             → typecheck + testes de segurança e de toque (Chrome sem cabeça). O build
+#                        depende deles: com um teste a falhar, nada se constrói nem se publica.
+#                        Exige um MÍNIMO de testes passados, contados no TAP — um `node --test` cujo
+#                        padrão não encontra ficheiros sai com 0 e 0 testes (provado a 06/10).
+#   build              → depois do build, o fumo da Órbita sobre o `dist`, antes do upload.
+#   verificar-destino  → só no `main`, depois do deploy: o mesmo fumo contra o site publicado.
+#                        Falhar aqui não desfaz a publicação: avisa (corrida vermelha, email) e a
+#                        reversão é a de `reversao/LEIA-ME.md`.
+# Quando os testes mudarem de número a sério, o mínimo (TESTES_MINIMO) muda no mesmo commit.
 
 name: Deploy React to Pages
 
@@ -40,7 +52,41 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  testes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      TESTES_MINIMO: 127   # segurança (84) + toque (43), contados a 2026-10-06
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Verificação de tipos
+        run: npm run typecheck
+
+      - name: Testes de segurança e de toque (Chrome sem cabeça)
+        run: |
+          node --test \
+            --test-reporter=spec --test-reporter-destination=stdout \
+            --test-reporter=tap --test-reporter-destination="$RUNNER_TEMP/testes.tap" \
+            "testes/seguranca/*.test.mjs" "testes/toque/*.test.mjs"
+          n=$(grep -cE '^ok [0-9]+' "$RUNNER_TEMP/testes.tap" || true)
+          echo "testes que passaram: $n (mínimo: $TESTES_MINIMO)"
+          if [ "$n" -lt "$TESTES_MINIMO" ]; then
+            echo "::error::só $n testes passaram e o mínimo é $TESTES_MINIMO — desapareceram testes?"
+            exit 1
+          fi
+
   build:
+    needs: testes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -59,6 +105,9 @@ jobs:
 
       - name: Hashes do dist (para comparar com o build local e com o destino)
         run: cd dist && find . -type f -print0 | sort -z | xargs -0 sha256sum
+
+      - name: Fumo da Órbita sobre o dist (antes de publicar)
+        run: node testes/fumo/orbita.mjs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
@@ -79,3 +128,19 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  verificar-destino:
+    if: github.ref == 'refs/heads/main'
+    needs: deploy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+
+      - name: Fumo da Órbita no site publicado
+        run: node testes/fumo/orbita.mjs https://kamappa.github.io/Sistema/

@@ -301,8 +301,9 @@ própria logo abaixo.
 
 Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de hashes que
 normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
-código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — cinco instâncias
-do mesmo padrão nesta migração, todas em instrumentos de verificação:
+código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — instâncias do mesmo
+padrão nesta migração, todas em instrumentos de verificação (cinco quando isto foi escrito; oito
+a 2026-10-05):
 
 1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
    guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
@@ -351,6 +352,23 @@ do mesmo padrão nesta migração, todas em instrumentos de verificação:
    segundo plano que saíram com «exit 0» depois de a verificação lá dentro ter sido
    interrompida; e um controlo de build que não controlava — o Rollup retirou a linha
    plantada, e o `dist` não mudou.
+8. **O teste que não podia reproduzir a falha que devia reproduzir** (2026-10-05; oitava
+   instância; nas palavras do Daniel, «é dos piores que apareceram»). Nas cópias de segurança, a
+   primeira reposição completa num projeto Supabase novo falhou (`permission denied for table
+   buckets_vectors`) com os 44 testes verdes: os testes criavam o `postgres` como
+   superutilizador, que salta todas as permissões, e num projeto Supabase ele não o é.
+   Acrescentar as tabelas ao calço, como pedido à letra, continuava 44 de 44. Só com o
+   `postgres` de um projeto real — sem superutilizador, com as permissões lidas no projeto
+   descartável e na produção — o teste ficou vermelho pela razão certa (38 de 48), e a
+   correção levou-o a 48 de 48. Um ambiente de teste prova-se equivalente **no que o teste
+   mede** — quem corre e com que permissões — antes de se acreditar no verde. Detalhe no A.8.13
+   do `sistema-backups`, secção 4.10. A mesma classe pode estar nos testes de base de dados
+   deste repositório (`testes/bd`): o cluster também arranca com o `postgres` superutilizador;
+   as verificações de RLS correm como `authenticated` e estão certas, mas as migrações
+   aplicam-se como superutilizador — a verificar. Nos dias 05 e 06/10 os controlos apanharam
+   mais tropeços do mesmo padrão antes de virarem afirmação (registados no A.8.13, E9): um
+   «parado» de um servidor que continuava a responder, e um controlo de chaves que dava
+   «diferente» por comparar um erro.
 
 A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
 apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
@@ -644,6 +662,58 @@ de um commit no ramo temporário (`264a887`), que dá sempre Preview, sem janela
   manual abriu-se uma vez e foi recusada — a regra funcionou, mas depende de uma pessoa; esse é
   o risco residual, e a rede é o All Deployments.
 
+### Vercel — protegida e parada (decisão de 2026-10-05; executada a 2026-10-06)
+
+Com a Órbita publicada no Pages (04/10), a Vercel deixou de servir para alguma coisa. **Decisão do
+Daniel:** desligar o repositório, manter a proteção em All Deployments, apagar todas as
+publicações — os bundles antigos têm o nome da mentora (caso RGPD acima) e a chave `anon` — e
+retirar no GitHub o acesso da app da Vercel ao `kamappa/Sistema`.
+
+**A regra de 28/09 («nunca apagar a publicação de produção») cai, pela ordem certa.** Existia
+porque, sem publicação de produção, o push seguinte voltaria a criar uma; com o repositório
+desligado, nenhum push cria nada. Por isso: primeiro desligar, depois apagar.
+
+**Linha de base (06/10 12:34 UTC):** o GitHub regista 8 publicações da Vercel — 2 de produção
+(`b8e7740`, já apagada a 28/09: responde 404 `DEPLOYMENT_NOT_FOUND`; `e0510af`) e 6
+pré-visualizações (de `52f54e4` a `e51c84e`, a última a 04/10 23:33); as 7 que existem e os dois
+domínios de produção respondem 302 para o login (protegidas). O Pages serve 16 ficheiros, iguais
+byte a byte aos verificados na publicação de 04/10. Documentação da Vercel lida a 06/10: All
+Deployments existe em todos os planos e protege também a produção; uma publicação apagada fica
+recuperável 30 dias e depois é removida de vez.
+
+**Feito pelo Daniel (06/10):** repositório desligado; Deployment Protection confirmada em All
+Deployments; as publicações apagadas (se o projeto `sistema` ficou vazio ou foi apagado também, não
+ficou registado); a app da Vercel desinstalada no GitHub.
+
+**Resultado, verificado a 06/10 às 16:57 UTC:** os 10 endereços respondem 404
+`DEPLOYMENT_NOT_FOUND` e nenhum devolve a app (controlo: a mesma procura encontra-a na página do
+Pages). Os 8 das publicações — `sistema-2aotf565s-sistema22` (`b8e7740`, já apagada a 28/09),
+`sistema-ak9hsn8mr-sistema22` (`e0510af`), `sistema-g88sv8syg-sistema22` (`52f54e4`),
+`sistema-doxlpu0r5-sistema22` (`264a887`), `sistema-29k3ko2kt-sistema22` (`bfd5088`),
+`sistema-h72arnhz2-sistema22` (`ce222d0`), `sistema-48qg3dlux-sistema22` (`e6b66aa`) e
+`sistema-n13cs2vst-sistema22` (`e51c84e`) — e os 2 domínios de produção, `sistema-sistema22` e
+`sistema-two-indol` (todos em `.vercel.app`). Na linha de base das 12:34 UTC, o primeiro já dava
+404 e os outros 9 davam 302 para o login. O Pages serve os mesmos 16 ficheiros, byte a byte. **O que a Vercel ainda guarda, não verificado:** segundo a documentação, uma
+publicação apagada fica recuperável 30 dias («Recently Deleted») e só depois é removida de vez — se
+dá para a apagar já de vez, não se viu. A prova de que um push deixou de criar publicações é o push
+deste commit (fica para a entrada seguinte).
+
+**Achado — o acesso da app alargou-se por engano, e foi corrigido.** A app da Vercel no GitHub tinha
+acesso só ao `kamappa/Sistema`. Ao retirá-lo, o GitHub não deixa ficar com zero repositórios, e a
+escolha que sobrou, «All repositories», guardada, deu-lhe acesso a todos os repositórios do Daniel e
+aos futuros. Registo de segurança do GitHub (horas aproximadas, na hora do registo):
+`integration_installation.repositories_added` por volta das 17:52 — a app ganhou acesso a dois
+repositórios privados, `kamappa/sistema-backups` e `kamappa/vault-sistema` (o vault do Obsidian; o
+`kamappa/Sistema` não aparece porque já lá estava); `integration_installation.destroy` por volta das
+17:56 — app desinstalada, e deixou de aparecer em Installed GitHub Apps. **Janela: cerca de 4
+minutos.** O uso que a Vercel fez desse acesso nesse intervalo não é verificável daqui. **Avaliação do
+Daniel: risco baixo** — o repositório já estava desligado e nenhum projeto da Vercel estava ligado a
+esses dois. A 26/09 verificou-se que nenhum dos 14 segredos guardados no PC
+aparece no `sistema-backups` (A.8.13, P10); essa verificação não se repetiu depois dos commits de
+06/10. **Lição:**
+para tirar o último repositório a uma app, desinstala-se a app — mudar a seleção nunca encolhe o
+acesso.
+
 ### Segurança — o registo de contas está aberto, e o Oráculo aceita qualquer conta (2026-09-28)
 
 Trazido ao Daniel na hora, como manda a regra. **Medido:** as definições públicas do Auth dizem
@@ -912,6 +982,15 @@ Google Fonts sem consentimento já foi considerada ilegal por um tribunal alemã
 2022). **Plano, decidido pelo Daniel:** fica conhecido e não bloqueia a publicação; depois de
 publicar, as fontes passam a ser servidas pelo próprio site e o tempo passa a vir pelo Oráculo
 (o pedido sai do servidor, não do browser).
+
+### RGPD — o início do id do utilizador neste registo público (registado a 2026-10-06; menor)
+
+Visto no inventário do teste de restauro das cópias: os 8 primeiros caracteres do id do
+utilizador do Daniel no Supabase estão escritos numa secção deste SPEC («Segurança — o RLS com
+a sessão do Daniel», de 2026-10-04), que é público; e na transcrição da sessão do Claude Code de 06/10. **Avaliação do
+Daniel:** 8 caracteres de um id não identificam ninguém sozinhos — não é urgente, mas fica
+anotado. **Sem ação por agora**; decide-se junto com a escolha A/C do caso da mentora, acima, e
+pela mesma regra: identificadores, mesmo parciais, não entram nos registos públicos.
 
 ### Etapa 4 — preparar a publicação (2026-10-04)
 
@@ -3152,9 +3231,10 @@ primeiro.
 - **Custos:** o GitHub Actions em repositórios privados tem minutos gratuitos
   limitados. Medir a duração do job e confirmar que fica muito abaixo do limite.
 
-**Estado (2026-09-26): nível 1 em produção, provado por leitura de volta; falta o teste
-de restauro num projeto descartável, que fecha a Fase A.** O código vive no privado
-`kamappa/sistema-backups` (`main` bf1913d; cópia local em
+**Estado (2026-10-06): nível 1 em produção, provado por leitura de volta; teste de
+restauro completo feito a 06/10, com login — a Fase A está fechada.** (Até 26/09 faltava
+esse teste.) O código vive no privado
+`kamappa/sistema-backups` (com a correção do dump, `39ab465`, desde 05/10; cópia local em
 `%USERPROFILE%\Documents\sistema-backups`); o README desse repositório é o manual de
 configurar, verificar, descarregar, repor e testar.
 
@@ -3169,9 +3249,10 @@ configurar, verificar, descarregar, repor e testar.
 - `age` 1.3.2 com o hash fixado; `actions/checkout` fixado por commit. B2: `diario/`
   todos os dias e `mensal/` no dia 1; a retenção são regras do bucket.
 - Testes: `node testes/testar.mjs` nesse repositório — dois PostgreSQL locais, a
-  estrutura real com dados sintéticos, 44 verificações (com um `aws` falso que imita o B2
+  estrutura real com dados sintéticos, 48 verificações (com um `aws` falso que imita o B2
   com Object Lock), workflow validado pelo `actionlint` e o bit de execução dos scripts
-  verificado (o runner é Linux).
+  verificado (o runner é Linux). Desde 05/10 os clusters arrancam como num projeto
+  Supabase: o `postgres` sem superutilizador.
 - 2026-09-24: primeira corrida do `dump.sh` e da guarda contra a base real — um dump
   manual antes da migração do Lote 1, feito no portátil com o `pg_dump` 18 pelo Session
   pooler (porta 5432) e guardado fora do repositório: guarda ok, sem `cron.job` nem
@@ -3196,11 +3277,32 @@ configurar, verificar, descarregar, repor e testar.
   (nativa e S3) iguais ao registo; a cópia descarregada com as somas do runner; e
   `repor.sh --so-verificar` com a chave privada — decifrou, somas certas, contagens iguais
   às da produção (app_state 1, courses 14, oracle_reports 5, radar_items 85, auth.users 1).
-- Por fazer: o teste de restauro num projeto descartável (fecha a Fase A); o nível 2
-  (opcional); confirmar se a ligação diária evita a pausa por inatividade do plano
-  gratuito; e os pendentes do README (guarda anti-OneDrive dos dumps manuais, mudar para
-  `C:\sistema`, defesa técnica contra cópias forjadas, tecto de descarregamento antes de
-  uma reposição a sério).
+- **Teste de restauro completo: 2026-10-06 — passou, e fecha a Fase A.** A primeira
+  tentativa, a 05/10, falhou (`permission denied for table buckets_vectors`): o dump
+  copiava tabelas da plataforma onde o `postgres` não pode inserir, e todas as cópias desde
+  24/09 abriam mas não se repunham pelo procedimento escrito; os testes não o viam porque o
+  `postgres` deles era superutilizador (lição dos instrumentos, oitava instância). Correção:
+  `08e8d72` (o teste) e `39ab465` (o dump calcula essas tabelas no momento e lista-as no topo
+  do `data.sql`). A cópia agendada de 06/10 (corrida #15, sem operador) descarregada pelo
+  identificador da versão, reposta num projeto descartável numa só transação — 38 tabelas,
+  **104 s** —, o catálogo comparado com a produção (16 de 17 secções iguais; a 17.ª é a
+  versão do `pg_net`, que vem da imagem da plataforma e cujo diff não muda o
+  `net.http_post`), e o login provado com controlo (a password errada recusada; o último
+  login mudou no projeto reposto e não na produção). O projeto descartável foi apagado e o
+  apagamento verificado. Próximo teste trimestral: até 2027-01-06. Evidência: A.8.13 v1.4,
+  secção 4.10, e `docs/evidencias/` do `sistema-backups`.
+- **Limpeza do B2 (06/10), depois do restauro provado:** apagadas no site as quatro chaves
+  e os dois buckets de teste; a primeira chave do workflow (que podia apagar no bucket das
+  cópias) já não existia — verificado pelo Daniel no site. Prova deste lado: as quatro
+  chaves passaram a ser recusadas pelo B2 (com a de leitura a entrar na mesma corrida), e a
+  conta passou de quatro buckets para dois (o das cópias e o do Kopia); só depois saíram
+  as pastas locais das chaves de teste. A chave age do disco e a cópia offline têm a mesma
+  soma, e a chave pública delas é a do workflow.
+- Por fazer: o tempo de recuperação de ponta a ponta (função, segredos, crons, frontend,
+  Auth) por medir; o nível 2 (opcional); confirmar se a ligação diária evita a pausa por
+  inatividade do plano gratuito; e os pendentes do README (guarda anti-OneDrive dos dumps
+  manuais, mudar para `C:\sistema`, defesa técnica contra cópias forjadas, tecto de
+  descarregamento antes de uma reposição a sério).
 
 ## Correções ao código existente
 

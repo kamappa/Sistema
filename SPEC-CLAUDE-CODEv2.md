@@ -302,8 +302,8 @@ própria logo abaixo.
 Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de hashes que
 normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
 código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — instâncias do mesmo
-padrão nesta migração, todas em instrumentos de verificação (cinco quando isto foi escrito; oito
-a 2026-10-05):
+padrão nesta migração, todas em instrumentos de verificação (cinco quando isto foi escrito; nove
+a 2026-10-06):
 
 1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
    guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
@@ -369,6 +369,17 @@ a 2026-10-05):
    mais tropeços do mesmo padrão antes de virarem afirmação (registados no A.8.13, E9): um
    «parado» de um servidor que continuava a responder, e um controlo de chaves que dava
    «diferente» por comparar um erro.
+9. **O agendador que dizia «succeeded» sobre um Oráculo parado** (registada a 2026-10-06, a pedido
+   do Daniel; nona instância). Os crons `radar-diario` e `oraculo-semanal` acabaram «succeeded»
+   todos os dias, até 06/10 às 06:30 — e o último item do radar é de 14/08, o último relatório de
+   09/08 (lido em só leitura na produção). O «succeeded» do `pg_cron` diz só que o pedido HTTP foi
+   disparado pelo `pg_net`; o resultado — a função a falhar por falta de saldo na API — ninguém o
+   lia. Para um resultado vazio, o código do radar escreve «O Radar respondeu e veio vazio», e
+   avisa que esse número não distingue mercado parado de query a falhar — mas nada dizia
+   «parado». Sete
+   semanas, descobertas à mão (23–24/09, pela data do último item e pelos registos da função). É a
+   mesma classe do código de saída 0 das cópias: quem dispara declara o sucesso, e ninguém lê o
+   destino. Resposta planeada: a pausa por decisão, o registo de execuções (D1) e o vigia (0.2).
 
 A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
 apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
@@ -1012,6 +1023,118 @@ pela mesma regra: identificadores, mesmo parciais, não entram nos registos púb
 - **O fumo da Órbita não existia, e foi escrito** (`testes/fumo/orbita.mjs`, `d5d68bc`): build de
   produção a 1440×900 e a 390×844, com calibração própria; 21 de 21. Falha se o `sw.js` publicado
   for o interruptor (controlo: 19 de 21, com o interruptor plantado).
+
+### Roadmap depois da publicação — fase 0 e fases A–D (planos e decisões de 2026-10-06)
+
+Só planos: nada disto está construído. As letras A–D evitam a colisão de números M31–M34 (em aberto,
+só o Daniel a fecha). A = M31 (Agenda Viva), B = M33 (Ritual de Entrada), C = M31 Fase B + endurecer
+a PWA, D = M32 (Memória e Missões Propostas). Todas seguem o `31_CLAUDE_CODE_ORACLE_CHECKLIST.md`
+(plano com riscos, custos, testes e rollback antes de código), os níveis do 07_ e o §12 da
+Constituição (eliminação e mudança de objetivos sempre com aprovação).
+
+**Decisões do Daniel (06/10).**
+- **Ordem:** 0.1 → 0.2a → C2 → A1 → A2 → 0.3a → C1 → B1 → D1 com 0.2b → D2 → A5 → A3/A4 → saldo
+  → D4 → D3 → D5, e a decisão de partir as missões do `app_state` antes do D5. O C2 sobe porque é
+  um defeito em produção que pode perder dados; com o 0.1 e o 0.2a antes, é publicado com portões e
+  com o vigia das cópias ativo. **Até ao C2, a Órbita fica aberta num aparelho de cada vez.**
+- **O vigia vive num repositório privado novo, `sistema-vigia`**: quem vigia não depende do que
+  vigia.
+- **Oráculo pausado por decisão** até repor saldo na API: os dois crons (`radar-diario`,
+  `oraculo-semanal`) desativados com `cron.alter_job(…, active := false)`, sem apagar as definições —
+  **desde 2026-10-06 às 19:02 UTC (20:02 em Lisboa)**, comando corrido pelo Daniel; verificado numa
+  ligação nova, em só leitura: os dois com `active=false`, as definições presentes, 2 crons no total
+  (minutos antes, o mesmo instrumento mostrava os dois ativos). Reverter: o mesmo com `active := true`.
+  O vigia mostra amarelo «pausado por decisão desde…», não
+  vermelho diário («um vermelho por uma razão conhecida ensina a ignorar o vermelho»). A pausa não
+  viaja nas cópias (o `cron.job` fica de fora): o procedimento de restauro do `sistema-backups` diz
+  como a repor.
+- **Sem «dead man's switch» externo**, por agora: só as camadas 1 e 2 (abaixo). Nem outro serviço,
+  nem outra credencial.
+- Em aberto: a decisão do radar (exceção escrita com quatro condições, ou deixar de apagar); as duas
+  mudanças à M31 do plano A (feed `.ics` de saída; horários lidos no browser).
+
+**Fase 0 — engenharia operacional.** Motivo: as quatro falhas da semana (cópias sem chegar ao B2 com
+o registo verde, radar parado desde 14/08 com «succeeded», registo de contas aberto, a app da Vercel
+com acesso a mais) foram todas descobertas à mão.
+- **0.1 Portões na publicação.** Hoje o `deploy-react.yml` faz `npm ci` → build → publicação, sem
+  `typecheck` nem testes, com as ações por etiqueta. Passa a: um job `testes` (typecheck, segurança
+  e toque — o runner Ubuntu 24.04 traz o Chrome 154) de que o build depende; o fumo da Órbita sobre
+  o `dist` antes de publicar; um job `verificar-destino` com `orbita.mjs` contra o site publicado e as
+  somas servidas comparadas com as do build; todas as ações por SHA. Segunda fatia: PostgreSQL 18 e
+  Deno no runner (o 24.04 traz o PostgreSQL 16, parado, e não traz Deno) para o `testes/bd` e os
+  testes do Oráculo. Critérios: um teste plantado a falhar num ramo `orbita/**` deixa o build saltado;
+  o fumo contra um caminho inexistente falha; um `@v5` plantado é recusado. Custo 0 $. 2 sessões.
+- **0.2 Vigia** (`sistema-vigia`, diário às 14:00 UTC; uma corrida vermelha manda email): a cópia do
+  dia existe no B2 (tamanho habitual, md5); o Pages serve o build do último deploy (um `versao.json`
+  publicado com o commit e as somas); o Oráculo corre ou está pausado por decisão; RLS em todas as
+  tabelas e registo fechado. **Decifrar** não pode ser na nuvem — a chave privada nunca sai do PC (P4
+  do A.8.13): uma tarefa semanal no PC descarrega a cópia pelo fileId, corre o `--so-verificar` e deixa
+  um sinal de vida; o vigia acusa se tiver mais de 8 dias. **Quem vigia o vigia:** camada 1, o
+  workflow das cópias e o vigia verificam o sinal de vida um do outro (o GitHub pode descartar uma
+  corrida agendada com carga); camada 2, o Sistema mostra «vigia sem notícias desde…». Critérios: o
+  vigia corrido para 25/09 — o dia que o incidente deixou sem cópia — tem de falhar; o Oráculo parado
+  sem decisão fica vermelho, pausado fica amarelo; um sinal de vida com mais de 36 h é acusado; uma
+  cópia com 1 byte trocado falha na verificação local. Custo 0 $ (30–60 min de Actions por mês, dos
+  2 000 gratuitos). 3–4 sessões.
+- **0.3 Conformidade em código** (mensal, no `sistema-vigia`, com uma linha de base versionada):
+  registo fechado (endpoint público do Auth, sem credencial — lido a 06/10: `disable_signup=true`, só
+  email); RLS, políticas, permissões do `anon`, funções SECURITY DEFINER e extensões com versões
+  iguais à linha de base; ações por SHA; fonte do Pages (a API dá 404 sem token); chaves do B2
+  esperadas (corrida mensal no PC); **nenhuma app do GitHub com «All repositories» — item manual com
+  captura**, porque a documentação não confirma que um token pessoal liste as apps instaladas. Cada
+  verificação tem o seu desvio plantado. Custo 0 $. 2–3 sessões.
+
+**Registo de credenciais da fase 0** (nenhuma existe ainda; nascem com as fatias, cada uma com
+validade, e o vigia avisa 14 dias antes de expirar — amarelo — e no dia — vermelho; as datas vivem
+num `credenciais.json` do `sistema-vigia`, conferidas com o servidor na corrida mensal):
+
+| Credencial | Pode | Não pode | Onde vive | Validade | Cria / retira |
+|---|---|---|---|---|---|
+| Chave B2 só de listagem | listar nomes, tamanhos, datas e md5 das cópias (`listFiles`, `listAllBucketNames`), só no bucket das cópias | ler conteúdo, escrever, apagar | Secrets do `sistema-vigia` | com validade no B2 | o Daniel, pelo CLI com a chave principal (apagada a seguir); criada pelo CLI, só se vê e retira pelo CLI (A.8.13, 4.9) |
+| Papel `vigia_bot` (Postgres) | ler vistas só com datas (`saude_*`) e o catálogo; inserir sinais de vida | ler o conteúdo do `app_state`, escrever dados, `auth` | Secrets do `sistema-vigia` (password) | `VALID UNTIL` | migração (`db push`, comando do Daniel); retirar com `NOLOGIN` |
+| Token do Pages (GitHub, fine-grained) | ler a configuração do Pages do `kamappa/Sistema` | código, definições, outros repositórios | Secrets do `sistema-vigia` | a mais curta que o GitHub deixar | o Daniel, em Developer settings; retirar aí |
+| Chave B2 com `listKeys` | listar as chaves da conta (nomes, permissões, buckets — sem segredos) | criar ou apagar chaves; ficheiros | só no PC, em DPAPI | com validade no B2 | o Daniel, pelo CLI; confirmar antes na doc do B2 que uma chave pode ter só `listKeys` |
+
+As credenciais que já existem (as do Oráculo, do vault, das cópias e a chave age) entram no mesmo
+registo no 0.3.
+
+**C2 — o que acontece às alterações locais quando a gravação é recusada.** Hoje a gravação na nuvem
+é um upsert sem versão (o último ganha), e ao arrancar, se a leitura da nuvem falhar, a app grava na
+nuvem a cópia local (lido no código, não visto em produção). Com o C2: nada se perde — as alterações
+ficam na cópia local, marcadas «por sincronizar», e a gravação na nuvem pára neste aparelho; o ecrã
+diz «a nuvem mudou noutro aparelho às HH:MM» e oferece ficar com a da nuvem ou com a deste aparelho,
+guardando sempre a outra como cópia de conflito (30 dias); juntar chave a chave fica para o C2b. O
+bloco único não é a única raiz (a primeira é não haver versão, e corrige-se sem o partir), mas torna
+os conflitos grosseiros, as permissões por linha impossíveis («propor, mas não apagar missões») e a
+origem por item difícil. Partir custa 6–10 sessões, domínio a domínio, com um adaptador que monta o
+mesmo `S` (o palco WebGL lê `window.S`) e um ensaio com uma cópia real num projeto descartável;
+primeiro as missões, antes do D5.
+
+**Fases A–D, em resumo** (o detalhe e os critérios com controlo estão na proposta de 06/10 desta
+sessão):
+- **A. Calendário e Obsidian** — o Sistema conhece aulas, turnos e eventos, sem modelo. Tabelas da
+  M31 (`schedule_rules`, `schedule_events`, `schedule_exceptions`). Horários da Worten e do IPCA lidos
+  no browser, só a linha do Daniel sai do aparelho; feed `.ics` só de saída (URL secreta rodável);
+  espelho em `Oraculo/` com a escrita do Oráculo separada do resto do vault (hoje o `VAULT_TOKEN`
+  escreve no repositório inteiro). Acessos de terceiros mínimos e revistos: nunca OAuth à conta,
+  nunca «All repositories». 0 $. 6–9 sessões. 1.ª fatia: A1 (horário do IPCA à mão + Hoje/Amanhã,
+  RLS e a mudança de hora de 25/10 testadas).
+- **B. Intro ao entrar** — a M33 sobre a `BootSequence` (uma vez por sessão) com o `Greet` e as
+  `QUOTES` que já existem; offline, sem Anthropic, ≤3,5 s, reduced motion. 0 $. 2–3 sessões.
+- **C. App instalável** — o service worker continua a guardar só a casca; C2 (versão e conflito,
+  acima), ícone maskable e `id`, aviso sem rede, notificações (M31 Fase B). 0 $. 3–5 sessões.
+- **D. Oráculo com governação** — a escrita sai da `service_role` (`index.ts`, l.14): pedidos do
+  Daniel com o JWT dele (RLS aplica-se); trabalhos sozinhos com um papel `oraculo_bot` só com INSERT;
+  apagar ou mudar o `app_state` só no cliente, depois do clique dele. Ressalva lida na documentação
+  a 06/10: o Supabase dá a todas as funções a `service_role`, as chaves secretas e a ligação à base,
+  sem dizer como as tirar — o papel mínimo protege contra o modelo e o conteúdo externo, não contra
+  código mal publicado (fica no gate de publicação e num teste do fumo). Injeção: a chamada que lê
+  páginas não tem ação nenhuma sobre missões; domínios aprovados; só URLs devolvidos pela pesquisa.
+  Terceiros: filtro de saída de nomes antes da Anthropic. Custo de hoje (Sonnet 4.6, preços lidos a
+  06/10): estimativa de 12–25 $/mês, a medir no D4; alvo 4–8 $/mês. 8–12 sessões. 1.ª fatia: D1
+  (registo de execuções e «parado — sem saldo» visível, em modo de teste).
+
+**A construção do 0.1 começa na sessão seguinte.**
 
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)

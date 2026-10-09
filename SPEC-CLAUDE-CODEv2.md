@@ -1279,6 +1279,27 @@ diferentes; com ela, 16 de 16 iguais. A causa de raiz — o `autocrlf`, já em t
 - **Ordem:** 0.2a (com a fatia 3) → 0.1 fatia 2 → C2 → A1 → A2 → 0.3a → C1 → B1 → D1 com 0.2b → D2 →
   A5 → A3/A4 → saldo → D4 → D3 → D5.
 
+### 0.2a, fatia 1 — o Pages serve o build publicado (plano aprovado a 2026-10-10)
+
+O build do Sistema gera um `versao.json` (`commit` e `somas`, só estes campos, de uma lista fechada:
+o commit vem do `git rev-parse HEAD`, nunca do ambiente; um teste falha com um campo a mais). O
+`verificar-destino` confere-o logo a seguir ao deploy (a fatia 3 do 0.1), e o `sistema-vigia`
+(privado) confere-o todos os dias, às **14:17 UTC** — num minuto ímpar, porque a documentação do
+GitHub diz que o início de cada hora é período de carga em que as corridas agendadas se atrasam ou
+são descartadas. O plano, o critério e os controlos estão no registo W60.
+
+- **A cópia do validador no `sistema-vigia` é deliberada.** O vigia tem o seu próprio código para
+  ler e validar o `versao.json`, sem importar nada do Sistema: um erro no código do Sistema não pode
+  enganar quem o vigia. As duas cópias **não se juntam**, nem num pacote partilhado; se o formato
+  mudar, mudam as duas, cada uma com o seu teste.
+- **Quem vigia o vigia — por fazer, e até lá o silêncio do vigia não é detetado.** Se o vigia deixar
+  de correr, nada avisa. A documentação do GitHub (lida a 2026-10-10) diz que os agendamentos se
+  desligam ao fim de 60 dias sem atividade **num repositório público**; dos privados não diz nada, o
+  que não prova que não aconteça. As duas camadas: (1) o workflow das cópias e o vigia confirmam
+  que o outro correu — na fatia 2 do 0.2a, a que mexe nas cópias; (2) o Sistema mostra «vigia sem
+  notícias desde…» — no 0.2b, porque precisa do papel `vigia_bot` e de sinais de vida na base de
+  dados.
+
 **Decisão do Daniel (2026-10-09) — o Dependabot propõe as atualizações das ações; ele revê.** Um
 SHA fixado não recebe correções sozinho. As atualizações chegam como pull requests do Dependabot
 (`.github/dependabot.yml` com `package-ecosystem: "github-actions"`), nunca com merge automático:

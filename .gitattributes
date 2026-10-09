@@ -1,1 +1,5 @@
 *.md text eol=lf
+
+# Evidências guardam-se byte a byte: sem conversão de fins de linha nem na pasta de trabalho
+# (com core.autocrlf=true, um git switch reescrevia-as com CRLF e as somas deixavam de bater; 09/10).
+docs/evidencias/** -text

@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
-      TESTES_MINIMO: 129   # segurança (86) + toque (43), contados a 2026-10-09
+      TESTES_MINIMO: 132   # segurança (89) + toque (43), contados a 2026-10-10
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
 
@@ -103,6 +103,9 @@ jobs:
       - name: Build (Vite)
         run: npm run build   # base '/Sistema/' vem do vite.config.js
 
+      - name: versao.json (o commit e as somas do build, publicados com o site)
+        run: node scripts/versao.mjs gerar dist
+
       - name: Hashes do dist (para comparar com o build local e com o destino)
         run: cd dist && find . -type f -print0 | sort -z | xargs -0 sha256sum
 
@@ -133,7 +136,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: deploy
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20   # o versao.json pode esperar até 12 min pela CDN (max-age=600)
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5.1.0
 
@@ -144,3 +147,6 @@ jobs:
 
       - name: Fumo da Órbita no site publicado
         run: node testes/fumo/orbita.mjs https://kamappa.github.io/Sistema/
+
+      - name: O site serve este build (o versao.json servido e as somas de cada ficheiro)
+        run: node scripts/versao.mjs verificar https://kamappa.github.io/Sistema/

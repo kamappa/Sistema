@@ -62,7 +62,7 @@ export function lerCommit(cwd = process.cwd()) {
 
 export async function gerar(dist, commit) {
   const obj = validar({ commit, somas: await calcularSomas(dist) });
-  await writeFile(path.join(dist, NOME), JSON.stringify(obj, null, 2) + '\n');
+  await writeFile(path.join(dist, NOME), JSON.stringify({ ...obj, plantado: 'controlo do W60 c - nunca entra no main' }, null, 2) + '\n');
   return obj;
 }
 

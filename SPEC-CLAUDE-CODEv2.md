@@ -409,6 +409,12 @@ apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
 `git hash-object --no-filters` (controlo: CRLF e LF dão hashes diferentes). A v21 publicada
 foi recomparada assim: é o `9ab6ccc` byte a byte (5 de 5, 0 CR).
 
+**Proporcionalidade (regra do Daniel, 2026-10-09).** O processo completo — critério escrito antes,
+linha de base, controlo plantado que prova que o instrumento pode falhar, e evidência guardada — é
+para mudanças em produção, na base de dados, em credenciais, em workflows ou no que é publicado.
+Para commits só de documentação (SPEC, MELHORIAS, README), basta mostrar o diff ao Daniel e
+confirmar que nenhum dado pessoal entra.
+
 ### Achado da etapa 2b — o Templater corria o texto do modelo, sem abrir a nota e sem clique
 
 A mesma classe dos outros achados desta publicação — um caminho de dados tratado como código
@@ -1215,6 +1221,73 @@ lista que dizia «100 lidas» quando havia 102), na lista acima.
 mudou), e uma etiqueta móvel não pode decidir o código que corre com essas permissões. Critério
 do plano: um `@v5` plantado é recusado. Continuam por fazer a fatia 2 (PostgreSQL 18 e Deno no
 runner) e a fatia 3 (as somas servidas comparadas com as do build).
+
+### 0.1, fatia das ações por SHA — FECHADA (2026-10-10)
+
+**O que entrou.** No `main` por avanço rápido `79c4cf7..5bc6f22` (push do Daniel a 2026-10-09,
+23:08 UTC), 3 ficheiros: `6fb9f62` (as 4 ações fixadas pelo SHA a que o `@v5` resolvia, com a versão
+em comentário, e o teste `testes/seguranca/acoes-por-sha.test.mjs`, que sobe o mínimo para 129) e
+`5bc6f22` (o `.gitattributes` das evidências, abaixo). Os SHA foram lidos nos repositórios oficiais e
+conferidos no registo da corrida 37946893253, que os tinha descarregado como `@v5`: o código que
+corre não mudou.
+
+**Duas camadas, cada uma provada por si** (registo W57 e W59 em
+`docs/evidencias/2026-10-09-fase0-portoes-entrada/`):
+1. **O teste do repositório.** Vermelho no PC com o workflow por etiqueta (as 8 linhas listadas),
+   verde depois. No GitHub, com a opção ainda desligada: o ramo real verde (129/129, as ações
+   descarregadas por SHA); o ramo de controlo, igual menos um `@v5` plantado, falhou só neste teste
+   (128 de 129) e o build ficou saltado (corrida 37998419474).
+2. **A opção do GitHub** «Require actions to be pinned to a full-length commit SHA», ligada pelo
+   Daniel e confirmada na página de definições. Com um segundo `@v5` no job `testes`, a corrida
+   38002537999 falhou no passo «Set up job», o único que correu, com «The action actions/checkout@v5
+   is not allowed in kamappa/Sistema because all actions must be pinned to a full-length commit
+   SHA», sem nenhum teste a correr. A etiqueta `evidencia/0.1-sha-controlo` guarda os dois commits
+   plantados.
+
+**O critério corrigido, sem apagar o original.** O Daniel escreveu «a corrida nova tem de falhar
+antes de qualquer job correr». O GitHub verifica as ações job a job, no «Set up job», quando as
+descarrega: o primeiro `@v5`, no `verificar-destino`, que só corre no `main`, nunca era verificado
+num ramo. Por isso a tentativa 2 do controlo, corrida de novo depois de ligar a opção, ficou vermelha
+**pela razão errada** (o job `testes` correu e falhou no nosso teste) e não conta como prova da
+opção. Critério aprovado: um plantado num job que corre, e esse job falha no «Set up job» sem nenhum
+passo seguinte.
+
+**A entrada no `main` (W59).** Corrida 38002913087: o «Set up job» passou nos 4 jobs — o `deploy` e
+o `verificar-destino` correram pela primeira vez com a opção ligada; o `deploy-pages` (Node, sem ações
+por dentro) foi descarregado por SHA; testes 129/129; fumo do `dist` 21/21; `verificar-destino` 21/21
+no site. As somas do CI e as servidas são as de 04/10 (16 de 16), com o Last-Modified dentro do job
+de deploy; 1 publicação do github-pages; a Vercel continua com 8. Plano escrito antes, se o GitHub
+recusasse uma ação no deploy: o site fica como está, o Daniel desliga a opção, publica-se, e
+investiga-se a ação antes de a voltar a ligar. Não foi preciso.
+
+**O `.gitattributes` das evidências.** Com `core.autocrlf=true`, um `git switch` que recriava
+`docs/evidencias` escrevia as cópias com CRLF (os blobs continuavam LF), e a comparação das somas de
+04/10 deixou de abrir os ficheiros — falhou à vista, não deu um falso verde. `docs/evidencias/** -text`
+mantém a pasta igual aos blobs. Controlo numa pasta de trabalho nova: sem a regra, 14 de 16
+diferentes; com ela, 16 de 16 iguais. A causa de raiz — o `autocrlf`, já em três problemas — está no
+`MELHORIAS.md` (item 14), à espera da decisão do Daniel.
+
+**O que fica do 0.1, e a ordem nova (decisão do Daniel, 2026-10-10).**
+- **A fatia 3 entra no 0.2a.** As somas servidas comparadas com as do build são o mesmo trabalho que o
+  `versao.json` do vigia: o build do Sistema escreve-o com o commit e as somas do `dist` e publica-o
+  com o site; o `verificar-destino` compara-o, logo a seguir ao deploy, com os ficheiros servidos; e o
+  vigia faz a mesma comparação todos os dias. Uma geração e uma comparação, dois momentos.
+- **A fatia 2 vem depois do 0.2a e antes do C2:** PostgreSQL 18 e Deno no runner, para o
+  `testes/bd` e os testes do Oráculo correrem no portão — o C2 e o A1 são os primeiros a mexer na
+  base de dados. Junta a correção do `testes/bd`, que hoje aplica as migrações com o `postgres` como
+  superutilizador (a classe da oitava instância das lições).
+- **Ordem:** 0.2a (com a fatia 3) → 0.1 fatia 2 → C2 → A1 → A2 → 0.3a → C1 → B1 → D1 com 0.2b → D2 →
+  A5 → A3/A4 → saldo → D4 → D3 → D5.
+
+**Decisão do Daniel (2026-10-09) — o Dependabot propõe as atualizações das ações; ele revê.** Um
+SHA fixado não recebe correções sozinho. As atualizações chegam como pull requests do Dependabot
+(`.github/dependabot.yml` com `package-ecosystem: "github-actions"`), nunca com merge automático:
+o Daniel revê e decide, como no Oráculo. Lido na documentação do GitHub a 2026-10-09: o Dependabot
+atualiza o comentário da versão quando está na mesma linha (`actions/checkout@<commit> # <tag>`,
+a forma usada); um SHA que não corresponda a nenhuma etiqueta seria levado ao último commit do ramo
+por omissão, e não à última versão publicada (os 4 SHA fixados correspondem a etiquetas). Por
+construir: a configuração e o critério com controlo (um SHA antigo plantado tem de gerar uma
+proposta).
 
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)

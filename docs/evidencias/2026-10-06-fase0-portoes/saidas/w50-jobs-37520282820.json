@@ -1,0 +1,192 @@
+{
+  "total_count": 4,
+  "jobs": [
+    {
+      "id": 112463630125,
+      "run_id": 37520282820,
+      "workflow_name": "Deploy React to Pages",
+      "head_branch": "orbita/fase0-portoes-controlo",
+      "run_url": "https://api.github.com/repos/kamappa/Sistema/actions/runs/37520282820",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOTK_ZdM8AAAAaL1rPLQ",
+      "head_sha": "6b3f1afecd1297bb9e7294b380eca13792bc8265",
+      "url": "https://api.github.com/repos/kamappa/Sistema/actions/jobs/112463630125",
+      "html_url": "https://github.com/kamappa/Sistema/actions/runs/37520282820/job/112463630125",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-06T19:36:50Z",
+      "started_at": "2026-10-06T19:36:52Z",
+      "completed_at": "2026-10-06T19:39:01Z",
+      "name": "testes",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T19:36:52Z",
+          "completed_at": "2026-10-06T19:36:53Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T19:36:53Z",
+          "completed_at": "2026-10-06T19:36:55Z"
+        },
+        {
+          "name": "Setup Node",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-06T19:36:55Z",
+          "completed_at": "2026-10-06T19:36:59Z"
+        },
+        {
+          "name": "Install deps",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-06T19:36:59Z",
+          "completed_at": "2026-10-06T19:37:02Z"
+        },
+        {
+          "name": "Verificação de tipos",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-10-06T19:37:02Z",
+          "completed_at": "2026-10-06T19:37:06Z"
+        },
+        {
+          "name": "Testes de segurança e de toque (Chrome sem cabeça)",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 6,
+          "started_at": "2026-10-06T19:37:06Z",
+          "completed_at": "2026-10-06T19:39:00Z"
+        },
+        {
+          "name": "Post Setup Node",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 11,
+          "started_at": "2026-10-06T19:39:00Z",
+          "completed_at": "2026-10-06T19:39:00Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-10-06T19:39:00Z",
+          "completed_at": "2026-10-06T19:39:00Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-10-06T19:39:00Z",
+          "completed_at": "2026-10-06T19:39:00Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/kamappa/Sistema/check-runs/112463630125",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": 1000000307,
+      "runner_name": "GitHub Actions 1000000307",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 112464576699,
+      "run_id": 37520282820,
+      "workflow_name": "Deploy React to Pages",
+      "head_branch": "orbita/fase0-portoes-controlo",
+      "run_url": "https://api.github.com/repos/kamappa/Sistema/actions/runs/37520282820",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOTK_ZdM8AAAAaL2lAuw",
+      "head_sha": "6b3f1afecd1297bb9e7294b380eca13792bc8265",
+      "url": "https://api.github.com/repos/kamappa/Sistema/actions/jobs/112464576699",
+      "html_url": "https://github.com/kamappa/Sistema/actions/runs/37520282820/job/112464576699",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-10-06T19:39:02Z",
+      "started_at": "2026-10-06T19:39:02Z",
+      "completed_at": "2026-10-06T19:39:01Z",
+      "name": "build",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/kamappa/Sistema/check-runs/112464576699",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 112464577262,
+      "run_id": 37520282820,
+      "workflow_name": "Deploy React to Pages",
+      "head_branch": "orbita/fase0-portoes-controlo",
+      "run_url": "https://api.github.com/repos/kamappa/Sistema/actions/runs/37520282820",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOTK_ZdM8AAAAaL2lC7g",
+      "head_sha": "6b3f1afecd1297bb9e7294b380eca13792bc8265",
+      "url": "https://api.github.com/repos/kamappa/Sistema/actions/jobs/112464577262",
+      "html_url": "https://github.com/kamappa/Sistema/actions/runs/37520282820/job/112464577262",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-10-06T19:39:02Z",
+      "started_at": "2026-10-06T19:39:02Z",
+      "completed_at": "2026-10-06T19:39:01Z",
+      "name": "deploy",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/kamappa/Sistema/check-runs/112464577262",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    },
+    {
+      "id": 112464577445,
+      "run_id": 37520282820,
+      "workflow_name": "Deploy React to Pages",
+      "head_branch": "orbita/fase0-portoes-controlo",
+      "run_url": "https://api.github.com/repos/kamappa/Sistema/actions/runs/37520282820",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOTK_ZdM8AAAAaL2lDpQ",
+      "head_sha": "6b3f1afecd1297bb9e7294b380eca13792bc8265",
+      "url": "https://api.github.com/repos/kamappa/Sistema/actions/jobs/112464577445",
+      "html_url": "https://github.com/kamappa/Sistema/actions/runs/37520282820/job/112464577445",
+      "status": "completed",
+      "conclusion": "skipped",
+      "created_at": "2026-10-06T19:39:02Z",
+      "started_at": "2026-10-06T19:39:02Z",
+      "completed_at": "2026-10-06T19:39:02Z",
+      "name": "verificar-destino",
+      "steps": [
+
+      ],
+      "check_run_url": "https://api.github.com/repos/kamappa/Sistema/check-runs/112464577445",
+      "labels": [
+        "ubuntu-24.04"
+      ],
+      "runner_id": null,
+      "runner_name": null,
+      "runner_group_id": null,
+      "runner_group_name": null
+    }
+  ]
+}

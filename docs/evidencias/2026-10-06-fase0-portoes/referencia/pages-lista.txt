@@ -1,0 +1,16 @@
+assets/index-B2-hBgsQ.js
+assets/index-C8cmoWUa.css
+assets/main-WFuB3Xa4.js
+assets/react-vendor-Cc5yFsxo.js
+assets/state-CK1lU6st.js
+icon-192.png
+icon-512.png
+index.html
+manifest.webmanifest
+perguntas/lote1.json
+perguntas/lote2.json
+perguntas/lote3.json
+perguntas/lote4.json
+perguntas/lote5.json
+perguntas/lote6.json
+sw.js

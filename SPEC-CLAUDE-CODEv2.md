@@ -303,7 +303,7 @@ Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de ha
 normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
 código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — instâncias do mesmo
 padrão nesta migração, todas em instrumentos de verificação (cinco quando isto foi escrito; nove
-a 2026-10-06):
+a 2026-10-06; onze a 2026-10-09):
 
 1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
    guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
@@ -380,6 +380,28 @@ a 2026-10-06):
    semanas, descobertas à mão (23–24/09, pela data do último item e pelos registos da função). É a
    mesma classe do código de saída 0 das cópias: quem dispara declara o sucesso, e ninguém lê o
    destino. Resposta planeada: a pausa por decisão, o registo de execuções (D1) e o vigia (0.2).
+10. **O apontador que vinha da máquina e não do teste** (2026-10-06, fatia 0.1; décima instância,
+   aprovada pelo Daniel a 2026-10-09). Os 3 testes do modo rato passavam no PC e falharam na
+   primeira corrida do portão no GitHub (37520282820: 4 falhas em vez da plantada). Sem emulação,
+   o Chrome sem cabeça responde a `hover` e `pointer` com o que o computador tem: no PC, rato; no
+   runner Linux, sem apontador, `hover: none` e `pointer: none`. O modo rato do arnês só desligava a
+   emulação de toque e herdava o resto — o verde do PC era da máquina, não do teste. Provado dos
+   dois lados: uma sonda com o apontador «nenhum» deu os valores do runner, e
+   `SISTEMA_TESTE_APONTADOR=nenhum` faz falhar os mesmos 3 no PC (40 de 43). Correção `26e9f58`:
+   o lançador fixa o rato por omissão; no runner, 127 de 127, e o controlo plantado deu só a falha
+   plantada (37557745880: 128, 127, 1). Um ambiente de teste prova-se equivalente no que o teste
+   mede — a mesma lição da oitava, agora no dispositivo de entrada.
+11. **A lista que dizia «100 lidas» quando havia 102** (2026-10-09; décima primeira instância,
+   registada a pedido do Daniel). O `publicacoes.mjs` de 06/10, que conta as publicações do
+   GitHub para provar «nenhuma da Vercel», lia só a primeira página da API (100 por página) e
+   escrevia «100 publicações lidas» sem dizer que havia mais — o repositório tem 102. As leituras
+   de 06/10 não ficaram erradas, porque as 8 da Vercel e as recentes estão na primeira página, mas
+   o controlo dele («as 8 antigas continuam visíveis») não cobria o limite: tudo o que passasse da
+   página 1 ficava invisível, e a contagem das do github-pages, que o W56 usa, teria dado 92 em vez
+   de 94. Apanhado ao tirar a linha de base do W56, porque o número redondo pediu uma leitura à
+   mão da página 2. A versão nova segue a paginação
+   (`rel="next"`) e diz quantas páginas leu; deu 102 em 2 páginas, igual à leitura à mão. **Um
+   número igual ao limite do pedido é um sinal de truncagem, não um total.**
 
 A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
 apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
@@ -1135,6 +1157,64 @@ sessão):
   (registo de execuções e «parado — sem saldo» visível, em modo de teste).
 
 **A construção do 0.1 começa na sessão seguinte.**
+
+### 0.1, fatia 1 — os portões na publicação: FECHADA (2026-10-09)
+
+**O que entrou.** No `main` por avanço rápido `158a900..26e9f58` (push do Daniel a 2026-10-09,
+14:48 UTC), só 2 ficheiros: `fc34fcf` (o `deploy-react.yml`) e `26e9f58` (o `testes/fumo/apoio.mjs`).
+O workflow ganhou um job `testes` (typecheck, testes de segurança e de toque no Chrome sem cabeça, e
+um mínimo de 127 testes passados contados no TAP, porque um `node --test` sem ficheiros sai com 0);
+o `build` depende dele e corre o fumo da Órbita sobre o `dist` antes do upload; o `verificar-destino`,
+só no `main`, corre o mesmo fumo contra o site publicado. O código da app não mudou.
+
+**Provas, cada uma com o seu controlo** (registo W47–W56, em
+`docs/evidencias/2026-10-06-fase0-portoes/` e `docs/evidencias/2026-10-09-fase0-portoes-entrada/`):
+- O vermelho antes do portão: com o workflow antigo e um teste plantado a falhar, o build passou
+  (corrida 37519731209).
+- O portão bloqueia: o mesmo teste plantado com o workflow novo → `testes` falhou com exatamente 1
+  falha (128 testes, 127 passaram) e `build`, `deploy` e `verificar-destino` ficaram saltados
+  (37557745880).
+- O fumo remoto falha num destino errado: contra um endereço do Pages que dá 404, sai com código 1
+  e 11 falhas (W53).
+- O verde no ramo (37523282982: testes e fumo do `dist`, sem deploy) e no `main` (37946893253,
+  W56): testes 127/127 com «testes que passaram: 127 (mínimo: 127)»; fumo do `dist` 21/21; deploy
+  verde; `verificar-destino` 21/21 em `kamappa.github.io/Sistema/`. Números lidos no registo de cada
+  job, não no «success» da API.
+- Publicações: o `26e9f58` tem 1, do github-pages; a Vercel continua com as 8 antigas (a última de
+  04/10, o controlo de que a leitura as vê); 0 estados no commit.
+- O Pages serve 16 de 16 ficheiros iguais aos de 04/10, com o Last-Modified de 09/10 14:51:41, dentro
+  do job de deploy (14:51:13–14:52:04).
+
+**O critério corrigido, sem apagar o original.** O W56 pedia o Last-Modified «depois do fim do passo
+de deploy», e à letra falhou (14:51:41 contra 14:52:02). O critério estava mal escrito: no W46 (06/10,
+anterior a este push) o Pages também marcou os ficheiros durante o deploy. Texto aprovado pelo Daniel:
+«Last-Modified dos 16 ficheiros entre o início e o fim do job de deploy, e diferente do anterior». O ✘
+original, a correção e a justificação ficam lado a lado no registo.
+
+**O site serve este build — provado para esta publicação.** As somas que o CI calculou no passo
+«Hashes do dist» da corrida 37946893253 são as de 04/10 (16 de 16), e o site serve as de 04/10 (16
+de 16): o que o Pages serve é, byte a byte, a saída deste build. O Last-Modified dentro do job de
+deploy prova que foi esta publicação que lá pôs os ficheiros. O limite registado no W53 fica
+respondido para esta publicação, à mão; a fatia 3 (comparar as somas servidas com as do build, em
+cada publicação) continua a ser a forma automática.
+
+**Achado W54 — um build do PC nunca é byte-igual ao publicado.** O git deste Windows tem
+`core.autocrlf=true`; o Vite copia o `public/` tal como está na cópia de trabalho, com CRLF. O `dist`
+do PC difere do publicado em 9 de 16 ficheiros (o `index.html`, o manifesto, o `sw.js` e os 6 lotes
+de perguntas; os bundles e os PNG são iguais); sem os CR, os 9 dão as somas publicadas. O CI, em Linux,
+constrói igual ao publicado. **As somas do site comparam-se só com as do build do CI**, nunca com um
+build do PC.
+
+**Lições dos instrumentos:** a décima (o apontador que vinha da máquina) e a décima primeira (a
+lista que dizia «100 lidas» quando havia 102), na lista acima.
+
+**Trabalho em falta do 0.1 — as ações por SHA, a próxima fatia, antes do 0.2a** (decisão do Daniel a
+2026-10-09). O plano pedia todas as ações por SHA, e o workflow ainda as tem por etiqueta
+(`actions/checkout@v5`, `setup-node@v5`, `upload-pages-artifact@v5`, `deploy-pages@v5`). O job de
+`deploy` publica o site, com `pages: write` e `id-token: write` (desde 04/10; esta fatia não as
+mudou), e uma etiqueta móvel não pode decidir o código que corre com essas permissões. Critério
+do plano: um `@v5` plantado é recusado. Continuam por fazer a fatia 2 (PostgreSQL 18 e Deno no
+runner) e a fatia 3 (as somas servidas comparadas com as do build).
 
 
 ## Missão 1 — FUNDIR Missões + Objetivos (CONCLUÍDA)

@@ -1338,6 +1338,25 @@ um ao outro); a camada 2 (o aviso no ecrã do Sistema) fica no 0.2b, porque prec
 `vigia_bot` e de sinais de vida na base de dados, e o que mexe na base de dados vem depois da fatia 2
 do 0.1, que põe os testes da base de dados no portão.
 
+**Interrupção por incidente (2026-10-10).** A cópia mensal de outubro falhou a 01/10 e o aviso ficou
+9 dias por ler (A.8.13 do `sistema-backups`, secção 4.11). A ordem fica (decisão do Daniel,
+2026-10-10):
+1. **A correção das cópias** — a mensal enviada em qualquer dia em que a do mês falte (`1dd9e05`),
+   provada pela corrida agendada de 11/10 (plano W62 no registo).
+2. **O controlo f do aviso** — curto, e fecha a fatia 1 do 0.2a, que está aberta.
+3. **O portão de testes no CI do `sistema-backups` — prioridade alta.** É o repositório mais
+   crítico e o único em que os testes só correm no PC: nada impede hoje que um commit para o
+   `main` mude o envio das cópias sem um único teste. O mesmo desenho do 0.1 do Sistema — os
+   testes antes do resto, com um mínimo contado e um controlo plantado num ramo — e o
+   `shellcheck` nos scripts (não está instalado no PC; a 10/10 a correção da mensal passou sem
+   ele).
+4. O vigia do vigia.
+
+Prova, no mesmo dia, de que a vigilância tem de correr na nuvem: a leitura do bucket que deixei a
+correr no PC, de 5 em 5 minutos, à espera da cópia de 10/10, parou 5 horas (das 09:45 às 15:00
+UTC) porque o PC adormeceu. Não deu nenhuma resposta falsa — a leitura que falhou disse-o —, mas
+não vigiou nada durante esse tempo.
+
 **Decisão do Daniel (2026-10-09) — o Dependabot propõe as atualizações das ações; ele revê.** Um
 SHA fixado não recebe correções sozinho. As atualizações chegam como pull requests do Dependabot
 (`.github/dependabot.yml` com `package-ecosystem: "github-actions"`), nunca com merge automático:

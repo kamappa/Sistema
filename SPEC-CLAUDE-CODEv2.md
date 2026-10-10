@@ -303,7 +303,7 @@ Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de ha
 normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
 código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — instâncias do mesmo
 padrão nesta migração, todas em instrumentos de verificação (cinco quando isto foi escrito; nove
-a 2026-10-06; onze a 2026-10-09):
+a 2026-10-06; doze a 2026-10-10):
 
 1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
    guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
@@ -402,6 +402,16 @@ a 2026-10-06; onze a 2026-10-09):
    mão da página 2. A versão nova segue a paginação
    (`rel="next"`) e diz quantas páginas leu; deu 102 em 2 páginas, igual à leitura à mão. **Um
    número igual ao limite do pedido é um sinal de truncagem, não um total.**
+12. **O plantado que não se plantou** (2026-10-10, 0.2a fatia 1; décima segunda instância,
+   registada a pedido do Daniel). Para o controlo do `versao.json`, um `sed` devia pôr um campo a
+   mais no `gerar`. A expressão não encontrou a linha — as barras invertidas do `\n` dentro do
+   padrão não sobreviveram às camadas de aspas — e o `sed` não diz nada quando não substitui: o
+   ficheiro ficou igual, e o teste deu 3 de 3 verdes. Um controlo que não mudou nada passa sempre,
+   e esse verde não provava nada. Apanhado porque o diff saiu vazio. Refeito com um script que
+   exige **exatamente uma ocorrência** antes de substituir e falha se houver zero ou mais de uma;
+   com ele, o teste falhou como devia (testes 2 e 3). A mesma classe do controlo de build que não
+   controlava (sétima instância, o Rollup a retirar a linha plantada). **Antes de ler o resultado
+   de um controlo, confirmar que o plantado está lá.**
 
 A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
 apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
@@ -1296,9 +1306,37 @@ são descartadas. O plano, o critério e os controlos estão no registo W60.
   de correr, nada avisa. A documentação do GitHub (lida a 2026-10-10) diz que os agendamentos se
   desligam ao fim de 60 dias sem atividade **num repositório público**; dos privados não diz nada, o
   que não prova que não aconteça. As duas camadas: (1) o workflow das cópias e o vigia confirmam
-  que o outro correu — na fatia 2 do 0.2a, a que mexe nas cópias; (2) o Sistema mostra «vigia sem
-  notícias desde…» — no 0.2b, porque precisa do papel `vigia_bot` e de sinais de vida na base de
+  que o outro correu — na fatia logo a seguir à fatia 1 (decisão de 2026-10-10, abaixo); (2) o
+  Sistema mostra «vigia sem notícias desde…» — no 0.2b, porque precisa do papel `vigia_bot` e de sinais de vida na base de
   dados.
+
+**A parte do Sistema — no `main` a 2026-10-10 (W61).** Avanço rápido `15a6025..d3f6b35`: o
+`scripts/versao.mjs`, o teste e o workflow. A **fatia 3 do 0.1 está fechada**: o limite do W53 («o
+verde prova uma Órbita que funciona, não este build») deixa de existir para cada publicação.
+- Controlo no GitHub (ramo à parte, `e0d44bf`): um campo a mais escrito pelo `gerar` depois da
+  validação fez falhar exatamente os dois testes que usam o `gerar` (132, 130, 2), e o build ficou
+  saltado. O plano dizia «falha só esse teste»; foi corrigido para dois antes do push.
+- No `main` (corrida 38007772908): 132/132; o build gera o `versao.json` (commit `d3f6b35`, 16
+  ficheiros; 17 linhas de soma); o `verificar-destino` dá «✓ o site serve este build» com 16
+  ficheiros conferidos, à primeira, sem esperar pela CDN. Lido à parte, com um script que não usa o
+  `versao.mjs`: o `versao.json` servido tem exatamente `commit` e `somas`, as 16 somas batem com o
+  servido, a soma dele é a do CI, e os 17 ficheiros têm o Last-Modified dentro do job de deploy. As
+  16 somas são as de 04/10 — a app não mudou. Controlo: o mesmo `verificar` com um commit esperado
+  errado falha.
+- Regra do Daniel para uma falha depois do deploy (escrita antes do resultado): a CDN a demorar
+  mais de 12 minutos → voltar a verificar mais tarde, sem reverter; somas que não batem → investigar
+  antes de qualquer reversão; reverter o `main` só se o fumo falhar no site. Não foi preciso.
+- Falta desta fatia o `sistema-vigia`: o workflow e o `vigia.mjs`, e os controlos d, e e f do W60
+  (o vigia contra um destino errado, e o email do aviso confirmado nos dois caminhos, o manual e o
+  agendado).
+
+**Ordem do 0.2a (decisão do Daniel, 2026-10-10):** fatia 1 (o `sistema-vigia`, a seguir) → **o
+vigia do vigia, logo depois** — e não no fim do 0.2a, porque os 60 dias de inatividade em
+repositórios privados ficam por confirmar → a fatia da cópia do dia no B2. A ordem geral fica: 0.2a →
+0.1 fatia 2 → C2 → A1 → … O que sobe é a camada 1 (o workflow das cópias e o vigia a confirmarem-se
+um ao outro); a camada 2 (o aviso no ecrã do Sistema) fica no 0.2b, porque precisa do papel
+`vigia_bot` e de sinais de vida na base de dados, e o que mexe na base de dados vem depois da fatia 2
+do 0.1, que põe os testes da base de dados no portão.
 
 **Decisão do Daniel (2026-10-09) — o Dependabot propõe as atualizações das ações; ele revê.** Um
 SHA fixado não recebe correções sozinho. As atualizações chegam como pull requests do Dependabot

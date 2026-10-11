@@ -425,6 +425,10 @@ para mudanças em produção, na base de dados, em credenciais, em workflows ou 
 Para commits só de documentação (SPEC, MELHORIAS, README), basta mostrar o diff ao Daniel e
 confirmar que nenhum dado pessoal entra.
 
+**Quem faz os pushes (decisão do Daniel, 2026-10-11).** O Claude Code pode fazer os pushes de
+commits **só de documentação** que o Daniel já aprovou. Todos os outros — código, workflows, cópias,
+base de dados, configuração — continuam a ser do Daniel: o Claude Code dá-lhe o comando.
+
 ### Achado da etapa 2b — o Templater corria o texto do modelo, sem abrir a nota e sem clique
 
 A mesma classe dos outros achados desta publicação — um caminho de dados tratado como código

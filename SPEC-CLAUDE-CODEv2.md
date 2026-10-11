@@ -1352,7 +1352,22 @@ do 0.1, que põe os testes da base de dados no portão.
    ele).
 4. O vigia do vigia.
 
-Prova, no mesmo dia, de que a vigilância tem de correr na nuvem: a leitura do bucket que deixei a
+**Fatia 1 do 0.2a — FECHADA a 2026-10-11.** O `sistema-vigia` (privado, `9a2d3d0`; opção dos SHA
+ligada e confirmada) confere todos os dias às 14:17 UTC que o Pages serve o `versao.json` do `main`
+do Sistema, com todas as somas certas. Controlos: um destino que dá 404 → vermelho (no PC); o
+caminho do aviso **manual** (corrida 38010293477, 10/10) e o **agendado** (38080071684, um passo
+plantado só para corridas agendadas, revertido em `1905c61`) → vermelhos só pelo passo plantado, o
+vigia em si verde, e o email chegou nos dois casos ao marcador dos alertas, com estrela e com
+notificação no telemóvel (confirmado pelo Daniel).
+
+**Achado — o agendamento do GitHub não é de confiança sozinho.** A primeira corrida agendada do
+vigia (10/10, 14:17 UTC, com o workflow no repositório desde as 00:40) **nunca foi lançada**; a do
+controlo f, marcada para as 15:43, correu às 19:30 (3 h 47 min de atraso); a cópia diária, marcada
+para as 03:17, corre há duas semanas entre as 09:08 e as 10:33. O vigia sozinho não chega: o vigia
+do vigia mantém-se na ordem, depois do portão do `sistema-backups` (que deve vir primeiro porque a
+camada 1 mexe no workflow das cópias, e a decisão da tranca, até 25/10, pode mexer no envio).
+
+Prova, a 10/10, de que a vigilância tem de correr na nuvem: a leitura do bucket que deixei a
 correr no PC, de 5 em 5 minutos, à espera da cópia de 10/10, parou 5 horas (das 09:45 às 15:00
 UTC) porque o PC adormeceu. Não deu nenhuma resposta falsa — a leitura que falhou disse-o —, mas
 não vigiou nada durante esse tempo.

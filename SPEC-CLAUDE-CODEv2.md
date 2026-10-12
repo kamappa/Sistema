@@ -303,7 +303,7 @@ Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de ha
 normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
 código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — instâncias do mesmo
 padrão nesta migração, todas em instrumentos de verificação (cinco quando isto foi escrito; nove
-a 2026-10-06; doze a 2026-10-10):
+a 2026-10-06; doze a 2026-10-10; treze a 2026-10-12):
 
 1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
    guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
@@ -412,6 +412,17 @@ a 2026-10-06; doze a 2026-10-10):
    com ele, o teste falhou como devia (testes 2 e 3). A mesma classe do controlo de build que não
    controlava (sétima instância, o Rollup a retirar a linha plantada). **Antes de ler o resultado
    de um controlo, confirmar que o plantado está lá.**
+13. **O verificador que só olhava para um dos ficheiros** (2026-10-12, portão de testes do
+   `sistema-backups`; décima terceira instância, registada a pedido do Daniel). O plano do portão
+   dizia que o actionlint passava nos dois workflows, e passava — no PC. No CI, o actionlint só corre
+   dentro da bateria de testes, e a bateria só lhe entrega o workflow das cópias: o workflow do
+   próprio portão nunca seria verificado lá. E o controlo planeado para o provar (um `needs:` para um
+   job que não existe, plantado no workflow do portão) ficaria vermelho porque o GitHub recusa um
+   workflow inválido antes de qualquer job correr — um vermelho pela razão errada, que passaria por
+   prova. Apanhado ao ler o código da bateria antes do push. A correção entra no passo seguinte do
+   portão: o actionlint sobre todos os workflows, e o controlo plantado onde só ele o apanha.
+   **Antes de acreditar num verificador, confirmar o que ele recebe para verificar, e não só o que
+   responde.**
 
 A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
 apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
@@ -428,6 +439,22 @@ confirmar que nenhum dado pessoal entra.
 **Quem faz os pushes (decisão do Daniel, 2026-10-11).** O Claude Code pode fazer os pushes de
 commits **só de documentação** que o Daniel já aprovou. Todos os outros — código, workflows, cópias,
 base de dados, configuração — continuam a ser do Daniel: o Claude Code dá-lhe o comando.
+
+**Os detalhes de operação das cópias ficam só nos repositórios privados (regra do Daniel,
+2026-10-12).** Os registos de verificação das cópias — corridas, listagens do bucket, versões,
+somas, horas de envio, saídas dos testes, planos e incidentes — vivem no `sistema-backups`, ao lado
+do A.8.13. Neste registo, que é público, ficam só a decisão, o estado e um apontador. A passagem
+entre sessões, que junta as três frentes, vive no `sistema-vigia` (privado), em `docs/PASSAGEM.md`,
+e não no `sistema-backups`: o vigia não corre em push, e por isso os commits frequentes da passagem
+não disparam nada; no `sistema-backups`, cada push corre a bateria inteira e entra na conferência
+diária do portão, e o repositório mais crítico fica só com código que passou o portão e com a
+documentação do controlo.
+
+**Os ramos de trabalho do `sistema-backups` começam sempre por `portao/` (convenção do Daniel,
+2026-10-12).** Os avisos de falha dos ramos `portao/…` vão para um marcador sem notificação; os do
+`main` notificam no telemóvel. Um ramo com outro nome avisa como o `main` — é a falha no sentido
+seguro: um aviso a mais, nunca um aviso escondido. Os filtros e o seu controlo estão no README do
+`sistema-backups`.
 
 ### Achado da etapa 2b — o Templater corria o texto do modelo, sem abrir a nota e sem clique
 
@@ -1342,19 +1369,11 @@ um ao outro); a camada 2 (o aviso no ecrã do Sistema) fica no 0.2b, porque prec
 `vigia_bot` e de sinais de vida na base de dados, e o que mexe na base de dados vem depois da fatia 2
 do 0.1, que põe os testes da base de dados no portão.
 
-**Interrupção por incidente (2026-10-10).** A cópia mensal de outubro falhou a 01/10 e o aviso ficou
-9 dias por ler (A.8.13 do `sistema-backups`, secção 4.11). A ordem fica (decisão do Daniel,
-2026-10-10):
-1. **A correção das cópias** — a mensal enviada em qualquer dia em que a do mês falte (`1dd9e05`),
-   provada pela corrida agendada de 11/10 (plano W62 no registo).
-2. **O controlo f do aviso** — curto, e fecha a fatia 1 do 0.2a, que está aberta.
-3. **O portão de testes no CI do `sistema-backups` — prioridade alta.** É o repositório mais
-   crítico e o único em que os testes só correm no PC: nada impede hoje que um commit para o
-   `main` mude o envio das cópias sem um único teste. O mesmo desenho do 0.1 do Sistema — os
-   testes antes do resto, com um mínimo contado e um controlo plantado num ramo — e o
-   `shellcheck` nos scripts (não está instalado no PC; a 10/10 a correção da mensal passou sem
-   ele).
-4. O vigia do vigia.
+**Interrupção por incidente (2026-10-10).** Um incidente nas cópias (a mensal de outubro; o detalhe
+está no A.8.13 do `sistema-backups`, secção 4.11, que é privado) interrompeu o 0.2a. A ordem decidida
+pelo Daniel: a correção das cópias; o controlo f do aviso, que fecha a fatia 1 do 0.2a; o portão de
+testes no CI do `sistema-backups`, com prioridade alta, porque era o único repositório em que os
+testes só corriam no PC; e o vigia do vigia.
 
 **Fatia 1 do 0.2a — FECHADA a 2026-10-11.** O `sistema-vigia` (privado, `9a2d3d0`; opção dos SHA
 ligada e confirmada) confere todos os dias às 14:17 UTC que o Pages serve o `versao.json` do `main`
@@ -1366,14 +1385,14 @@ notificação no telemóvel (confirmado pelo Daniel).
 
 **Achado — o agendamento do GitHub não é de confiança sozinho.** A primeira corrida agendada do
 vigia (10/10, 14:17 UTC, com o workflow no repositório desde as 00:40) **nunca foi lançada**; a do
-controlo f, marcada para as 15:43, correu às 19:30 (3 h 47 min de atraso); a cópia diária, marcada
-para as 03:17, corre há duas semanas entre as 09:08 e as 10:33. O vigia sozinho não chega: o vigia
-do vigia mantém-se na ordem, depois do portão do `sistema-backups` (que deve vir primeiro porque a
-camada 1 mexe no workflow das cópias, e a decisão da tranca, até 25/10, pode mexer no envio).
+controlo f, marcada para as 15:43, correu às 19:30 (3 h 47 min de atraso); e as corridas agendadas
+das cópias também chegam com horas de atraso (o detalhe está no `sistema-backups`). O vigia sozinho
+não chega: o vigia do vigia mantém-se na ordem, depois do portão do `sistema-backups` (que deve vir
+primeiro porque a camada 1 mexe no workflow das cópias, e uma decisão em aberto sobre as cópias, até
+25/10, pode mexer no envio).
 
-Prova, a 10/10, de que a vigilância tem de correr na nuvem: a leitura do bucket que deixei a
-correr no PC, de 5 em 5 minutos, à espera da cópia de 10/10, parou 5 horas (das 09:45 às 15:00
-UTC) porque o PC adormeceu. Não deu nenhuma resposta falsa — a leitura que falhou disse-o —, mas
+Prova, a 10/10, de que a vigilância tem de correr na nuvem: uma vigia deixada a correr no PC parou
+5 horas porque o PC adormeceu. Não deu nenhuma resposta falsa — a leitura que falhou disse-o —, mas
 não vigiou nada durante esse tempo.
 
 **Decisão do Daniel (2026-10-09) — o Dependabot propõe as atualizações das ações; ele revê.** Um
@@ -3564,118 +3583,16 @@ Nesta fase há uma vista de diferenças simples; o editor completo fica para a F
 
 ## Cópias de segurança (Fase A, antes de qualquer dado novo)
 
-O plano gratuito do Supabase não tem backups. Esta missão cria dados que não existem
-em mais lado nenhum (horário, exceções, exames, histórico), por isso o backup vem
-primeiro.
-
-- **Nível 0 — vault completo (configurado por mim, fora do código):**
-  - O `vault-sistema` só contém `Sistema/` e `Oraculo/`. `Pessoal/`, `Anexos/` e
-    `Diario/` só existem no PC.
-  - Backup cifrado do lado do cliente (Kopia ou restic) de toda a pasta
-    `ObsidianVault` para armazenamento cloud pessoal (por exemplo, Backblaze B2 ou
-    Cloudflare R2), com snapshots diários.
-  - Nunca usar o OneDrive institucional do IPCA.
-  - O Claude Code documenta os passos no SPEC, mas não guarda credenciais.
-- **Nível 1 — diário, automático, grátis:**
-  - Um workflow do GitHub Actions (cron diário, de madrugada) num repositório privado,
-    `kamappa/sistema-backups`, que só guarda o CÓDIGO do workflow e do restauro.
-  - Faz `pg_dump` (ou `supabase db dump`), com a ligação guardada nos Secrets do GitHub.
-  - Cifra o dump com `age`, usando uma chave pública. A chave privada NUNCA vai para o
-    GitHub; fica no gestor de palavras-passe e numa cópia offline.
-  - Envia o ficheiro cifrado para o Backblaze B2 (região UE, bucket privado, chave de
-    aplicação limitada a esse bucket, que escreve e lista mas não lê nem apaga).
-  - NÃO guarda dumps dentro do Git: o histórico do Git nunca encolhe, e dumps diários
-    fariam o repositório crescer sem limite.
-  - Retenção por regras de ciclo de vida do B2: 14 diários e 12 mensais.
-  - Inclui também os ficheiros da Biblioteca e os documentos marcados "guardar" (ver
-    Fase D).
-  - Efeito secundário útil: a atividade diária evita a pausa do projeto gratuito por
-    inatividade. Confirmar que conta.
-  - Se o backup falhar, envia uma notificação ("Saúde do sistema").
-- **Nível 2 — cópia fora da cloud (opcional, recomendado):**
-  - Script para o computador de casa (Windows, Agendador de Tarefas) que descarrega
-    semanalmente o último backup para um disco local.
-  - Cumpre a regra 3-2-1: 3 cópias, 2 suportes, 1 fora do sítio.
-- **Restauro:**
-  - Procedimento escrito no SPEC: criar projeto novo, decifrar, `psql`/restore,
-    reconfigurar Secrets e Edge Functions.
-  - Testar o restauro num projeto de teste no fim da Fase A e depois a cada 3 meses.
-    Um backup nunca testado não conta como backup.
-- **Custos:** o GitHub Actions em repositórios privados tem minutos gratuitos
-  limitados. Medir a duração do job e confirmar que fica muito abaixo do limite.
-
-**Estado (2026-10-06): nível 1 em produção, provado por leitura de volta; teste de
-restauro completo feito a 06/10, com login — a Fase A está fechada.** (Até 26/09 faltava
-esse teste.) O código vive no privado
-`kamappa/sistema-backups` (com a correção do dump, `39ab465`, desde 05/10; cópia local em
-`%USERPROFILE%\Documents\sistema-backups`); o README desse repositório é o manual de
-configurar, verificar, descarregar, repor e testar.
-
-- O dump usa os filtros do `supabase db dump` (CLI v2.109.1) copiados para um script e
-  corridos com o `pg_dump` 17 do repositório oficial do PostgreSQL: o mesmo caminho nos
-  testes e no GitHub Actions (o CLI precisa de Docker).
-- Os dados deixam de fora o `cron.job` (tem o token do Oráculo), o histórico do cron,
-  as sessões, os refresh tokens, a auditoria e o pg_net; uma guarda recusa a cópia se
-  algum aparecer. Numa reposição, os crons recriam-se com um token novo.
-- `acls.sql`: as permissões exatas da API. Sem ele, repor num projeto novo devolvia
-  EXECUTE ao `anon` nas funções das sessões — o teste apanhou-o.
-- `age` 1.3.2 com o hash fixado; `actions/checkout` fixado por commit. B2: `diario/`
-  todos os dias e `mensal/` no dia 1; a retenção são regras do bucket.
-- Testes: `node testes/testar.mjs` nesse repositório — dois PostgreSQL locais, a
-  estrutura real com dados sintéticos, 48 verificações (com um `aws` falso que imita o B2
-  com Object Lock), workflow validado pelo `actionlint` e o bit de execução dos scripts
-  verificado (o runner é Linux). Desde 05/10 os clusters arrancam como num projeto
-  Supabase: o `postgres` sem superutilizador.
-- 2026-09-24: primeira corrida do `dump.sh` e da guarda contra a base real — um dump
-  manual antes da migração do Lote 1, feito no portátil com o `pg_dump` 18 pelo Session
-  pooler (porta 5432) e guardado fora do repositório: guarda ok, sem `cron.job` nem
-  token. Não substitui a corrida no GitHub Actions.
-- Configurado (24–26/09): chave age com cópia offline; B2 na UE (`eu-central-003`),
-  bucket privado com SSE-B2, ciclo de vida de 14 diárias e 12 mensais, **Object Lock em
-  compliance, 14 dias** (o site só oferece esse modo: ninguém apaga nem encurta uma cópia
-  trancada, nem o dono da conta nem o suporte), e tectos com alerta por email (10 GB,
-  1 GB/dia de descarregamento, 2 500 transações Class B e C por dia).
-- Chaves: a do workflow (`writeFiles`, `listFiles`, `listAllBucketNames`, só o bucket)
-  nas Secrets do GitHub; uma só de leitura, que nunca vai para o GitHub, em DPAPI no PC,
-  para verificar e descarregar. Os métodos dos segredos estão no README e em
-  `ferramentas/`.
-- **Incidente de 24 a 26/09:** depois de ligado o Object Lock, três corridas verdes (#2 a
-  #4) não guardaram cópia nenhuma. O envio antigo ia sem soma (`when_required`); com
-  retenção por omissão, o B2 exige-a e respondeu logo; o aws-cli 2.36.49 leu mal a
-  resposta, repetiu três vezes, e um erro interno dele engoliu a falha — código 0.
-  Correção: envio com `Content-MD5` e prova depois do envio (a versão criada tem de estar
-  na lista, com o tamanho e o md5; senão a corrida falha). Enquanto durou, a única cópia
-  no B2 foi a de 24/09. Regra que fica: **só a leitura de volta prova uma cópia**.
-- Prova em produção (26/09, corrida #5): `enviado e confirmado`; as duas vistas do bucket
-  (nativa e S3) iguais ao registo; a cópia descarregada com as somas do runner; e
-  `repor.sh --so-verificar` com a chave privada — decifrou, somas certas, contagens iguais
-  às da produção (app_state 1, courses 14, oracle_reports 5, radar_items 85, auth.users 1).
-- **Teste de restauro completo: 2026-10-06 — passou, e fecha a Fase A.** A primeira
-  tentativa, a 05/10, falhou (`permission denied for table buckets_vectors`): o dump
-  copiava tabelas da plataforma onde o `postgres` não pode inserir, e todas as cópias desde
-  24/09 abriam mas não se repunham pelo procedimento escrito; os testes não o viam porque o
-  `postgres` deles era superutilizador (lição dos instrumentos, oitava instância). Correção:
-  `08e8d72` (o teste) e `39ab465` (o dump calcula essas tabelas no momento e lista-as no topo
-  do `data.sql`). A cópia agendada de 06/10 (corrida #15, sem operador) descarregada pelo
-  identificador da versão, reposta num projeto descartável numa só transação — 38 tabelas,
-  **104 s** —, o catálogo comparado com a produção (16 de 17 secções iguais; a 17.ª é a
-  versão do `pg_net`, que vem da imagem da plataforma e cujo diff não muda o
-  `net.http_post`), e o login provado com controlo (a password errada recusada; o último
-  login mudou no projeto reposto e não na produção). O projeto descartável foi apagado e o
-  apagamento verificado. Próximo teste trimestral: até 2027-01-06. Evidência: A.8.13 v1.4,
-  secção 4.10, e `docs/evidencias/` do `sistema-backups`.
-- **Limpeza do B2 (06/10), depois do restauro provado:** apagadas no site as quatro chaves
-  e os dois buckets de teste; a primeira chave do workflow (que podia apagar no bucket das
-  cópias) já não existia — verificado pelo Daniel no site. Prova deste lado: as quatro
-  chaves passaram a ser recusadas pelo B2 (com a de leitura a entrar na mesma corrida), e a
-  conta passou de quatro buckets para dois (o das cópias e o do Kopia); só depois saíram
-  as pastas locais das chaves de teste. A chave age do disco e a cópia offline têm a mesma
-  soma, e a chave pública delas é a do workflow.
-- Por fazer: o tempo de recuperação de ponta a ponta (função, segredos, crons, frontend,
-  Auth) por medir; o nível 2 (opcional); confirmar se a ligação diária evita a pausa por
-  inatividade do plano gratuito; e os pendentes do README (guarda anti-OneDrive dos dumps
-  manuais, mudar para `C:\sistema`, defesa técnica contra cópias forjadas, tecto de
-  descarregamento antes de uma reposição a sério).
+O plano gratuito do Supabase não tem cópias descarregáveis, e esta missão cria dados que não existem
+em mais lado nenhum; por isso as cópias vieram primeiro. **Estado (2026-10-12):** a cópia diária da
+base de dados corre em produção desde 24/09 — cifrada, com a chave para decifrar fora da nuvem,
+guardada na UE fora do GitHub, e provada pela leitura de volta —, e o restauro completo num projeto
+descartável passou a 06/10, o que fecha a Fase A; o próximo teste trimestral é até 2027-01-06. O
+vault inteiro tem a sua própria cópia, configurada pelo Daniel fora do código. Pela regra de
+2026-10-12, os detalhes de operação — configuração, chaves, corridas, incidentes, testes e
+pendentes — vivem só no repositório privado `sistema-backups`: o controlo e a prova em
+`docs/A.8.13-copias-de-seguranca.md`, o manual no `README.md` e os registos de verificação em
+`docs/evidencias/`.
 
 ## Correções ao código existente
 

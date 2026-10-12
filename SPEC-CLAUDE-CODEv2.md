@@ -433,6 +433,14 @@ a 2026-10-06; doze a 2026-10-10; catorze a 2026-10-12):
    com a guarda e falham, cada um sozinho, quando se tira a metade da guarda que lhe toca.
    **Uma guarda sem um teste que a faça disparar é uma promessa, não uma prova.**
 
+No mesmo dia, um tropeço da classe da primeira instância, apanhado antes de virar afirmação
+(registado a pedido do Daniel). A tarefa em segundo plano que corria o vigia no PC acabou com
+«exit 0», mas esse era o código do `date` que fechava o comando, e não o do vigia: o resultado
+verdadeiro só se soube ao ler a saída (o vigia escrevia o seu próprio código, também 0). Não enganou
+ninguém, mas é o mesmo defeito do `aws` de setembro — quem fecha a execução declara o sucesso — e
+já tinha aparecido a 2026-10-04 (os tropeços da sétima instância). Desde então, uma tarefa em
+segundo plano acaba com o código do instrumento (`exit $c`), e não com o do último comando.
+
 A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
 apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
 `git -c core.autocrlf=false -c core.eol=lf archive` e compara-se com

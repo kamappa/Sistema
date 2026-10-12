@@ -1103,6 +1103,15 @@ Daniel:** 8 caracteres de um id não identificam ninguém sozinhos — não é u
 anotado. **Sem ação por agora**; decide-se junto com a escolha A/C do caso da mentora, acima, e
 pela mesma regra: identificadores, mesmo parciais, não entram nos registos públicos.
 
+### RGPD — o nome da conta do Windows neste registo público (registado a 2026-10-12; menor)
+
+Visto a 2026-10-12, quando o detetor de dados pessoais passou pelo SPEC inteiro — até aí só corria
+sobre os diffs de cada commit, e cada diff dava 0: o nome da conta do Windows do Daniel estava escrito
+uma vez, num caminho para o vault do Obsidian (na secção da ponte do vault), público desde `dda72aa`
+(2026-09-27). **Trocado por `<conta>` a 2026-10-12.** Fica na história do git desde `dda72aa`, e o
+Daniel aceita-o — reescrever a história partia o trilho de evidência, a mesma razão do caso da mentora.
+Daqui nasce uma regra para o 0.3: o detetor passa todos os meses pelos repositórios públicos inteiros.
+
 ### Etapa 4 — preparar a publicação (2026-10-04)
 
 - **A reversão estava errada desde 27/09 e foi provada antes de ser reescrita.** Com a fonte em
@@ -1183,6 +1192,10 @@ com acesso a mais) foram todas descobertas à mão.
   esperadas (corrida mensal no PC); **nenhuma app do GitHub com «All repositories» — item manual com
   captura**, porque a documentação não confirma que um token pessoal liste as apps instaladas. Cada
   verificação tem o seu desvio plantado. Custo 0 $. 2–3 sessões.
+  **Regra do Daniel (2026-10-12):** o detetor de dados pessoais passa todos os meses pelos
+  repositórios públicos inteiros, e não só pelos diffs. Um verificador que só olha para o que é novo
+  nunca vê o que já lá estava: o nome da conta do Windows esteve à vista neste SPEC desde 27/09 porque
+  cada diff dava 0 (a secção de RGPD do nome da conta, acima).
 
 **Registo de credenciais da fase 0** (nenhuma existe ainda; nascem com as fatias, cada uma com
 validade, e o vigia avisa 14 dias antes de expirar — amarelo — e no dia — vermelho; as datas vivem
@@ -1437,6 +1450,25 @@ a uma corrida que o GitHub não lance (o plano vem depois do portão; o detalhe 
 vigia (camada 1) → 0.1 fatia 2 → C2 → A1 → A2 → 0.3a → C1 → B1 → D1 com 0.2b → D2 → A5 → A3/A4 →
 saldo → D4 → D3 → D5.
 
+**A primeira deteção do vigia (2026-10-12).** O push do `2203bb9` (só documentação) lançou a publicação,
+e ela ficou presa no job de testes: o teste de toque «o céu arranca com WebGL e entra no Ofício» falhou
+aos 20 segundos — às 10:14, na mesma imagem do runner, tinha passado em 10,9 — e o processo não saiu,
+porque o Chrome ficou aberto, até o GitHub cortar o job ao fim de 20 minutos. O job e a corrida
+acabaram «cancelled», o build e o deploy foram saltados, e o site ficou no `32cfa1f`, com a mesma app.
+**Não chegou nenhum email: uma corrida cancelada pelo tempo não avisa.** O vigia, corrido no PC a seguir
+ao push, deu vermelho — «o site serve 32cfa1f…, o main é 2203bb9…» —, a primeira falha real que apanhou.
+A publicação seguinte (`63b95ff`, 16:20) passou, com o mesmo teste verde: ele falha às vezes, e quando
+falha não sai.
+A lição vale também para as cópias: uma cópia pendurada e cancelada não manda email, e o vigia das cópias
+tem de a apanhar (decisão do Daniel).
+
+**Trabalho novo (decisão do Daniel, 2026-10-12), logo a seguir ao vigia das cópias:** os testes de toque
+passam a fechar o Chrome sempre, mesmo quando falham, e a falhar com um erro claro antes do timeout do
+job — um teste pendurado tem de acabar «failed», com email, e não «cancelled»; e investiga-se a falha do
+teste do céu. A ordem fica: o portão do `sistema-backups` → o vigia das cópias → os testes de toque do
+Sistema → o vigia do vigia (camada 1) → 0.1 fatia 2 → C2 → A1 → A2 → 0.3a → C1 → B1 → D1 com 0.2b → D2
+→ A5 → A3/A4 → saldo → D4 → D3 → D5.
+
 **Decisão do Daniel (2026-10-09) — o Dependabot propõe as atualizações das ações; ele revê.** Um
 SHA fixado não recebe correções sozinho. As atualizações chegam como pull requests do Dependabot
 (`.github/dependabot.yml` com `package-ecosystem: "github-actions"`), nunca com merge automático:
@@ -1675,7 +1707,7 @@ em 2026-07-13. Regra de privacidade por desenho: o Oráculo só vê a árvore
 Infraestrutura:
 - Repo privado `kamappa/vault-sistema` (auto-init, branch main)
 - Vault movido do OneDrive institucional do IPCA para
-  `C:\Users\shohe\Documents\ObsidianVault` (privacidade + evitar conflito
+  `C:\Users\<conta>\Documents\ObsidianVault` (privacidade + evitar conflito
   Git/OneDrive); Obsidian repontado; plugin Obsidian Git (auto-commit/push 15 min)
 - `.gitignore` de whitelist: só `Sistema/`, `Oraculo/`, `README.md`, `.gitignore`
   entram no repo — tudo o resto do vault fica fora

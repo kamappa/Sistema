@@ -303,7 +303,7 @@ Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de ha
 normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
 código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — instâncias do mesmo
 padrão nesta migração, todas em instrumentos de verificação (cinco quando isto foi escrito; nove
-a 2026-10-06; doze a 2026-10-10; treze a 2026-10-12):
+a 2026-10-06; doze a 2026-10-10; catorze a 2026-10-12):
 
 1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
    guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
@@ -423,6 +423,15 @@ a 2026-10-06; doze a 2026-10-10; treze a 2026-10-12):
    portão: o actionlint sobre todos os workflows, e o controlo plantado onde só ele o apanha.
    **Antes de acreditar num verificador, confirmar o que ele recebe para verificar, e não só o que
    responde.**
+14. **A guarda que nunca tinha visto a falha que guarda** (2026-10-12, portão de testes do
+   `sistema-backups`; décima quarta instância, registada a pedido do Daniel). A guarda do envio
+   das cópias que exige, na resposta do armazenamento, a versão criada nasceu do incidente de
+   setembro (primeira instância) e nunca tinha sido testada: o `aws` falso dos testes devolvia
+   sempre uma versão válida, e a bateria dava verde sem nunca exercitar a falha que a guarda existe
+   para apanhar. Apanhado antes de mexer na linha por causa de um aviso do shellcheck — decisão do
+   Daniel: primeiro o teste, depois a linha. Os dois testes novos (a versão vazia e «None») passam
+   com a guarda e falham, cada um sozinho, quando se tira a metade da guarda que lhe toca.
+   **Uma guarda sem um teste que a faça disparar é uma promessa, não uma prova.**
 
 A regra, também no A.8.13 como lição 9: antes de acreditar num verde, ver o instrumento
 apanhar um caso plantado que tem de apanhar. Para bytes: exporta-se com
@@ -1159,10 +1168,10 @@ num `credenciais.json` do `sistema-vigia`, conferidas com o servidor na corrida 
 
 | Credencial | Pode | Não pode | Onde vive | Validade | Cria / retira |
 |---|---|---|---|---|---|
-| Chave B2 só de listagem | listar nomes, tamanhos, datas e md5 das cópias (`listFiles`, `listAllBucketNames`), só no bucket das cópias | ler conteúdo, escrever, apagar | Secrets do `sistema-vigia` | com validade no B2 | o Daniel, pelo CLI com a chave principal (apagada a seguir); criada pelo CLI, só se vê e retira pelo CLI (A.8.13, 4.9) |
+| [retirado: plano de credencial das cópias — ver sistema-backups] | | | | | |
 | Papel `vigia_bot` (Postgres) | ler vistas só com datas (`saude_*`) e o catálogo; inserir sinais de vida | ler o conteúdo do `app_state`, escrever dados, `auth` | Secrets do `sistema-vigia` (password) | `VALID UNTIL` | migração (`db push`, comando do Daniel); retirar com `NOLOGIN` |
 | Token do Pages (GitHub, fine-grained) | ler a configuração do Pages do `kamappa/Sistema` | código, definições, outros repositórios | Secrets do `sistema-vigia` | a mais curta que o GitHub deixar | o Daniel, em Developer settings; retirar aí |
-| Chave B2 com `listKeys` | listar as chaves da conta (nomes, permissões, buckets — sem segredos) | criar ou apagar chaves; ficheiros | só no PC, em DPAPI | com validade no B2 | o Daniel, pelo CLI; confirmar antes na doc do B2 que uma chave pode ter só `listKeys` |
+| [retirado: plano de credencial das cópias — ver sistema-backups] | | | | | |
 
 As credenciais que já existem (as do Oráculo, do vault, das cópias e a chave age) entram no mesmo
 registo no 0.3.

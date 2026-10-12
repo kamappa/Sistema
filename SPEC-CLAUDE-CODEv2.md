@@ -303,7 +303,7 @@ Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de ha
 normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
 código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — instâncias do mesmo
 padrão nesta migração, todas em instrumentos de verificação (cinco quando isto foi escrito; nove
-a 2026-10-06; doze a 2026-10-10; catorze a 2026-10-12):
+a 2026-10-06; doze a 2026-10-10; quinze a 2026-10-12):
 
 1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
    guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
@@ -432,6 +432,14 @@ a 2026-10-06; doze a 2026-10-10; catorze a 2026-10-12):
    Daniel: primeiro o teste, depois a linha. Os dois testes novos (a versão vazia e «None») passam
    com a guarda e falham, cada um sozinho, quando se tira a metade da guarda que lhe toca.
    **Uma guarda sem um teste que a faça disparar é uma promessa, não uma prova.**
+15. **O teste que desaparecia em vez de falhar** (2026-10-12, a bateria das cópias; décima quinta
+   instância, registada a pedido do Daniel). O teste que confirma o bit de execução dos scripts só
+   existia se o `git ls-files` respondesse: se a listagem falhasse ou viesse vazia, o teste não
+   corria, e a bateria contava uma verificação a menos — e ficava verde. No portão do CI, o mínimo
+   apanhava-o; no PC, dava 54 de 54. Apanhado ao ler o código da bateria para o plano do portão. A
+   correção entra no passo seguinte do portão: o teste falha com «não consegui listar» em vez de
+   desaparecer. **Um teste que só existe quando o instrumento responde cala-se quando mais
+   importava.**
 
 No mesmo dia, um tropeço da classe da primeira instância, apanhado antes de virar afirmação
 (registado a pedido do Daniel). A tarefa em segundo plano que corria o vigia no PC acabou com

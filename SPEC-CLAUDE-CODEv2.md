@@ -464,6 +464,12 @@ confirmar que nenhum dado pessoal entra.
 **Quem faz os pushes (decisão do Daniel, 2026-10-11).** O Claude Code pode fazer os pushes de
 commits **só de documentação** que o Daniel já aprovou. Todos os outros — código, workflows, cópias,
 base de dados, configuração — continuam a ser do Daniel: o Claude Code dá-lhe o comando.
+**Ajuste (2026-10-12):** no `Sistema`, um push para o `main` publica o site, por isso é **sempre do
+Daniel**, mesmo que seja só documentação. Os pushes de documentação aprovada no `sistema-backups` e no
+`sistema-vigia`, que não publicam nada, pode fazê-los o Claude Code. A causa: nesse dia, o
+classificador do Claude Code recusou um push de documentação aprovada para o `main` do `Sistema`
+(«Production Deploy»), depois de ter deixado passar três iguais de manhã; o Claude Code não contornou
+a recusa, e a regra passou a dizer o que a recusa já dizia.
 
 **Os detalhes de operação das cópias ficam só nos repositórios privados (regra do Daniel,
 2026-10-12).** Os registos de verificação das cópias — corridas, listagens do bucket, versões,
@@ -1419,6 +1425,17 @@ primeiro porque a camada 1 mexe no workflow das cópias, e uma decisão em abert
 Prova, a 10/10, de que a vigilância tem de correr na nuvem: uma vigia deixada a correr no PC parou
 5 horas porque o PC adormeceu. Não deu nenhuma resposta falsa — a leitura que falhou disse-o —, mas
 não vigiou nada durante esse tempo.
+
+**A ordem nova (decisão do Daniel, 2026-10-12): o vigia das cópias passa à frente do vigia do
+vigia.** A cópia diária de 12/10 foi lançada pelo GitHub mais tarde do que em qualquer dia anterior,
+e só se sabia que ainda não tinha corrido porque alguém estava a olhar. Junto com a primeira corrida
+agendada do vigia, que o GitHub nunca lançou (10/10), isto mostra que um dia sem cópia pode passar sem
+aviso: **uma corrida que não acontece não manda email.** É o buraco mais perigoso, e por isso, acabado
+o portão de testes do `sistema-backups`, vem primeiro o vigia das cópias; e as cópias passam a resistir
+a uma corrida que o GitHub não lance (o plano vem depois do portão; o detalhe fica no
+`sistema-backups`). A ordem fica: o portão do `sistema-backups` → o vigia das cópias → o vigia do
+vigia (camada 1) → 0.1 fatia 2 → C2 → A1 → A2 → 0.3a → C1 → B1 → D1 com 0.2b → D2 → A5 → A3/A4 →
+saldo → D4 → D3 → D5.
 
 **Decisão do Daniel (2026-10-09) — o Dependabot propõe as atualizações das ações; ele revê.** Um
 SHA fixado não recebe correções sozinho. As atualizações chegam como pull requests do Dependabot

@@ -303,7 +303,7 @@ Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de ha
 normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
 código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — instâncias do mesmo
 padrão nesta migração, todas em instrumentos de verificação (cinco quando isto foi escrito; nove
-a 2026-10-06; doze a 2026-10-10; quinze a 2026-10-12):
+a 2026-10-06; doze a 2026-10-10; dezasseis a 2026-10-12):
 
 1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
    guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
@@ -440,6 +440,17 @@ a 2026-10-06; doze a 2026-10-10; quinze a 2026-10-12):
    correção entra no passo seguinte do portão: o teste falha com «não consegui listar» em vez de
    desaparecer. **Um teste que só existe quando o instrumento responde cala-se quando mais
    importava.**
+16. **A barreira de reserva sem teste** (2026-10-12, a conferência do `main` do `sistema-backups`;
+   décima sexta instância, registada a pedido do Daniel). A conferência tinha uma segunda barreira
+   escrita de propósito — as comparações com a referência na forma «não chega à referência», para
+   que um valor por ler nunca desse verde — e nenhum dos seus 14 testes a fazia disparar: desligada,
+   a bateria dava 69 de 69. Apanhado porque o Daniel recusou como prova uma mutação em que o teste
+   falhava no caso errado: a segunda barreira tinha fechado o caso que a mutação abria. Decisão dele:
+   não se tira uma proteção para facilitar a prova; dá-se-lhe um teste. **Consequência:** o teste
+   novo (uma referência inválida não pode dar verde) descobriu que a barreira não apanhava uma
+   referência vazia nem «0» — `Number('')` e `Number('0')` dão 0 — e a conferência dava verde a
+   comparar com um mínimo de zero. Sem o teste, o buraco ficava. **Uma barreira de reserva sem um
+   teste em que só ela atue é a promessa da décima quarta, e esconde os buracos que tem.**
 
 No mesmo dia, um tropeço da classe da primeira instância, apanhado antes de virar afirmação
 (registado a pedido do Daniel). A tarefa em segundo plano que corria o vigia no PC acabou com

@@ -303,7 +303,7 @@ Registado com destaque a pedido do Daniel (2026-09-27): **uma comparação de ha
 normaliza antes de comparar dá sempre verde e não verifica nada.** É a mesma classe do
 código de saída 0, do teste que não desenhava e do «permissões: nenhuma» — instâncias do mesmo
 padrão nesta migração, todas em instrumentos de verificação (cinco quando isto foi escrito; nove
-a 2026-10-06; doze a 2026-10-10; dezasseis a 2026-10-12):
+a 2026-10-06; doze a 2026-10-10; dezasseis a 2026-10-12; dezassete a 2026-10-14):
 
 1. **O código de saída 0** (cópias, 24–26/09): o `aws s3 cp` saiu com 0 sem a cópia ficar
    guardada; três corridas verdes sem cópia. No A.8.13 do `sistema-backups`, secção 4.
@@ -451,6 +451,15 @@ a 2026-10-06; doze a 2026-10-10; dezasseis a 2026-10-12):
    referência vazia nem «0» — `Number('')` e `Number('0')` dão 0 — e a conferência dava verde a
    comparar com um mínimo de zero. Sem o teste, o buraco ficava. **Uma barreira de reserva sem um
    teste em que só ela atue é a promessa da décima quarta, e esconde os buracos que tem.**
+17. **O detetor que não travava o commit** (2026-10-14, a passagem do `sistema-vigia`; décima sétima instância,
+   registada a pedido do Daniel). O detetor de dados pessoais correu antes do commit e encontrou o nome da conta do
+   Windows num caminho, mas o código de saída lido foi o do `tail` que vinha a seguir na mesma linha, e o commit e o
+   push não dependiam do detetor: o commit `9785c39` saiu com o nome e com «Dados pessoais: 0» na mensagem, o que é
+   falso. É a classe da primeira instância: um código de saída 0 que não era o de quem verificou. Corrigido no
+   `3618b63`; o `9785c39` fica na história desse repositório, que é privado (decisão do Daniel: reescrevê-la não
+   apagava as cópias nem as vistas em cache). Daqui em diante, o commit só corre se o detetor sair limpo, e lê-se o
+   código de saída do próprio detetor. **Uma verificação que não consegue travar a ação que protege é uma observação,
+   não um controlo.**
 
 No mesmo dia, um tropeço da classe da primeira instância, apanhado antes de virar afirmação
 (registado a pedido do Daniel). A tarefa em segundo plano que corria o vigia no PC acabou com
